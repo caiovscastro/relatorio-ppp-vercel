@@ -5,9 +5,20 @@ export default function handler(req, res) {
     return res.status(405).json({ message: "Método não permitido" });
   }
 
-  const { usuario, senha, loja } = req.body || {};
+  // Garante que vamos conseguir ler o JSON tanto em string quanto em objeto
+  let data = req.body || {};
 
-  // Lista de acessos válidos (você pode ajustar como quiser)
+  if (typeof data === "string") {
+    try {
+      data = JSON.parse(data);
+    } catch (e) {
+      data = {};
+    }
+  }
+
+  const { usuario, senha, loja } = data;
+
+  // Lista de acessos válidos (ajuste aqui conforme sua regra real)
   const usuariosValidos = [
     {
       usuario: "LOJA1",
@@ -36,7 +47,9 @@ export default function handler(req, res) {
 
   // Se não encontrou, login inválido
   if (!encontrado) {
-    return res.status(401).json({ message: "Usuário, senha ou loja inválidos." });
+    return res
+      .status(401)
+      .json({ message: "Usuário, senha ou loja inválidos." });
   }
 
   // Se encontrou, login OK
