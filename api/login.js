@@ -1,63 +1,48 @@
 // api/login.js
-// Rota de login da API na Vercel
-
-const loginsPermitidos = [
-  {
-    usuario: "LOJA1",
-    senha: "1234",
-    loja: "ULT 01 - PLANALTINA",
-  },
-  {
-    usuario: "LOJA2",
-    senha: "abcd",
-    loja: "ULT 02 - OUTRA LOJA",
-  },
-  // Adicione mais combinações aqui conforme precisar
-];
-
-export default async function handler(req, res) {
-  // Só aceitamos POST
+export default function handler(req, res) {
+  // Só aceitamos POST. GET continua respondendo "Método não permitido".
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Método não permitido" });
   }
 
-  let body = req.body || {};
+  const { usuario, senha, loja } = req.body || {};
 
-  // Garantir que o body esteja em objeto (caso venha string)
-  if (typeof body === "string") {
-    try {
-      body = JSON.parse(body);
-    } catch (e) {
-      body = {};
-    }
-  }
+  // Lista de acessos válidos (você pode ajustar como quiser)
+  const usuariosValidos = [
+    {
+      usuario: "LOJA1",
+      senha: "1234",
+      loja: "ULT 01 - PLANALTINA",
+    },
+    {
+      usuario: "LOJA2",
+      senha: "5678",
+      loja: "ULT 08 - ARAPOANGA",
+    },
+    {
+      usuario: "GERENTE",
+      senha: "9999",
+      loja: "ULT 14 - ÁGUAS LINDAS",
+    },
+  ];
 
-  const { usuario, senha, loja } = body;
-
-  // Valida se todos foram enviados
-  if (!usuario || !senha || !loja) {
-    return res
-      .status(400)
-      .json({ ok: false, message: "Usuário, senha e loja são obrigatórios." });
-  }
-
-  const match = loginsPermitidos.find(
-    (item) =>
-      item.usuario === usuario &&
-      item.senha === senha &&
-      item.loja === loja
+  // Verifica se existe um registro que bate com as 3 infos
+  const encontrado = usuariosValidos.find(
+    (u) =>
+      u.usuario === usuario &&
+      u.senha === senha &&
+      u.loja === loja
   );
 
-  if (!match) {
-    // Combinação inválida
-    return res
-      .status(401)
-      .json({ ok: false, message: "Usuário, senha ou loja inválidos." });
+  // Se não encontrou, login inválido
+  if (!encontrado) {
+    return res.status(401).json({ message: "Usuário, senha ou loja inválidos." });
   }
 
-  // Login OK
+  // Se encontrou, login OK
   return res.status(200).json({
-    ok: true,
     message: "Login autorizado.",
+    usuario: encontrado.usuario,
+    loja: encontrado.loja,
   });
 }
