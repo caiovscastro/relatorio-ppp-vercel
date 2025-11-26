@@ -13,12 +13,13 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
         }
 
         .container {
             width: 90%;
             max-width: 340px;
-            background: white;
+            background: #ffffff;
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.15);
@@ -41,6 +42,8 @@
             margin-top: 5px;
             border: 1px solid #bbb;
             border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
         }
 
         button {
@@ -64,6 +67,7 @@
             color: #b30000;
             text-align: center;
             font-weight: bold;
+            min-height: 18px;
         }
     </style>
 </head>
@@ -73,10 +77,10 @@
         <h2>Acesso PPP</h2>
 
         <label>Usuário</label>
-        <input type="text" id="usuario" />
+        <input type="text" id="usuario" autocomplete="username" />
 
         <label>Senha</label>
-        <input type="password" id="senha" />
+        <input type="password" id="senha" autocomplete="current-password" />
 
         <label>Loja</label>
         <select id="loja">
@@ -94,12 +98,13 @@
     <script>
         async function login() {
             const usuario = document.getElementById("usuario").value.trim();
-            const senha = document.getElementById("senha").value.trim();
-            const loja = document.getElementById("loja").value;
+            const senha   = document.getElementById("senha").value.trim();
+            const loja    = document.getElementById("loja").value;
 
             const msg = document.getElementById("msg");
             msg.textContent = "";
 
+            // Validação básica
             if (!usuario || !senha || !loja) {
                 msg.textContent = "Preencha todos os campos.";
                 return;
@@ -114,18 +119,27 @@
 
                 const dados = await resposta.json();
 
-                if (!resposta.ok) {
-                    msg.textContent = dados.message || "Erro ao fazer login.";
+                // Se a API retornar erro HTTP ou success = false
+                if (!resposta.ok || !dados.success) {
+                    msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
                     return;
                 }
 
                 // LOGIN OK
-                alert("Login autorizado para: " + dados.usuario + "\nLoja: " + dados.loja);
+                // (opcional) aviso rápido
+                // alert(`Login autorizado para: ${dados.usuario || usuario}\nLoja: ${dados.loja || loja}`);
 
-                // Redirecionar para outra página depois do login
-                window.location.href = "/painel.html";
+                // Monta os parâmetros para o painel
+                const params = new URLSearchParams({
+                    usuario: dados.usuario || usuario,
+                    loja: dados.loja || loja
+                });
+
+                // Redireciona para o painel levando usuário e loja na URL
+                window.location.href = `/painel.html?${params.toString()}`;
 
             } catch (erro) {
+                console.error(erro);
                 msg.textContent = "Erro de conexão com o servidor.";
             }
         }
