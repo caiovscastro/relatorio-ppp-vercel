@@ -15,7 +15,10 @@ export default function handler(req, res) {
     );
 
     if (!autorizado) {
-        return res.status(401).json({ autorizado: false, message: "Credenciais inválidas" });
+        return res.status(401).json({
+            autorizado: false,
+            message: "Credenciais inválidas"
+        });
     }
 
     return res.status(200).json({
