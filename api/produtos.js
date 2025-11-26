@@ -2,28 +2,91 @@
 //
 // Rota GET /api/produtos
 //
-// Objetivo:
-//  - Ler produtos da planilha Google (aba BASE, colunas A..I)
-//  - Opcionalmente filtrar pela loja (?loja=ULT%2001%20-%20PLANALTINA)
-//  - Retornar JSON com a lista de produtos.
+// Lê os produtos da planilha Google usando conta de serviço.
 //
-// IMPORTANTE:
-//  - Substitua SPREADSHEET_ID pelo ID REAL da sua planilha.
-//  - Substitua GOOGLE_API_KEY pela sua API KEY gerada no Google Cloud Console.
-//  - Certifique-se de que a Google Sheets API está ativada no projeto do Cloud.
+// VARIÁVEIS DE AMBIENTE ACEITAS (na Vercel → Settings → Environment Variables):
+//
+//  Preferencial (mais padrão):
+//    - GOOGLE_SERVICE_ACCOUNT_EMAIL  -> e-mail da conta de serviço
+//    - GOOGLE_PRIVATE_KEY            -> chave privada
+//    - SPREADSHEET_ID                -> ID da planilha
+//
+//  Também aceitamos os nomes que você já criou:
+//    - E-MAIL DA CONTA DE SERVIÇO DO GOOGLE  -> e-mail da conta de serviço
+//    - CHAVE_PRIVADA_DO_GOOGLE               -> chave privada
+//    - ID_DA_PLANILHA                        -> ID da planilha
+//
+// A planilha deve ter uma aba chamada "BASE" com as colunas:
+//  A = EAN
+//  B = Cód Consinco
+//  C = Produto
+//  D = Departamento
+//  E = Seção
+//  F = Grupo
+//  G = Subgrupo
+//  H = Categoria
+//  I = Loja
+//
+// Exemplos de uso no navegador:
+//  - GET /api/produtos
+//  - GET /api/produtos?loja=ULT%2001%20-%20PLANALTINA
 
-// ID da planilha (aquele código grande na URL do Google Sheets)
-const SPREADSHEET_ID = "COLOQUE_AQUI_O_ID_DA_SUA_PLANILHA";
+import { google } from "googleapis";
 
-// Sua API Key do Google Cloud (com acesso à Google Sheets API)
-const GOOGLE_API_KEY = "COLOQUE_AQUI_SUA_API_KEY";
+const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
 
-// Nome da aba que contém a BASE de produtos
-const SHEET_NAME = "BASE";
+// -----------------------------------------------------------------------------
+// Leitura das variáveis de ambiente (com fallback pros nomes que você usou)
+// -----------------------------------------------------------------------------
+function getEnvVars() {
+  // E-mail da conta de serviço
+  const serviceAccountEmail =
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
+    process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
 
-// Função handler usada pela Vercel para a rota /api/produtos
+  // Chave privada
+  const privateKeyRaw =
+    process.env.GOOGLE_PRIVATE_KEY ||
+    process.env.CHAVE_PRIVADA_DO_GOOGLE;
+
+  // ID da planilha
+  const spreadsheetId =
+    process.env.SPREADSHEET_ID ||
+    process.env.ID_DA_PLANILHA;
+
+  if (!serviceAccountEmail || !privateKeyRaw || !spreadsheetId) {
+    throw new Error(
+      "Variáveis de ambiente ausentes. " +
+        "Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL / E-MAIL DA CONTA DE SERVIÇO DO GOOGLE, " +
+        "GOOGLE_PRIVATE_KEY / CHAVE_PRIVADA_DO_GOOGLE e " +
+        "SPREADSHEET_ID / ID_DA_PLANILHA."
+    );
+  }
+
+  return { serviceAccountEmail, privateKeyRaw, spreadsheetId };
+}
+
+// Cria cliente autenticado para acessar a Sheets API
+function getAuthClient() {
+  const { serviceAccountEmail, privateKeyRaw } = getEnvVars();
+
+  // Se a chave vier com '\n', converte para quebras de linha reais
+  const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
+
+  const jwtClient = new google.auth.JWT(
+    serviceAccountEmail,
+    null,
+    privateKey,
+    SCOPES
+  );
+
+  return jwtClient;
+}
+
+// -----------------------------------------------------------------------------
+// Handler da rota /api/produtos
+// -----------------------------------------------------------------------------
 export default async function handler(req, res) {
-  // Só aceitamos método GET nesta rota
   if (req.method !== "GET") {
     return res
       .status(405)
@@ -31,68 +94,49 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Lê parâmetro opcional de loja na query string
     const { loja } = req.query;
 
-    // Monta o range que vamos ler: BASE!A2:I
-    //  - A2:I = dados da linha 2 até o final, colunas A..I
-    const range = `${encodeURIComponent(SHEET_NAME)}!A2:I`;
+    const { spreadsheetId } = getEnvVars();
+    const auth = getAuthClient();
+    await auth.authorize();
 
-    // Monta a URL da Google Sheets API (método values.get)
-    const url =
-      `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}` +
-      `/values/${range}?key=${GOOGLE_API_KEY}`;
+    const sheets = google.sheets({ version: "v4", auth });
 
-    // Faz requisição para a API do Google
-    const resposta = await fetch(url);
+    // Lê da aba BASE, da linha 2 em diante, colunas A..I
+    const range = "BASE!A2:I";
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range
+    });
 
-    if (!resposta.ok) {
-      const textoErro = await resposta.text().catch(() => "");
-      console.error("Erro HTTP ao acessar Sheets API:", resposta.status, textoErro);
-
-      return res.status(500).json({
-        sucesso: false,
-        message: "Erro ao acessar Google Sheets API.",
-        statusGoogle: resposta.status,
-        detalhe: textoErro
-      });
-    }
-
-    // Interpreta o JSON retornado
-    const data = await resposta.json();
-
-    // data.values deve ser um array de arrays: [ [A,B,C,D,E,F,G,H,I], ... ]
-    const values = data.values || [];
+    const values = response.data.values || [];
 
     if (values.length === 0) {
-      // Não há dados (só cabeçalho na planilha)
       return res.status(200).json({
         sucesso: true,
         produtos: []
       });
     }
 
-    // Se loja não foi informada, retornamos todas as linhas
     let filtrados = values;
 
+    // Se veio parâmetro loja na query, filtra pela coluna I
     if (loja && String(loja).trim() !== "") {
       const lojaAlvo = String(loja).trim();
 
-      // Coluna I (índice 8) é a loja
-      filtrados = values.filter(linha => {
-        const lojaLinha = String(linha[8] || "").trim();
+      filtrados = values.filter((linha) => {
+        const lojaLinha = String(linha[8] || "").trim(); // coluna I
         return lojaLinha === lojaAlvo;
       });
     }
 
-    // Retornamos os dados como vieram da planilha (A..I)
-    // Se quiser, mais tarde, podemos padronizar para objetos { ean, cod, produto, ... }
     return res.status(200).json({
       sucesso: true,
       produtos: filtrados
     });
   } catch (erro) {
-    console.error("Erro inesperado em /api/produtos:", erro);
+    console.error("Erro na API /api/produtos:", erro);
+
     return res.status(500).json({
       sucesso: false,
       message: "Erro interno na API de produtos.",
