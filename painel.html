@@ -6,67 +6,51 @@
   <title>Painel PPP</title>
 
   <style>
-    /* ======== ESTILO GERAL DA PÁGINA ======== */
+    /* LAYOUT GERAL */
     body {
-      background: #f3f3f3;
       font-family: Arial, sans-serif;
       margin: 0;
+      padding: 0;
+      background: #f4f4f9;
+      color: #333;
+    }
+
+    /* ===================== TELA DE LOGIN (NÃO USADA AQUI) ===================== */
+    /* Mantida apenas para compatibilidade visual, mas não é exibida em painel.html */
+
+    #loginScreen {
+      display: none;
+    }
+
+    /* ===================== APP APÓS LOGIN ===================== */
+
+    #appScreen {
+      width: 100%;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
+      display: flex;              /* será confirmado no JS */
+      flex-direction: column;
       align-items: center;
     }
 
-    /* Card do painel */
-    .container {
-      width: 95%;
-      max-width: 900px;
-      background: #ffffff;
-      padding: 24px 28px 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    h1 {
+      font-size: 32px;
+      font-weight: bold;
+      color: #222;
+      text-align: center;
+      margin-top: 28px;
+      margin-bottom: 8px;
     }
 
-    .cabecalho {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      border-bottom: 1px solid #e1e1e1;
-      padding-bottom: 14px;
-      margin-bottom: 16px;
+    /* Linha com usuário + loja */
+    #userInfo {
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 18px;
+      font-weight: bold;
     }
-
-    .titulo {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    .subtitulo {
-      margin: 4px 0 0;
-      font-size: 14px;
-      color: #555;
-    }
-
-    .info-usuario {
-      text-align: right;
-      font-size: 14px;
-    }
-
-    .info-usuario strong {
-      display: block;
-    }
-
-    .conteudo {
-      margin-top: 12px;
-      font-size: 14px;
-    }
-
-    /* TOPO – busca + campos extras */
 
     .topo {
-      width: 100%;
+      width: 92vw;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -81,10 +65,10 @@
 
     #campoBusca {
       width: 100%;
-      padding: 16px 60px 16px 60px;
-      font-size: 16px;
+      padding: 24px 70px 24px 90px;
+      font-size: 39px;
       border: 2px solid #bbb;
-      border-radius: 12px;
+      border-radius: 22px;
       outline: none;
       background: white;
       box-shadow: 0 3px 8px rgba(0,0,0,0.10);
@@ -93,7 +77,7 @@
 
     .btnBarcodeLeft {
       position: absolute;
-      left: 10px;
+      left: 14px;
       top: 50%;
       transform: translateY(-50%);
       border: none;
@@ -101,8 +85,8 @@
       padding: 0;
       margin: 0;
       cursor: pointer;
-      width: 32px;
-      height: 24px;
+      width: 55px;
+      height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -111,26 +95,26 @@
     .icon-barcode-small {
       width: 100%;
       height: 100%;
-      border-radius: 4px;
+      border-radius: 6px;
       background:
         repeating-linear-gradient(
           90deg,
           #333 0px,
-          #333 3px,
-          #fff 3px,
-          #fff 5px
+          #333 4px,
+          #fff 4px,
+          #fff 7px
         );
     }
 
     .btnBuscarIcone {
       position: absolute;
-      right: 10px;
+      right: 14px;
       top: 50%;
       transform: translateY(-50%);
       border: none;
       background: transparent;
       cursor: pointer;
-      padding: 4px;
+      padding: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -138,36 +122,35 @@
 
     /* TEXTAREA DE OBSERVAÇÃO */
     .obs-container {
-      width: 100%;
+      width: 92vw;
       margin-top: 8px;
       margin-bottom: 12px;
     }
 
     .obs-label {
-      font-size: 14px;
+      font-size: 36px;
       margin-bottom: 4px;
-      font-weight: 600;
     }
 
     .obs-textarea {
       width: 100%;
       box-sizing: border-box;
-      border-radius: 10px;
+      border-radius: 16px;
       border: 1.5px solid #bbb;
-      padding: 10px 12px;
-      font-size: 14px;
-      resize: vertical;
-      min-height: 100px;
+      padding: 14px 16px;
+      font-size: 36px;
+      resize: none;
+      min-height: 220px;
       background: #fff;
       box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     }
 
-    /* LINHA: QTD / VALOR / Nº DOC */
+    /* ===== LINHA HORIZONTAL: QUANTIDADE / VALOR / N° DOC ===== */
 
     .linha-infos {
-      width: 100%;
+      width: 92vw;
       display: flex;
-      gap: 10px;
+      gap: 12px;
       margin-top: 4px;
       margin-bottom: 14px;
       flex-wrap: wrap;
@@ -180,103 +163,93 @@
     }
 
     .qtd-label {
-      font-size: 14px;
+      font-size: 32px;
       margin-bottom: 4px;
-      font-weight: 600;
     }
 
     .input-inline {
       width: 100%;
       box-sizing: border-box;
-      border-radius: 10px;
+      border-radius: 16px;
       border: 1.5px solid #bbb;
-      padding: 10px 12px;
-      font-size: 14px;
+      padding: 14px 16px;
+      font-size: 36px;
       background: #fff;
       box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     }
 
-    .status-msg {
-      font-size: 13px;
-      margin-top: 8px;
-      text-align: center;
-      min-height: 20px;
+    .btnFechar {
+      width: 100%;
+      padding: 24px 22px;
+      font-size: 24px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-top: 12px;
+      max-width: 520px;
+      background: #777;
+      color: white;
     }
 
     /* CARTÕES DE RESULTADO */
-
     .cartao {
-      width: 100%;
+      width: 92%;
       background: white;
-      padding: 16px 16px;
-      margin: 14px auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      padding: 24px 22px;
+      margin: 18px auto;
+      border-radius: 22px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.18);
       display: flex;
       flex-direction: column;
       opacity: 0;
-      transform: translateY(6px);
-      animation: entrarCartao 0.20s ease-out forwards;
+      transform: translateY(10px);
+      animation: entrarCartao 0.25s ease-out forwards;
       cursor: pointer;
       transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
     }
 
     .cartao:hover {
       transform: translateY(2px);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.16);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.22);
     }
 
     .cartao p {
-      margin: 6px 0;
-      font-size: 14px;
-      line-height: 18px;
+      margin: 10px 0;
+      font-size: 44px;
+      line-height: 50px;
     }
 
     .cartao strong {
-      font-size: 14px;
+      font-size: 48px;
       color: #111;
     }
 
     @keyframes entrarCartao {
-      from { opacity: 0; transform: translateY(6px); }
+      from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* CÂMERA (mantida para futuro uso) */
-
+    /* CÂMERA */
     #cameraArea {
       margin-top: 18px;
       display: none;
-      width: 100%;
+      width: 92vw;
+      max-width: 800px;
     }
 
     #cameraArea video {
       width: 100%;
-      border-radius: 10px;
+      border-radius: 16px;
       border: 2px solid #ddd;
       margin-top: 10px;
       background: white;
     }
 
-    .btnFechar {
-      width: 100%;
-      padding: 10px 14px;
-      font-size: 14px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 10px;
-      max-width: 260px;
-      background: #777;
-      color: white;
-    }
-
-    /* OVERLAY DE CARREGAMENTO */
-
+    /* OVERLAY DE CARREGAMENTO COM PORCENTAGEM */
     #overlayCarregando {
       position: fixed;
       inset: 0;
-      background: rgba(243,243,243,0.95);
+      background: #f4f4f9;
       display: none;
       flex-direction: column;
       align-items: center;
@@ -285,13 +258,13 @@
     }
 
     .loader {
-      width: 60px;
-      height: 60px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
-      border: 6px solid #ddd;
-      border-top-color: #0066ff;
+      border: 8px solid #ddd;
+      border-top-color: #4CAF50;
       animation: girar 0.9s linear infinite;
-      margin-bottom: 12px;
+      margin-bottom: 18px;
     }
 
     @keyframes girar {
@@ -299,24 +272,23 @@
     }
 
     .texto-carregando {
-      font-size: 15px;
+      font-size: 22px;
       text-align: center;
       color: #333;
     }
 
     #percentualCarregando {
-      font-size: 16px;
+      font-size: 26px;
       font-weight: bold;
-      margin-top: 6px;
-      color: #0066ff;
+      margin-top: 10px;
+      color: #4CAF50;
     }
 
     /* POPUP DE CONFIRMAÇÃO DE ENVIO */
-
     #confirmOverlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.35);
+      background: rgba(0,0,0,0.4);
       display: none;
       align-items: center;
       justify-content: center;
@@ -325,88 +297,50 @@
 
     .confirm-box {
       background: #fff;
-      padding: 20px 18px;
-      border-radius: 12px;
-      max-width: 380px;
+      padding: 24px 20px;
+      border-radius: 18px;
+      max-width: 420px;
       width: 90%;
       box-shadow: 0 6px 18px rgba(0,0,0,0.25);
       text-align: center;
     }
 
     .confirm-box p {
-      font-size: 15px;
-      margin-bottom: 16px;
+      font-size: 24px;
+      margin-bottom: 22px;
     }
 
     .confirm-buttons {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       justify-content: center;
     }
 
     .btnConfirmar,
     .btnCancelar {
       flex: 1;
-      padding: 10px 8px;
-      border-radius: 10px;
+      padding: 14px 10px;
+      border-radius: 12px;
       border: none;
-      font-size: 14px;
+      font-size: 22px;
       cursor: pointer;
     }
 
     .btnConfirmar {
-      background: #0066ff;
+      background: #4CAF50;
       color: #fff;
-      font-weight: 600;
     }
 
     .btnCancelar {
       background: #e0e0e0;
       color: #333;
     }
-
-    .btn-voltar {
-      margin-top: 16px;
-      display: inline-block;
-      padding: 8px 14px;
-      background: #0066ff;
-      color: #fff;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    /* Tela de acesso inválido */
-
-    .tela-erro {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: #f3f3f3;
-      font-family: Arial, sans-serif;
-    }
-
-    .card-erro {
-      background: #fff;
-      padding: 26px 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      max-width: 420px;
-      text-align: center;
-    }
-
-    .card-erro h1 {
-      color: #c00000;
-      margin-top: 0;
-    }
-
   </style>
 </head>
 
 <body>
-  <!-- POPUP DE CONFIRMAÇÃO -->
+
+  <!-- =============== POPUP DE CONFIRMAÇÃO =============== -->
   <div id="confirmOverlay">
     <div class="confirm-box">
       <p>Você deseja mesmo enviar o Relatório?</p>
@@ -421,22 +355,121 @@
     </div>
   </div>
 
-  <!-- OVERLAY DE CARREGAMENTO DA BASE -->
-  <div id="overlayCarregando">
-    <div class="loader"></div>
-    <div class="texto-carregando">Carregando base de produtos...</div>
-    <div id="percentualCarregando">0%</div>
+  <!-- =============== APP (SEM LOGIN) =============== -->
+  <div id="appScreen">
+    <div id="overlayCarregando">
+      <div class="loader"></div>
+      <div class="texto-carregando">Carregando base de produtos...</div>
+      <div id="percentualCarregando">0%</div>
+    </div>
+
+    <h1>RELATÓRIO PREVENÇÃO DE PERDAS</h1>
+    <div id="userInfo"></div>
+
+    <div class="topo">
+
+      <div class="search-container">
+        <button
+          type="button"
+          class="btnBarcodeLeft"
+          onclick="abrirCamera()"
+          aria-label="Ler código de barras com a câmera"
+        >
+          <span class="icon-barcode-small"></span>
+        </button>
+
+        <input
+          id="campoBusca"
+          type="text"
+          placeholder="Pesquisar produto"
+          onkeydown="if(event.key === 'Enter'){buscar();}"
+        />
+
+        <button
+          type="button"
+          class="btnBuscarIcone"
+          onclick="buscar()"
+          aria-label="Buscar produto"
+        >
+          <svg width="60" height="60" viewBox="0 0 24 24"
+               fill="none" stroke="#444" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- RELATÓRIO -->
+      <div class="obs-container">
+        <div class="obs-label">Relatório / Observação:</div>
+        <textarea
+          id="observacao"
+          class="obs-textarea"
+          placeholder="Digite aqui a observação que será enviada junto com o produto clicado..."
+        ></textarea>
+      </div>
+
+      <!-- QUANTIDADE | VALOR UNITÁRIO | Nº DOCUMENTO -->
+      <div class="linha-infos">
+        <div class="campo-inline">
+          <div class="qtd-label">Quantidade:</div>
+          <input
+            id="quantidade"
+            class="input-inline"
+            type="text"
+            inputmode="decimal"
+            placeholder="Qtd"
+            oninput="this.value = this.value.replace(/[^0-9.,]/g, '');"
+          />
+        </div>
+
+        <div class="campo-inline">
+          <div class="qtd-label">Valor unitário (R$):</div>
+          <input
+            id="valorUnitario"
+            class="input-inline"
+            type="text"
+            inputmode="decimal"
+            placeholder="0,00"
+            oninput="mascaraValorUnitario(this)"
+          />
+        </div>
+
+        <div class="campo-inline">
+          <div class="qtd-label">Nº de Documento:</div>
+          <input
+            id="numeroDocumento"
+            class="input-inline"
+            type="text"
+            inputmode="numeric"
+            placeholder="Número"
+            oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+          />
+        </div>
+      </div>
+
+      <div id="status"
+           style="font-size:22px; margin-top:12px; text-align:center;"></div>
+    </div>
+
+    <div id="cameraArea">
+      <p style="font-size: 20px;">Aponte para o código de barras:</p>
+      <video id="video" autoplay playsinline></video>
+      <p id="msgCamera" style="font-size:18px;"></p>
+      <button class="btnFechar" onclick="fecharCamera()">Fechar câmera</button>
+    </div>
+
+    <div id="resultado" style="width:100%; margin-top:20px;"></div>
   </div>
 
-  <!-- O conteúdo principal do painel será montado via JS,
-       depois que validarmos usuario/loja na URL -->
   <script>
-    // ========== VARIÁVEIS GLOBAIS ==========
-    let dbProdutos = [];         // base completa A:H vinda da API
-    let baseCarregada = false;   // indica se /api/produtos já foi carregada
-    let lojaLogada = null;       // loja vinda da URL
-    let usuarioLogado = null;    // usuário vindo da URL
-    let ultimosResultados = [];  // última busca exibida
+    /* ================= VARIÁVEIS GLOBAIS ================= */
+    let dbProdutos = [];
+    let baseCarregada = false;
+    let lojaLogada = null;
+    let usuarioLogado = null;
+    let ultimosResultados = [];
 
     // Dados aguardando confirmação no popup
     let envioPendente = null;
@@ -444,7 +477,35 @@
     let percentual = 0;
     let timerPercent = null;
 
-    // ========== FUNÇÕES DE LOADING (PERCENTUAL) ==========
+    /* ========== INICIALIZAÇÃO: LER USUÁRIO/LOJA E CARREGAR BASE ========== */
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const usuario = params.get("usuario");
+      const loja    = params.get("loja");
+
+      if (!usuario || !loja) {
+        // Se alguém abrir painel.html direto, volta para o login
+        window.location.href = "/login.html";
+        return;
+      }
+
+      usuarioLogado = usuario;
+      lojaLogada    = loja;
+
+      const userInfo = document.getElementById("userInfo");
+      userInfo.textContent = "Usuário: " + usuarioLogado + " | Loja: " + lojaLogada;
+
+      // Garante que o app esteja visível como flex
+      const app = document.getElementById("appScreen");
+      app.style.display = "flex";
+      app.style.flexDirection = "column";
+      app.style.alignItems = "center";
+
+      // Carrega a base de produtos da API da Vercel
+      carregarBase();
+    });
+
+    /* ========== OVERLAY DE CARREGAMENTO COM PORCENTAGEM (5 em 5%) ========== */
     function iniciarLoadingPercentual() {
       const overlay = document.getElementById("overlayCarregando");
       const txt = document.getElementById("percentualCarregando");
@@ -477,7 +538,6 @@
       }, 250);
     }
 
-    // Beep simples (usado ao clicar em cartão ou leitura futura)
     function playBeep() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -499,7 +559,7 @@
       } catch (e) {}
     }
 
-    // Máscara de valor unitário estilo R$
+    /* ==== MÁSCARA DE VALOR UNITÁRIO EM REAIS (R$) ==== */
     function mascaraValorUnitario(campo) {
       let v = campo.value.replace(/\D/g, "");
 
@@ -519,176 +579,15 @@
 
       const inteiro = v.slice(0, -2);
       const centavos = v.slice(-2);
+
       const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
       campo.value = inteiroFormatado + "," + centavos;
     }
 
-    // ========== LOGIN VIA PARÂMETROS DA URL ==========
-    document.addEventListener("DOMContentLoaded", () => {
-      const params  = new URLSearchParams(window.location.search);
-      const usuario = params.get("usuario");
-      const loja    = params.get("loja");
-
-      // Se não vier usuário ou loja na URL, bloqueia acesso ao painel
-      if (!usuario || !loja) {
-        document.body.innerHTML = `
-          <div class="tela-erro">
-            <div class="card-erro">
-              <h1>Acesso inválido</h1>
-              <p>Parâmetros do login não encontrados.</p>
-              <p>Volte para a tela de acesso e realize o login novamente.</p>
-              <a href="/login.html" class="btn-voltar">Voltar para o Login</a>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      usuarioLogado = usuario;
-      lojaLogada    = loja;
-
-      // Monta o layout do painel
-      montarPainel(usuario, loja);
-
-      // Depois que o painel existe no DOM, carrega a base da API
-      carregarBase();
-    });
-
-    // Monta o HTML principal do painel
-    function montarPainel(usuario, loja) {
-      document.body.innerHTML = `
-        <div class="container">
-          <div class="cabecalho">
-            <div>
-              <h1 class="titulo">Painel PPP</h1>
-              <p class="subtitulo">
-                Relatório de Prevenção de Perdas – base única de produtos.
-              </p>
-            </div>
-            <div class="info-usuario">
-              <strong>Usuário: ${sanitize(usuario)}</strong>
-              <span>Loja: ${sanitize(loja)}</span>
-            </div>
-          </div>
-
-          <div class="conteudo">
-            <div class="topo">
-
-              <div class="search-container">
-                <button
-                  type="button"
-                  class="btnBarcodeLeft"
-                  onclick="abrirCamera()"
-                  aria-label="Ler código de barras com a câmera"
-                >
-                  <span class="icon-barcode-small"></span>
-                </button>
-
-                <input
-                  id="campoBusca"
-                  type="text"
-                  placeholder="Pesquisar produto por EAN, código ou descrição"
-                  onkeydown="if(event.key === 'Enter'){buscar();}"
-                />
-
-                <button
-                  type="button"
-                  class="btnBuscarIcone"
-                  onclick="buscar()"
-                  aria-label="Buscar produto"
-                >
-                  <svg width="26" height="26" viewBox="0 0 24 24"
-                    fill="none" stroke="#444" stroke-width="2.2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
-                  </svg>
-                </button>
-              </div>
-
-              <!-- RELATÓRIO -->
-              <div class="obs-container">
-                <div class="obs-label">Relatório / Observação:</div>
-                <textarea
-                  id="observacao"
-                  class="obs-textarea"
-                  placeholder="Digite aqui a observação que será enviada junto com o produto clicado..."
-                ></textarea>
-              </div>
-
-              <!-- QUANTIDADE | VALOR UNITÁRIO | Nº DOCUMENTO -->
-              <div class="linha-infos">
-                <div class="campo-inline">
-                  <div class="qtd-label">Quantidade:</div>
-                  <input
-                    id="quantidade"
-                    class="input-inline"
-                    type="text"
-                    inputmode="decimal"
-                    placeholder="Qtd"
-                    oninput="this.value = this.value.replace(/[^0-9.,]/g, '');"
-                  />
-                </div>
-
-                <div class="campo-inline">
-                  <div class="qtd-label">Valor unitário (R$):</div>
-                  <input
-                    id="valorUnitario"
-                    class="input-inline"
-                    type="text"
-                    inputmode="decimal"
-                    placeholder="0,00"
-                    oninput="mascaraValorUnitario(this)"
-                  />
-                </div>
-
-                <div class="campo-inline">
-                  <div class="qtd-label">Nº de Documento:</div>
-                  <input
-                    id="numeroDocumento"
-                    class="input-inline"
-                    type="text"
-                    inputmode="numeric"
-                    placeholder="Número"
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '');"
-                  />
-                </div>
-              </div>
-
-              <div id="status" class="status-msg"></div>
-            </div>
-
-            <div id="cameraArea">
-              <p style="font-size: 13px;">Aponte para o código de barras:</p>
-              <video id="video" autoplay playsinline></video>
-              <p id="msgCamera" style="font-size: 12px;"></p>
-              <button class="btnFechar" onclick="fecharCamera()">Fechar câmera</button>
-            </div>
-
-            <div id="resultado" style="width:100%; margin-top:14px;"></div>
-
-            <a href="/login.html" class="btn-voltar">Sair / Trocar de Loja</a>
-          </div>
-        </div>
-      `;
-    }
-
-    // Sanitiza texto para evitar problemas ao injetar no HTML
-    function sanitize(texto) {
-      return String(texto)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // ========== CARREGAR BASE A PARTIR DA API /api/produtos ==========
-
+    /* ========== CARREGAR BASE COMPLETA DA API /api/produtos ========== */
     async function carregarBase() {
       const status = document.getElementById("status");
-      status.textContent = "Carregando base de produtos...";
       iniciarLoadingPercentual();
 
       try {
@@ -698,18 +597,19 @@
         if (!resposta.ok || !dados.sucesso || !Array.isArray(dados.produtos)) {
           baseCarregada = false;
           status.textContent =
-            dados.message || "Erro ao carregar base de produtos.";
+            dados.message || "Erro ao carregar a base de produtos.";
           finalizarLoadingPercentual();
           return;
         }
 
-        dbProdutos = dados.produtos || [];
+        dbProdutos = dados.produtos;
         baseCarregada = true;
+
         status.textContent =
-          `Base carregada com ${dbProdutos.length} produto(s).`;
+          "Base carregada com " + dbProdutos.length + " produto(s).";
         finalizarLoadingPercentual();
       } catch (erro) {
-        console.error("Erro ao carregar base da API:", erro);
+        console.error("Erro ao carregar base de produtos:", erro);
         baseCarregada = false;
         status.textContent =
           "Erro de conexão ao carregar base de produtos.";
@@ -717,20 +617,20 @@
       }
     }
 
-    // ========== BUSCA LOCAL NA BASE ==========
-
+    /* ========== BUSCA LOCAL NA BASE ========== */
     function buscar() {
       const campo = document.getElementById("campoBusca");
       const termoBruto = campo.value.trim();
-      const status = document.getElementById("status");
 
       if (!termoBruto) {
-        status.textContent = "Digite ou leia um código / descrição para buscar.";
+        document.getElementById("status").textContent =
+          "Digite ou leia um código.";
         return;
       }
 
       if (!baseCarregada) {
-        status.textContent = "Aguarde o carregamento da base (100%).";
+        document.getElementById("status").textContent =
+          "Aguarde carregar 100%.";
         return;
       }
 
@@ -751,49 +651,46 @@
       mostrarResultados(resultados);
     }
 
-    // Mostra resultados em cartões clicáveis
+    /* ========== MOSTRAR RESULTADOS EM CARTÕES ========== */
     function mostrarResultados(dados) {
       const container = document.getElementById("resultado");
-      const status = document.getElementById("status");
 
       if (!dados || dados.length === 0) {
         container.innerHTML =
-          '<p style="font-size: 13px; text-align:center;">Nenhum resultado encontrado.</p>';
+          '<p style="font-size: 22px; text-align:center;">Nenhum resultado encontrado.</p>';
         ultimosResultados = [];
-        status.textContent = "Nenhum produto encontrado para o termo informado.";
         return;
       }
 
       ultimosResultados = dados;
 
       let html = "";
+
       dados.forEach((linha, idx) => {
         html += `
           <div class="cartao" onclick="enviarRelatorio(${idx})">
-            <p><strong>EAN:</strong> ${linha[0] ?? ""}</p>
-            <p><strong>Cód Consinco:</strong> ${linha[1] ?? ""}</p>
-            <p><strong>Produto:</strong> ${linha[2] ?? ""}</p>
-            <p><strong>Departamento:</strong> ${linha[3] ?? ""}</p>
-            <p><strong>Seção:</strong> ${linha[4] ?? ""}</p>
-            <p><strong>Grupo:</strong> ${linha[5] ?? ""}</p>
-            <p><strong>Subgrupo:</strong> ${linha[6] ?? ""}</p>
-            <p><strong>Categoria:</strong> ${linha[7] ?? ""}</p>
+            <p><strong>EAN:</strong><br>${linha[0] ?? ""}</p>
+            <p><strong>Cód Consinco:</strong><br>${linha[1] ?? ""}</p>
+            <p><strong>Produto:</strong><br>${linha[2] ?? ""}</p>
+            <p><strong>Departamento:</strong><br>${linha[3] ?? ""}</p>
+            <p><strong>Seção:</strong><br>${linha[4] ?? ""}</p>
+            <p><strong>Grupo:</strong><br>${linha[5] ?? ""}</p>
+            <p><strong>Subgrupo:</strong><br>${linha[6] ?? ""}</p>
+            <p><strong>Categoria:</strong><br>${linha[7] ?? ""}</p>
           </div>
         `;
       });
 
       container.innerHTML = html;
-      status.textContent =
-        `${dados.length} produto(s) encontrado(s). Clique em um cartão para preparar o relatório.`;
+
+      document.getElementById("status").textContent =
+        dados.length + " produto(s) encontrado(s).";
     }
 
-    // ========== ENVIO DO RELATÓRIO (1ª ETAPA: valida e abre popup) ==========
-
+    /* ========== PRIMEIRO PASSO DO ENVIO: valida, vibra e abre popup ========== */
     function enviarRelatorio(idx) {
-      const status = document.getElementById("status");
-
       if (!ultimosResultados || !ultimosResultados[idx]) {
-        status.textContent =
+        document.getElementById("status").textContent =
           "Não foi possível identificar o produto selecionado.";
         return;
       }
@@ -805,42 +702,41 @@
       const doc = document.getElementById("numeroDocumento").value.trim();
 
       if (!obs) {
-        status.textContent =
+        document.getElementById("status").textContent =
           "Preencha o relatório/observação antes de enviar.";
         return;
       }
 
       if (!qtd) {
-        status.textContent =
+        document.getElementById("status").textContent =
           "Preencha a quantidade antes de enviar.";
         return;
       }
 
       if (!valor) {
-        status.textContent =
+        document.getElementById("status").textContent =
           "Preencha o valor unitário antes de enviar.";
         return;
       }
 
       if (!doc) {
-        status.textContent =
+        document.getElementById("status").textContent =
           "Preencha o Nº de Documento antes de enviar.";
         return;
       }
 
       if (!lojaLogada || !usuarioLogado) {
-        status.textContent =
+        document.getElementById("status").textContent =
           "Sessão inválida. Faça login novamente.";
         return;
       }
 
       if (navigator.vibrate) {
-        navigator.vibrate(60);
+        navigator.vibrate(80);
       }
-      playBeep();
 
       envioPendente = {
-        linhaProduto,
+        linhaProduto: linhaProduto,
         observacao: obs,
         quantidade: qtd,
         valorUnitario: valor,
@@ -850,16 +746,15 @@
       document.getElementById("confirmOverlay").style.display = "flex";
     }
 
-    // ========== ENVIO DO RELATÓRIO (2ª ETAPA: confirmação) ==========
-
+    /* ========== SEGUNDO PASSO: usuário confirma (SIM / CANCELAR) ========== */
     function confirmarEnvio(confirmado) {
       const overlay = document.getElementById("confirmOverlay");
-      const status = document.getElementById("status");
 
       if (!confirmado) {
         overlay.style.display = "none";
         envioPendente = null;
-        status.textContent = "Envio cancelado.";
+        document.getElementById("status").textContent =
+          "Envio cancelado.";
         return;
       }
 
@@ -879,30 +774,19 @@
       envioPendente = null;
       overlay.style.display = "none";
 
-      // Por enquanto, apenas SIMULA o envio.
-      // Próximo passo será criar a rota /api/relatorio para gravar na aba RELATORIO.
-      console.log("Simulação de envio:", {
-        produto: linhaProduto,
-        observacao,
-        quantidade,
-        valorUnitario,
-        numeroDocumento,
-        loja: lojaLogada,
-        usuario: usuarioLogado
-      });
-
+      // Por enquanto: SIMULAÇÃO (não grava na planilha ainda)
+      const status = document.getElementById("status");
       status.textContent =
-        "Simulação: relatório seria enviado para a planilha (API de gravação ainda não implementada).";
+        "Simulação: relatório seria enviado para a planilha (API ainda não implementada).";
 
-      // Limpa campos (exceto nº documento, se quiser manter)
+      // Limpa campos (exceto Nº documento, se quiser manter é só remover esta linha)
       document.getElementById("observacao").value = "";
       document.getElementById("quantidade").value = "";
       document.getElementById("valorUnitario").value = "";
-      // Nº documento mantido
+      // document.getElementById("numeroDocumento").value = ""; // se quiser limpar o documento também
     }
 
-    // ========== CÂMERA (mantida igual, futura leitura de código de barras) ==========
-
+    /* =================== CÂMERA E LEITURA DE BARRAS =================== */
     let streamAtual = null;
     let lendo = false;
 
@@ -916,7 +800,8 @@
 
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         msg.textContent =
-          "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
+          "Este dispositivo ou navegador não permite acesso à câmera neste contexto. " +
+          "Evite usar o sistema dentro de iframes (ex.: Google Sites). Abra o app em aba própria.";
         return;
       }
 
@@ -989,14 +874,8 @@
         streamAtual.getTracks().forEach(t => t.stop());
       }
 
-      const video = document.getElementById("video");
-      if (video) {
-        video.srcObject = null;
-      }
-      const area = document.getElementById("cameraArea");
-      if (area) {
-        area.style.display = "none";
-      }
+      document.getElementById("video").srcObject = null;
+      document.getElementById("cameraArea").style.display = "none";
     }
   </script>
 </body>
