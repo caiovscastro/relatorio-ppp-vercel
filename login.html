@@ -1,159 +1,150 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login PPP</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login PPP</title>
 
-    <style>
-        body {
-            background: #f3f3f3;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+  <style>
+    body {
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-        .container {
-            width: 90%;
-            max-width: 340px;
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-        }
+    .container {
+      width: 90%;
+      max-width: 380px;
+      background: #fff;
+      padding: 26px 26px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    h2 {
+      text-align: center;
+      margin: 0 0 22px;
+      font-size: 24px;
+    }
 
-        label {
-            font-weight: bold;
-            margin-top: 10px;
-            display: block;
-        }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+      font-size: 14px;
+    }
 
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #bbb;
-            border-radius: 6px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
 
-        button {
-            margin-top: 20px;
-            width: 100%;
-            padding: 12px;
-            background: #0066ff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-        }
+    button {
+      margin-top: 18px;
+      width: 100%;
+      padding: 12px;
+      background: #0066ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
 
-        button:hover {
-            background: #004ecc;
-        }
+    button:hover {
+      background: #0050cc;
+    }
 
-        .mensagem {
-            margin-top: 12px;
-            text-align: center;
-            font-weight: bold;
-            min-height: 18px;
-        }
+    .erro {
+      margin-top: 10px;
+      color: #b30000;
+      text-align: center;
+      font-weight: bold;
+      min-height: 18px;
+      font-size: 14px;
+    }
 
-        .erro {
-            color: #b30000;
-        }
-
-        .sucesso {
-            color: #008000;
-        }
-    </style>
+    .ok {
+      color: #007700;
+    }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <h2>Acesso PPP</h2>
+  <div class="container">
+    <h2>Acesso PPP</h2>
 
-        <label>Usuário</label>
-        <input type="text" id="usuario" autocomplete="off" />
+    <label for="usuario">Usuário</label>
+    <input type="text" id="usuario" autocomplete="off" />
 
-        <label>Senha</label>
-        <input type="password" id="senha" autocomplete="off" />
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" autocomplete="off" />
 
-        <label>Loja</label>
-        <select id="loja">
-            <option value="">Selecione...</option>
-            <option>ULT 01 - PLANALTINA</option>
-            <option>ULT 08 - ARAPOANGA</option>
-            <option>ULT 14 - ÁGUAS LINDAS</option>
-        </select>
+    <label for="loja">Loja</label>
+    <select id="loja">
+      <option value="">Selecione...</option>
+      <option>ULT 01 - PLANALTINA</option>
+      <option>ULT 08 - ARAPOANGA</option>
+      <option>ULT 14 - ÁGUAS LINDAS</option>
+    </select>
 
-        <button onclick="login()">Entrar</button>
+    <button type="button" onclick="login()">Entrar</button>
 
-        <div id="msg" class="mensagem"></div>
-    </div>
+    <div id="msg" class="erro"></div>
+  </div>
 
-    <script>
-        async function login() {
-            const usuario = document.getElementById("usuario").value.trim();
-            const senha   = document.getElementById("senha").value.trim();
-            const loja    = document.getElementById("loja").value;
+  <script>
+    async function login() {
+      const usuario = document.getElementById("usuario").value.trim();
+      const senha   = document.getElementById("senha").value.trim();
+      const loja    = document.getElementById("loja").value;
+      const msgEl   = document.getElementById("msg");
 
-            const msg = document.getElementById("msg");
-            msg.textContent = "";
-            msg.classList.remove("erro", "sucesso");
+      msgEl.classList.remove("ok");
+      msgEl.textContent = "";
 
-            // Validação simples
-            if (!usuario || !senha || !loja) {
-                msg.textContent = "Preencha todos os campos.";
-                msg.classList.add("erro");
-                return;
-            }
+      if (!usuario || !senha || !loja) {
+        msgEl.textContent = "Preencha todos os campos.";
+        return;
+      }
 
-            try {
-                const resposta = await fetch("/api/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ usuario, senha, loja })
-                });
+      try {
+        const resposta = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario, senha, loja })
+        });
 
-                // Se a API devolver erro HTTP, mostra mensagem
-                if (!resposta.ok) {
-                    let dados;
-                    try {
-                        dados = await resposta.json();
-                    } catch (e) {
-                        dados = {};
-                    }
-                    msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
-                    msg.classList.add("erro");
-                    return;
-                }
+        const dados = await resposta.json();
 
-                // Se chegou aqui, consideramos login OK
-                msg.textContent = "Login autorizado.";
-                msg.classList.add("sucesso");
-
-                // Redireciona SEM FALHA para o painel depois de 1 segundo
-                setTimeout(() => {
-                    window.location.href = "/painel.html";
-                }, 1000);
-
-            } catch (erro) {
-                console.error(erro);
-                msg.textContent = "Erro de conexão com o servidor.";
-                msg.classList.add("erro");
-            }
+        if (!resposta.ok) {
+          msgEl.textContent = dados.message || "Erro ao fazer login.";
+          return;
         }
-    </script>
+
+        // SUCESSO
+        msgEl.classList.add("ok");
+        msgEl.textContent = "Login autorizado. Redirecionando...";
+
+        // Redireciona depois de 800ms
+        setTimeout(() => {
+          window.location.href = "/painel.html";
+        }, 800);
+
+      } catch (e) {
+        console.error(e);
+        msgEl.textContent = "Erro de conexão com o servidor.";
+      }
+    }
+  </script>
 </body>
 </html>
