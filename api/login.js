@@ -1,28 +1,59 @@
+// api/login.js
+// Função serverless da Vercel responsável por validar o login.
+// Este endpoint deve ser acessado via POST em /api/login.
+
 export default function handler(req, res) {
+    // 1) Garante que apenas o método POST seja aceito
     if (req.method !== "POST") {
-        return res.status(405).json({ message: "Método não permitido" });
+        // 405 = Method Not Allowed
+        return res.status(405).json({
+            sucesso: false,
+            message: "Método não permitido. Use POST para acessar este endpoint."
+        });
     }
 
-    const { usuario, senha, loja } = req.body;
+    // 2) Extrai os campos enviados no corpo da requisição
+    //    Esperamos um JSON: { usuario: "...", senha: "...", loja: "..." }
+    const { usuario, senha, loja } = req.body || {};
 
+    // 3) Validação básica dos campos obrigatórios
+    if (!usuario || !senha || !loja) {
+        // 400 = Bad Request (requisição malformada/incompleta)
+        return res.status(400).json({
+            sucesso: false,
+            message: "Usuário, senha e loja são obrigatórios."
+        });
+    }
+
+    // 4) Base de usuários AUTORIZADOS (por enquanto, fixo no código)
+    //    Depois podemos mover isso para uma planilha Google.
     const usuarios = [
         { usuario: "LOJA1", senha: "1234", loja: "ULT 01 - PLANALTINA" },
         { usuario: "LOJA2", senha: "abcd", loja: "ULT 08 - ARAPOANGA" }
     ];
 
+    // 5) Procura um registro que combine usuário, senha e loja
     const autorizado = usuarios.find(
-        u => u.usuario === usuario && u.senha === senha && u.loja === loja
+        (u) =>
+            u.usuario === usuario &&
+            u.senha === senha &&
+            u.loja === loja
     );
 
+    // 6) Caso não encontre, retorna NÃO AUTORIZADO
     if (!autorizado) {
+        // 401 = Unauthorized
         return res.status(401).json({
-            autorizado: false,
-            message: "Credenciais inválidas"
+            sucesso: false,
+            message: "Credenciais inválidas. Verifique usuário, senha e loja."
         });
     }
 
+    // 7) Se chegou aqui, o login está OK.
+    //    Repare que agora usamos SEMPRE o campo 'sucesso',
+    //    que vai bater com o que o front-end (login.html) espera.
     return res.status(200).json({
-        autorizado: true,
+        sucesso: true,
         usuario: autorizado.usuario,
         loja: autorizado.loja
     });
