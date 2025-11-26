@@ -1,5 +1,8 @@
 {
   "name": "relatorio-ppp-vercel",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "googleapis": "^133.0.0"
+  }
 }
