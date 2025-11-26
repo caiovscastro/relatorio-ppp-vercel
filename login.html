@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login PPP</title>
+
+    <style>
+        body {
+            background: #f3f3f3;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 340px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #004ecc;
+        }
+
+        .erro {
+            margin-top: 12px;
+            color: #b30000;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Acesso PPP</h2>
+
+        <label>Usuário</label>
+        <input type="text" id="usuario" />
+
+        <label>Senha</label>
+        <input type="password" id="senha" />
+
+        <label>Loja</label>
+        <select id="loja">
+            <option value="">Selecione...</option>
+            <option>ULT 01 - PLANALTINA</option>
+            <option>ULT 08 - ARAPOANGA</option>
+            <option>ULT 14 - ÁGUAS LINDAS</option>
+        </select>
+
+        <button onclick="login()">Entrar</button>
+
+        <div id="msg" class="erro"></div>
+    </div>
+
+    <script>
+        async function login() {
+            const usuario = document.getElementById("usuario").value.trim();
+            const senha = document.getElementById("senha").value.trim();
+            const loja = document.getElementById("loja").value;
+
+            const msg = document.getElementById("msg");
+            msg.textContent = "";
+
+            if (!usuario || !senha || !loja) {
+                msg.textContent = "Preencha todos os campos.";
+                return;
+            }
+
+            try {
+                const resposta = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ usuario, senha, loja })
+                });
+
+                const dados = await resposta.json();
+
+                if (!resposta.ok) {
+                    msg.textContent = dados.message || "Erro ao fazer login.";
+                    return;
+                }
+
+                // LOGIN OK
+                alert("Login autorizado para: " + dados.usuario + "\nLoja: " + dados.loja);
+
+                // Redirecionar para outra página depois do login
+                window.location.href = "/painel.html";
+
+            } catch (erro) {
+                msg.textContent = "Erro de conexão com o servidor.";
+            }
+        }
+    </script>
+</body>
+</html>
