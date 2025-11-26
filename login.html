@@ -84,10 +84,10 @@
         <h2>Acesso PPP</h2>
 
         <label>Usuário</label>
-        <input type="text" id="usuario" autocomplete="username" />
+        <input type="text" id="usuario" autocomplete="off" />
 
         <label>Senha</label>
-        <input type="password" id="senha" autocomplete="current-password" />
+        <input type="password" id="senha" autocomplete="off" />
 
         <label>Loja</label>
         <select id="loja">
@@ -112,7 +112,7 @@
             msg.textContent = "";
             msg.classList.remove("erro", "sucesso");
 
-            // Validação básica
+            // Validação simples
             if (!usuario || !senha || !loja) {
                 msg.textContent = "Preencha todos os campos.";
                 msg.classList.add("erro");
@@ -126,32 +126,27 @@
                     body: JSON.stringify({ usuario, senha, loja })
                 });
 
-                const dados = await resposta.json();
-
-                // Se a API retornar erro HTTP ou success = false
-                if (!resposta.ok || !dados.success) {
+                // Se a API devolver erro HTTP, mostra mensagem
+                if (!resposta.ok) {
+                    let dados;
+                    try {
+                        dados = await resposta.json();
+                    } catch (e) {
+                        dados = {};
+                    }
                     msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
                     msg.classList.add("erro");
                     return;
                 }
 
-                // LOGIN OK
-                const usuarioFinal = dados.usuario || usuario;
-                const lojaFinal    = dados.loja || loja;
-
+                // Se chegou aqui, consideramos login OK
                 msg.textContent = "Login autorizado.";
                 msg.classList.add("sucesso");
 
-                // Monta os parâmetros para o painel
-                const params = new URLSearchParams({
-                    usuario: usuarioFinal,
-                    loja: lojaFinal
-                });
-
-                // Dá um pequeno tempo para o usuário ver a mensagem e redireciona
+                // Redireciona SEM FALHA para o painel depois de 1 segundo
                 setTimeout(() => {
-                    window.location.href = `/painel.html?${params.toString()}`;
-                }, 900);
+                    window.location.href = "/painel.html";
+                }, 1000);
 
             } catch (erro) {
                 console.error(erro);
