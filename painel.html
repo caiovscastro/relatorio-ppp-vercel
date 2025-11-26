@@ -119,16 +119,25 @@
         IMPORTANTE:
         Todo o conteúdo do body será preenchido via JavaScript,
         de acordo com os parâmetros recebidos na URL (?usuario=...&loja=...).
+
+        Exemplo de URL gerada pelo login:
+        /painel.html?usuario=LOJA1&loja=ULT%2001%20-%20PLANALTINA
     -->
 
     <script>
         // Executa assim que o DOM estiver pronto
         document.addEventListener("DOMContentLoaded", () => {
+            // Lê os parâmetros de query string da URL atual
             const params  = new URLSearchParams(window.location.search);
             const usuario = params.get("usuario");
             const loja    = params.get("loja");
 
-            // Se não vier usuário ou loja na URL, bloqueia acesso ao painel
+            /*
+                Regras de segurança/simples:
+                - Se não vier "usuario" ou "loja" na URL,
+                  consideramos um acesso inválido ao painel.
+                  Ex.: alguém digitou /painel.html direto no navegador.
+            */
             if (!usuario || !loja) {
                 document.body.innerHTML = `
                     <div class="tela-erro">
@@ -143,8 +152,10 @@
                 return;
             }
 
-            // Se chegou até aqui, significa que veio usuário e loja corretamente.
-            // Montamos o painel principal:
+            /*
+                Se chegou aqui, significa que veio usuário e loja corretamente
+                na query string. Agora montamos o painel principal.
+            */
             document.body.innerHTML = `
                 <div class="container">
                     <div class="cabecalho">
@@ -189,6 +200,8 @@
         /*
             Função simples para evitar problemas com caracteres especiais
             quando inserimos dados da URL dentro do HTML.
+
+            Isso protege contra injeção de HTML (XSS básico).
         */
         function sanitize(texto) {
             return String(texto)
