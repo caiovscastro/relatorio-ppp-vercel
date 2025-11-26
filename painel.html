@@ -1,819 +1,1003 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Painel PPP</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel PPP</title>
 
-    <style>
-        /* ======== ESTILO GERAL DA PÁGINA ======== */
-        body {
-            background: #f3f3f3;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+  <style>
+    /* ======== ESTILO GERAL DA PÁGINA ======== */
+    body {
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        /* Card do painel principal */
-        .container {
-            width: 95%;
-            max-width: 900px;
-            background: #ffffff;
-            padding: 24px 28px 30px;
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-        }
+    /* Card do painel */
+    .container {
+      width: 95%;
+      max-width: 900px;
+      background: #ffffff;
+      padding: 24px 28px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
 
-        .cabecalho {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            border-bottom: 1px solid #e1e1e1;
-            padding-bottom: 14px;
-            margin-bottom: 16px;
-        }
+    .cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid #e1e1e1;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
 
-        .titulo {
-            margin: 0;
-            font-size: 22px;
-        }
+    .titulo {
+      margin: 0;
+      font-size: 22px;
+    }
 
-        .subtitulo {
-            margin: 4px 0 0;
-            font-size: 14px;
-            color: #555;
-        }
+    .subtitulo {
+      margin: 4px 0 0;
+      font-size: 14px;
+      color: #555;
+    }
 
-        .info-usuario {
-            text-align: right;
-            font-size: 14px;
-        }
+    .info-usuario {
+      text-align: right;
+      font-size: 14px;
+    }
 
-        .info-usuario strong {
-            display: block;
-        }
+    .info-usuario strong {
+      display: block;
+    }
 
-        .conteudo {
-            margin-top: 12px;
-            font-size: 14px;
-        }
+    .conteudo {
+      margin-top: 12px;
+      font-size: 14px;
+    }
 
-        .bloco {
-            margin-bottom: 16px;
-            padding: 14px;
-            border-radius: 8px;
-            background: #f7f8ff;
-            border: 1px solid #e0e3ff;
-        }
+    /* TOPO – busca + campos extras */
 
-        .bloco h3 {
-            margin: 0 0 6px;
-            font-size: 16px;
-        }
+    .topo {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-        .btn-voltar {
-            margin-top: 6px;
-            display: inline-block;
-            padding: 8px 14px;
-            background: #0066ff;
-            color: #fff;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-        }
+    /* CAIXA DE BUSCA */
+    .search-container {
+      width: 100%;
+      position: relative;
+      margin-bottom: 16px;
+    }
 
-        /* ==================== ÁREA EAN / RELATÓRIO ==================== */
+    #campoBusca {
+      width: 100%;
+      padding: 16px 60px 16px 60px;
+      font-size: 16px;
+      border: 2px solid #bbb;
+      border-radius: 12px;
+      outline: none;
+      background: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.10);
+      box-sizing: border-box;
+    }
 
-        .topo-ean {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 10px;
-        }
+    .btnBarcodeLeft {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      width: 32px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        /* Caixa de busca */
-        .search-container {
-            width: 100%;
-            position: relative;
-            margin-bottom: 12px;
-        }
+    .icon-barcode-small {
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #333 0px,
+          #333 3px,
+          #fff 3px,
+          #fff 5px
+        );
+    }
 
-        #campoBusca {
-            width: 100%;
-            padding: 14px 50px 14px 50px;
-            font-size: 16px;
-            border: 1px solid #bbb;
-            border-radius: 18px;
-            outline: none;
-            background: #fff;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-            box-sizing: border-box;
-        }
+    .btnBuscarIcone {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        #campoBusca:focus {
-            border-color: #0066ff;
-            box-shadow: 0 0 0 1px #0066ff33;
-        }
+    /* TEXTAREA DE OBSERVAÇÃO */
+    .obs-container {
+      width: 100%;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
 
-        .btnBarcodeLeft {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            cursor: pointer;
-            width: 24px;
-            height: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .obs-label {
+      font-size: 14px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
 
-        .icon-barcode-small {
-            width: 100%;
-            height: 100%;
-            border-radius: 3px;
-            background:
-                repeating-linear-gradient(
-                    90deg,
-                    #333 0px,
-                    #333 3px,
-                    #fff 3px,
-                    #fff 5px
-                );
-        }
+    .obs-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1.5px solid #bbb;
+      padding: 10px 12px;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 100px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
 
-        .btnBuscarIcone {
-            position: absolute;
-            right: 6px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            padding: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    /* LINHA: QTD / VALOR / Nº DOC */
 
-        .btnBuscarIcone svg {
-            display: block;
-        }
+    .linha-infos {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
 
-        /* Observação / Relatório */
-        .obs-container {
-            width: 100%;
-            margin-top: 6px;
-            margin-bottom: 10px;
-        }
+    .campo-inline {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
 
-        .obs-label {
-            font-size: 14px;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
+    .qtd-label {
+      font-size: 14px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
 
-        .obs-textarea {
-            width: 100%;
-            box-sizing: border-box;
-            border-radius: 10px;
-            border: 1px solid #bbb;
-            padding: 10px 12px;
-            font-size: 14px;
-            resize: none;
-            min-height: 80px;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-        }
+    .input-inline {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1.5px solid #bbb;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
 
-        /* Linha com Quantidade / Valor / Nº Documento */
-        .linha-infos {
-            width: 100%;
-            display: flex;
-            gap: 8px;
-            margin-top: 4px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
+    .status-msg {
+      font-size: 13px;
+      margin-top: 8px;
+      text-align: center;
+      min-height: 20px;
+    }
 
-        .campo-inline {
-            flex: 1;
-            min-width: 120px;
-            display: flex;
-            flex-direction: column;
-        }
+    /* CARTÕES DE RESULTADO */
 
-        .qtd-label {
-            font-size: 13px;
-            margin-bottom: 3px;
-            font-weight: 600;
-        }
+    .cartao {
+      width: 100%;
+      background: white;
+      padding: 16px 16px;
+      margin: 14px auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: entrarCartao 0.20s ease-out forwards;
+      cursor: pointer;
+      transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+    }
 
-        .input-inline {
-            width: 100%;
-            box-sizing: border-box;
-            border-radius: 10px;
-            border: 1px solid #bbb;
-            padding: 8px 10px;
-            font-size: 14px;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
+    .cartao:hover {
+      transform: translateY(2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.16);
+    }
 
-        /* Status */
-        #status {
-            font-size: 13px;
-            margin-top: 6px;
-            text-align: center;
-            min-height: 18px;
-        }
+    .cartao p {
+      margin: 6px 0;
+      font-size: 14px;
+      line-height: 18px;
+    }
 
-        /* Câmara (placeholder) */
-        #cameraArea {
-            margin-top: 10px;
-            display: none;
-            width: 100%;
-        }
+    .cartao strong {
+      font-size: 14px;
+      color: #111;
+    }
 
-        #cameraArea p {
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
+    @keyframes entrarCartao {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-        #cameraArea video {
-            width: 100%;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            background: white;
-        }
+    /* CÂMERA (mantida para futuro uso) */
 
-        .btnFechar {
-            width: 100%;
-            padding: 8px 10px;
-            font-size: 14px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 8px;
-            max-width: 260px;
-            background: #777;
-            color: white;
-        }
+    #cameraArea {
+      margin-top: 18px;
+      display: none;
+      width: 100%;
+    }
 
-        /* Cartões de resultado */
-        #resultado {
-            width: 100%;
-            margin-top: 10px;
-        }
+    #cameraArea video {
+      width: 100%;
+      border-radius: 10px;
+      border: 2px solid #ddd;
+      margin-top: 10px;
+      background: white;
+    }
 
-        .cartao {
-            width: 100%;
-            background: white;
-            padding: 12px 12px;
-            margin: 10px auto;
-            border-radius: 12px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-            display: flex;
-            flex-direction: column;
-            opacity: 0;
-            transform: translateY(8px);
-            animation: entrarCartao 0.2s ease-out forwards;
-            cursor: pointer;
-            transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
-        }
+    .btnFechar {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+      max-width: 260px;
+      background: #777;
+      color: white;
+    }
 
-        .cartao:hover {
-            transform: translateY(2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.18);
-        }
+    /* OVERLAY DE CARREGAMENTO */
 
-        .cartao p {
-            margin: 4px 0;
-            font-size: 13px;
-            line-height: 1.3;
-        }
+    #overlayCarregando {
+      position: fixed;
+      inset: 0;
+      background: rgba(243,243,243,0.95);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
 
-        .cartao strong {
-            font-size: 13px;
-            color: #111;
-        }
+    .loader {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 6px solid #ddd;
+      border-top-color: #0066ff;
+      animation: girar 0.9s linear infinite;
+      margin-bottom: 12px;
+    }
 
-        @keyframes entrarCartao {
-            from { opacity: 0; transform: translateY(8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
+    @keyframes girar {
+      to { transform: rotate(360deg); }
+    }
 
-        /* Overlay de confirmação de envio */
-        #confirmOverlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.35);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
+    .texto-carregando {
+      font-size: 15px;
+      text-align: center;
+      color: #333;
+    }
 
-        .confirm-box {
-            background: #fff;
-            padding: 18px 16px;
-            border-radius: 12px;
-            max-width: 360px;
-            width: 90%;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-            text-align: center;
-        }
+    #percentualCarregando {
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 6px;
+      color: #0066ff;
+    }
 
-        .confirm-box p {
-            font-size: 14px;
-            margin-bottom: 14px;
-        }
+    /* POPUP DE CONFIRMAÇÃO DE ENVIO */
 
-        .confirm-buttons {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-        }
+    #confirmOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
 
-        .btnConfirmar,
-        .btnCancelar {
-            flex: 1;
-            padding: 8px 6px;
-            border-radius: 8px;
-            border: none;
-            font-size: 13px;
-            cursor: pointer;
-        }
+    .confirm-box {
+      background: #fff;
+      padding: 20px 18px;
+      border-radius: 12px;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      text-align: center;
+    }
 
-        .btnConfirmar {
-            background: #4CAF50;
-            color: #fff;
-        }
+    .confirm-box p {
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
 
-        .btnCancelar {
-            background: #e0e0e0;
-            color: #333;
-        }
-    </style>
+    .confirm-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btnConfirmar,
+    .btnCancelar {
+      flex: 1;
+      padding: 10px 8px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btnConfirmar {
+      background: #0066ff;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .btnCancelar {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-voltar {
+      margin-top: 16px;
+      display: inline-block;
+      padding: 8px 14px;
+      background: #0066ff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Tela de acesso inválido */
+
+    .tela-erro {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-erro {
+      background: #fff;
+      padding: 26px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .card-erro h1 {
+      color: #c00000;
+      margin-top: 0;
+    }
+
+  </style>
 </head>
 
 <body>
-    <script>
-        /*
-            Lê os parâmetros da URL (?usuario=...&loja=...) e monta o painel.
-        */
-        document.addEventListener("DOMContentLoaded", () => {
-            const params  = new URLSearchParams(window.location.search);
-            const usuario = params.get("usuario");
-            const loja    = params.get("loja");
+  <!-- POPUP DE CONFIRMAÇÃO -->
+  <div id="confirmOverlay">
+    <div class="confirm-box">
+      <p>Você deseja mesmo enviar o Relatório?</p>
+      <div class="confirm-buttons">
+        <button class="btnConfirmar" onclick="confirmarEnvio(true)">
+          Sim
+        </button>
+        <button class="btnCancelar" onclick="confirmarEnvio(false)">
+          Cancelar envio
+        </button>
+      </div>
+    </div>
+  </div>
 
-            // Se não vier usuário ou loja na URL, bloqueia acesso ao painel
-            if (!usuario || !loja) {
-                document.body.innerHTML = `
-                    <div style="
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        min-height:100vh;
-                        background:#f3f3f3;
-                        font-family:Arial,sans-serif;
-                    ">
-                        <div style="
-                            background:#fff;
-                            padding:26px 30px;
-                            border-radius:12px;
-                            box-shadow:0 6px 18px rgba(0,0,0,0.12);
-                            max-width:420px;
-                            text-align:center;
-                        ">
-                            <h1 style="color:#c00000;margin-top:0;">Acesso inválido</h1>
-                            <p>Parâmetros do login não encontrados.</p>
-                            <p>Volte para a tela de acesso e realize o login novamente.</p>
-                            <a href="/login.html" class="btn-voltar">Voltar para o Login</a>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
+  <!-- OVERLAY DE CARREGAMENTO DA BASE -->
+  <div id="overlayCarregando">
+    <div class="loader"></div>
+    <div class="texto-carregando">Carregando base de produtos...</div>
+    <div id="percentualCarregando">0%</div>
+  </div>
 
-            // Guardamos usuário e loja em variáveis globais
-            window.usuarioLogado = usuario;
-            window.lojaLogada    = loja;
+  <!-- O conteúdo principal do painel será montado via JS,
+       depois que validarmos usuario/loja na URL -->
+  <script>
+    // ========== VARIÁVEIS GLOBAIS ==========
+    let dbProdutos = [];         // base completa A:H vinda da API
+    let baseCarregada = false;   // indica se /api/produtos já foi carregada
+    let lojaLogada = null;       // loja vinda da URL
+    let usuarioLogado = null;    // usuário vindo da URL
+    let ultimosResultados = [];  // última busca exibida
 
-            // Monta o HTML principal do painel, incluindo o overlay
-            document.body.innerHTML = `
-                <div id="confirmOverlay">
-                    <div class="confirm-box">
-                        <p>Você deseja mesmo enviar o Relatório?</p>
-                        <div class="confirm-buttons">
-                            <button class="btnConfirmar" onclick="confirmarEnvio(true)">
-                                Sim
-                            </button>
-                            <button class="btnCancelar" onclick="confirmarEnvio(false)">
-                                Cancelar envio
-                            </button>
-                        </div>
-                    </div>
+    // Dados aguardando confirmação no popup
+    let envioPendente = null;
+
+    let percentual = 0;
+    let timerPercent = null;
+
+    // ========== FUNÇÕES DE LOADING (PERCENTUAL) ==========
+    function iniciarLoadingPercentual() {
+      const overlay = document.getElementById("overlayCarregando");
+      const txt = document.getElementById("percentualCarregando");
+
+      overlay.style.display = "flex";
+      percentual = 0;
+      txt.textContent = "0%";
+
+      if (timerPercent) clearInterval(timerPercent);
+
+      timerPercent = setInterval(() => {
+        if (percentual < 95) {
+          percentual += 5;
+          txt.textContent = percentual + "%";
+        }
+      }, 120);
+    }
+
+    function finalizarLoadingPercentual() {
+      const txt = document.getElementById("percentualCarregando");
+      const overlay = document.getElementById("overlayCarregando");
+
+      if (timerPercent) clearInterval(timerPercent);
+
+      percentual = 100;
+      txt.textContent = "100%";
+
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 250);
+    }
+
+    // Beep simples (usado ao clicar em cartão ou leitura futura)
+    function playBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.value = 880;
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        gain.gain.setValueAtTime(0.001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+      } catch (e) {}
+    }
+
+    // Máscara de valor unitário estilo R$
+    function mascaraValorUnitario(campo) {
+      let v = campo.value.replace(/\D/g, "");
+
+      if (!v) {
+        campo.value = "";
+        return;
+      }
+
+      v = v.replace(/^0+/, "");
+      if (!v) {
+        v = "0";
+      }
+
+      while (v.length < 3) {
+        v = "0" + v;
+      }
+
+      const inteiro = v.slice(0, -2);
+      const centavos = v.slice(-2);
+      const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+      campo.value = inteiroFormatado + "," + centavos;
+    }
+
+    // ========== LOGIN VIA PARÂMETROS DA URL ==========
+    document.addEventListener("DOMContentLoaded", () => {
+      const params  = new URLSearchParams(window.location.search);
+      const usuario = params.get("usuario");
+      const loja    = params.get("loja");
+
+      // Se não vier usuário ou loja na URL, bloqueia acesso ao painel
+      if (!usuario || !loja) {
+        document.body.innerHTML = `
+          <div class="tela-erro">
+            <div class="card-erro">
+              <h1>Acesso inválido</h1>
+              <p>Parâmetros do login não encontrados.</p>
+              <p>Volte para a tela de acesso e realize o login novamente.</p>
+              <a href="/login.html" class="btn-voltar">Voltar para o Login</a>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      usuarioLogado = usuario;
+      lojaLogada    = loja;
+
+      // Monta o layout do painel
+      montarPainel(usuario, loja);
+
+      // Depois que o painel existe no DOM, carrega a base da API
+      carregarBase();
+    });
+
+    // Monta o HTML principal do painel
+    function montarPainel(usuario, loja) {
+      document.body.innerHTML = `
+        <div class="container">
+          <div class="cabecalho">
+            <div>
+              <h1 class="titulo">Painel PPP</h1>
+              <p class="subtitulo">
+                Relatório de Prevenção de Perdas – base única de produtos.
+              </p>
+            </div>
+            <div class="info-usuario">
+              <strong>Usuário: ${sanitize(usuario)}</strong>
+              <span>Loja: ${sanitize(loja)}</span>
+            </div>
+          </div>
+
+          <div class="conteudo">
+            <div class="topo">
+
+              <div class="search-container">
+                <button
+                  type="button"
+                  class="btnBarcodeLeft"
+                  onclick="abrirCamera()"
+                  aria-label="Ler código de barras com a câmera"
+                >
+                  <span class="icon-barcode-small"></span>
+                </button>
+
+                <input
+                  id="campoBusca"
+                  type="text"
+                  placeholder="Pesquisar produto por EAN, código ou descrição"
+                  onkeydown="if(event.key === 'Enter'){buscar();}"
+                />
+
+                <button
+                  type="button"
+                  class="btnBuscarIcone"
+                  onclick="buscar()"
+                  aria-label="Buscar produto"
+                >
+                  <svg width="26" height="26" viewBox="0 0 24 24"
+                    fill="none" stroke="#444" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- RELATÓRIO -->
+              <div class="obs-container">
+                <div class="obs-label">Relatório / Observação:</div>
+                <textarea
+                  id="observacao"
+                  class="obs-textarea"
+                  placeholder="Digite aqui a observação que será enviada junto com o produto clicado..."
+                ></textarea>
+              </div>
+
+              <!-- QUANTIDADE | VALOR UNITÁRIO | Nº DOCUMENTO -->
+              <div class="linha-infos">
+                <div class="campo-inline">
+                  <div class="qtd-label">Quantidade:</div>
+                  <input
+                    id="quantidade"
+                    class="input-inline"
+                    type="text"
+                    inputmode="decimal"
+                    placeholder="Qtd"
+                    oninput="this.value = this.value.replace(/[^0-9.,]/g, '');"
+                  />
                 </div>
 
-                <div class="container">
-                    <div class="cabecalho">
-                        <div>
-                            <h1 class="titulo">Painel PPP</h1>
-                            <p class="subtitulo">
-                                Resumo operacional da loja selecionada e registro de relatórios por produto.
-                            </p>
-                        </div>
-                        <div class="info-usuario">
-                            <strong>Usuário: ${sanitize(usuario)}</strong>
-                            <span>Loja: ${sanitize(loja)}</span>
-                        </div>
-                    </div>
-
-                    <div class="conteudo">
-                        <div class="bloco">
-                            <h3>Indicadores principais (futuro)</h3>
-                            <p>
-                                Aqui você poderá, futuramente, exibir vendas, perdas, ruptura, etc.,
-                                puxados da planilha para esta loja.
-                            </p>
-                        </div>
-
-                        <div class="bloco">
-                            <h3>Relatório / Busca por produto (EAN / Cód / Nome)</h3>
-                            <div class="topo-ean">
-                                <!-- Caixa de busca -->
-                                <div class="search-container">
-                                    <button
-                                        type="button"
-                                        class="btnBarcodeLeft"
-                                        onclick="abrirCamera()"
-                                        aria-label="Ler código de barras com a câmera"
-                                    >
-                                        <span class="icon-barcode-small"></span>
-                                    </button>
-
-                                    <input
-                                        id="campoBusca"
-                                        type="text"
-                                        placeholder="Pesquisar produto (EAN, código ou nome)"
-                                        onkeydown="if(event.key === 'Enter'){buscar();}"
-                                    />
-
-                                    <button
-                                        type="button"
-                                        class="btnBuscarIcone"
-                                        onclick="buscar()"
-                                        aria-label="Buscar produto"
-                                    >
-                                        <svg width="22" height="22" viewBox="0 0 24 24"
-                                            fill="none" stroke="#444" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <circle cx="11" cy="11" r="7"></circle>
-                                            <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                <!-- Relatório -->
-                                <div class="obs-container">
-                                    <div class="obs-label">Relatório / Observação:</div>
-                                    <textarea
-                                        id="observacao"
-                                        class="obs-textarea"
-                                        placeholder="Digite aqui a observação que será enviada junto com o produto clicado..."
-                                    ></textarea>
-                                </div>
-
-                                <!-- Quantidade / Valor / Nº Documento -->
-                                <div class="linha-infos">
-                                    <div class="campo-inline">
-                                        <div class="qtd-label">Quantidade:</div>
-                                        <input
-                                            id="quantidade"
-                                            class="input-inline"
-                                            type="text"
-                                            inputmode="decimal"
-                                            placeholder="Qtd"
-                                            oninput="this.value = this.value.replace(/[^0-9.,]/g, '');"
-                                        />
-                                    </div>
-
-                                    <div class="campo-inline">
-                                        <div class="qtd-label">Valor unitário (R$):</div>
-                                        <input
-                                            id="valorUnitario"
-                                            class="input-inline"
-                                            type="text"
-                                            inputmode="decimal"
-                                            placeholder="0,00"
-                                            oninput="mascaraValorUnitario(this)"
-                                        />
-                                    </div>
-
-                                    <div class="campo-inline">
-                                        <div class="qtd-label">Nº de Documento:</div>
-                                        <input
-                                            id="numeroDocumento"
-                                            class="input-inline"
-                                            type="text"
-                                            inputmode="numeric"
-                                            placeholder="Número"
-                                            oninput="this.value = this.value.replace(/[^0-9]/g, '');"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div id="status"></div>
-                            </div>
-
-                            <!-- Área de câmera (por enquanto, só placeholder) -->
-                            <div id="cameraArea">
-                                <p>Aponte para o código de barras:</p>
-                                <video id="video" autoplay playsinline></video>
-                                <p id="msgCamera"></p>
-                                <button class="btnFechar" onclick="fecharCamera()">Fechar câmera</button>
-                            </div>
-
-                            <!-- Lista de resultados -->
-                            <div id="resultado"></div>
-                        </div>
-
-                        <!-- Link para voltar ao login (trocar de loja / usuário) -->
-                        <a href="/login.html" class="btn-voltar">Sair / Trocar de Loja</a>
-                    </div>
+                <div class="campo-inline">
+                  <div class="qtd-label">Valor unitário (R$):</div>
+                  <input
+                    id="valorUnitario"
+                    class="input-inline"
+                    type="text"
+                    inputmode="decimal"
+                    placeholder="0,00"
+                    oninput="mascaraValorUnitario(this)"
+                  />
                 </div>
-            `;
 
-            // Inicializa a base de produtos FAKE para testes
-            inicializarBaseFake();
+                <div class="campo-inline">
+                  <div class="qtd-label">Nº de Documento:</div>
+                  <input
+                    id="numeroDocumento"
+                    class="input-inline"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="Número"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                  />
+                </div>
+              </div>
+
+              <div id="status" class="status-msg"></div>
+            </div>
+
+            <div id="cameraArea">
+              <p style="font-size: 13px;">Aponte para o código de barras:</p>
+              <video id="video" autoplay playsinline></video>
+              <p id="msgCamera" style="font-size: 12px;"></p>
+              <button class="btnFechar" onclick="fecharCamera()">Fechar câmera</button>
+            </div>
+
+            <div id="resultado" style="width:100%; margin-top:14px;"></div>
+
+            <a href="/login.html" class="btn-voltar">Sair / Trocar de Loja</a>
+          </div>
+        </div>
+      `;
+    }
+
+    // Sanitiza texto para evitar problemas ao injetar no HTML
+    function sanitize(texto) {
+      return String(texto)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // ========== CARREGAR BASE A PARTIR DA API /api/produtos ==========
+
+    async function carregarBase() {
+      const status = document.getElementById("status");
+      status.textContent = "Carregando base de produtos...";
+      iniciarLoadingPercentual();
+
+      try {
+        const resposta = await fetch("/api/produtos");
+        const dados = await resposta.json().catch(() => ({}));
+
+        if (!resposta.ok || !dados.sucesso || !Array.isArray(dados.produtos)) {
+          baseCarregada = false;
+          status.textContent =
+            dados.message || "Erro ao carregar base de produtos.";
+          finalizarLoadingPercentual();
+          return;
+        }
+
+        dbProdutos = dados.produtos || [];
+        baseCarregada = true;
+        status.textContent =
+          `Base carregada com ${dbProdutos.length} produto(s).`;
+        finalizarLoadingPercentual();
+      } catch (erro) {
+        console.error("Erro ao carregar base da API:", erro);
+        baseCarregada = false;
+        status.textContent =
+          "Erro de conexão ao carregar base de produtos.";
+        finalizarLoadingPercentual();
+      }
+    }
+
+    // ========== BUSCA LOCAL NA BASE ==========
+
+    function buscar() {
+      const campo = document.getElementById("campoBusca");
+      const termoBruto = campo.value.trim();
+      const status = document.getElementById("status");
+
+      if (!termoBruto) {
+        status.textContent = "Digite ou leia um código / descrição para buscar.";
+        return;
+      }
+
+      if (!baseCarregada) {
+        status.textContent = "Aguarde o carregamento da base (100%).";
+        return;
+      }
+
+      const termo = termoBruto.toLowerCase();
+
+      const resultados = dbProdutos.filter(linha => {
+        const ean      = String(linha[0] ?? "").toLowerCase();
+        const consinco = String(linha[1] ?? "").toLowerCase();
+        const produto  = String(linha[2] ?? "").toLowerCase();
+
+        return (
+          ean === termo ||
+          consinco === termo ||
+          produto.includes(termo)
+        );
+      });
+
+      mostrarResultados(resultados);
+    }
+
+    // Mostra resultados em cartões clicáveis
+    function mostrarResultados(dados) {
+      const container = document.getElementById("resultado");
+      const status = document.getElementById("status");
+
+      if (!dados || dados.length === 0) {
+        container.innerHTML =
+          '<p style="font-size: 13px; text-align:center;">Nenhum resultado encontrado.</p>';
+        ultimosResultados = [];
+        status.textContent = "Nenhum produto encontrado para o termo informado.";
+        return;
+      }
+
+      ultimosResultados = dados;
+
+      let html = "";
+      dados.forEach((linha, idx) => {
+        html += `
+          <div class="cartao" onclick="enviarRelatorio(${idx})">
+            <p><strong>EAN:</strong> ${linha[0] ?? ""}</p>
+            <p><strong>Cód Consinco:</strong> ${linha[1] ?? ""}</p>
+            <p><strong>Produto:</strong> ${linha[2] ?? ""}</p>
+            <p><strong>Departamento:</strong> ${linha[3] ?? ""}</p>
+            <p><strong>Seção:</strong> ${linha[4] ?? ""}</p>
+            <p><strong>Grupo:</strong> ${linha[5] ?? ""}</p>
+            <p><strong>Subgrupo:</strong> ${linha[6] ?? ""}</p>
+            <p><strong>Categoria:</strong> ${linha[7] ?? ""}</p>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      status.textContent =
+        `${dados.length} produto(s) encontrado(s). Clique em um cartão para preparar o relatório.`;
+    }
+
+    // ========== ENVIO DO RELATÓRIO (1ª ETAPA: valida e abre popup) ==========
+
+    function enviarRelatorio(idx) {
+      const status = document.getElementById("status");
+
+      if (!ultimosResultados || !ultimosResultados[idx]) {
+        status.textContent =
+          "Não foi possível identificar o produto selecionado.";
+        return;
+      }
+
+      const linhaProduto = ultimosResultados[idx];
+      const obs = document.getElementById("observacao").value.trim();
+      const qtd = document.getElementById("quantidade").value.trim();
+      const valor = document.getElementById("valorUnitario").value.trim();
+      const doc = document.getElementById("numeroDocumento").value.trim();
+
+      if (!obs) {
+        status.textContent =
+          "Preencha o relatório/observação antes de enviar.";
+        return;
+      }
+
+      if (!qtd) {
+        status.textContent =
+          "Preencha a quantidade antes de enviar.";
+        return;
+      }
+
+      if (!valor) {
+        status.textContent =
+          "Preencha o valor unitário antes de enviar.";
+        return;
+      }
+
+      if (!doc) {
+        status.textContent =
+          "Preencha o Nº de Documento antes de enviar.";
+        return;
+      }
+
+      if (!lojaLogada || !usuarioLogado) {
+        status.textContent =
+          "Sessão inválida. Faça login novamente.";
+        return;
+      }
+
+      if (navigator.vibrate) {
+        navigator.vibrate(60);
+      }
+      playBeep();
+
+      envioPendente = {
+        linhaProduto,
+        observacao: obs,
+        quantidade: qtd,
+        valorUnitario: valor,
+        numeroDocumento: doc
+      };
+
+      document.getElementById("confirmOverlay").style.display = "flex";
+    }
+
+    // ========== ENVIO DO RELATÓRIO (2ª ETAPA: confirmação) ==========
+
+    function confirmarEnvio(confirmado) {
+      const overlay = document.getElementById("confirmOverlay");
+      const status = document.getElementById("status");
+
+      if (!confirmado) {
+        overlay.style.display = "none";
+        envioPendente = null;
+        status.textContent = "Envio cancelado.";
+        return;
+      }
+
+      if (!envioPendente) {
+        overlay.style.display = "none";
+        return;
+      }
+
+      const {
+        linhaProduto,
+        observacao,
+        quantidade,
+        valorUnitario,
+        numeroDocumento
+      } = envioPendente;
+
+      envioPendente = null;
+      overlay.style.display = "none";
+
+      // Por enquanto, apenas SIMULA o envio.
+      // Próximo passo será criar a rota /api/relatorio para gravar na aba RELATORIO.
+      console.log("Simulação de envio:", {
+        produto: linhaProduto,
+        observacao,
+        quantidade,
+        valorUnitario,
+        numeroDocumento,
+        loja: lojaLogada,
+        usuario: usuarioLogado
+      });
+
+      status.textContent =
+        "Simulação: relatório seria enviado para a planilha (API de gravação ainda não implementada).";
+
+      // Limpa campos (exceto nº documento, se quiser manter)
+      document.getElementById("observacao").value = "";
+      document.getElementById("quantidade").value = "";
+      document.getElementById("valorUnitario").value = "";
+      // Nº documento mantido
+    }
+
+    // ========== CÂMERA (mantida igual, futura leitura de código de barras) ==========
+
+    let streamAtual = null;
+    let lendo = false;
+
+    function abrirCamera() {
+      const area  = document.getElementById("cameraArea");
+      const msg   = document.getElementById("msgCamera");
+      const video = document.getElementById("video");
+
+      area.style.display = "block";
+      msg.textContent = "Abrindo câmera...";
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        msg.textContent =
+          "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
+        return;
+      }
+
+      navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+          streamAtual = stream;
+          video.srcObject = stream;
+          video.play();
+          msg.textContent = "Aponte para o código de barras...";
+          iniciarLeitura(video, msg);
+        })
+        .catch(err => {
+          msg.textContent = "Erro ao acessar câmera: " + err.message;
         });
+    }
 
-        function sanitize(texto) {
-            return String(texto)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+    async function iniciarLeitura(video, msg) {
+      if (!("BarcodeDetector" in window)) {
+        msg.textContent =
+          "Leitura automática não suportada neste navegador. Digite o código manualmente.";
+        return;
+      }
+
+      const detector = new BarcodeDetector({
+        formats: ["ean_13", "ean_8", "code_128"]
+      });
+
+      const canvas = document.createElement("canvas");
+      const ctx    = canvas.getContext("2d");
+
+      lendo = true;
+
+      async function scan() {
+        if (!lendo) return;
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width  = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          try {
+            const codes = await detector.detect(canvas);
+
+            if (codes.length > 0) {
+              const code = codes[0].rawValue;
+
+              playBeep();
+              msg.textContent = "Detectado: " + code;
+
+              document.getElementById("campoBusca").value = code;
+
+              fecharCamera();
+              buscar();
+              return;
+            }
+          } catch(e){}
         }
 
-        /* =================== LÓGICA EAN (VERSÃO FAKE) =================== */
+        requestAnimationFrame(scan);
+      }
 
-        let dbProdutos = [];
-        let baseCarregada = false;
-        let ultimosResultados = [];
-        let envioPendente = null;
+      scan();
+    }
 
-        function inicializarBaseFake() {
-            dbProdutos = [
-                ["7891000055123", "12345", "ARROZ BRANCO TIPO 1 5KG", "MERCEARIA", "ARROZ", "CEREAIS", "ARROZ BRANCO", "ALIMENTOS SECOS"],
-                ["7896004001234", "67890", "FEIJÃO CARIOCA 1KG", "MERCEARIA", "FEIJÃO", "CEREAIS", "FEIJÃO", "ALIMENTOS SECOS"],
-                ["7894900012345", "22222", "AÇÚCAR CRISTAL 5KG", "MERCEARIA", "AÇÚCAR", "AÇÚCARES", "CRISTAL", "ALIMENTOS SECOS"],
-                ["7894900012346", "33333", "CAFÉ TORRADO MOÍDO 500G", "MERCEARIA", "CAFÉ", "CAFÉS", "MOÍDO", "BEBIDAS QUENTES"]
-            ];
-            baseCarregada = true;
-            const statusEl = document.getElementById("status");
-            if (statusEl) {
-                statusEl.textContent = "Base de produtos de teste carregada.";
-            }
-        }
+    function fecharCamera() {
+      lendo = false;
 
-        function mascaraValorUnitario(campo) {
-            let v = campo.value.replace(/\D/g, "");
+      if (streamAtual) {
+        streamAtual.getTracks().forEach(t => t.stop());
+      }
 
-            if (!v) {
-                campo.value = "";
-                return;
-            }
-
-            v = v.replace(/^0+/, "");
-            if (!v) {
-                v = "0";
-            }
-
-            while (v.length < 3) {
-                v = "0" + v;
-            }
-
-            const inteiro = v.slice(0, -2);
-            const centavos = v.slice(-2);
-            const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-            campo.value = inteiroFormatado + "," + centavos;
-        }
-
-        function buscar() {
-            const campo = document.getElementById("campoBusca");
-            const statusEl = document.getElementById("status");
-            if (!campo || !statusEl) return;
-
-            const termoBruto = campo.value.trim();
-
-            if (!termoBruto) {
-                statusEl.textContent = "Digite ou leia um código / nome.";
-                return;
-            }
-
-            if (!baseCarregada) {
-                statusEl.textContent = "Aguarde carregar a base de produtos.";
-                return;
-            }
-
-            const termo = termoBruto.toLowerCase();
-
-            const resultados = dbProdutos.filter(linha => {
-                const ean      = String(linha[0] ?? "").toLowerCase();
-                const consinco = String(linha[1] ?? "").toLowerCase();
-                const produto  = String(linha[2] ?? "").toLowerCase();
-
-                return (
-                    ean === termo ||
-                    consinco === termo ||
-                    produto.includes(termo)
-                );
-            });
-
-            mostrarResultados(resultados);
-        }
-
-        function mostrarResultados(dados) {
-            const container = document.getElementById("resultado");
-            const statusEl  = document.getElementById("status");
-            if (!container) return;
-
-            if (!dados || dados.length === 0) {
-                container.innerHTML =
-                    '<p style="font-size:13px; text-align:center;">Nenhum resultado encontrado.</p>';
-                ultimosResultados = [];
-                if (statusEl) statusEl.textContent = "";
-                return;
-            }
-
-            ultimosResultados = dados;
-            let html = "";
-
-            dados.forEach((linha, idx) => {
-                html += `
-                    <div class="cartao" onclick="enviarRelatorio(${idx})">
-                        <p><strong>EAN:</strong><br>${linha[0] ?? ""}</p>
-                        <p><strong>Cód Consinco:</strong><br>${linha[1] ?? ""}</p>
-                        <p><strong>Produto:</strong><br>${linha[2] ?? ""}</p>
-                        <p><strong>Departamento:</strong><br>${linha[3] ?? ""}</p>
-                        <p><strong>Seção:</strong><br>${linha[4] ?? ""}</p>
-                        <p><strong>Grupo:</strong><br>${linha[5] ?? ""}</p>
-                        <p><strong>Subgrupo:</strong><br>${linha[6] ?? ""}</p>
-                        <p><strong>Categoria:</strong><br>${linha[7] ?? ""}</p>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-            if (statusEl) statusEl.textContent = `${dados.length} produto(s) encontrado(s).`;
-        }
-
-        function enviarRelatorio(idx) {
-            const statusEl = document.getElementById("status");
-
-            if (!ultimosResultados || !ultimosResultados[idx]) {
-                if (statusEl) statusEl.textContent =
-                    "Não foi possível identificar o produto selecionado.";
-                return;
-            }
-
-            const linhaProduto   = ultimosResultados[idx];
-            const obsEl          = document.getElementById("observacao");
-            const qtdEl          = document.getElementById("quantidade");
-            const valorEl        = document.getElementById("valorUnitario");
-            const docEl          = document.getElementById("numeroDocumento");
-
-            const obs    = obsEl?.value.trim()    ?? "";
-            const qtd    = qtdEl?.value.trim()    ?? "";
-            const valor  = valorEl?.value.trim()  ?? "";
-            const numero = docEl?.value.trim()    ?? "";
-
-            if (!obs) {
-                if (statusEl) statusEl.textContent =
-                    "Preencha o relatório/observação antes de enviar.";
-                return;
-            }
-
-            if (!qtd) {
-                if (statusEl) statusEl.textContent =
-                    "Preencha a quantidade antes de enviar.";
-                return;
-            }
-
-            if (!valor) {
-                if (statusEl) statusEl.textContent =
-                    "Preencha o valor unitário antes de enviar.";
-                return;
-            }
-
-            if (!numero) {
-                if (statusEl) statusEl.textContent =
-                    "Preencha o Nº de Documento antes de enviar.";
-                return;
-            }
-
-            if (!window.lojaLogada || !window.usuarioLogado) {
-                if (statusEl) statusEl.textContent =
-                    "Sessão inválida. Faça login novamente.";
-                return;
-            }
-
-            envioPendente = {
-                linhaProduto,
-                observacao: obs,
-                quantidade: qtd,
-                valorUnitario: valor,
-                numeroDocumento: numero
-            };
-
-            if (statusEl) {
-                statusEl.textContent = "Confirme o envio no popup.";
-            }
-
-            const overlay = document.getElementById("confirmOverlay");
-            if (overlay) overlay.style.display = "flex";
-        }
-
-        function confirmarEnvio(confirmado) {
-            const overlay = document.getElementById("confirmOverlay");
-            const statusEl = document.getElementById("status");
-
-            if (!overlay) return;
-
-            if (!confirmado) {
-                overlay.style.display = "none";
-                envioPendente = null;
-                if (statusEl) statusEl.textContent = "Envio cancelado.";
-                return;
-            }
-
-            if (!envioPendente) {
-                overlay.style.display = "none";
-                return;
-            }
-
-            const {
-                linhaProduto,
-                observacao,
-                quantidade,
-                valorUnitario,
-                numeroDocumento
-            } = envioPendente;
-
-            envioPendente = null;
-            overlay.style.display = "none";
-
-            if (statusEl) {
-                statusEl.textContent =
-                    "Simulação: relatório seria enviado para a planilha (API ainda não implementada).";
-            }
-
-            const obsEl   = document.getElementById("observacao");
-            const qtdEl   = document.getElementById("quantidade");
-            const valorEl = document.getElementById("valorUnitario");
-            if (obsEl)   obsEl.value   = "";
-            if (qtdEl)   qtdEl.value   = "";
-            if (valorEl) valorEl.value = "";
-            // Nº documento permanece
-
-            console.log("Dados que serão enviados no futuro:", {
-                linhaProduto,
-                loja: window.lojaLogada,
-                usuario: window.usuarioLogado,
-                observacao,
-                quantidade,
-                valorUnitario,
-                numeroDocumento
-            });
-        }
-
-        function abrirCamera() {
-            const statusEl = document.getElementById("status");
-            if (statusEl) {
-                statusEl.textContent =
-                    "Leitor de código de barras será implementado em uma próxima etapa.";
-            }
-        }
-
-        function fecharCamera() {
-            const cameraArea = document.getElementById("cameraArea");
-            if (cameraArea) cameraArea.style.display = "none";
-        }
-    </script>
+      const video = document.getElementById("video");
+      if (video) {
+        video.srcObject = null;
+      }
+      const area = document.getElementById("cameraArea");
+      if (area) {
+        area.style.display = "none";
+      }
+    }
+  </script>
 </body>
 </html>
