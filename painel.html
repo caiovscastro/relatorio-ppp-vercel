@@ -17,7 +17,7 @@
             align-items: center;
         }
 
-        /* Card do painel */
+        /* Card do painel principal */
         .container {
             width: 95%;
             max-width: 900px;
@@ -88,61 +88,332 @@
             font-weight: 600;
         }
 
-        /* Estilo da tela de acesso inválido */
-        .tela-erro {
+        /* ==================== ÁREA EAN / RELATÓRIO ==================== */
+
+        .topo-ean {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        /* Caixa de busca */
+        .search-container {
+            width: 100%;
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        #campoBusca {
+            width: 100%;
+            padding: 14px 50px 14px 50px;
+            font-size: 16px;
+            border: 1px solid #bbb;
+            border-radius: 18px;
+            outline: none;
+            background: #fff;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+
+        #campoBusca:focus {
+            border-color: #0066ff;
+            box-shadow: 0 0 0 1px #0066ff33;
+        }
+
+        .btnBarcodeLeft {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            width: 24px;
+            height: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background: #f3f3f3;
-            font-family: Arial, sans-serif;
         }
 
-        .card-erro {
+        .icon-barcode-small {
+            width: 100%;
+            height: 100%;
+            border-radius: 3px;
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    #333 0px,
+                    #333 3px,
+                    #fff 3px,
+                    #fff 5px
+                );
+        }
+
+        .btnBuscarIcone {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btnBuscarIcone svg {
+            display: block;
+        }
+
+        /* Observação / Relatório */
+        .obs-container {
+            width: 100%;
+            margin-top: 6px;
+            margin-bottom: 10px;
+        }
+
+        .obs-label {
+            font-size: 14px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .obs-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 10px;
+            border: 1px solid #bbb;
+            padding: 10px 12px;
+            font-size: 14px;
+            resize: none;
+            min-height: 80px;
             background: #fff;
-            padding: 26px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        /* Linha com Quantidade / Valor / Nº Documento */
+        .linha-infos {
+            width: 100%;
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .campo-inline {
+            flex: 1;
+            min-width: 120px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .qtd-label {
+            font-size: 13px;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .input-inline {
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 10px;
+            border: 1px solid #bbb;
+            padding: 8px 10px;
+            font-size: 14px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Status */
+        #status {
+            font-size: 13px;
+            margin-top: 6px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        /* Câmara (placeholder) */
+        #cameraArea {
+            margin-top: 10px;
+            display: none;
+            width: 100%;
+        }
+
+        #cameraArea p {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        #cameraArea video {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background: white;
+        }
+
+        .btnFechar {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 8px;
+            max-width: 260px;
+            background: #777;
+            color: white;
+        }
+
+        /* Cartões de resultado */
+        #resultado {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .cartao {
+            width: 100%;
+            background: white;
+            padding: 12px 12px;
+            margin: 10px auto;
             border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-            max-width: 420px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: entrarCartao 0.2s ease-out forwards;
+            cursor: pointer;
+            transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+        }
+
+        .cartao:hover {
+            transform: translateY(2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+        }
+
+        .cartao p {
+            margin: 4px 0;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .cartao strong {
+            font-size: 13px;
+            color: #111;
+        }
+
+        @keyframes entrarCartao {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Overlay de confirmação de envio */
+        #confirmOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .confirm-box {
+            background: #fff;
+            padding: 18px 16px;
+            border-radius: 12px;
+            max-width: 360px;
+            width: 90%;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
             text-align: center;
         }
 
-        .card-erro h1 {
-            color: #c00000;
-            margin-top: 0;
+        .confirm-box p {
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btnConfirmar,
+        .btnCancelar {
+            flex: 1;
+            padding: 8px 6px;
+            border-radius: 8px;
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btnConfirmar {
+            background: #4CAF50;
+            color: #fff;
+        }
+
+        .btnCancelar {
+            background: #e0e0e0;
+            color: #333;
         }
     </style>
 </head>
 
 <body>
-    <!--
-        IMPORTANTE:
-        Todo o conteúdo do body será preenchido via JavaScript,
-        de acordo com os parâmetros recebidos na URL (?usuario=...&loja=...).
-
-        Exemplo de URL gerada pelo login:
-        /painel.html?usuario=LOJA1&loja=ULT%2001%20-%20PLANALTINA
-    -->
+    <!-- Overlay de confirmação -->
+    <div id="confirmOverlay">
+        <div class="confirm-box">
+            <p>Você deseja mesmo enviar o Relatório?</p>
+            <div class="confirm-buttons">
+                <button class="btnConfirmar" onclick="confirmarEnvio(true)">
+                    Sim
+                </button>
+                <button class="btnCancelar" onclick="confirmarEnvio(false)">
+                    Cancelar envio
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Executa assim que o DOM estiver pronto
+        /*
+            Lê os parâmetros da URL (?usuario=...&loja=...) e monta o painel.
+            Mantém a mesma lógica que você já tinha no painel original.
+        */
         document.addEventListener("DOMContentLoaded", () => {
-            // Lê os parâmetros de query string da URL atual
             const params  = new URLSearchParams(window.location.search);
             const usuario = params.get("usuario");
             const loja    = params.get("loja");
 
-            /*
-                Regras de segurança/simples:
-                - Se não vier "usuario" ou "loja" na URL,
-                  consideramos um acesso inválido ao painel.
-                  Ex.: alguém digitou /painel.html direto no navegador.
-            */
+            // Se não vier usuário ou loja na URL, bloqueia acesso ao painel
             if (!usuario || !loja) {
                 document.body.innerHTML = `
-                    <div class="tela-erro">
-                        <div class="card-erro">
-                            <h1>Acesso inválido</h1>
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        min-height:100vh;
+                        background:#f3f3f3;
+                        font-family:Arial,sans-serif;
+                    ">
+                        <div style="
+                            background:#fff;
+                            padding:26px 30px;
+                            border-radius:12px;
+                            box-shadow:0 6px 18px rgba(0,0,0,0.12);
+                            max-width:420px;
+                            text-align:center;
+                        ">
+                            <h1 style="color:#c00000;margin-top:0;">Acesso inválido</h1>
                             <p>Parâmetros do login não encontrados.</p>
                             <p>Volte para a tela de acesso e realize o login novamente.</p>
                             <a href="/login.html" class="btn-voltar">Voltar para o Login</a>
@@ -152,17 +423,18 @@
                 return;
             }
 
-            /*
-                Se chegou aqui, significa que veio usuário e loja corretamente
-                na query string. Agora montamos o painel principal.
-            */
+            // Guardamos usuário e loja em variáveis globais para uso na lógica do relatório
+            window.usuarioLogado = usuario;
+            window.lojaLogada    = loja;
+
+            // Monta o HTML principal do painel
             document.body.innerHTML = `
                 <div class="container">
                     <div class="cabecalho">
                         <div>
                             <h1 class="titulo">Painel PPP</h1>
                             <p class="subtitulo">
-                                Resumo operacional da loja selecionada.
+                                Resumo operacional da loja selecionada e registro de relatórios por produto.
                             </p>
                         </div>
                         <div class="info-usuario">
@@ -172,22 +444,113 @@
                     </div>
 
                     <div class="conteudo">
-                        <!-- Bloco exemplo 1 -->
+                        <!-- Blocos futuros de indicadores podem ficar aqui -->
                         <div class="bloco">
-                            <h3>Indicadores principais</h3>
+                            <h3>Indicadores principais (futuro)</h3>
                             <p>
-                                Aqui você pode futuramente puxar da API/Planilhas:
-                                vendas do dia, ruptura, perdas, etc.
+                                Aqui você poderá, futuramente, exibir vendas, perdas, ruptura, etc.,
+                                puxados da planilha para esta loja.
                             </p>
                         </div>
 
-                        <!-- Bloco exemplo 2 -->
                         <div class="bloco">
-                            <h3>Checklist / Ações</h3>
-                            <p>
-                                Espaço para listar tarefas pendentes, planos de ação,
-                                apontamentos do PPP, etc.
-                            </p>
+                            <h3>Relatório / Busca por produto (EAN / Cód / Nome)</h3>
+                            <div class="topo-ean">
+                                <!-- Caixa de busca -->
+                                <div class="search-container">
+                                    <button
+                                        type="button"
+                                        class="btnBarcodeLeft"
+                                        onclick="abrirCamera()"
+                                        aria-label="Ler código de barras com a câmera"
+                                    >
+                                        <span class="icon-barcode-small"></span>
+                                    </button>
+
+                                    <input
+                                        id="campoBusca"
+                                        type="text"
+                                        placeholder="Pesquisar produto (EAN, código ou nome)"
+                                        onkeydown="if(event.key === 'Enter'){buscar();}"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        class="btnBuscarIcone"
+                                        onclick="buscar()"
+                                        aria-label="Buscar produto"
+                                    >
+                                        <svg width="22" height="22" viewBox="0 0 24 24"
+                                            fill="none" stroke="#444" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="11" cy="11" r="7"></circle>
+                                            <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <!-- Relatório -->
+                                <div class="obs-container">
+                                    <div class="obs-label">Relatório / Observação:</div>
+                                    <textarea
+                                        id="observacao"
+                                        class="obs-textarea"
+                                        placeholder="Digite aqui a observação que será enviada junto com o produto clicado..."
+                                    ></textarea>
+                                </div>
+
+                                <!-- Quantidade / Valor / Nº Documento -->
+                                <div class="linha-infos">
+                                    <div class="campo-inline">
+                                        <div class="qtd-label">Quantidade:</div>
+                                        <input
+                                            id="quantidade"
+                                            class="input-inline"
+                                            type="text"
+                                            inputmode="decimal"
+                                            placeholder="Qtd"
+                                            oninput="this.value = this.value.replace(/[^0-9.,]/g, '');"
+                                        />
+                                    </div>
+
+                                    <div class="campo-inline">
+                                        <div class="qtd-label">Valor unitário (R$):</div>
+                                        <input
+                                            id="valorUnitario"
+                                            class="input-inline"
+                                            type="text"
+                                            inputmode="decimal"
+                                            placeholder="0,00"
+                                            oninput="mascaraValorUnitario(this)"
+                                        />
+                                    </div>
+
+                                    <div class="campo-inline">
+                                        <div class="qtd-label">Nº de Documento:</div>
+                                        <input
+                                            id="numeroDocumento"
+                                            class="input-inline"
+                                            type="text"
+                                            inputmode="numeric"
+                                            placeholder="Número"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div id="status"></div>
+                            </div>
+
+                            <!-- Área de câmera (por enquanto, só placeholder) -->
+                            <div id="cameraArea">
+                                <p>Aponte para o código de barras:</p>
+                                <video id="video" autoplay playsinline></video>
+                                <p id="msgCamera"></p>
+                                <button class="btnFechar" onclick="fecharCamera()">Fechar câmera</button>
+                            </div>
+
+                            <!-- Lista de resultados -->
+                            <div id="resultado"></div>
                         </div>
 
                         <!-- Link para voltar ao login (trocar de loja / usuário) -->
@@ -195,13 +558,14 @@
                     </div>
                 </div>
             `;
+
+            // Inicializa a base de produtos FAKE para testes
+            inicializarBaseFake();
         });
 
         /*
             Função simples para evitar problemas com caracteres especiais
             quando inserimos dados da URL dentro do HTML.
-
-            Isso protege contra injeção de HTML (XSS básico).
         */
         function sanitize(texto) {
             return String(texto)
@@ -210,6 +574,263 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        /* =================== LÓGICA EAN (VERSÃO FAKE) =================== */
+
+        // Base local de produtos (fake) para testar a lógica de busca / cartão / relatório
+        let dbProdutos = [];
+        let baseCarregada = false;
+        let ultimosResultados = [];
+        let envioPendente = null;
+
+        // Preenche dbProdutos com alguns exemplos só para teste
+        function inicializarBaseFake() {
+            dbProdutos = [
+                // [EAN, COD, PRODUTO, DEP, SECAO, GRUPO, SUBGRUPO, CATEGORIA]
+                ["7891000055123", "12345", "ARROZ BRANCO TIPO 1 5KG", "MERCEARIA", "ARROZ", "CEREAIS", "ARROZ BRANCO", "ALIMENTOS SECOS"],
+                ["7896004001234", "67890", "FEIJÃO CARIOCA 1KG", "MERCEARIA", "FEIJÃO", "CEREAIS", "FEIJÃO", "ALIMENTOS SECOS"],
+                ["7894900012345", "22222", "AÇÚCAR CRISTAL 5KG", "MERCEARIA", "AÇÚCAR", "AÇÚCARES", "CRISTAL", "ALIMENTOS SECOS"],
+                ["7894900012346", "33333", "CAFÉ TORRADO MOÍDO 500G", "MERCEARIA", "CAFÉ", "CAFÉS", "MOÍDO", "BEBIDAS QUENTES"]
+            ];
+            baseCarregada = true;
+            const statusEl = document.getElementById("status");
+            if (statusEl) {
+                statusEl.textContent = "Base de produtos de teste carregada.";
+            }
+        }
+
+        // Máscara de valor unitário em reais
+        function mascaraValorUnitario(campo) {
+            let v = campo.value.replace(/\D/g, "");
+
+            if (!v) {
+                campo.value = "";
+                return;
+            }
+
+            v = v.replace(/^0+/, "");
+            if (!v) {
+                v = "0";
+            }
+
+            while (v.length < 3) {
+                v = "0" + v;
+            }
+
+            const inteiro = v.slice(0, -2);
+            const centavos = v.slice(-2);
+            const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            campo.value = inteiroFormatado + "," + centavos;
+        }
+
+        // Busca local na base (dbProdutos) por EAN, código ou parte do nome
+        function buscar() {
+            const campo = document.getElementById("campoBusca");
+            const statusEl = document.getElementById("status");
+            if (!campo || !statusEl) return;
+
+            const termoBruto = campo.value.trim();
+
+            if (!termoBruto) {
+                statusEl.textContent = "Digite ou leia um código / nome.";
+                return;
+            }
+
+            if (!baseCarregada) {
+                statusEl.textContent = "Aguarde carregar a base de produtos.";
+                return;
+            }
+
+            const termo = termoBruto.toLowerCase();
+
+            const resultados = dbProdutos.filter(linha => {
+                const ean      = String(linha[0] ?? "").toLowerCase();
+                const consinco = String(linha[1] ?? "").toLowerCase();
+                const produto  = String(linha[2] ?? "").toLowerCase();
+
+                return (
+                    ean === termo ||
+                    consinco === termo ||
+                    produto.includes(termo)
+                );
+            });
+
+            mostrarResultados(resultados);
+        }
+
+        // Mostra resultados em cartões clicáveis
+        function mostrarResultados(dados) {
+            const container = document.getElementById("resultado");
+            const statusEl  = document.getElementById("status");
+            if (!container) return;
+
+            if (!dados || dados.length === 0) {
+                container.innerHTML =
+                    '<p style="font-size:13px; text-align:center;">Nenhum resultado encontrado.</p>';
+                ultimosResultados = [];
+                if (statusEl) statusEl.textContent = "";
+                return;
+            }
+
+            ultimosResultados = dados;
+            let html = "";
+
+            dados.forEach((linha, idx) => {
+                html += `
+                    <div class="cartao" onclick="enviarRelatorio(${idx})">
+                        <p><strong>EAN:</strong><br>${linha[0] ?? ""}</p>
+                        <p><strong>Cód Consinco:</strong><br>${linha[1] ?? ""}</p>
+                        <p><strong>Produto:</strong><br>${linha[2] ?? ""}</p>
+                        <p><strong>Departamento:</strong><br>${linha[3] ?? ""}</p>
+                        <p><strong>Seção:</strong><br>${linha[4] ?? ""}</p>
+                        <p><strong>Grupo:</strong><br>${linha[5] ?? ""}</p>
+                        <p><strong>Subgrupo:</strong><br>${linha[6] ?? ""}</p>
+                        <p><strong>Categoria:</strong><br>${linha[7] ?? ""}</p>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            if (statusEl) statusEl.textContent = `${dados.length} produto(s) encontrado(s).`;
+        }
+
+        // Primeiro passo: valida campos e abre popup de confirmação
+        function enviarRelatorio(idx) {
+            const statusEl = document.getElementById("status");
+
+            if (!ultimosResultados || !ultimosResultados[idx]) {
+                if (statusEl) statusEl.textContent =
+                    "Não foi possível identificar o produto selecionado.";
+                return;
+            }
+
+            const linhaProduto   = ultimosResultados[idx];
+            const obsEl          = document.getElementById("observacao");
+            const qtdEl          = document.getElementById("quantidade");
+            const valorEl        = document.getElementById("valorUnitario");
+            const docEl          = document.getElementById("numeroDocumento");
+
+            const obs    = obsEl?.value.trim()    ?? "";
+            const qtd    = qtdEl?.value.trim()    ?? "";
+            const valor  = valorEl?.value.trim()  ?? "";
+            const numero = docEl?.value.trim()    ?? "";
+
+            if (!obs) {
+                if (statusEl) statusEl.textContent =
+                    "Preencha o relatório/observação antes de enviar.";
+                return;
+            }
+
+            if (!qtd) {
+                if (statusEl) statusEl.textContent =
+                    "Preencha a quantidade antes de enviar.";
+                return;
+            }
+
+            if (!valor) {
+                if (statusEl) statusEl.textContent =
+                    "Preencha o valor unitário antes de enviar.";
+                return;
+            }
+
+            if (!numero) {
+                if (statusEl) statusEl.textContent =
+                    "Preencha o Nº de Documento antes de enviar.";
+                return;
+            }
+
+            if (!window.lojaLogada || !window.usuarioLogado) {
+                if (statusEl) statusEl.textContent =
+                    "Sessão inválida. Faça login novamente.";
+                return;
+            }
+
+            envioPendente = {
+                linhaProduto,
+                observacao: obs,
+                quantidade: qtd,
+                valorUnitario: valor,
+                numeroDocumento: numero
+            };
+
+            const overlay = document.getElementById("confirmOverlay");
+            if (overlay) overlay.style.display = "flex";
+        }
+
+        // Segundo passo: confirmação do envio (aqui, apenas simulação)
+        function confirmarEnvio(confirmado) {
+            const overlay = document.getElementById("confirmOverlay");
+            const statusEl = document.getElementById("status");
+
+            if (!overlay) return;
+
+            if (!confirmado) {
+                overlay.style.display = "none";
+                envioPendente = null;
+                if (statusEl) statusEl.textContent = "Envio cancelado.";
+                return;
+            }
+
+            if (!envioPendente) {
+                overlay.style.display = "none";
+                return;
+            }
+
+            const {
+                linhaProduto,
+                observacao,
+                quantidade,
+                valorUnitario,
+                numeroDocumento
+            } = envioPendente;
+
+            // Aqui, futuramente, vamos chamar a API /api/relatorio (POST)
+            // e enviar todos esses dados para gravar na aba RELATORIO.
+            // Por enquanto, apenas simulamos.
+            envioPendente = null;
+            overlay.style.display = "none";
+
+            if (statusEl) {
+                statusEl.textContent =
+                    "Simulação: relatório seria enviado para a planilha (API ainda não implementada).";
+            }
+
+            // Limpa campos de relatório, como no app original
+            const obsEl   = document.getElementById("observacao");
+            const qtdEl   = document.getElementById("quantidade");
+            const valorEl = document.getElementById("valorUnitario");
+            if (obsEl)   obsEl.value   = "";
+            if (qtdEl)   qtdEl.value   = "";
+            if (valorEl) valorEl.value = "";
+            // Nº documento permanece
+            console.log("Dados que serão enviados no futuro:", {
+                linhaProduto,
+                loja: window.lojaLogada,
+                usuario: window.usuarioLogado,
+                observacao,
+                quantidade,
+                valorUnitario,
+                numeroDocumento
+            });
+        }
+
+        /* ===== CÂMERA / LEITOR DE CÓDIGO (POR ENQUANTO, PLACEHOLDER) ===== */
+
+        function abrirCamera() {
+            const statusEl = document.getElementById("status");
+            if (statusEl) {
+                statusEl.textContent =
+                    "Leitor de código de barras será implementado em uma próxima etapa.";
+            }
+            // Estrutura já está preparada (cameraArea, vídeo, etc.),
+            // mas vamos ativar de verdade quando o resto estiver 100% pronto.
+        }
+
+        function fecharCamera() {
+            const cameraArea = document.getElementById("cameraArea");
+            if (cameraArea) cameraArea.style.display = "none";
         }
     </script>
 </body>
