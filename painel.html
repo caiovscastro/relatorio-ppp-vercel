@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel PPP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      padding: 24px 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      text-align: center;
+      max-width: 420px;
+      width: 100%;
+    }
+    h1 {
+      margin-bottom: 8px;
+    }
+    p {
+      margin: 4px 0;
+    }
+    .erro {
+      color: #c00;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="titulo">Carregando...</h1>
+    <p id="info"></p>
+  </div>
+
+  <script>
+    // Lê os parâmetros da URL: ?loja=ULT%2001&usuario=Caio (se a gente passar isso depois)
+    const params = new URLSearchParams(window.location.search);
+    const loja = params.get('loja');
+    const usuario = params.get('usuario'); // pode vir vazio por enquanto
+
+    if (!loja) {
+      document.getElementById('titulo').textContent = 'Acesso inválido';
+      document.getElementById('info').textContent =
+        'Parâmetros do login não encontrados. Volte para a tela de acesso.';
+      document.getElementById('titulo').classList.add('erro');
+    } else {
+      document.getElementById('titulo').textContent = 'Painel PPP';
+      document.getElementById('info').textContent =
+        (usuario ? `Bem-vindo, ${usuario}. ` : '') + `Loja selecionada: ${loja}.`;
+    }
+  </script>
+</body>
+</html>
