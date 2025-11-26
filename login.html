@@ -62,12 +62,19 @@
             background: #004ecc;
         }
 
-        .erro {
+        .mensagem {
             margin-top: 12px;
-            color: #b30000;
             text-align: center;
             font-weight: bold;
             min-height: 18px;
+        }
+
+        .erro {
+            color: #b30000;
+        }
+
+        .sucesso {
+            color: #008000;
         }
     </style>
 </head>
@@ -92,7 +99,7 @@
 
         <button onclick="login()">Entrar</button>
 
-        <div id="msg" class="erro"></div>
+        <div id="msg" class="mensagem"></div>
     </div>
 
     <script>
@@ -103,10 +110,12 @@
 
             const msg = document.getElementById("msg");
             msg.textContent = "";
+            msg.classList.remove("erro", "sucesso");
 
             // Validação básica
             if (!usuario || !senha || !loja) {
                 msg.textContent = "Preencha todos os campos.";
+                msg.classList.add("erro");
                 return;
             }
 
@@ -122,25 +131,32 @@
                 // Se a API retornar erro HTTP ou success = false
                 if (!resposta.ok || !dados.success) {
                     msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
+                    msg.classList.add("erro");
                     return;
                 }
 
                 // LOGIN OK
-                // (opcional) aviso rápido
-                // alert(`Login autorizado para: ${dados.usuario || usuario}\nLoja: ${dados.loja || loja}`);
+                const usuarioFinal = dados.usuario || usuario;
+                const lojaFinal    = dados.loja || loja;
+
+                msg.textContent = "Login autorizado.";
+                msg.classList.add("sucesso");
 
                 // Monta os parâmetros para o painel
                 const params = new URLSearchParams({
-                    usuario: dados.usuario || usuario,
-                    loja: dados.loja || loja
+                    usuario: usuarioFinal,
+                    loja: lojaFinal
                 });
 
-                // Redireciona para o painel levando usuário e loja na URL
-                window.location.href = `/painel.html?${params.toString()}`;
+                // Dá um pequeno tempo para o usuário ver a mensagem e redireciona
+                setTimeout(() => {
+                    window.location.href = `/painel.html?${params.toString()}`;
+                }, 900);
 
             } catch (erro) {
                 console.error(erro);
                 msg.textContent = "Erro de conexão com o servidor.";
+                msg.classList.add("erro");
             }
         }
     </script>
