@@ -1,44 +1,206 @@
-<script>
-    async function login() {
-        const usuario = document.getElementById("usuario").value.trim();
-        const senha   = document.getElementById("senha").value.trim();
-        const loja    = document.getElementById("loja").value;
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login PPP</title>
 
-        const msg = document.getElementById("msg");
-        msg.textContent = "";
-        msg.style.color = "#b30000";
-
-        if (!usuario || !senha || !loja) {
-            msg.textContent = "Preencha todos os campos.";
-            return;
+    <style>
+        /* ======== ESTILO GERAL DA PÁGINA ======== */
+        body {
+            background: #f3f3f3;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
         }
 
-        try {
-            const resposta = await fetch("/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ usuario, senha, loja })
-            });
+        /* Card central de login */
+        .container {
+            width: 90%;
+            max-width: 380px;
+            background: #ffffff;
+            padding: 24px 26px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        }
 
-            const dados = await resposta.json();
+        .titulo {
+            text-align: center;
+            font-size: 26px;
+            margin: 0 0 20px;
+        }
 
-            if (!resposta.ok || !dados.sucesso) {
-                msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
+        label {
+            font-weight: 600;
+            margin-top: 10px;
+            display: block;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 6px;
+            border: 1px solid #c3c3c3;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066ff;
+            box-shadow: 0 0 0 1px #0066ff33;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #0050cc;
+        }
+
+        /* Mensagem de erro/sucesso abaixo do botão */
+        .mensagem {
+            margin-top: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            min-height: 18px;
+        }
+
+        .mensagem.erro {
+            color: #b30000;
+        }
+
+        .mensagem.sucesso {
+            color: #008000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="titulo">Acesso PPP</h2>
+
+        <!-- Campo Usuário -->
+        <label for="usuario">Usuário</label>
+        <input type="text" id="usuario" autocomplete="username" />
+
+        <!-- Campo Senha -->
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" autocomplete="current-password" />
+
+        <!-- Lista de lojas -->
+        <label for="loja">Loja</label>
+        <select id="loja">
+            <option value="">Selecione...</option>
+            <!--
+                IMPORTANTE:
+                Os valores (value="...") precisam bater
+                com o que você usar na validação da API (/api/login).
+            -->
+            <option>ULT 01 - PLANALTINA</option>
+            <option>ULT 08 - ARAPOANGA</option>
+            <option>ULT 14 - ÁGUAS LINDAS</option>
+        </select>
+
+        <!-- Botão de entrar -->
+        <button id="btnEntrar">Entrar</button>
+
+        <!-- Mensagem dinâmica (erro/sucesso) -->
+        <div id="msg" class="mensagem"></div>
+    </div>
+
+    <script>
+        // ======== FUNÇÃO PRINCIPAL DE LOGIN ========
+        async function login() {
+            const usuario = document.getElementById("usuario").value.trim();
+            const senha   = document.getElementById("senha").value.trim();
+            const loja    = document.getElementById("loja").value;
+
+            const msg = document.getElementById("msg");
+            msg.textContent = "";
+            msg.className = "mensagem"; // limpa classes de erro/sucesso
+
+            // Validação simples dos campos obrigatórios
+            if (!usuario || !senha || !loja) {
+                msg.textContent = "Preencha usuário, senha e loja.";
+                msg.classList.add("erro");
                 return;
             }
 
-            // SUCESSO: mostra mensagem rápida…
-            msg.style.color = "green";
-            msg.textContent = "Login autorizado.";
+            try {
+                // Chamada à API /api/login hospedada na Vercel
+                const resposta = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ usuario, senha, loja })
+                });
 
-            // …e redireciona para o painel COM os parâmetros
-            window.location.href =
-                `/painel.html?usuario=${encodeURIComponent(usuario)}&` +
-                `loja=${encodeURIComponent(loja)}`;
+                // Tenta interpretar o JSON retornado pela API
+                const dados = await resposta.json().catch(() => ({}));
 
-        } catch (erro) {
-            console.error(erro);
-            msg.textContent = "Erro de conexão com o servidor.";
+                // Se o HTTP não for 2xx ou a API retornou sucesso = false
+                if (!resposta.ok || !dados.sucesso) {
+                    msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
+                    msg.classList.add("erro");
+                    return;
+                }
+
+                // LOGIN OK
+                msg.textContent = "Login autorizado.";
+                msg.classList.add("sucesso");
+
+                /*
+                    Aqui vem o comportamento chave:
+                    Se o login deu certo, redirecionamos para o painel,
+                    passando usuário e loja como parâmetros na URL.
+
+                    Exemplo final de URL:
+                    /painel.html?usuario=LOJA1&loja=ULT%2001%20-%20PLANALTINA
+
+                    A tela painel.html vai ler esses parâmetros e montar a visão.
+                */
+                const destino =
+                    "/painel.html?usuario=" + encodeURIComponent(usuario) +
+                    "&loja=" + encodeURIComponent(loja);
+
+                // Pequeno delay só para o usuário ver a mensagem "Login autorizado."
+                setTimeout(() => {
+                    window.location.href = destino;
+                }, 300);
+
+            } catch (erro) {
+                console.error("Erro na requisição de login:", erro);
+                msg.textContent = "Erro de conexão com o servidor.";
+                msg.classList.add("erro");
+            }
         }
-    }
-</script>
+
+        // Associa o clique do botão à função de login
+        document.getElementById("btnEntrar").addEventListener("click", login);
+
+        // Opcional: permite enviar com Enter a partir de qualquer campo do formulário
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
