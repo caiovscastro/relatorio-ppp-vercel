@@ -1,62 +1,203 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel PPP</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f3f3;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .card {
-      background: #fff;
-      padding: 24px 32px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      text-align: center;
-      max-width: 420px;
-      width: 100%;
-    }
-    h1 {
-      margin-bottom: 8px;
-    }
-    p {
-      margin: 4px 0;
-    }
-    .erro {
-      color: #c00;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel PPP</title>
+
+    <style>
+        /* ======== ESTILO GERAL DA PÁGINA ======== */
+        body {
+            background: #f3f3f3;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Card do painel */
+        .container {
+            width: 95%;
+            max-width: 900px;
+            background: #ffffff;
+            padding: 24px 28px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid #e1e1e1;
+            padding-bottom: 14px;
+            margin-bottom: 16px;
+        }
+
+        .titulo {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .subtitulo {
+            margin: 4px 0 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .info-usuario {
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .info-usuario strong {
+            display: block;
+        }
+
+        .conteudo {
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .bloco {
+            margin-bottom: 16px;
+            padding: 14px;
+            border-radius: 8px;
+            background: #f7f8ff;
+            border: 1px solid #e0e3ff;
+        }
+
+        .bloco h3 {
+            margin: 0 0 6px;
+            font-size: 16px;
+        }
+
+        .btn-voltar {
+            margin-top: 6px;
+            display: inline-block;
+            padding: 8px 14px;
+            background: #0066ff;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Estilo da tela de acesso inválido */
+        .tela-erro {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #f3f3f3;
+            font-family: Arial, sans-serif;
+        }
+
+        .card-erro {
+            background: #fff;
+            padding: 26px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .card-erro h1 {
+            color: #c00000;
+            margin-top: 0;
+        }
+    </style>
 </head>
+
 <body>
-  <div class="card">
-    <h1 id="titulo">Carregando...</h1>
-    <p id="info"></p>
-  </div>
+    <!--
+        IMPORTANTE:
+        Todo o conteúdo do body será preenchido via JavaScript,
+        de acordo com os parâmetros recebidos na URL (?usuario=...&loja=...).
+    -->
 
-  <script>
-    // Lê os parâmetros da URL: ?loja=ULT%2001&usuario=Caio (se a gente passar isso depois)
-    const params = new URLSearchParams(window.location.search);
-    const loja = params.get('loja');
-    const usuario = params.get('usuario'); // pode vir vazio por enquanto
+    <script>
+        // Executa assim que o DOM estiver pronto
+        document.addEventListener("DOMContentLoaded", () => {
+            const params  = new URLSearchParams(window.location.search);
+            const usuario = params.get("usuario");
+            const loja    = params.get("loja");
 
-    if (!loja) {
-      document.getElementById('titulo').textContent = 'Acesso inválido';
-      document.getElementById('info').textContent =
-        'Parâmetros do login não encontrados. Volte para a tela de acesso.';
-      document.getElementById('titulo').classList.add('erro');
-    } else {
-      document.getElementById('titulo').textContent = 'Painel PPP';
-      document.getElementById('info').textContent =
-        (usuario ? `Bem-vindo, ${usuario}. ` : '') + `Loja selecionada: ${loja}.`;
-    }
-  </script>
+            // Se não vier usuário ou loja na URL, bloqueia acesso ao painel
+            if (!usuario || !loja) {
+                document.body.innerHTML = `
+                    <div class="tela-erro">
+                        <div class="card-erro">
+                            <h1>Acesso inválido</h1>
+                            <p>Parâmetros do login não encontrados.</p>
+                            <p>Volte para a tela de acesso e realize o login novamente.</p>
+                            <a href="/login.html" class="btn-voltar">Voltar para o Login</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Se chegou até aqui, significa que veio usuário e loja corretamente.
+            // Montamos o painel principal:
+            document.body.innerHTML = `
+                <div class="container">
+                    <div class="cabecalho">
+                        <div>
+                            <h1 class="titulo">Painel PPP</h1>
+                            <p class="subtitulo">
+                                Resumo operacional da loja selecionada.
+                            </p>
+                        </div>
+                        <div class="info-usuario">
+                            <strong>Usuário: ${sanitize(usuario)}</strong>
+                            <span>Loja: ${sanitize(loja)}</span>
+                        </div>
+                    </div>
+
+                    <div class="conteudo">
+                        <!-- Bloco exemplo 1 -->
+                        <div class="bloco">
+                            <h3>Indicadores principais</h3>
+                            <p>
+                                Aqui você pode futuramente puxar da API/Planilhas:
+                                vendas do dia, ruptura, perdas, etc.
+                            </p>
+                        </div>
+
+                        <!-- Bloco exemplo 2 -->
+                        <div class="bloco">
+                            <h3>Checklist / Ações</h3>
+                            <p>
+                                Espaço para listar tarefas pendentes, planos de ação,
+                                apontamentos do PPP, etc.
+                            </p>
+                        </div>
+
+                        <!-- Link para voltar ao login (trocar de loja / usuário) -->
+                        <a href="/login.html" class="btn-voltar">Sair / Trocar de Loja</a>
+                    </div>
+                </div>
+            `;
+        });
+
+        /*
+            Função simples para evitar problemas com caracteres especiais
+            quando inserimos dados da URL dentro do HTML.
+        */
+        function sanitize(texto) {
+            return String(texto)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
 </body>
 </html>
