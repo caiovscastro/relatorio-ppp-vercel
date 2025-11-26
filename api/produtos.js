@@ -2,11 +2,12 @@
 //
 // Rota GET /api/produtos
 //
-// Lê os produtos da planilha Google usando conta de serviço.
+// Lê todos os produtos (colunas A:H) da aba BASE da planilha Google,
+// usando conta de serviço.
 //
 // VARIÁVEIS DE AMBIENTE ACEITAS (na Vercel → Settings → Environment Variables):
 //
-//  Preferencial (mais padrão):
+//  Preferencial (padrão):
 //    - GOOGLE_SERVICE_ACCOUNT_EMAIL  -> e-mail da conta de serviço
 //    - GOOGLE_PRIVATE_KEY            -> chave privada
 //    - SPREADSHEET_ID                -> ID da planilha
@@ -16,7 +17,7 @@
 //    - CHAVE_PRIVADA_DO_GOOGLE               -> chave privada
 //    - ID_DA_PLANILHA                        -> ID da planilha
 //
-// A planilha deve ter uma aba chamada "BASE" com as colunas:
+// Planilha (aba BASE):
 //  A = EAN
 //  B = Cód Consinco
 //  C = Produto
@@ -25,11 +26,8 @@
 //  F = Grupo
 //  G = Subgrupo
 //  H = Categoria
-//  I = Loja
 //
-// Exemplos de uso no navegador:
-//  - GET /api/produtos
-//  - GET /api/produtos?loja=ULT%2001%20-%20PLANALTINA
+// Esta API SEMPRE devolve a base completa A:H (sem filtro por loja).
 
 import { google } from "googleapis";
 
@@ -87,6 +85,7 @@ function getAuthClient() {
 // Handler da rota /api/produtos
 // -----------------------------------------------------------------------------
 export default async function handler(req, res) {
+  // Só permitimos GET
   if (req.method !== "GET") {
     return res
       .status(405)
@@ -94,16 +93,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { loja } = req.query;
-
     const { spreadsheetId } = getEnvVars();
     const auth = getAuthClient();
     await auth.authorize();
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    // Lê da aba BASE, da linha 2 em diante, colunas A..I
-    const range = "BASE!A2:I";
+    // Lê da aba BASE, da linha 2 em diante, colunas A..H
+    const range = "BASE!A2:H";
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range
@@ -111,28 +108,10 @@ export default async function handler(req, res) {
 
     const values = response.data.values || [];
 
-    if (values.length === 0) {
-      return res.status(200).json({
-        sucesso: true,
-        produtos: []
-      });
-    }
-
-    let filtrados = values;
-
-    // Se veio parâmetro loja na query, filtra pela coluna I
-    if (loja && String(loja).trim() !== "") {
-      const lojaAlvo = String(loja).trim();
-
-      filtrados = values.filter((linha) => {
-        const lojaLinha = String(linha[8] || "").trim(); // coluna I
-        return lojaLinha === lojaAlvo;
-      });
-    }
-
+    // Aqui não há filtro por loja: devolvemos a base toda.
     return res.status(200).json({
       sucesso: true,
-      produtos: filtrados
+      produtos: values
     });
   } catch (erro) {
     console.error("Erro na API /api/produtos:", erro);
