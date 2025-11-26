@@ -110,8 +110,9 @@
             <option value="">Selecione...</option>
             <!--
                 IMPORTANTE:
-                Os valores (value="...") precisam bater
-                com o que você usar na validação da API (/api/login).
+                Os textos das opções precisam bater com o campo "loja"
+                usado na validação da API (/api/login).
+                Ex.: "ULT 01 - PLANALTINA" e "ULT 08 - ARAPOANGA".
             -->
             <option>ULT 01 - PLANALTINA</option>
             <option>ULT 08 - ARAPOANGA</option>
@@ -144,7 +145,16 @@
             }
 
             try {
-                // Chamada à API /api/login hospedada na Vercel
+                /*
+                    Chamada à API /api/login hospedada na Vercel.
+
+                    IMPORTANTE:
+                    - Este caminho relativo "/api/login" só funciona
+                      se o login.html estiver sendo servido pelo MESMO
+                      domínio da Vercel onde está a API.
+                    - Exemplo: https://seu-app.vercel.app/login.html
+                               faz fetch para https://seu-app.vercel.app/api/login
+                */
                 const resposta = await fetch("/api/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -154,7 +164,15 @@
                 // Tenta interpretar o JSON retornado pela API
                 const dados = await resposta.json().catch(() => ({}));
 
-                // Se o HTTP não for 2xx ou a API retornou sucesso = false
+                /*
+                    A API que ajustamos em api/login.js SEMPRE devolve:
+                    - sucesso: true/false
+                    - message: (string de erro quando sucesso = false)
+
+                    Então aqui a regra é:
+                    - Se a resposta HTTP NÃO é 2xx (resposta.ok === false)
+                      OU sucesso = false → tratamos como erro de login.
+                */
                 if (!resposta.ok || !dados.sucesso) {
                     msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
                     msg.classList.add("erro");
@@ -166,7 +184,6 @@
                 msg.classList.add("sucesso");
 
                 /*
-                    Aqui vem o comportamento chave:
                     Se o login deu certo, redirecionamos para o painel,
                     passando usuário e loja como parâmetros na URL.
 
@@ -185,6 +202,7 @@
                 }, 300);
 
             } catch (erro) {
+                // Erros de rede, CORS, servidor fora do ar, etc.
                 console.error("Erro na requisição de login:", erro);
                 msg.textContent = "Erro de conexão com o servidor.";
                 msg.classList.add("erro");
