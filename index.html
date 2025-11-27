@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PPP – Seleção de Módulo</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 600px;
+      background: #ffffff;
+      padding: 24px 28px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      box-sizing: border-box;
+    }
+
+    .titulo {
+      margin: 0 0 6px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .subtitulo {
+      margin: 0 0 20px;
+      font-size: 14px;
+      text-align: center;
+      color: #555;
+    }
+
+    .botoes {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .botao-modulo {
+      display: block;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      box-sizing: border-box;
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
+    }
+
+    .botao-modulo span.titulo-modulo {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
+    .botao-modulo span.descricao-modulo {
+      font-size: 13px;
+      font-weight: normal;
+      color: #f0f0f0;
+    }
+
+    .botao-modulo:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    .botao-lancamento {
+      background: #0066ff;
+      color: #ffffff;
+    }
+
+    .botao-relatorios {
+      background: #4caf50;
+      color: #ffffff;
+    }
+
+    .rodape {
+      margin-top: 20px;
+      font-size: 12px;
+      text-align: center;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="titulo">PPP – Central de Acesso</h1>
+    <p class="subtitulo">
+      Selecione qual módulo deseja acessar.
+    </p>
+
+    <div class="botoes">
+      <!-- Botão 1 – App atual de lançamento PPP -->
+      <button
+        class="botao-modulo botao-lancamento"
+        type="button"
+        onclick="irParaLancamento()"
+      >
+        <span class="titulo-modulo">Módulo de Lançamento PPP</span>
+        <span class="descricao-modulo">
+          Acessar o app de registro de relatórios (lojas).
+        </span>
+      </button>
+
+      <!-- Botão 2 – Novo módulo de consulta da aba RELATORIO -->
+      <button
+        class="botao-modulo botao-relatorios"
+        type="button"
+        onclick="irParaConsultas()"
+      >
+        <span class="titulo-modulo">Módulo de Consultas / Relatórios</span>
+        <span class="descricao-modulo">
+          Acessar painel de consulta da aba RELATORIO (gestores).
+        </span>
+      </button>
+    </div>
+
+    <div class="rodape">
+      PPP – Prevenção de Perdas • Ultrabox / Big Box
+    </div>
+  </div>
+
+  <script>
+    function irParaLancamento() {
+      // Mantém seu fluxo atual de login de lojas
+      window.location.href = "/login.html";
+    }
+
+    function irParaConsultas() {
+      // Novo fluxo de login de gestor (vamos criar este arquivo depois)
+      window.location.href = "/login-relatorio.html";
+    }
+  </script>
+</body>
+</html>
