@@ -806,22 +806,73 @@
       document.getElementById("confirmOverlay").style.display = "flex";
     }
 
-    /* ========== SEGUNDO PASSO: usuário confirma (SIM / CANCELAR) ========== */
-    function confirmarEnvio(confirmado) {
-      const overlay = document.getElementById("confirmOverlay");
+    // SEGUNDO PASSO: usuário clica em "Sim" ou "Cancelar envio"
+async function confirmarEnvio(confirmado) {
+  const overlay = document.getElementById("confirmOverlay");
+  const status = document.getElementById("status");
 
-      if (!confirmado) {
-        overlay.style.display = "none";
-        envioPendente = null;
-        document.getElementById("status").textContent =
-          "Envio cancelado.";
-        return;
-      }
+  if (!confirmado) {
+    overlay.style.display = "none";
+    envioPendente = null;
+    status.textContent = "Envio cancelado.";
+    return;
+  }
 
-      if (!envioPendente) {
-        overlay.style.display = "none";
-        return;
-      }
+  if (!envioPendente) {
+    overlay.style.display = "none";
+    return;
+  }
+
+  const {
+    linhaProduto,
+    observacao,
+    quantidade,
+    valorUnitario,
+    numeroDocumento,
+  } = envioPendente;
+
+  envioPendente = null;
+  overlay.style.display = "none";
+
+  status.textContent = "Enviando relatório para a planilha...";
+
+  try {
+    const resposta = await fetch("/api/relatorio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        produto: linhaProduto,
+        loja: lojaLogada,
+        usuario: usuarioLogado,
+        observacao,
+        quantidade,
+        valorUnitario,
+        numeroDocumento,
+      }),
+    });
+
+    const dados = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok || !dados.sucesso) {
+      status.textContent =
+        dados.message || "Erro ao registrar relatório na planilha.";
+      return;
+    }
+
+    status.textContent =
+      dados.message || "Relatório registrado com sucesso na planilha.";
+
+    // Limpa campos depois do envio bem-sucedido
+    document.getElementById("observacao").value = "";
+    document.getElementById("quantidade").value = "";
+    document.getElementById("valorUnitario").value = "";
+    // Nº de documento permanece
+  } catch (erro) {
+    console.error("Erro ao enviar relatório:", erro);
+    status.textContent =
+      "Erro de conexão ao enviar relatório para a planilha.";
+  }
+}
 
       const {
         linhaProduto,
