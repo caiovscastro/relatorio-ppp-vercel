@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – Módulo de Consultas PPP</title>
+
+  <style>
+    /* ======== ESTILO GERAL DA PÁGINA ======== */
+    body {
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* Card central de login */
+    .container {
+      width: 90%;
+      max-width: 380px;
+      background: #ffffff;
+      padding: 24px 26px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      box-sizing: border-box;
+    }
+
+    .titulo {
+      text-align: center;
+      font-size: 22px;
+      margin: 0 0 6px;
+    }
+
+    .subtitulo {
+      text-align: center;
+      font-size: 13px;
+      color: #555;
+      margin: 0 0 18px;
+    }
+
+    label {
+      font-weight: 600;
+      margin-top: 10px;
+      display: block;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border: 1px solid #c3c3c3;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4caf50;
+      box-shadow: 0 0 0 1px #4caf5033;
+    }
+
+    button {
+      margin-top: 18px;
+      width: 100%;
+      padding: 12px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #3d9141;
+    }
+
+    .mensagem {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    .mensagem.erro {
+      color: #b30000;
+    }
+
+    .mensagem.sucesso {
+      color: #008000;
+    }
+
+    .voltar {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .voltar a {
+      color: #0066ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .voltar a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2 class="titulo">Login – Consultas PPP</h2>
+    <p class="subtitulo">
+      Acesso exclusivo para consulta da aba RELATORIO.
+    </p>
+
+    <!-- Campo Usuário (gestor) -->
+    <label for="usuarioGestor">Usuário</label>
+    <input
+      type="text"
+      id="usuarioGestor"
+      autocomplete="username"
+    />
+
+    <!-- Campo Senha (gestor) -->
+    <label for="senhaGestor">Senha</label>
+    <input
+      type="password"
+      id="senhaGestor"
+      autocomplete="current-password"
+    />
+
+    <!-- Botão de entrar -->
+    <button id="btnEntrarGestor">Entrar</button>
+
+    <!-- Mensagem de erro/sucesso -->
+    <div id="msgGestor" class="mensagem"></div>
+
+    <div class="voltar">
+      <span>Voltar à tela inicial: </span>
+      <a href="/index.html">PPP – Central de Acesso</a>
+    </div>
+  </div>
+
+  <script>
+    /*
+      Este login é separado do login de lançamento PPP.
+
+      - Chama a rota /api/login-relatorio (que ainda vamos criar).
+      - Se der certo, grava uma sessão específica no localStorage:
+          pppSessionRelatorio = { usuario, role, criadoEm }
+      - Redireciona para painel-relatorio.html
+    */
+
+    // ======== FUNÇÃO PRINCIPAL DE LOGIN DO GESTOR ========
+    async function loginGestor() {
+      const usuario = document.getElementById("usuarioGestor").value.trim();
+      const senha   = document.getElementById("senhaGestor").value.trim();
+      const msg     = document.getElementById("msgGestor");
+
+      msg.textContent = "";
+      msg.className = "mensagem";
+
+      // Validação simples
+      if (!usuario || !senha) {
+        msg.textContent = "Informe usuário e senha.";
+        msg.classList.add("erro");
+        return;
+      }
+
+      try {
+        msg.textContent = "Validando login...";
+        // Chamada à API específica de login para relatórios
+        const resposta = await fetch("/api/login-relatorio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario, senha })
+        });
+
+        const dados = await resposta.json().catch(() => ({}));
+
+        if (!resposta.ok || !dados.sucesso) {
+          msg.textContent =
+            dados.message || "Usuário ou senha inválidos para consultas.";
+          msg.classList.add("erro");
+          return;
+        }
+
+        msg.textContent = "Login autorizado.";
+        msg.classList.add("sucesso");
+
+        // ======== GRAVA SESSÃO DE CONSULTAS NO LOCALSTORAGE ========
+        try {
+          const sessao = {
+            usuario: dados.usuario || usuario,
+            role: dados.role || "gestor",
+            criadoEm: Date.now()
+          };
+          localStorage.setItem("pppSessionRelatorio", JSON.stringify(sessao));
+        } catch (e) {
+          console.warn("Não foi possível salvar sessão de consultas:", e);
+        }
+
+        // Redireciona para o painel de consultas (ainda vamos criar)
+        const destino = "/painel-relatorio.html";
+
+        setTimeout(() => {
+          window.location.href = destino;
+        }, 300);
+
+      } catch (erro) {
+        console.error("Erro na requisição de login (relatório):", erro);
+        msg.textContent = "Erro de conexão com o servidor.";
+        msg.classList.add("erro");
+      }
+    }
+
+    // Clique no botão → loginGestor
+    document
+      .getElementById("btnEntrarGestor")
+      .addEventListener("click", loginGestor);
+
+    // Enter em qualquer campo → loginGestor
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        loginGestor();
+      }
+    });
+  </script>
+</body>
+</html>
