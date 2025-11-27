@@ -1,4 +1,4 @@
-// api/login-relatorio.js
+// api/login-gestor.js
 //
 // Endpoint de login específico para o MÓDULO DE CONSULTAS / RELATÓRIO.
 //
