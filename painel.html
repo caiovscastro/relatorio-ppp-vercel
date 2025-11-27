@@ -692,39 +692,44 @@
       }
     }
 
-    // ================ BUSCA LOCAL NA BASE ================
+  /* ========= BUSCA LOCAL NA BASE ========= */
+  function buscar() {
+    const campo  = document.getElementById("campoBusca");
+    const termoBruto = campo.value.trim();
+    const status = document.getElementById("status"); // <- PEGAMOS A DIV DE STATUS
 
-    function buscar() {
-      const campo = document.getElementById("campoBusca");
-      const termoBruto = campo.value.trim();
-      const status = document.getElementById("status");
-
-      if (!termoBruto) {
-        status.textContent = "Digite ou leia um código para buscar.";
-        return;
-      }
-
-      if (!baseCarregada) {
-        status.textContent = "Aguarde a base terminar de carregar.";
-        return;
-      }
-
-      const termo = termoBruto.toLowerCase();
-
-      const resultados = dbProdutos.filter((linha) => {
-        const ean = String(linha[0] ?? "").toLowerCase();
-        const consinco = String(linha[1] ?? "").toLowerCase();
-        const produto = String(linha[2] ?? "").toLowerCase();
-
-        return (
-          ean === termo ||
-          consinco === termo ||
-          produto.includes(termo)
-        );
-      });
-
-      mostrarResultados(resultados);
+    if (!termoBruto) {
+      status.textContent = "Digite ou leia um código para buscar.";
+      return;
     }
+
+    if (!baseCarregada) {
+      status.textContent = "Aguarde a base terminar de carregar.";
+      return;
+    }
+
+    const termo = termoBruto.toLowerCase();
+
+    // Filtra na base completa já carregada em dbProdutos
+    const resultados = dbProdutos.filter((linha) => {
+      const ean      = String(linha[0] ?? "").toLowerCase();
+      const consinco = String(linha[1] ?? "").toLowerCase();
+      const produto  = String(linha[2] ?? "").toLowerCase();
+
+      // Igualdade exata para EAN/Cód, e "contém" para nome
+      return (
+        ean === termo ||
+        consinco === termo ||
+        produto.includes(termo)
+      );
+    });
+
+    // Monta os cartões na tela
+    mostrarResultados(resultados);
+
+    // Mostra quantidade encontrada
+    status.textContent = `${resultados.length} produto(s) encontrado(s).`;
+  }
 
     // ================ EXIBIÇÃO DOS RESULTADOS ================
 
