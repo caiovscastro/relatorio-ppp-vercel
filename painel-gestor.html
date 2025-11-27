@@ -69,9 +69,16 @@
       font-size: 16px;
     }
 
+    /* GRID DOS FILTROS
+       Linha 1: Loja | Usuário | Departamento
+       Linha 2: Nº Doc | Data início | Data fim
+    */
     .filtros-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-areas:
+        "loja usuario departamento"
+        "documento dataInicio dataFim";
       gap: 8px 10px;
     }
 
@@ -94,6 +101,31 @@
       font-size: 13px;
       box-sizing: border-box;
       background: #fff;
+    }
+
+    /* Mapeamento das áreas no grid */
+    .campo-loja {
+      grid-area: loja;
+    }
+
+    .campo-usuario {
+      grid-area: usuario;
+    }
+
+    .campo-documento {
+      grid-area: documento;
+    }
+
+    .campo-departamento {
+      grid-area: departamento;
+    }
+
+    .campo-data-inicio {
+      grid-area: dataInicio;
+    }
+
+    .campo-data-fim {
+      grid-area: dataFim;
     }
 
     .botoes-filtro {
@@ -138,7 +170,8 @@
     .cartao {
       background: #fff;
       border-radius: 10px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      /* Sombra mais forte */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
       padding: 12px 14px;
       margin-bottom: 10px;
       font-size: 13px;
@@ -245,22 +278,22 @@
     <div class="bloco-filtros">
       <h3>Filtros</h3>
       <div class="filtros-grid">
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-loja">
           <label for="filtroLoja">Loja (texto)</label>
           <input id="filtroLoja" type="text" placeholder="Ex.: ULT 01" />
         </div>
 
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-usuario">
           <label for="filtroUsuario">Usuário</label>
           <input id="filtroUsuario" type="text" placeholder="Login / nome" />
         </div>
 
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-documento">
           <label for="filtroDocumento">Nº Documento</label>
           <input id="filtroDocumento" type="text" placeholder="Número exato" />
         </div>
 
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-departamento">
           <label for="filtroDepartamento">Departamento</label>
           <select id="filtroDepartamento">
             <option value="">Todos</option>
@@ -273,12 +306,12 @@
           </select>
         </div>
 
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-data-inicio">
           <label for="dataInicio">Data início</label>
           <input id="dataInicio" type="date" />
         </div>
 
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-data-fim">
           <label for="dataFim">Data fim</label>
           <input id="dataFim" type="date" />
         </div>
