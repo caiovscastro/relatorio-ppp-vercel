@@ -171,16 +171,16 @@
           return;
         }
 
-        // Salva dados mínimos no sessionStorage, igual fizemos no painel PPP.
+        // Salva dados mínimos no sessionStorage.
         const payload = {
-          usuario: dados.gestor?.usuario || usuario,
-          nome: dados.gestor?.nome || usuario,
+          usuario: dados.usuario || usuario,
+          token: dados.token || null,
           loginEm: new Date().toISOString(),
         };
 
         sessionStorage.setItem(STORAGE_KEY_GESTOR, JSON.stringify(payload));
 
-        // Redireciona para o painel do gestor (que vamos construir aos poucos).
+        // Redireciona para o painel do gestor.
         window.location.href = "/painel-gestor.html";
       } catch (erro) {
         console.error("Erro no login de gestor:", erro);
