@@ -2,42 +2,27 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Painel Gestor - PPP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Gestor – Relatórios PPP</title>
 
   <style>
     body {
-      margin: 2;
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      margin: 0;
       min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
-      font-family: Arial, sans-serif;
-      background: #f3f3f3;
+      align-items: center;
     }
 
-    .tela-erro {
-      background: #fff;
-      padding: 24px 26px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      max-width: 420px;
-      text-align: center;
-    }
-
-    .tela-erro h1 {
-      margin-top: 0;
-      color: #c00000;
-      font-size: 22px;
-    }
-
-    .card {
+    .container {
       width: 95%;
-      max-width: 960px;
-      background: #fff;
+      max-width: 1100px;
+      background: #ffffff;
+      padding: 24px 28px 28px;
       border-radius: 12px;
-      padding: 24px 26px 22px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
     }
 
     .cabecalho {
@@ -47,146 +32,414 @@
       flex-wrap: wrap;
       gap: 10px;
       border-bottom: 1px solid #e1e1e1;
-      padding-bottom: 10px;
-      margin-bottom: 14px;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
     }
 
-    h1 {
+    .titulo {
       margin: 0;
       font-size: 22px;
     }
 
     .subtitulo {
-      margin: 2px 0 0;
-      font-size: 13px;
+      margin: 4px 0 0;
+      font-size: 14px;
       color: #555;
     }
 
-    .info-gestor {
+    .info-usuario {
       text-align: right;
-      font-size: 13px;
-    }
-
-    .info-gestor strong {
-      display: block;
-    }
-
-    .conteudo {
       font-size: 14px;
     }
 
-    .bloco {
-      margin-top: 10px;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #e0e3ff;
-      background: #f7f8ff;
+    .info-usuario strong {
+      display: block;
     }
 
-    .btn-sair {
-      margin-top: 16px;
+    .bloco-filtros {
+      margin-bottom: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f7f8ff;
+      border: 1px solid #e0e3ff;
+    }
+
+    .bloco-filtros h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .filtros-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px 10px;
+    }
+
+    .campo-filtro {
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+    }
+
+    .campo-filtro label {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .campo-filtro input,
+    .campo-filtro select {
+      border-radius: 6px;
+      border: 1px solid #c3c3c3;
+      padding: 6px 8px;
+      font-size: 13px;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    .botoes-filtro {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .btn-aplicar {
+      background: #0066ff;
+      color: #fff;
+    }
+
+    .btn-limpar {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .status {
+      font-size: 13px;
+      margin-bottom: 8px;
+      text-align: left;
+      color: #333;
+    }
+
+    .lista-cartoes {
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .cartao {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .cartao-linha {
+      margin: 2px 0;
+    }
+
+    .cartao-linha strong {
+      font-weight: 600;
+    }
+
+    .cartao-topo {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 4px;
+      border-bottom: 1px dashed #ddd;
+      padding-bottom: 4px;
+    }
+
+    .tag {
       display: inline-block;
-      padding: 8px 14px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #f0f0ff;
+      color: #333;
+      margin-left: 4px;
+    }
+
+    .rodape {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .btn-voltar {
+      padding: 6px 10px;
       background: #0066ff;
       color: #fff;
       border-radius: 6px;
       text-decoration: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
+    }
+
+    /* Tela de erro de acesso direto */
+    .tela-erro {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-erro {
+      background: #fff;
+      padding: 26px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .card-erro h1 {
+      color: #c00000;
+      margin-top: 0;
     }
   </style>
 </head>
 <body>
-  <!-- Tela de erro caso não haja sessão de gestor -->
-  <div id="telaErro" class="tela-erro" style="display:none;">
-    <h1>Acesso inválido</h1>
-    <p>Login de gestor não encontrado.</p>
-    <p>Faça o login novamente.</p>
-    <a href="/login-gestor.html" class="btn-sair">Ir para o login de gestor</a>
+  <!-- Tela de erro se acessar painel sem passar pelo login-gestor -->
+  <div id="erroAcesso" class="tela-erro" style="display:none;">
+    <div class="card-erro">
+      <h1>Acesso inválido</h1>
+      <p>Parâmetros do login do gestor não encontrados.</p>
+      <p>Volte para a tela inicial e realize o login novamente.</p>
+      <a href="/index.html" class="btn-voltar">Voltar</a>
+    </div>
   </div>
 
-  <!-- Painel principal do gestor -->
-  <div id="painelGestor" class="card" style="display:none;">
+  <!-- Conteúdo principal -->
+  <div id="appRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
-        <h1>Painel do Gestor</h1>
+        <h1 class="titulo">Painel Gestor – Relatórios PPP</h1>
         <p class="subtitulo">
-          Em breve: filtros de RELATORIO (loja, data, documento, usuário, etc.).
+          Visualização dos registros da aba RELATORIO com filtros por loja, período e demais campos.
         </p>
       </div>
-      <div class="info-gestor">
-        <strong>Gestor: <span id="nomeGestorSpan"></span></strong>
-        <span>Usuário: <span id="usuarioGestorSpan"></span></span>
+      <div class="info-usuario">
+        <strong>Gestor: <span id="usuarioSpan"></span></strong>
+        <span>Perfil: Gestão / Consulta</span>
       </div>
     </div>
 
-    <div class="conteudo">
-      <div class="bloco">
-        Este painel ainda está em construção.
-        Aqui vamos montar:
-        <ul>
-          <li>Filtro por loja</li>
-          <li>Filtro por intervalo de datas</li>
-          <li>Filtro por Nº de documento</li>
-          <li>Filtro por usuário que registrou o relatório</li>
-          <li>Resumo consolidado por loja/período</li>
-        </ul>
+    <!-- Filtros -->
+    <div class="bloco-filtros">
+      <h3>Filtros</h3>
+      <div class="filtros-grid">
+        <div class="campo-filtro">
+          <label for="filtroLoja">Loja (texto)</label>
+          <input id="filtroLoja" type="text" placeholder="Ex.: ULT 01" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroUsuario">Usuário</label>
+          <input id="filtroUsuario" type="text" placeholder="Login / nome" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroDocumento">Nº Documento</label>
+          <input id="filtroDocumento" type="text" placeholder="Número exato" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroDepartamento">Departamento</label>
+          <select id="filtroDepartamento">
+            <option value="">Todos</option>
+            <option value="MERCEARIA">MERCEARIA</option>
+            <option value="PERECIVEIS">PERECIVEIS</option>
+            <option value="HIGIENE E LIMPEZA">HIGIENE E LIMPEZA</option>
+            <option value="BAZAR">BAZAR</option>
+            <option value="DESPESAS">DESPESAS</option>
+            <option value="GASTRONOMIA">GASTRONOMIA</option>
+          </select>
+        </div>
+
+        <div class="campo-filtro">
+          <label for="dataInicio">Data início</label>
+          <input id="dataInicio" type="date" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="dataFim">Data fim</label>
+          <input id="dataFim" type="date" />
+        </div>
       </div>
 
-      <a href="/login-gestor.html" class="btn-sair" id="btnSairGestor">
-        Sair / Trocar de gestor
-      </a>
+      <div class="botoes-filtro">
+        <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
+        <button class="btn btn-aplicar" onclick="carregarRelatorios()">Aplicar filtros</button>
+      </div>
+    </div>
+
+    <!-- Status + lista de cartões -->
+    <div class="status" id="status">Carregando relatórios...</div>
+
+    <div class="lista-cartoes" id="listaCartoes"></div>
+
+    <div class="rodape">
+      <a href="/index.html" class="btn-voltar">Voltar à tela inicial</a>
+      <span id="resumoQtd"></span>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
+    let usuarioLogado = null;
 
-    function carregarSessaoGestor() {
-      try {
-        const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch (e) {
-        console.error("Erro ao ler sessionStorage do gestor:", e);
-        return null;
-      }
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const usuario = params.get('usuario');
 
-    function limparSessaoGestor() {
-      try {
-        sessionStorage.removeItem(STORAGE_KEY_GESTOR);
-      } catch (e) {
-        console.error("Erro ao limpar sessão do gestor:", e);
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const dados = carregarSessaoGestor();
-
-      const telaErro = document.getElementById("telaErro");
-      const painel   = document.getElementById("painelGestor");
-
-      if (!dados || !dados.usuario) {
-        telaErro.style.display = "block";
-        painel.style.display = "none";
+      if (!usuario) {
+        document.getElementById('erroAcesso').style.display = 'flex';
         return;
       }
 
-      document.getElementById("nomeGestorSpan").textContent =
-        dados.nome || dados.usuario;
+      usuarioLogado = usuario;
+      document.getElementById('usuarioSpan').textContent = usuario;
 
-      document.getElementById("usuarioGestorSpan").textContent =
-        dados.usuario;
+      document.getElementById('appRoot').style.display = 'block';
 
-      painel.style.display = "block";
-      telaErro.style.display = "none";
-
-      // Botão sair limpa a sessão.
-      document.getElementById("btnSairGestor").addEventListener("click", () => {
-        limparSessaoGestor();
-      });
+      // Carrega relatórios iniciais (sem filtro)
+      carregarRelatorios();
     });
+
+    /**
+     * Monta query string com os filtros ativos e chama a API /api/relatorios
+     */
+    async function carregarRelatorios() {
+      const statusEl = document.getElementById('status');
+      const listaEl = document.getElementById('listaCartoes');
+      const resumoQtd = document.getElementById('resumoQtd');
+
+      statusEl.textContent = 'Carregando relatórios...';
+      listaEl.innerHTML = '';
+      resumoQtd.textContent = '';
+
+      const loja = document.getElementById('filtroLoja').value.trim();
+      const usuario = document.getElementById('filtroUsuario').value.trim();
+      const documento = document.getElementById('filtroDocumento').value.trim();
+      const departamento = document.getElementById('filtroDepartamento').value;
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+
+      const params = new URLSearchParams();
+
+      if (loja) params.append('loja', loja);
+      if (usuario) params.append('usuario', usuario);
+      if (documento) params.append('documento', documento);
+      if (departamento) params.append('departamento', departamento);
+      if (dataInicio) params.append('dataInicio', dataInicio);
+      if (dataFim) params.append('dataFim', dataFim);
+
+      const url = '/api/relatorios' + (params.toString() ? `?${params.toString()}` : '');
+
+      try {
+        const resp = await fetch(url);
+        const dados = await resp.json();
+
+        if (!resp.ok || !dados.sucesso) {
+          statusEl.textContent = dados.message || 'Erro ao carregar relatórios.';
+          return;
+        }
+
+        const registros = Array.isArray(dados.registros) ? dados.registros : [];
+
+        if (!registros.length) {
+          statusEl.textContent = 'Nenhum registro encontrado com os filtros atuais.';
+          resumoQtd.textContent = '';
+          listaEl.innerHTML = '';
+          return;
+        }
+
+        statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
+        resumoQtd.textContent = `Total retornado: ${registros.length}`;
+
+        // Renderiza cartões
+        listaEl.innerHTML = registros
+          .map((r) => {
+            return `
+              <div class="cartao">
+                <div class="cartao-topo">
+                  <div>
+                    <div class="cartao-linha">
+                      <strong>Data/Hora:</strong> ${r.dataHora || '-'}
+                    </div>
+                    <div class="cartao-linha">
+                      <strong>Loja:</strong> ${r.loja || '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div class="cartao-linha">
+                      <strong>Usuário:</strong> ${r.usuario || '-'}
+                    </div>
+                    <div class="cartao-linha">
+                      <strong>Documento:</strong> ${r.documento || '-'}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cartao-linha">
+                  <strong>EAN:</strong> ${r.ean || '-'}
+                </div>
+                <div class="cartao-linha">
+                  <strong>Produto:</strong> ${r.produto || '-'}
+                </div>
+                <div class="cartao-linha">
+                  <strong>Departamento:</strong> ${r.departamento || '-'}
+                  <span class="tag">${r.secao || ''}</span>
+                </div>
+
+                <div class="cartao-linha">
+                  <strong>Relatório / Observação:</strong> ${r.relatorio || '-'}
+                </div>
+
+                <div class="cartao-linha">
+                  <strong>Quantidade:</strong> ${r.quantidade || '-'}
+                  &nbsp;&nbsp;|&nbsp;&nbsp;
+                  <strong>Valor unitário (R$):</strong> ${r.valorUnitario || '-'}
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      } catch (erro) {
+        console.error('Erro ao carregar relatórios:', erro);
+        statusEl.textContent = 'Erro de conexão ao buscar relatórios.';
+      }
+    }
+
+    /**
+     * Limpa todos os filtros e recarrega.
+     */
+    function limparFiltros() {
+      document.getElementById('filtroLoja').value = '';
+      document.getElementById('filtroUsuario').value = '';
+      document.getElementById('filtroDocumento').value = '';
+      document.getElementById('filtroDepartamento').value = '';
+      document.getElementById('dataInicio').value = '';
+      document.getElementById('dataFim').value = '';
+
+      carregarRelatorios();
+    }
   </script>
 </body>
 </html>
