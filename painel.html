@@ -442,9 +442,9 @@
   <div id="appRoot" class="container" style="display: none;">
     <div class="cabecalho">
       <div>
-        <h1 class="titulo">Painel PPP</h1>
+        <h1 class="titulo">PAINEL PPP</h1>
         <p class="subtitulo">
-          Resumo operacional da loja selecionada e registro de relatórios por produto.
+          Base única carregada com todos os produtos.
         </p>
       </div>
       <div class="info-usuario">
@@ -455,7 +455,7 @@
 
     <div class="conteudo">
       <div class="bloco">
-        <h3>Relatório / Busca por produto (EAN / Cód / Nome)</h3>
+        <h3>Campo de pesquisa</h3>
 
         <!-- Campo de busca com ícone de código de barras e lupa -->
         <div class="search-container">
@@ -471,7 +471,7 @@
           <input
             id="campoBusca"
             type="text"
-            placeholder="Pesquisar produto (EAN, código ou nome)"
+            placeholder="Pesquisar produto"
             onkeydown="if(event.key === 'Enter'){buscar();}"
           />
 
@@ -513,7 +513,7 @@
           </div>
 
           <div class="campo-inline">
-            <label for="valorUnitario">Valor unitário (R$):</label>
+            <label for="valorUnitario">Valor Un. R$:</label>
             <input
               id="valorUnitario"
               class="input-inline"
@@ -525,7 +525,7 @@
           </div>
 
           <div class="campo-inline">
-            <label for="numeroDocumento">Nº de Documento:</label>
+            <label for="numeroDocumento">Nº de Doc:</label>
             <input
               id="numeroDocumento"
               class="input-inline"
