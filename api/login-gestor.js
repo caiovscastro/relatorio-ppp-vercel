@@ -1,79 +1,73 @@
-// api/login-gestor.js
+// API/login-gestor.js
 //
-// Endpoint de login específico para o MÓDULO DE CONSULTAS / RELATÓRIO.
+// Rota: /api/login-gestor
 //
-// - Método permitido: POST
-// - Corpo esperado (JSON):
-//     { "usuario": "Caio", "senha": "PPP2025" }
-//
-// - Respostas:
-//   200 OK  -> credenciais válidas
-//   401     -> credenciais inválidas
-//   405     -> método não permitido
+// Objetivo: validar login de gestores e devolver dados básicos
+// (sem expor senha) para o front salvar em sessionStorage.
 
-export default function handler(req, res) {
-  // Aceita apenas POST
+export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res
-      .status(405)
-      .json({ sucesso: false, message: "Método não permitido" });
-  }
-
-  const { usuario, senha } = req.body || {};
-
-  // Normaliza entradas (evita erro se vier undefined/null)
-  const usuarioEntrada = String(usuario || "").trim();
-  const senhaEntrada   = String(senha   || "").trim();
-
-  if (!usuarioEntrada || !senhaEntrada) {
-    return res.status(400).json({
+    res.setHeader("Allow", ["POST"]);
+    return res.status(405).json({
       sucesso: false,
-      message: "Informe usuário e senha."
+      message: "Método não permitido. Use POST.",
     });
   }
 
-  // ======================================================
-  // LISTA DE GESTORES AUTORIZADOS PARA CONSULTAS
-  // ======================================================
-  //
-  // Aqui você define quem pode acessar o módulo de consultas.
-  // NO MÍNIMO, já deixei criado o usuário:
-  //
-  //   Usuário: Caio
-  //   Senha:   PPP2025
-  //
-  // Recomendo depois alterar a senha para algo mais forte.
-  //
-  const gestores = [
-    {
-      usuario: "CAIO",      // login
-      senha:   "PPP2025",   // senha (TROQUE ISSO DEPOIS)
-      nome:    "Caio",      // nome para exibir
-      role:    "gestor"     // papel/perfil
+  try {
+    const { usuario, senha } = req.body || {};
+
+    // Normaliza
+    const u = String(usuario || "").trim().toLowerCase();
+    const s = String(senha || "").trim();
+
+    if (!u || !s) {
+      return res.status(400).json({
+        sucesso: false,
+        message: "Informe usuário e senha.",
+      });
     }
-    // Você pode adicionar outros assim:
-    // { usuario: "ADMIN", senha: "SENHA_FORTE", nome: "Administrador", role: "admin" }
-  ];
 
-  // Compara ignorando maiúsculas/minúsculas no usuário,
-  // mas exigindo a senha exata.
-  const gestorEncontrado = gestores.find((g) =>
-    g.usuario.toLowerCase() === usuarioEntrada.toLowerCase() &&
-    g.senha === senhaEntrada
-  );
+    // "Banco" de usuários gestores
+    const GESTORES = [
+      {
+        usuario: "caio.castro",
+        senha: "842142",
+        nome: "Caio Castro",
+      },
+      {
+        usuario: "gaspar.silva",
+        senha: "842142",
+        nome: "Gaspar Silva",
+      },
+    ];
 
-  if (!gestorEncontrado) {
-    return res.status(401).json({
+    const gestor = GESTORES.find(
+      (g) => g.usuario.toLowerCase() === u && g.senha === s
+    );
+
+    if (!gestor) {
+      return res.status(401).json({
+        sucesso: false,
+        message: "Usuário ou senha inválidos.",
+      });
+    }
+
+    // Aqui poderíamos gerar um token JWT no futuro.
+    // Por enquanto devolvemos apenas dados básicos.
+    return res.status(200).json({
+      sucesso: true,
+      message: "Login de gestor realizado com sucesso.",
+      gestor: {
+        usuario: gestor.usuario,
+        nome: gestor.nome,
+      },
+    });
+  } catch (erro) {
+    console.error("Erro em /api/login-gestor:", erro);
+    return res.status(500).json({
       sucesso: false,
-      message: "Usuário ou senha inválidos para consultas."
+      message: "Erro interno ao validar login de gestor.",
     });
   }
-
-  // Login OK: devolve dados mínimos para o front salvar na sessão
-  return res.status(200).json({
-    sucesso: true,
-    usuario: gestorEncontrado.nome || gestorEncontrado.usuario,
-    role: gestorEncontrado.role || "gestor",
-    message: "Login de consultas autorizado."
-  });
 }
