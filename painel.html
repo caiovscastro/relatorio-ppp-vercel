@@ -552,7 +552,7 @@
       <div id="resultado"></div>
 
       <!-- Botão para voltar ao login (trocar de loja) -->
-      <a href="/login.html" class="btn-voltar">Sair / Trocar de Loja</a>
+  <a href="/login.html" class="btn-voltar" onclick="limparSessao()">Sair / Trocar de Loja</a>
     </div>
   </div>
 
@@ -574,32 +574,39 @@
     let streamAtual = null;
     let lendo = false;
 
-    // ================ INICIALIZAÇÃO DO PAINEL ================
+// ================ INICIALIZAÇÃO DO PAINEL (AGORA LENDO SESSÃO) ================
+document.addEventListener("DOMContentLoaded", () => {
+  let sessao = null;
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(window.location.search);
-      const usuario = params.get("usuario");
-      const loja = params.get("loja");
+  // Tenta ler a sessão do localStorage
+  try {
+    const raw = localStorage.getItem("pppSession");
+    if (raw) {
+      sessao = JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error("Erro ao ler sessão do localStorage:", e);
+  }
 
-      // Se não vier usuário ou loja, mostra tela de erro
-      if (!usuario || !loja) {
-        document.getElementById("erroAcesso").style.display = "flex";
-        return;
-      }
+  // Se não tiver sessão válida → bloqueia acesso
+  if (!sessao || !sessao.usuario || !sessao.loja) {
+    document.getElementById("erroAcesso").style.display = "flex";
+    return;
+  }
 
-      usuarioLogado = usuario;
-      lojaLogada = loja;
+  usuarioLogado = sessao.usuario;
+  lojaLogada    = sessao.loja;
 
-      // Preenche cabeçalho
-      document.getElementById("usuarioSpan").textContent = usuario;
-      document.getElementById("lojaSpan").textContent = loja;
+  // Preenche cabeçalho
+  document.getElementById("usuarioSpan").textContent = usuarioLogado;
+  document.getElementById("lojaSpan").textContent    = lojaLogada;
 
-      // Exibe o painel
-      document.getElementById("appRoot").style.display = "block";
+  // Exibe o painel
+  document.getElementById("appRoot").style.display = "block";
 
-      // Carrega a base completa de produtos
-      carregarBase();
-    });
+  // Carrega a base completa de produtos
+  carregarBase();
+});
 
     // ================ OVERLAY DE CARREGAMENTO 0→100% ================
 
@@ -992,6 +999,18 @@
       document.getElementById("video").srcObject = null;
       document.getElementById("cameraArea").style.display = "none";
     }
+
+    
+// ================ LIMPAR SESSÃO AO SAIR ================
+function limparSessao() {
+  try {
+    localStorage.removeItem("pppSession");
+  } catch (e) {
+    console.warn("Não foi possível limpar a sessão:", e);
+  }
+  // Navegação para /login.html continua pelo href do link
+}
+    
   </script>
 </body>
 </html>
