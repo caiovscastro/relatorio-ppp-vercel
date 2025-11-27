@@ -9,7 +9,7 @@
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 2;
+      margin: 0;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -33,7 +33,7 @@
       gap: 10px;
       border-bottom: 1px solid #e1e1e1;
       padding-bottom: 14px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .titulo {
@@ -41,25 +41,39 @@
       font-size: 22px;
     }
 
-    .subtitulo {
-      margin: 4px 0 0;
-      font-size: 14px;
+    /* ====== CARDS DE RESUMO (QTD / VALOR TOTAL) ====== */
+    .resumo-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+
+    .card-resumo {
+      flex: 1 1 200px;
+      background: #f9fafc;
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+      font-size: 13px;
+    }
+
+    .resumo-titulo {
+      font-weight: 600;
       color: #555;
+      margin-bottom: 4px;
     }
 
-    .info-usuario {
-      text-align: right;
-      font-size: 14px;
-    }
-
-    .info-usuario strong {
-      display: block;
+    .resumo-valor {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
     }
 
     .bloco-filtros {
-      margin-bottom: 16px;
+      margin: 0 -4px 16px; /* ocupa mais largura dentro do card principal */
       padding: 14px;
-      border-radius: 8px;
+      border-radius: 10px;
       background: #f7f8ff;
       border: 1px solid #e0e3ff;
     }
@@ -86,6 +100,7 @@
       display: flex;
       flex-direction: column;
       font-size: 13px;
+      min-width: 0; /* permite encolher e não estourar para fora */
     }
 
     .campo-filtro label {
@@ -101,32 +116,16 @@
       font-size: 13px;
       box-sizing: border-box;
       background: #fff;
+      width: 100%;
+      max-width: 100%;
     }
 
-    /* Mapeamento das áreas no grid */
-    .campo-loja {
-      grid-area: loja;
-    }
-
-    .campo-usuario {
-      grid-area: usuario;
-    }
-
-    .campo-documento {
-      grid-area: documento;
-    }
-
-    .campo-departamento {
-      grid-area: departamento;
-    }
-
-    .campo-data-inicio {
-      grid-area: dataInicio;
-    }
-
-    .campo-data-fim {
-      grid-area: dataFim;
-    }
+    .campo-loja        { grid-area: loja; }
+    .campo-usuario     { grid-area: usuario; }
+    .campo-departamento{ grid-area: departamento; }
+    .campo-documento   { grid-area: documento; }
+    .campo-data-inicio { grid-area: dataInicio; }
+    .campo-data-fim    { grid-area: dataFim; }
 
     .botoes-filtro {
       margin-top: 10px;
@@ -170,7 +169,7 @@
     .cartao {
       background: #fff;
       border-radius: 10px;
-      /* Sombra mais forte */
+      /* sombra mais forte */
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
       padding: 12px 14px;
       margin-bottom: 10px;
@@ -264,13 +263,18 @@
     <div class="cabecalho">
       <div>
         <h1 class="titulo">Painel Gestor – Relatórios PPP</h1>
-        <p class="subtitulo">
-       Visualização dos registros da aba RELATORIO com filtros por loja, período e demais campos.
-        </p>
       </div>
-      <div class="info-usuario">
-        <strong>Gestor: <span id="usuarioSpan"></span></strong>
-     <span>Perfil: Gestão / Consulta</span>
+    </div>
+
+    <!-- Cards de resumo (quantidade total e valor total do filtro atual) -->
+    <div class="resumo-cards">
+      <div class="card-resumo">
+        <div class="resumo-titulo">Quantidade total (filtro atual)</div>
+        <div id="resumoQtdTotal" class="resumo-valor">0</div>
+      </div>
+      <div class="card-resumo">
+        <div class="resumo-titulo">Valor total (R$) – filtro atual</div>
+        <div id="resumoValorTotal" class="resumo-valor">0,00</div>
       </div>
     </div>
 
@@ -288,11 +292,6 @@
           <input id="filtroUsuario" type="text" placeholder="Login / nome" />
         </div>
 
-        <div class="campo-filtro campo-documento">
-          <label for="filtroDocumento">Nº Documento</label>
-          <input id="filtroDocumento" type="text" placeholder="Número exato" />
-        </div>
-
         <div class="campo-filtro campo-departamento">
           <label for="filtroDepartamento">Departamento</label>
           <select id="filtroDepartamento">
@@ -304,6 +303,11 @@
             <option value="DESPESAS">DESPESAS</option>
             <option value="GASTRONOMIA">GASTRONOMIA</option>
           </select>
+        </div>
+
+        <div class="campo-filtro campo-documento">
+          <label for="filtroDocumento">Nº Documento</label>
+          <input id="filtroDocumento" type="text" placeholder="Número exato" />
         </div>
 
         <div class="campo-filtro campo-data-inicio">
@@ -362,7 +366,6 @@
       }
 
       usuarioLogado = dadosGestor.usuario;
-      document.getElementById("usuarioSpan").textContent = usuarioLogado;
 
       document.getElementById("appRoot").style.display = "block";
 
@@ -375,6 +378,20 @@
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
     }
 
+    // Função auxiliar para parse de números (quantidade / valor)
+    function parseNumeroBr(valor) {
+      if (valor === null || valor === undefined) return 0;
+      let s = String(valor).trim();
+      if (!s) return 0;
+
+      // remove espaços
+      s = s.replace(/\s+/g, "");
+      // remove separador de milhar e troca vírgula por ponto
+      s = s.replace(/\./g, "").replace(",", ".");
+      const n = Number(s);
+      return isNaN(n) ? 0 : n;
+    }
+
     /**
      * Monta query string com os filtros ativos e chama a API /api/relatorios
      */
@@ -382,10 +399,14 @@
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
       const resumoQtd = document.getElementById("resumoQtd");
+      const resumoQtdTotal = document.getElementById("resumoQtdTotal");
+      const resumoValorTotal = document.getElementById("resumoValorTotal");
 
       statusEl.textContent = "Carregando relatórios...";
       listaEl.innerHTML = "";
       resumoQtd.textContent = "";
+      resumoQtdTotal.textContent = "0";
+      resumoValorTotal.textContent = "0,00";
 
       const loja = document.getElementById("filtroLoja").value.trim();
       const usuario = document.getElementById("filtroUsuario").value.trim();
@@ -426,8 +447,25 @@
           return;
         }
 
+        // Cálculo dos totais
+        let totalQtd = 0;
+        let totalValor = 0;
+
+        registros.forEach((r) => {
+          const qtd = parseNumeroBr(r.quantidade);
+          const vUnit = parseNumeroBr(r.valorUnitario);
+          totalQtd += qtd;
+          totalValor += qtd * vUnit;
+        });
+
         statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
-        resumoQtd.textContent = `Total retornado: ${registros.length}`;
+        resumoQtd.textContent = `Total de registros retornados: ${registros.length}`;
+
+        resumoQtdTotal.textContent = totalQtd.toLocaleString("pt-BR");
+        resumoValorTotal.textContent = totalValor.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
 
         // Renderiza cartões (sem COD CONSINCO, GRUPO, SUBGRUPO, CATEGORIA)
         listaEl.innerHTML = registros
@@ -465,17 +503,16 @@
                 </div>
 
                 <div class="cartao-linha">
-                  <strong>Relatório / Observação:</strong> ${
-                    r.relatorio || "-"
-                  }
+                  <strong>Quantidade:</strong> ${r.quantidade || "-"}
+                  &nbsp;&nbsp;|&nbsp;&nbsp;
+                  <strong>Valor unitário (R$):</strong> ${r.valorUnitario || "-"}
                 </div>
 
                 <div class="cartao-linha">
-                  <strong>Quantidade:</strong> ${r.quantidade || "-"}
-                  &nbsp;&nbsp;|&nbsp;&nbsp;
-                  <strong>Valor unitário (R$):</strong> ${
-                    r.valorUnitario || "-"
-                  }
+                  <strong>Relatório / Observação:</strong>
+                </div>
+                <div class="cartao-linha">
+                  ${r.relatorio || "-"}
                 </div>
               </div>
             `
