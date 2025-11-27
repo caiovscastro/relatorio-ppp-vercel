@@ -128,86 +128,73 @@
 
     <script>
         // ======== FUNÇÃO PRINCIPAL DE LOGIN ========
-        async function login() {
-            const usuario = document.getElementById("usuario").value.trim();
-            const senha   = document.getElementById("senha").value.trim();
-            const loja    = document.getElementById("loja").value;
+// ======== FUNÇÃO PRINCIPAL DE LOGIN (AGORA COM SESSÃO) ========
+async function login() {
+    const usuario = document.getElementById("usuario").value.trim();
+    const senha   = document.getElementById("senha").value.trim();
+    const loja    = document.getElementById("loja").value;
 
-            const msg = document.getElementById("msg");
-            msg.textContent = "";
-            msg.className = "mensagem"; // limpa classes de erro/sucesso
+    const msg = document.getElementById("msg");
+    msg.textContent = "";
+    msg.className = "mensagem"; // limpa classes de erro/sucesso
 
-            // Validação simples dos campos obrigatórios
-            if (!usuario || !senha || !loja) {
-                msg.textContent = "Preencha usuário, senha e loja.";
-                msg.classList.add("erro");
-                return;
-            }
+    // Validação simples dos campos obrigatórios
+    if (!usuario || !senha || !loja) {
+        msg.textContent = "Preencha usuário, senha e loja.";
+        msg.classList.add("erro");
+        return;
+    }
 
-            try {
-                /*
-                    Chamada à API /api/login hospedada na Vercel.
+    try {
+        // Chamada à API /api/login hospedada na Vercel
+        const resposta = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ usuario, senha, loja })
+        });
 
-                    IMPORTANTE:
-                    - Este caminho relativo "/api/login" só funciona
-                      se o login.html estiver sendo servido pelo MESMO
-                      domínio da Vercel onde está a API.
-                    - Exemplo: https://seu-app.vercel.app/login.html
-                               faz fetch para https://seu-app.vercel.app/api/login
-                */
-                const resposta = await fetch("/api/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ usuario, senha, loja })
-                });
+        const dados = await resposta.json().catch(() => ({}));
 
-                // Tenta interpretar o JSON retornado pela API
-                const dados = await resposta.json().catch(() => ({}));
-
-                /*
-                    A API que ajustamos em api/login.js SEMPRE devolve:
-                    - sucesso: true/false
-                    - message: (string de erro quando sucesso = false)
-
-                    Então aqui a regra é:
-                    - Se a resposta HTTP NÃO é 2xx (resposta.ok === false)
-                      OU sucesso = false → tratamos como erro de login.
-                */
-                if (!resposta.ok || !dados.sucesso) {
-                    msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
-                    msg.classList.add("erro");
-                    return;
-                }
-
-                // LOGIN OK
-                msg.textContent = "Login autorizado.";
-                msg.classList.add("sucesso");
-
-                /*
-                    Se o login deu certo, redirecionamos para o painel,
-                    passando usuário e loja como parâmetros na URL.
-
-                    Exemplo final de URL:
-                    /painel.html?usuario=LOJA1&loja=ULT%2001%20-%20PLANALTINA
-
-                    A tela painel.html vai ler esses parâmetros e montar a visão.
-                */
-                const destino =
-                    "/painel.html?usuario=" + encodeURIComponent(usuario) +
-                    "&loja=" + encodeURIComponent(loja);
-
-                // Pequeno delay só para o usuário ver a mensagem "Login autorizado."
-                setTimeout(() => {
-                    window.location.href = destino;
-                }, 300);
-
-            } catch (erro) {
-                // Erros de rede, CORS, servidor fora do ar, etc.
-                console.error("Erro na requisição de login:", erro);
-                msg.textContent = "Erro de conexão com o servidor.";
-                msg.classList.add("erro");
-            }
+        // Se o HTTP não for 2xx ou a API não retornar sucesso
+        if (!resposta.ok || !dados.sucesso) {
+            msg.textContent =
+                dados.message || "Usuário, senha ou loja inválidos.";
+            msg.classList.add("erro");
+            return;
         }
+
+        // LOGIN OK
+        msg.textContent = "Login autorizado.";
+        msg.classList.add("sucesso");
+
+        // ======== GRAVA SESSÃO NO LOCALSTORAGE ========
+        try {
+            const sessao = {
+                usuario: dados.usuario || usuario,
+                loja: dados.loja || loja,
+                criadoEm: Date.now()
+            };
+            localStorage.setItem("pppSession", JSON.stringify(sessao));
+        } catch (e) {
+            console.warn("Não foi possível salvar sessão no localStorage:", e);
+        }
+
+        /*
+            Agora o painel NÃO depende mais de ?usuario=...&loja=...
+            Ele vai ler diretamente do localStorage (pppSession).
+        */
+        const destino = "/painel.html";
+
+        setTimeout(() => {
+            window.location.href = destino;
+        }, 300);
+
+    } catch (erro) {
+        console.error("Erro na requisição de login:", erro);
+        msg.textContent = "Erro de conexão com o servidor.";
+        msg.classList.add("erro");
+    }
+}
 
         // Associa o clique do botão à função de login
         document.getElementById("btnEntrar").addEventListener("click", login);
