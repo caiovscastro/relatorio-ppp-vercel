@@ -495,7 +495,7 @@
         <textarea
           id="observacao"
           class="obs-textarea"
-          placeholder="Digite aqui a observação que será enviada junto com o produto clicado..."
+          placeholder="Digite aqui a observação..."
         ></textarea>
 
         <!-- Quantidade | Valor Unitário | Nº Documento -->
@@ -801,7 +801,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!obs) {
         status.textContent =
-          "Preencha o relatório/observação antes de enviar.";
+          "Preencha o relatório antes de enviar.";
         return;
       }
 
@@ -871,7 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
       envioPendente = null;
       overlay.style.display = "none";
 
-      status.textContent = "Enviando relatório para a planilha...";
+      status.textContent = "Enviando relatório...";
 
       try {
         // Chamada à API /api/relatorio na Vercel
@@ -893,12 +893,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!resposta.ok || !dados.sucesso) {
           status.textContent =
-            dados.message || "Erro ao registrar relatório na planilha.";
+            dados.message || "Erro ao registrar relatório.";
           return;
         }
 
         status.textContent =
-          dados.message || "Relatório registrado com sucesso na planilha.";
+          dados.message || "Relatório registrado com sucesso.";
 
         // Limpa campos (exceto o Nº do documento, por opção sua)
         document.getElementById("observacao").value = "";
@@ -907,7 +907,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (erro) {
         console.error("Erro ao enviar relatório:", erro);
         status.textContent =
-          "Erro de conexão ao enviar relatório para a planilha.";
+          "Erro de conexão ao enviar relatório.";
       }
     }
 
