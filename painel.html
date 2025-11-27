@@ -682,7 +682,7 @@
 
         dbProdutos = dados.produtos;
         baseCarregada = true;
-        status.textContent = "Base de produtos carregada.";
+        status.textContent = `Base carregada com ${dbProdutos.length} produtos.`;
         finalizarLoadingPercentual();
       } catch (erro) {
         console.error("Erro ao carregar base:", erro);
@@ -730,6 +730,7 @@
 
     function mostrarResultados(dados) {
       const container = document.getElementById("resultado");
+status.textContent = `${resultados.length} produto(s) encontrado(s).`;
 
       if (!dados || dados.length === 0) {
         container.innerHTML =
