@@ -661,43 +661,40 @@
       campo.value = inteiroFormatado + "," + centavos;
     }
 
-    // ================ CARREGAMENTO DA BASE DE PRODUTOS ================
+// ========= CARREGAR BASE COMPLETA (sem filtro de loja) =========
+async function carregarBase() {
+  const status = document.getElementById("status");
 
-    async function carregarBase() {
-      const status = document.getElementById("status");
-      status.textContent = "Carregando base de produtos...";
-      iniciarLoadingPercentual();
+  try {
+    status.textContent = "Carregando base de produtos...";
 
-      try {
-        const resposta = await fetch("/api/produtos");
-        const dados = await resposta.json().catch(() => ({}));
+    const resp = await fetch("/api/produtos");
+    const dados = await resp.json();
 
-        if (!resposta.ok || !dados.sucesso || !Array.isArray(dados.produtos)) {
-          baseCarregada = false;
-          status.textContent =
-            dados.message || "Erro ao carregar base de produtos.";
-          finalizarLoadingPercentual();
-          return;
-        }
-
-        dbProdutos = dados.produtos;
-        baseCarregada = true;
-        status.textContent = `Base carregada com ${dbProdutos.length} produtos.`;
-        finalizarLoadingPercentual();
-      } catch (erro) {
-        console.error("Erro ao carregar base:", erro);
-        baseCarregada = false;
-        status.textContent = "Erro de conexão ao carregar base de produtos.";
-        finalizarLoadingPercentual();
-      }
+    if (!resp.ok || !dados.sucesso || !Array.isArray(dados.produtos)) {
+      console.error("Resposta inesperada da API /api/produtos:", dados);
+      throw new Error(dados.message || "Falha ao carregar produtos.");
     }
 
-  /* ========= BUSCA LOCAL NA BASE ========= */
-  function buscar() {
-    const campo  = document.getElementById("campoBusca");
-    const termoBruto = campo.value.trim();
-    const status = document.getElementById("status"); // <- PEGAMOS A DIV DE STATUS
+    // Guarda tudo em memória
+    dbProdutos = dados.produtos;
+    baseCarregada = true;
 
+    // Mostra total da base
+    status.textContent = `Base carregada com ${dbProdutos.length} produtos.`;
+  } catch (err) {
+    console.error("Erro ao carregar base:", err);
+    baseCarregada = false;
+    status.textContent = "Erro ao carregar base de produtos.";
+  }
+}
+  /* ========= BUSCA LOCAL NA BASE ========= */
+function buscar() {
+  const campo      = document.getElementById("campoBusca");
+  const termoBruto = campo.value.trim();
+  const status     = document.getElementById("status");
+
+  try {
     if (!termoBruto) {
       status.textContent = "Digite ou leia um código para buscar.";
       return;
@@ -716,7 +713,7 @@
       const consinco = String(linha[1] ?? "").toLowerCase();
       const produto  = String(linha[2] ?? "").toLowerCase();
 
-      // Igualdade exata para EAN/Cód, e "contém" para nome
+      // Igualdade exata pra EAN / Cód, e "contém" para nome
       return (
         ean === termo ||
         consinco === termo ||
@@ -724,47 +721,51 @@
       );
     });
 
-    // Monta os cartões na tela
+    // Renderiza os cartões na tela
     mostrarResultados(resultados);
 
-    // Mostra quantidade encontrada
+    // Mostra a quantidade encontrada
     status.textContent = `${resultados.length} produto(s) encontrado(s).`;
+  } catch (err) {
+    console.error("Erro na função buscar:", err);
+    status.textContent = "Erro ao realizar a busca.";
   }
+}
 
     // ================ EXIBIÇÃO DOS RESULTADOS ================
 
-    function mostrarResultados(dados) {
-      const container = document.getElementById("resultado");
-status.textContent = `${resultados.length} produto(s) encontrado(s).`;
+// ========= MOSTRAR RESULTADOS EM CARTÕES =========
+function mostrarResultados(lista) {
+  const container = document.getElementById("resultado");
 
-      if (!dados || dados.length === 0) {
-        container.innerHTML =
-          '<p style="font-size: 13px; text-align:center;">Nenhum resultado encontrado.</p>';
-        ultimosResultados = [];
-        return;
-      }
+  // Garante array
+  ultimosResultados = Array.isArray(lista) ? lista : [];
 
-      ultimosResultados = dados;
-      let html = "";
+  // Nenhum resultado
+  if (!ultimosResultados.length) {
+    container.innerHTML =
+      '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum resultado encontrado.</p>';
+    return;
+  }
 
-      dados.forEach((linha, idx) => {
-        html += `
-          <div class="cartao" onclick="enviarRelatorio(${idx})">
-            <p><strong>EAN:</strong> ${linha[0] ?? ""}</p>
-            <p><strong>Cód Consinco:</strong> ${linha[1] ?? ""}</p>
-            <p><strong>Produto:</strong> ${linha[2] ?? ""}</p>
-            <p><strong>Departamento:</strong> ${linha[3] ?? ""}</p>
-            <p><strong>Seção:</strong> ${linha[4] ?? ""}</p>
-            <p><strong>Grupo:</strong> ${linha[5] ?? ""}</p>
-            <p><strong>Subgrupo:</strong> ${linha[6] ?? ""}</p>
-            <p><strong>Categoria:</strong> ${linha[7] ?? ""}</p>
-          </div>
-        `;
-      });
+  // Monta os cartões clicáveis (classe .cartao já existe no seu CSS)
+  const html = ultimosResultados
+    .map((linha, idx) => `
+      <div class="cartao" onclick="enviarRelatorio(${idx})">
+        <p><strong>EAN:</strong><br>${linha[0] ?? ""}</p>
+        <p><strong>Cód Consinco:</strong><br>${linha[1] ?? ""}</p>
+        <p><strong>Produto:</strong><br>${linha[2] ?? ""}</p>
+        <p><strong>Departamento:</strong><br>${linha[3] ?? ""}</p>
+        <p><strong>Seção:</strong><br>${linha[4] ?? ""}</p>
+        <p><strong>Grupo:</strong><br>${linha[5] ?? ""}</p>
+        <p><strong>Subgrupo:</strong><br>${linha[6] ?? ""}</p>
+        <p><strong>Categoria:</strong><br>${linha[7] ?? ""}</p>
+      </div>
+    `)
+    .join("");
 
-      container.innerHTML = html;
-    }
-
+  container.innerHTML = html;
+}
     // ================ PRIMEIRO PASSO DO ENVIO (ANTES DO POPUP) ================
 
     function enviarRelatorio(idx) {
