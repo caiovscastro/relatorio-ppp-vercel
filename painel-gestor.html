@@ -296,134 +296,161 @@
     <div class="lista-cartoes" id="listaCartoes"></div>
 
     <div class="rodape">
-      <a href="/index.html" class="btn-voltar">Voltar à tela inicial</a>
+      <a href="/index.html" class="btn-voltar" onclick="logoutGestor()">Voltar à tela inicial</a>
       <span id="resumoQtd"></span>
     </div>
   </div>
 
   <script>
+    const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     let usuarioLogado = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const params = new URLSearchParams(window.location.search);
-      const usuario = params.get('usuario');
+    document.addEventListener("DOMContentLoaded", () => {
+      // Recupera dados do gestor do sessionStorage
+      const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
-      if (!usuario) {
-        document.getElementById('erroAcesso').style.display = 'flex';
+      if (!raw) {
+        document.getElementById("erroAcesso").style.display = "flex";
         return;
       }
 
-      usuarioLogado = usuario;
-      document.getElementById('usuarioSpan').textContent = usuario;
+      let dadosGestor;
+      try {
+        dadosGestor = JSON.parse(raw);
+      } catch (e) {
+        console.error("Erro ao ler STORAGE_KEY_GESTOR:", e);
+        document.getElementById("erroAcesso").style.display = "flex";
+        return;
+      }
 
-      document.getElementById('appRoot').style.display = 'block';
+      if (!dadosGestor || !dadosGestor.usuario) {
+        document.getElementById("erroAcesso").style.display = "flex";
+        return;
+      }
+
+      usuarioLogado = dadosGestor.usuario;
+      document.getElementById("usuarioSpan").textContent = usuarioLogado;
+
+      document.getElementById("appRoot").style.display = "block";
 
       // Carrega relatórios iniciais (sem filtro)
       carregarRelatorios();
     });
 
+    // Logout simples: limpa storage do gestor
+    function logoutGestor() {
+      sessionStorage.removeItem(STORAGE_KEY_GESTOR);
+    }
+
     /**
      * Monta query string com os filtros ativos e chama a API /api/relatorios
      */
     async function carregarRelatorios() {
-      const statusEl = document.getElementById('status');
-      const listaEl = document.getElementById('listaCartoes');
-      const resumoQtd = document.getElementById('resumoQtd');
+      const statusEl = document.getElementById("status");
+      const listaEl = document.getElementById("listaCartoes");
+      const resumoQtd = document.getElementById("resumoQtd");
 
-      statusEl.textContent = 'Carregando relatórios...';
-      listaEl.innerHTML = '';
-      resumoQtd.textContent = '';
+      statusEl.textContent = "Carregando relatórios...";
+      listaEl.innerHTML = "";
+      resumoQtd.textContent = "";
 
-      const loja = document.getElementById('filtroLoja').value.trim();
-      const usuario = document.getElementById('filtroUsuario').value.trim();
-      const documento = document.getElementById('filtroDocumento').value.trim();
-      const departamento = document.getElementById('filtroDepartamento').value;
-      const dataInicio = document.getElementById('dataInicio').value;
-      const dataFim = document.getElementById('dataFim').value;
+      const loja = document.getElementById("filtroLoja").value.trim();
+      const usuario = document.getElementById("filtroUsuario").value.trim();
+      const documento = document.getElementById("filtroDocumento").value.trim();
+      const departamento = document.getElementById("filtroDepartamento").value;
+      const dataInicio = document.getElementById("dataInicio").value;
+      const dataFim = document.getElementById("dataFim").value;
 
       const params = new URLSearchParams();
 
-      if (loja) params.append('loja', loja);
-      if (usuario) params.append('usuario', usuario);
-      if (documento) params.append('documento', documento);
-      if (departamento) params.append('departamento', departamento);
-      if (dataInicio) params.append('dataInicio', dataInicio);
-      if (dataFim) params.append('dataFim', dataFim);
+      if (loja) params.append("loja", loja);
+      if (usuario) params.append("usuario", usuario);
+      if (documento) params.append("documento", documento);
+      if (departamento) params.append("departamento", departamento);
+      if (dataInicio) params.append("dataInicio", dataInicio);
+      if (dataFim) params.append("dataFim", dataFim);
 
-      const url = '/api/relatorios' + (params.toString() ? `?${params.toString()}` : '');
+      const url =
+        "/api/relatorios" + (params.toString() ? `?${params.toString()}` : "");
 
       try {
         const resp = await fetch(url);
         const dados = await resp.json();
 
         if (!resp.ok || !dados.sucesso) {
-          statusEl.textContent = dados.message || 'Erro ao carregar relatórios.';
+          statusEl.textContent =
+            dados.message || "Erro ao carregar relatórios.";
           return;
         }
 
         const registros = Array.isArray(dados.registros) ? dados.registros : [];
 
         if (!registros.length) {
-          statusEl.textContent = 'Nenhum registro encontrado com os filtros atuais.';
-          resumoQtd.textContent = '';
-          listaEl.innerHTML = '';
+          statusEl.textContent =
+            "Nenhum registro encontrado com os filtros atuais.";
+          resumoQtd.textContent = "";
+          listaEl.innerHTML = "";
           return;
         }
 
         statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
         resumoQtd.textContent = `Total retornado: ${registros.length}`;
 
-        // Renderiza cartões
+        // Renderiza cartões (sem COD CONSINCO, GRUPO, SUBGRUPO, CATEGORIA)
         listaEl.innerHTML = registros
-          .map((r) => {
-            return `
+          .map(
+            (r) => `
               <div class="cartao">
                 <div class="cartao-topo">
                   <div>
                     <div class="cartao-linha">
-                      <strong>Data/Hora:</strong> ${r.dataHora || '-'}
+                      <strong>Data/Hora:</strong> ${r.dataHora || "-"}
                     </div>
                     <div class="cartao-linha">
-                      <strong>Loja:</strong> ${r.loja || '-'}
+                      <strong>Loja:</strong> ${r.loja || "-"}
                     </div>
                   </div>
                   <div>
                     <div class="cartao-linha">
-                      <strong>Usuário:</strong> ${r.usuario || '-'}
+                      <strong>Usuário:</strong> ${r.usuario || "-"}
                     </div>
                     <div class="cartao-linha">
-                      <strong>Documento:</strong> ${r.documento || '-'}
+                      <strong>Documento:</strong> ${r.documento || "-"}
                     </div>
                   </div>
                 </div>
 
                 <div class="cartao-linha">
-                  <strong>EAN:</strong> ${r.ean || '-'}
+                  <strong>EAN:</strong> ${r.ean || "-"}
                 </div>
                 <div class="cartao-linha">
-                  <strong>Produto:</strong> ${r.produto || '-'}
+                  <strong>Produto:</strong> ${r.produto || "-"}
                 </div>
                 <div class="cartao-linha">
-                  <strong>Departamento:</strong> ${r.departamento || '-'}
-                  <span class="tag">${r.secao || ''}</span>
-                </div>
-
-                <div class="cartao-linha">
-                  <strong>Relatório / Observação:</strong> ${r.relatorio || '-'}
+                  <strong>Departamento:</strong> ${r.departamento || "-"}
+                  <span class="tag">${r.secao || ""}</span>
                 </div>
 
                 <div class="cartao-linha">
-                  <strong>Quantidade:</strong> ${r.quantidade || '-'}
+                  <strong>Relatório / Observação:</strong> ${
+                    r.relatorio || "-"
+                  }
+                </div>
+
+                <div class="cartao-linha">
+                  <strong>Quantidade:</strong> ${r.quantidade || "-"}
                   &nbsp;&nbsp;|&nbsp;&nbsp;
-                  <strong>Valor unitário (R$):</strong> ${r.valorUnitario || '-'}
+                  <strong>Valor unitário (R$):</strong> ${
+                    r.valorUnitario || "-"
+                  }
                 </div>
               </div>
-            `;
-          })
-          .join('');
+            `
+          )
+          .join("");
       } catch (erro) {
-        console.error('Erro ao carregar relatórios:', erro);
-        statusEl.textContent = 'Erro de conexão ao buscar relatórios.';
+        console.error("Erro ao carregar relatórios:", erro);
+        statusEl.textContent = "Erro de conexão ao buscar relatórios.";
       }
     }
 
@@ -431,12 +458,12 @@
      * Limpa todos os filtros e recarrega.
      */
     function limparFiltros() {
-      document.getElementById('filtroLoja').value = '';
-      document.getElementById('filtroUsuario').value = '';
-      document.getElementById('filtroDocumento').value = '';
-      document.getElementById('filtroDepartamento').value = '';
-      document.getElementById('dataInicio').value = '';
-      document.getElementById('dataFim').value = '';
+      document.getElementById("filtroLoja").value = "";
+      document.getElementById("filtroUsuario").value = "";
+      document.getElementById("filtroDocumento").value = "";
+      document.getElementById("filtroDepartamento").value = "";
+      document.getElementById("dataInicio").value = "";
+      document.getElementById("dataFim").value = "";
 
       carregarRelatorios();
     }
