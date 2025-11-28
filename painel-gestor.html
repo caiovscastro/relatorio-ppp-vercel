@@ -41,6 +41,7 @@
       font-size: 22px;
     }
 
+    /* ====== CARDS DE RESUMO (QTD / VALOR TOTAL) ====== */
     .resumo-cards {
       display: flex;
       flex-wrap: wrap;
@@ -82,6 +83,7 @@
       font-size: 16px;
     }
 
+    /* GRID DOS FILTROS */
     .filtros-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -167,7 +169,7 @@
     }
 
     .cartao {
-      background: #fff;
+      background: #f5f5f5; /* cinza bem leve para destacar da base branca */
       border-radius: 10px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
       padding: 12px 14px;
@@ -264,17 +266,19 @@
       </div>
     </div>
 
+    <!-- Cards de resumo (lado a lado) -->
     <div class="resumo-cards">
       <div class="card-resumo">
-        <div class="resumo-titulo">Quantidade total (filtro atual)</div>
+        <div class="resumo-titulo">Qtd. Itens</div>
         <div id="resumoQtdTotal" class="resumo-valor">0</div>
       </div>
       <div class="card-resumo">
-        <div class="resumo-titulo">Valor total (R$) – filtro atual</div>
+        <div class="resumo-titulo">Valor total</div>
         <div id="resumoValorTotal" class="resumo-valor">0,00</div>
       </div>
     </div>
 
+    <!-- Filtros -->
     <div class="bloco-filtros">
       <h3>Filtros</h3>
       <div class="filtros-grid">
@@ -317,6 +321,7 @@
         </div>
       </div>
 
+      <!-- Botões alinhados em linha -->
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
         <button class="btn btn-exportar" onclick="confirmarDownload()">Exportar XLSX</button>
@@ -324,6 +329,7 @@
       </div>
     </div>
 
+    <!-- Status + lista de cartões -->
     <div class="status" id="status">Carregando relatórios...</div>
 
     <div class="lista-cartoes" id="listaCartoes"></div>
@@ -542,7 +548,6 @@
     }
 
     function exportarParaXlsx(registros) {
-      // Cabeçalho
       const cabecalho = [
         "Data/Hora",
         "Loja",
@@ -574,7 +579,6 @@
           r.grupo || "",
           r.subgrupo || "",
           r.categoria || "",
-          // mantém "\n" para quebra de linha dentro da célula
           r.relatorio || "",
           r.quantidade || "",
           r.valorUnitario || "",
