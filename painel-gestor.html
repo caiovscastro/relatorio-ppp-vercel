@@ -48,19 +48,19 @@
     .resumo-cards {
       display: flex;
       flex-wrap: nowrap;            /* NÃO PERMITE QUEBRE DE LINHA */
-      gap: 10px;
+      gap: 6px;
       margin: 10px 0 14px;
       overflow-x: auto;             /* Se apertar demais, cria scroll horizontal */
+      justify-content: center;      /* centraliza a dupla */
     }
 
     .card-resumo {
-      flex: 1 1 0;                  /* Cada card ocupa metade em layout horizontal */
+      flex: 0 0 160px;                  /* Cada card ocupa metade em layout horizontal */
       background: #f9fafc;
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 8px 10px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
       font-size: 13px;
-      min-width: 200px;             /* Largura mínima para não ficar minúsculo */
     }
 
     .resumo-titulo {
@@ -136,7 +136,7 @@
       display: flex;
       flex-wrap: nowrap;          /* SEM QUEBRA DE LINHA */
       gap: 8px;
-      justify-content: flex-end;
+      justify-content: center;
       overflow-x: auto;           /* Scroll horizontal se o espaço ficar pequeno */
     }
 
