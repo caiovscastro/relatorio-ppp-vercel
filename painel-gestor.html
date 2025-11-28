@@ -6,6 +6,7 @@
   <title>Painel Gestor – Relatórios PPP</title>
 
   <style>
+    /* ========= ESTILO GERAL DA PÁGINA ========= */
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
@@ -16,6 +17,7 @@
       align-items: center;
     }
 
+    /* ========= CARD PRINCIPAL (CONTAINER DO PAINEL) ========= */
     .container {
       width: 95%;
       max-width: 1100px;
@@ -25,6 +27,7 @@
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
     }
 
+    /* ========= CABEÇALHO ========= */
     .cabecalho {
       display: flex;
       justify-content: space-between;
@@ -41,21 +44,23 @@
       font-size: 22px;
     }
 
-    /* ====== CARDS DE RESUMO (QTD / VALOR TOTAL) ====== */
+    /* ========= CARDS DE RESUMO (QTD / VALOR) ========= */
     .resumo-cards {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;            /* NÃO PERMITE QUEBRE DE LINHA */
       gap: 10px;
       margin: 10px 0 14px;
+      overflow-x: auto;             /* Se apertar demais, cria scroll horizontal */
     }
 
     .card-resumo {
-      flex: 1 1 200px;
+      flex: 1 1 0;                  /* Cada card ocupa metade em layout horizontal */
       background: #f9fafc;
       border-radius: 10px;
       padding: 10px 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
       font-size: 13px;
+      min-width: 200px;             /* Largura mínima para não ficar minúsculo */
     }
 
     .resumo-titulo {
@@ -70,6 +75,7 @@
       color: #1a1a1a;
     }
 
+    /* ========= BLOCO DOS FILTROS ========= */
     .bloco-filtros {
       margin: 0 -4px 16px;
       padding: 14px;
@@ -83,7 +89,7 @@
       font-size: 16px;
     }
 
-    /* GRID DOS FILTROS */
+    /* GRID DOS CAMPOS DE FILTRO */
     .filtros-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -124,12 +130,14 @@
     .campo-data-inicio { grid-area: dataInicio; }
     .campo-data-fim    { grid-area: dataFim; }
 
+    /* ========= BOTÕES DOS FILTROS ========= */
     .botoes-filtro {
       margin-top: 10px;
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;          /* SEM QUEBRA DE LINHA */
       gap: 8px;
       justify-content: flex-end;
+      overflow-x: auto;           /* Scroll horizontal se o espaço ficar pequeno */
     }
 
     .btn {
@@ -139,6 +147,7 @@
       cursor: pointer;
       font-size: 13px;
       font-weight: 600;
+      white-space: nowrap;        /* Mantém o texto inteiro em uma linha */
     }
 
     .btn-aplicar {
@@ -156,6 +165,7 @@
       color: #fff;
     }
 
+    /* ========= STATUS E LISTA DE CARTÕES ========= */
     .status {
       font-size: 13px;
       margin-bottom: 8px;
@@ -168,8 +178,9 @@
       overflow-y: auto;
     }
 
+    /* Cartão de cada registro */
     .cartao {
-      background: #f5f5f5; /* cinza bem leve para destacar da base branca */
+      background: #f5f5f5; /* cinza bem leve para destacar do fundo branco */
       border-radius: 10px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
       padding: 12px 14px;
@@ -205,6 +216,7 @@
       margin-left: 4px;
     }
 
+    /* ========= RODAPÉ DO PAINEL ========= */
     .rodape {
       margin-top: 12px;
       display: flex;
@@ -223,6 +235,7 @@
       font-weight: 600;
     }
 
+    /* ========= TELA DE ERRO (ACESSO SEM LOGIN) ========= */
     .tela-erro {
       display: flex;
       align-items: center;
@@ -245,10 +258,71 @@
       color: #c00000;
       margin-top: 0;
     }
+
+    /* ========= MODAL DE CONFIRMAÇÃO DE DOWNLOAD ========= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(220, 220, 220, 0.85); /* fundo cinza claro semi-transparente */
+      display: none;                         /* fica escondido até abrir via JS */
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px 22px 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .modal-titulo {
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .modal-texto {
+      margin-bottom: 18px;
+      color: #333;
+    }
+
+    .modal-botoes {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-modal-sim {
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .btn-modal-cancelar {
+      background: #e0e0e0;
+      color: #333;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
-  <!-- Tela de erro se acessar painel sem passar pelo login-gestor -->
+  <!-- ========= TELA DE ERRO SE ACESSAR SEM LOGIN DO GESTOR ========= -->
   <div id="erroAcesso" class="tela-erro" style="display:none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
@@ -258,7 +332,7 @@
     </div>
   </div>
 
-  <!-- Conteúdo principal -->
+  <!-- ========= CONTEÚDO PRINCIPAL DO PAINEL ========= -->
   <div id="appRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
@@ -266,7 +340,7 @@
       </div>
     </div>
 
-    <!-- Cards de resumo (lado a lado) -->
+    <!-- Cards de resumo: Qtd. Itens e Valor total (sempre lado a lado) -->
     <div class="resumo-cards">
       <div class="card-resumo">
         <div class="resumo-titulo">Qtd. Itens</div>
@@ -278,9 +352,11 @@
       </div>
     </div>
 
-    <!-- Filtros -->
+    <!-- Bloco de filtros com inputs e botões -->
     <div class="bloco-filtros">
       <h3>Filtros</h3>
+
+      <!-- Campos de filtro em grid -->
       <div class="filtros-grid">
         <div class="campo-filtro campo-loja">
           <label for="filtroLoja">Loja (texto)</label>
@@ -321,15 +397,15 @@
         </div>
       </div>
 
-      <!-- Botões alinhados em linha -->
+      <!-- Botões de ação, lado a lado sempre -->
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
-        <button class="btn btn-exportar" onclick="confirmarDownload()">Exportar XLSX</button>
+        <button class="btn btn-exportar" onclick="abrirModalDownload()">Exportar XLSX</button>
         <button class="btn btn-aplicar" onclick="carregarRelatorios()">Aplicar filtros</button>
       </div>
     </div>
 
-    <!-- Status + lista de cartões -->
+    <!-- Status e lista de registros em formato de cartões -->
     <div class="status" id="status">Carregando relatórios...</div>
 
     <div class="lista-cartoes" id="listaCartoes"></div>
@@ -340,14 +416,30 @@
     </div>
   </div>
 
-  <!-- SheetJS para gerar XLSX -->
+  <!-- ========= MODAL (POPUP) DE CONFIRMAÇÃO DO DOWNLOAD ========= -->
+  <div id="modalDownload" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-titulo">Confirmar download</div>
+      <div class="modal-texto">
+        Você deseja mesmo fazer o download do arquivo?
+      </div>
+      <div class="modal-botoes">
+        <button class="btn-modal-cancelar" onclick="fecharModalDownload()">Cancelar</button>
+        <button class="btn-modal-sim" onclick="confirmarDownload()">Sim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SheetJS para gerar XLSX no navegador -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
+    // ========= CONSTANTES E VARIÁVEIS GLOBAIS =========
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     let usuarioLogado = null;
-    let registrosAtuais = [];
+    let registrosAtuais = []; // guarda os registros do filtro atual para exportação
 
+    // ========= INICIALIZAÇÃO DO PAINEL (VALIDA LOGIN) =========
     document.addEventListener("DOMContentLoaded", () => {
       const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
@@ -370,27 +462,34 @@
         return;
       }
 
+      // Se chegou aqui, login de gestor é válido
       usuarioLogado = dadosGestor.usuario;
 
+      // Mostra o painel e carrega os relatórios iniciais
       document.getElementById("appRoot").style.display = "block";
       carregarRelatorios();
     });
 
+    // ========= LOGOUT DO GESTOR (LIMPA SESSION STORAGE) =========
     function logoutGestor() {
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
     }
 
+    // ========= FUNÇÃO AUXILIAR PARA PARSE DE NÚMEROS PT-BR =========
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
       if (!s) return 0;
 
+      // remove espaços
       s = s.replace(/\s+/g, "");
+      // remove separador de milhar e troca vírgula por ponto
       s = s.replace(/\./g, "").replace(",", ".");
       const n = Number(s);
       return isNaN(n) ? 0 : n;
     }
 
+    // ========= CARREGA RELATÓRIOS DA API /api/relatorios =========
     async function carregarRelatorios() {
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
@@ -398,6 +497,7 @@
       const resumoQtdTotal = document.getElementById("resumoQtdTotal");
       const resumoValorTotal = document.getElementById("resumoValorTotal");
 
+      // Reseta estado visual
       statusEl.textContent = "Carregando relatórios...";
       listaEl.innerHTML = "";
       resumoQtd.textContent = "";
@@ -405,6 +505,7 @@
       resumoValorTotal.textContent = "0,00";
       registrosAtuais = [];
 
+      // Lê filtros da tela
       const loja = document.getElementById("filtroLoja").value.trim();
       const usuario = document.getElementById("filtroUsuario").value.trim();
       const documento = document.getElementById("filtroDocumento").value.trim();
@@ -412,8 +513,8 @@
       const dataInicio = document.getElementById("dataInicio").value;
       const dataFim = document.getElementById("dataFim").value;
 
+      // Monta query string com filtros ativos
       const params = new URLSearchParams();
-
       if (loja) params.append("loja", loja);
       if (usuario) params.append("usuario", usuario);
       if (documento) params.append("documento", documento);
@@ -436,6 +537,7 @@
 
         const registros = Array.isArray(dados.registros) ? dados.registros : [];
 
+        // Se não vier nenhum registro com os filtros atuais
         if (!registros.length) {
           statusEl.textContent =
             "Nenhum registro encontrado com os filtros atuais.";
@@ -445,8 +547,10 @@
           return;
         }
 
+        // Guarda registros para exportação
         registrosAtuais = registros;
 
+        // Calcula totais de quantidade e valor
         let totalQtd = 0;
         let totalValor = 0;
 
@@ -457,6 +561,7 @@
           totalValor += qtd * vUnit;
         });
 
+        // Atualiza resumos
         statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
         resumoQtd.textContent = `Total de registros retornados: ${registros.length}`;
 
@@ -466,6 +571,7 @@
           maximumFractionDigits: 2,
         });
 
+        // Monta HTML dos cartões, aplicando quebra de linha do relatório
         listaEl.innerHTML = registros
           .map((r) => {
             const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "<br>");
@@ -524,6 +630,7 @@
       }
     }
 
+    // ========= LIMPA TODOS OS FILTROS E RECARREGA =========
     function limparFiltros() {
       document.getElementById("filtroLoja").value = "";
       document.getElementById("filtroUsuario").value = "";
@@ -535,19 +642,29 @@
       carregarRelatorios();
     }
 
-    function confirmarDownload() {
+    // ========= CONTROLE DO MODAL DE DOWNLOAD =========
+    function abrirModalDownload() {
+      // Se não houver registros carregados, não abre modal
       if (!registrosAtuais || !registrosAtuais.length) {
         alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
         return;
       }
-
-      const deseja = confirm("Você deseja mesmo fazer o download do arquivo?");
-      if (!deseja) return;
-
-      exportarParaXlsx(registrosAtuais);
+      document.getElementById("modalDownload").style.display = "flex";
     }
 
+    function fecharModalDownload() {
+      document.getElementById("modalDownload").style.display = "none";
+    }
+
+    // Chamado ao clicar em "Sim" dentro do modal
+    function confirmarDownload() {
+      fecharModalDownload();              // fecha o popup
+      exportarParaXlsx(registrosAtuais);  // gera o arquivo XLSX
+    }
+
+    // ========= EXPORTA REGISTROS ATUAIS PARA XLSX (USANDO SheetJS) =========
     function exportarParaXlsx(registros) {
+      // Cabeçalho da planilha
       const cabecalho = [
         "Data/Hora",
         "Loja",
@@ -566,6 +683,7 @@
         "Documento",
       ];
 
+      // Linhas de dados
       const linhas = registros.map((r) => {
         return [
           r.dataHora || "",
@@ -579,6 +697,7 @@
           r.grupo || "",
           r.subgrupo || "",
           r.categoria || "",
+          // mantém \n no texto, Excel interpreta como quebra de linha na célula
           r.relatorio || "",
           r.quantidade || "",
           r.valorUnitario || "",
@@ -588,6 +707,7 @@
 
       const dados = [cabecalho, ...linhas];
 
+      // Cria workbook e worksheet com SheetJS
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(dados);
 
