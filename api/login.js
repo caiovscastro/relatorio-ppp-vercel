@@ -28,8 +28,17 @@ export default function handler(req, res) {
     // 4) Base de usuários AUTORIZADOS (por enquanto, fixo no código)
     //    Depois podemos mover isso para uma planilha Google.
     const usuarios = [
-        { usuario: "LOJA1", senha: "1234", loja: "ULT 01 - PLANALTINA" },
-        { usuario: "LOJA2", senha: "abcd", loja: "ULT 08 - ARAPOANGA" }
+        { usuario: "Uloja1", senha: "842142", loja: "ULT 01 - PLANALTINA" },
+        { usuario: "Uloja2", senha: "842142", loja: "ULT 02 - GAMA" },
+        { usuario: "Uloja3", senha: "842142", loja: "ULT 03 - COLORADO" },
+        { usuario: "Uloja4", senha: "842142", loja: "ULT 04 - CEI SUL" },
+        { usuario: "Uloja5", senha: "842142", loja: "ULT 05 - POLO JK" },
+        { usuario: "Uloja6", senha: "842142", loja: "ULT 06 - SOBRADINHO" },
+        { usuario: "Uloja7", senha: "842142", loja: "ULT 07 - ADE" },
+        { usuario: "Uloja8", senha: "842142", loja: "ULT 08 - ARAPOANGA" },
+        { usuario: "Uloja9", senha: "842142", loja: "ULT 09 - CEI NORTE" },
+        { usuario: "Uloja10", senha: "842142", loja: "ULT 10 - ESTRUTURAL" }
+        
     ];
 
     // 5) Procura um registro que combine usuário, senha e loja
