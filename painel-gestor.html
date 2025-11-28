@@ -41,7 +41,6 @@
       font-size: 22px;
     }
 
-    /* ====== CARDS DE RESUMO (QTD / VALOR TOTAL) ====== */
     .resumo-cards {
       display: flex;
       flex-wrap: wrap;
@@ -83,7 +82,6 @@
       font-size: 16px;
     }
 
-    /* GRID DOS FILTROS */
     .filtros-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -151,7 +149,6 @@
       color: #333;
     }
 
-    /* novo botão, mantendo o padrão visual */
     .btn-exportar {
       background: #4caf50;
       color: #fff;
@@ -224,7 +221,6 @@
       font-weight: 600;
     }
 
-    /* Tela de erro de acesso direto */
     .tela-erro {
       display: flex;
       align-items: center;
@@ -268,7 +264,6 @@
       </div>
     </div>
 
-    <!-- Cards de resumo (quantidade total e valor total do filtro atual) -->
     <div class="resumo-cards">
       <div class="card-resumo">
         <div class="resumo-titulo">Quantidade total (filtro atual)</div>
@@ -280,7 +275,6 @@
       </div>
     </div>
 
-    <!-- Filtros -->
     <div class="bloco-filtros">
       <h3>Filtros</h3>
       <div class="filtros-grid">
@@ -325,12 +319,11 @@
 
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
-        <button class="btn btn-exportar" onclick="confirmarDownload()">Exportar XLS</button>
+        <button class="btn btn-exportar" onclick="confirmarDownload()">Exportar XLSX</button>
         <button class="btn btn-aplicar" onclick="carregarRelatorios()">Aplicar filtros</button>
       </div>
     </div>
 
-    <!-- Status + lista de cartões -->
     <div class="status" id="status">Carregando relatórios...</div>
 
     <div class="lista-cartoes" id="listaCartoes"></div>
@@ -341,11 +334,12 @@
     </div>
   </div>
 
+  <!-- SheetJS para gerar XLSX -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     let usuarioLogado = null;
-
-    // guarda os registros do filtro atual para exportar
     let registrosAtuais = [];
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -373,8 +367,6 @@
       usuarioLogado = dadosGestor.usuario;
 
       document.getElementById("appRoot").style.display = "block";
-
-      // Carrega relatórios iniciais (sem filtro)
       carregarRelatorios();
     });
 
@@ -447,7 +439,6 @@
           return;
         }
 
-        // guarda para exportação
         registrosAtuais = registros;
 
         let totalQtd = 0;
@@ -469,7 +460,6 @@
           maximumFractionDigits: 2,
         });
 
-        // Renderiza cartões com quebra de linha no relatório
         listaEl.innerHTML = registros
           .map((r) => {
             const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "<br>");
@@ -548,73 +538,57 @@
       const deseja = confirm("Você deseja mesmo fazer o download do arquivo?");
       if (!deseja) return;
 
-      exportarParaXls(registrosAtuais);
+      exportarParaXlsx(registrosAtuais);
     }
 
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
+    function exportarParaXlsx(registros) {
+      // Cabeçalho
+      const cabecalho = [
+        "Data/Hora",
+        "Loja",
+        "Usuário",
+        "EAN",
+        "Cod Consinco",
+        "Produto",
+        "Departamento",
+        "Seção",
+        "Grupo",
+        "Subgrupo",
+        "Categoria",
+        "Relatório / Observação",
+        "Quantidade",
+        "Valor unitário",
+        "Documento",
+      ];
 
-    function exportarParaXls(registros) {
-      let html = '<table border="1"><thead><tr>' +
-        "<th>Data/Hora</th>" +
-        "<th>Loja</th>" +
-        "<th>Usuário</th>" +
-        "<th>EAN</th>" +
-        "<th>Cod Consinco</th>" +
-        "<th>Produto</th>" +
-        "<th>Departamento</th>" +
-        "<th>Seção</th>" +
-        "<th>Grupo</th>" +
-        "<th>Subgrupo</th>" +
-        "<th>Categoria</th>" +
-        "<th>Relatório / Observação</th>" +
-        "<th>Quantidade</th>" +
-        "<th>Valor unitário</th>" +
-        "<th>Documento</th>" +
-        "</tr></thead><tbody>";
-
-      registros.forEach((r) => {
-        const relatorioHtml = (r.relatorio || "").replace(/\n/g, "<br>");
-        html += "<tr>" +
-          `<td>${escapeHtml(r.dataHora || "")}</td>` +
-          `<td>${escapeHtml(r.loja || "")}</td>` +
-          `<td>${escapeHtml(r.usuario || "")}</td>` +
-          `<td>${escapeHtml(r.ean || "")}</td>` +
-          `<td>${escapeHtml(r.codConsinco || "")}</td>` +
-          `<td>${escapeHtml(r.produto || "")}</td>` +
-          `<td>${escapeHtml(r.departamento || "")}</td>` +
-          `<td>${escapeHtml(r.secao || "")}</td>` +
-          `<td>${escapeHtml(r.grupo || "")}</td>` +
-          `<td>${escapeHtml(r.subgrupo || "")}</td>` +
-          `<td>${escapeHtml(r.categoria || "")}</td>` +
-          `<td>${relatorioHtml}</td>` +
-          `<td>${escapeHtml(r.quantidade || "")}</td>` +
-          `<td>${escapeHtml(r.valorUnitario || "")}</td>` +
-          `<td>${escapeHtml(r.documento || "")}</td>` +
-          "</tr>";
+      const linhas = registros.map((r) => {
+        return [
+          r.dataHora || "",
+          r.loja || "",
+          r.usuario || "",
+          r.ean || "",
+          r.codConsinco || "",
+          r.produto || "",
+          r.departamento || "",
+          r.secao || "",
+          r.grupo || "",
+          r.subgrupo || "",
+          r.categoria || "",
+          // mantém "\n" para quebra de linha dentro da célula
+          r.relatorio || "",
+          r.quantidade || "",
+          r.valorUnitario || "",
+          r.documento || "",
+        ];
       });
 
-      html += "</tbody></table>";
+      const dados = [cabecalho, ...linhas];
 
-      const blob = new Blob(["\ufeff" + html], {
-        type: "application/vnd.ms-excel;charset=utf-8;",
-      });
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(dados);
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "relatorios_ppp.xls";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      XLSX.utils.book_append_sheet(wb, ws, "Relatorios PPP");
+      XLSX.writeFile(wb, "relatorios_ppp.xlsx");
     }
   </script>
 </body>
