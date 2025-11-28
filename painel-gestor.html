@@ -45,23 +45,22 @@
     }
 
     /* ========= CARDS DE RESUMO (QTD / VALOR) ========= */
-    .resumo-cards {
-      display: flex;
-      flex-wrap: wrap;           /* permite ocupar 100% em cada linha */
-      gap: 6px;
-      margin: 10px 0 14px;
-      justify-content: space-between;
+.resumo-cards {
+  display: flex;
+  flex-wrap: nowrap;        /* mantém os dois cards sempre na mesma linha */
+  gap: 6px;
+  margin: 10px 0 14px;
+  justify-content: space-between;
     }
 
-    .card-resumo {
-      flex: 1 1 100%;            /* cada card ocupa a largura principal */
-      min-width: 100%;
-      background: #f9fafc;
-      border-radius: 10px;
-      padding: 8px 10px;
-      /* sombra removida conforme solicitado */
-      box-shadow: none;
-      font-size: 13px;
+.card-resumo {
+  flex: 1 1 50%;            /* cada card ocupa metade da largura disponível */
+  min-width: 0;             /* permite encolher sem estourar o layout */
+  background: #f9fafc;
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-shadow: none;         /* continua sem sombra, como você pediu antes */
+  font-size: 13px;
     }
 
     .resumo-titulo {
