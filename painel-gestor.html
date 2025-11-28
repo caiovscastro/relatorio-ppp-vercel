@@ -6,9 +6,6 @@
   <title>Painel Gestor – Relatórios PPP</title>
 
   <style>
-    /* =========================
-       ESTILO GERAL / LAYOUT
-       ========================= */
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
@@ -35,8 +32,8 @@
       flex-wrap: wrap;
       gap: 10px;
       border-bottom: 1px solid #e1e1e1;
-      padding-bottom: 10px;
-      margin-bottom: 14px;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .titulo {
@@ -44,45 +41,25 @@
       font-size: 22px;
     }
 
-    /* =========================
-       CARTÕES DE RESUMO (TOP)
-       ========================= */
-    .cards-resumo {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 10px 0 16px;
-    }
-
-    .card-resumo {
-      flex: 1;
-      min-width: 180px;
-      background: #f7f8ff;
-      border-radius: 10px;
-      padding: 10px 14px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.10);
-      font-size: 13px;
-    }
-
-    .card-resumo-titulo {
-      font-size: 12px;
+    .subtitulo {
+      margin: 4px 0 0;
+      font-size: 14px;
       color: #555;
-      margin-bottom: 4px;
     }
 
-    .card-resumo-valor {
-      font-size: 18px;
-      font-weight: 700;
-      color: #0044aa;
+    .info-usuario {
+      text-align: right;
+      font-size: 14px;
     }
 
-    /* =========================
-       BLOCO DE FILTROS
-       ========================= */
+    .info-usuario strong {
+      display: block;
+    }
+
     .bloco-filtros {
       margin-bottom: 16px;
-      padding: 14px 18px;
-      border-radius: 10px;
+      padding: 14px;
+      border-radius: 8px;
       background: #f7f8ff;
       border: 1px solid #e0e3ff;
     }
@@ -92,25 +69,17 @@
       font-size: 16px;
     }
 
-    /* Grid de filtros:
-       - 3 colunas em telas médias/grandes
-       - quebra automático em telas menores */
+    /* GRID DOS FILTROS
+       Linha 1: Loja | Usuário | Departamento
+       Linha 2: Nº Doc | Data início | Data fim
+    */
     .filtros-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-areas:
+        "loja usuario departamento"
+        "documento dataInicio dataFim";
       gap: 8px 10px;
-    }
-
-    @media (max-width: 720px) {
-      .filtros-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 520px) {
-      .filtros-grid {
-        grid-template-columns: 1fr;
-      }
     }
 
     .campo-filtro {
@@ -132,7 +101,31 @@
       font-size: 13px;
       box-sizing: border-box;
       background: #fff;
-      width: 100%;
+    }
+
+    /* Mapeamento das áreas no grid */
+    .campo-loja {
+      grid-area: loja;
+    }
+
+    .campo-usuario {
+      grid-area: usuario;
+    }
+
+    .campo-documento {
+      grid-area: documento;
+    }
+
+    .campo-departamento {
+      grid-area: departamento;
+    }
+
+    .campo-data-inicio {
+      grid-area: dataInicio;
+    }
+
+    .campo-data-fim {
+      grid-area: dataFim;
     }
 
     .botoes-filtro {
@@ -162,9 +155,6 @@
       color: #333;
     }
 
-    /* =========================
-       STATUS / LISTA DE CARTÕES
-       ========================= */
     .status {
       font-size: 13px;
       margin-bottom: 8px;
@@ -180,8 +170,8 @@
     .cartao {
       background: #fff;
       border-radius: 10px;
-      /* sombra um pouco mais forte, como você pediu */
-      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.16);
+      /* Sombra mais forte */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
       padding: 12px 14px;
       margin-bottom: 10px;
       font-size: 13px;
@@ -215,21 +205,12 @@
       margin-left: 4px;
     }
 
-    /* Quebra de linha do texto da observação
-       (mantém \n do texto vindo da planilha) */
-    .cartao-linha.obs-texto {
-      white-space: pre-line;
-    }
-
-    /* Rodapé com botão voltar + resumo */
     .rodape {
       margin-top: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 12px;
-      flex-wrap: wrap;
-      gap: 6px;
     }
 
     .btn-voltar {
@@ -242,9 +223,7 @@
       font-weight: 600;
     }
 
-    /* =========================
-       TELA DE ERRO (ACESSO DIRETO)
-       ========================= */
+    /* Tela de erro de acesso direto */
     .tela-erro {
       display: flex;
       align-items: center;
@@ -283,18 +262,15 @@
   <!-- Conteúdo principal -->
   <div id="appRoot" class="container" style="display:none;">
     <div class="cabecalho">
-      <h1 class="titulo">Painel Gestor – Relatórios PPP</h1>
-    </div>
-
-    <!-- Cartões de resumo: quantidade total e valor total do filtro atual -->
-    <div class="cards-resumo">
-      <div class="card-resumo">
-        <div class="card-resumo-titulo">Quantidade total registrada (filtro atual)</div>
-        <div class="card-resumo-valor" id="cardQtdTotal">0</div>
+      <div>
+        <h1 class="titulo">Painel Gestor – Relatórios PPP</h1>
+        <p class="subtitulo">
+          Visualização dos registros da aba RELATORIO com filtros por loja, período e demais campos.
+        </p>
       </div>
-      <div class="card-resumo">
-        <div class="card-resumo-titulo">Valor total (Quantidade × Valor) – filtro atual</div>
-        <div class="card-resumo-valor" id="cardValorTotal">R$ 0,00</div>
+      <div class="info-usuario">
+        <strong>Gestor: <span id="usuarioSpan"></span></strong>
+        <span>Perfil: Gestão / Consulta</span>
       </div>
     </div>
 
@@ -302,18 +278,22 @@
     <div class="bloco-filtros">
       <h3>Filtros</h3>
       <div class="filtros-grid">
-        <!-- Linha 1: Loja / Usuário / Departamento -->
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-loja">
           <label for="filtroLoja">Loja (texto)</label>
           <input id="filtroLoja" type="text" placeholder="Ex.: ULT 01" />
         </div>
 
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-usuario">
           <label for="filtroUsuario">Usuário</label>
           <input id="filtroUsuario" type="text" placeholder="Login / nome" />
         </div>
 
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-documento">
+          <label for="filtroDocumento">Nº Documento</label>
+          <input id="filtroDocumento" type="text" placeholder="Número exato" />
+        </div>
+
+        <div class="campo-filtro campo-departamento">
           <label for="filtroDepartamento">Departamento</label>
           <select id="filtroDepartamento">
             <option value="">Todos</option>
@@ -326,18 +306,12 @@
           </select>
         </div>
 
-        <!-- Linha 2: Nº Documento / Data início / Data fim -->
-        <div class="campo-filtro">
-          <label for="filtroDocumento">Nº Documento</label>
-          <input id="filtroDocumento" type="text" placeholder="Número exato" />
-        </div>
-
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-data-inicio">
           <label for="dataInicio">Data início</label>
           <input id="dataInicio" type="date" />
         </div>
 
-        <div class="campo-filtro">
+        <div class="campo-filtro campo-data-fim">
           <label for="dataFim">Data fim</label>
           <input id="dataFim" type="date" />
         </div>
@@ -355,79 +329,64 @@
     <div class="lista-cartoes" id="listaCartoes"></div>
 
     <div class="rodape">
-      <a href="/index.html" class="btn-voltar">Voltar à tela inicial</a>
+      <a href="/index.html" class="btn-voltar" onclick="logoutGestor()">Voltar à tela inicial</a>
       <span id="resumoQtd"></span>
     </div>
   </div>
 
   <script>
+    const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     let usuarioLogado = null;
 
-    /* ==============================
-       FUNÇÕES AUXILIARES NUMÉRICAS
-       ============================== */
-
-    // Converte "1.234,56" para 1234.56 (number)
-    function parseNumeroBR(valor) {
-      if (!valor) return 0;
-      if (typeof valor === "number") return valor;
-
-      const limpo = String(valor).trim().replace(/\./g, "").replace(",", ".");
-      const n = Number(limpo);
-      return isNaN(n) ? 0 : n;
-    }
-
-    // Formata número como moeda BR "R$ 1.234,56"
-    function formatarMoedaBR(valor) {
-      const n = parseNumeroBR(valor);
-      return n.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        minimumFractionDigits: 2
-      });
-    }
-
-    /* ==============================
-       CONTROLE DE ACESSO BÁSICO
-       ============================== */
-
     document.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(window.location.search);
-      const usuario = params.get("usuario");
+      // Recupera dados do gestor do sessionStorage
+      const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
-      // Se não vier parâmetro de usuário, bloqueia acesso
-      if (!usuario) {
+      if (!raw) {
         document.getElementById("erroAcesso").style.display = "flex";
         return;
       }
 
-      usuarioLogado = usuario;
+      let dadosGestor;
+      try {
+        dadosGestor = JSON.parse(raw);
+      } catch (e) {
+        console.error("Erro ao ler STORAGE_KEY_GESTOR:", e);
+        document.getElementById("erroAcesso").style.display = "flex";
+        return;
+      }
 
-      // Exibe o app
+      if (!dadosGestor || !dadosGestor.usuario) {
+        document.getElementById("erroAcesso").style.display = "flex";
+        return;
+      }
+
+      usuarioLogado = dadosGestor.usuario;
+      document.getElementById("usuarioSpan").textContent = usuarioLogado;
+
       document.getElementById("appRoot").style.display = "block";
 
       // Carrega relatórios iniciais (sem filtro)
       carregarRelatorios();
     });
 
-    /* ==============================
-       CARREGAMENTO / FILTROS
-       ============================== */
+    // Logout simples: limpa storage do gestor
+    function logoutGestor() {
+      sessionStorage.removeItem(STORAGE_KEY_GESTOR);
+    }
 
+    /**
+     * Monta query string com os filtros ativos e chama a API /api/relatorios
+     */
     async function carregarRelatorios() {
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
       const resumoQtd = document.getElementById("resumoQtd");
-      const cardQtdTotal = document.getElementById("cardQtdTotal");
-      const cardValorTotal = document.getElementById("cardValorTotal");
 
       statusEl.textContent = "Carregando relatórios...";
       listaEl.innerHTML = "";
       resumoQtd.textContent = "";
-      cardQtdTotal.textContent = "0";
-      cardValorTotal.textContent = "R$ 0,00";
 
-      // Lê filtros da tela
       const loja = document.getElementById("filtroLoja").value.trim();
       const usuario = document.getElementById("filtroUsuario").value.trim();
       const documento = document.getElementById("filtroDocumento").value.trim();
@@ -435,7 +394,6 @@
       const dataInicio = document.getElementById("dataInicio").value;
       const dataFim = document.getElementById("dataFim").value;
 
-      // Monta query string
       const params = new URLSearchParams();
 
       if (loja) params.append("loja", loja);
@@ -458,9 +416,7 @@
           return;
         }
 
-        const registros = Array.isArray(dados.registros)
-          ? dados.registros
-          : [];
+        const registros = Array.isArray(dados.registros) ? dados.registros : [];
 
         if (!registros.length) {
           statusEl.textContent =
@@ -470,29 +426,13 @@
           return;
         }
 
-        // Calcula somatórios (quantidade total e valor total)
-        let somaQtd = 0;
-        let somaValorTotal = 0;
-
-        registros.forEach((r) => {
-          const qtd = parseNumeroBR(r.quantidade);
-          const valorUnit = parseNumeroBR(r.valorUnitario);
-          somaQtd += qtd;
-          somaValorTotal += qtd * valorUnit;
-        });
-
-        // Atualiza textos de resumo / cartões de topo
         statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
-        resumoQtd.textContent = `Quantidade total: ${somaQtd} | Valor total: ${formatarMoedaBR(
-          somaValorTotal
-        )}`;
-        cardQtdTotal.textContent = somaQtd;
-        cardValorTotal.textContent = formatarMoedaBR(somaValorTotal);
+        resumoQtd.textContent = `Total retornado: ${registros.length}`;
 
-        // Renderiza cartões
+        // Renderiza cartões (sem COD CONSINCO, GRUPO, SUBGRUPO, CATEGORIA)
         listaEl.innerHTML = registros
-          .map((r) => {
-            return `
+          .map(
+            (r) => `
               <div class="cartao">
                 <div class="cartao-topo">
                   <div>
@@ -516,31 +456,30 @@
                 <div class="cartao-linha">
                   <strong>EAN:</strong> ${r.ean || "-"}
                 </div>
-
                 <div class="cartao-linha">
                   <strong>Produto:</strong> ${r.produto || "-"}
                 </div>
-
                 <div class="cartao-linha">
                   <strong>Departamento:</strong> ${r.departamento || "-"}
                   <span class="tag">${r.secao || ""}</span>
                 </div>
 
                 <div class="cartao-linha">
-                  <strong>Quantidade:</strong> ${r.quantidade || "-"}
-                  &nbsp;&nbsp;|&nbsp;&nbsp;
-                  <strong>Valor unitário (R$):</strong> ${r.valorUnitario || "-"}
+                  <strong>Relatório / Observação:</strong> ${
+                    r.relatorio || "-"
+                  }
                 </div>
 
                 <div class="cartao-linha">
-                  <strong>Relatório / Observação:</strong>
-                </div>
-                <div class="cartao-linha obs-texto">
-                  ${r.relatorio || "-"}
+                  <strong>Quantidade:</strong> ${r.quantidade || "-"}
+                  &nbsp;&nbsp;|&nbsp;&nbsp;
+                  <strong>Valor unitário (R$):</strong> ${
+                    r.valorUnitario || "-"
+                  }
                 </div>
               </div>
-            `;
-          })
+            `
+          )
           .join("");
       } catch (erro) {
         console.error("Erro ao carregar relatórios:", erro);
@@ -548,10 +487,9 @@
       }
     }
 
-    /* ==============================
-       LIMPAR FILTROS
-       ============================== */
-
+    /**
+     * Limpa todos os filtros e recarrega.
+     */
     function limparFiltros() {
       document.getElementById("filtroLoja").value = "";
       document.getElementById("filtroUsuario").value = "";
