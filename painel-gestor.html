@@ -47,19 +47,20 @@
     /* ========= CARDS DE RESUMO (QTD / VALOR) ========= */
     .resumo-cards {
       display: flex;
-      flex-wrap: nowrap;            /* NÃO PERMITE QUEBRE DE LINHA */
+      flex-wrap: wrap;           /* permite ocupar 100% em cada linha */
       gap: 6px;
       margin: 10px 0 14px;
-      overflow-x: auto;             /* Se apertar demais, cria scroll horizontal */
-      justify-content: center;      /* centraliza a dupla */
+      justify-content: space-between;
     }
 
     .card-resumo {
-      flex: 0 0 160px;                  /* Cada card ocupa metade em layout horizontal */
+      flex: 1 1 100%;            /* cada card ocupa a largura principal */
+      min-width: 100%;
       background: #f9fafc;
       border-radius: 10px;
       padding: 8px 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+      /* sombra removida conforme solicitado */
+      box-shadow: none;
       font-size: 13px;
     }
 
@@ -133,11 +134,12 @@
     /* ========= BOTÕES DOS FILTROS ========= */
     .botoes-filtro {
       margin-top: 10px;
-      display: flex;
-      flex-wrap: nowrap;          /* SEM QUEBRA DE LINHA */
-      gap: 8px;
-      justify-content: center;
-      overflow-x: auto;           /* Scroll horizontal se o espaço ficar pequeno */
+      /* Agora em GRID para ficar com o mesmo "tamanho de coluna"
+         dos campos Documento / Data início / Data fim */
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px 10px;
+      justify-content: stretch;
     }
 
     .btn {
@@ -147,7 +149,14 @@
       cursor: pointer;
       font-size: 13px;
       font-weight: 600;
-      white-space: nowrap;        /* Mantém o texto inteiro em uma linha */
+      white-space: nowrap;
+    }
+
+    /* Botões dentro da área de filtros ocupam 100% da coluna e fonte um pouco menor */
+    .botoes-filtro .btn {
+      width: 100%;
+      font-size: 12px;      /* fonte reduzida, conforme permitido */
+      padding: 6px 8px;
     }
 
     .btn-aplicar {
@@ -182,7 +191,8 @@
     .cartao {
       background: #f5f5f5; /* cinza bem leve para destacar do fundo branco */
       border-radius: 10px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+      /* sombra removida conforme solicitado */
+      box-shadow: none;
       padding: 12px 14px;
       margin-bottom: 10px;
       font-size: 12px;
@@ -204,6 +214,12 @@
       margin-bottom: 4px;
       border-bottom: 1px dashed #ddd;
       padding-bottom: 4px;
+    }
+
+    /* Linha divisória igual à do topo, para usar acima de "Relatório / Observação:" */
+    .linha-divisoria {
+      border-bottom: 1px dashed #ddd;
+      margin: 4px 0;
     }
 
     .tag {
@@ -319,6 +335,47 @@
       font-size: 13px;
       font-weight: 600;
     }
+
+    /* ========= OVERLAY DE CARREGAMENTO 0–100% ========= */
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(243, 243, 243, 0.9);
+      display: none;               /* mostrado via JS quando começa o carregamento */
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;               /* acima do modal */
+    }
+
+    .loading-box {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px 22px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .loading-bar-container {
+      width: 220px;
+      height: 8px;
+      border-radius: 4px;
+      background: #eeeeee;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .loading-bar {
+      height: 100%;
+      width: 0%;
+      background: #0066ff;
+      transition: width 0.15s linear;
+    }
+
+    .loading-percent {
+      margin-top: 6px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -340,7 +397,7 @@
       </div>
     </div>
 
-    <!-- Cards de resumo: Qtd. Itens e Valor total (sempre lado a lado) -->
+    <!-- Cards de resumo: Qtd. Itens e Valor total (ocupam largura principal) -->
     <div class="resumo-cards">
       <div class="card-resumo">
         <div class="resumo-titulo">Qtd. Itens</div>
@@ -397,7 +454,7 @@
         </div>
       </div>
 
-      <!-- Botões de ação, lado a lado sempre -->
+      <!-- Botões de ação, com largura equivalente às três colunas de baixo -->
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
         <button class="btn btn-exportar" onclick="abrirModalDownload()">Exportar XLSX</button>
@@ -430,6 +487,17 @@
     </div>
   </div>
 
+  <!-- ========= OVERLAY DE CARREGAMENTO 0–100% ========= -->
+  <div id="loadingOverlay">
+    <div class="loading-box">
+      <div>Carregando relatórios...</div>
+      <div class="loading-bar-container">
+        <div id="loadingBar" class="loading-bar"></div>
+      </div>
+      <div id="loadingPercent" class="loading-percent">0%</div>
+    </div>
+  </div>
+
   <!-- SheetJS para gerar XLSX no navegador -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -438,6 +506,52 @@
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     let usuarioLogado = null;
     let registrosAtuais = []; // guarda os registros do filtro atual para exportação
+
+    // Controle do carregamento 0–100%
+    let loadingInterval = null;
+    let loadingProgress = 0;
+
+    // ========= FUNÇÕES DE CONTROLE DO LOADING =========
+    function iniciarProgresso() {
+      const overlay = document.getElementById("loadingOverlay");
+      const bar = document.getElementById("loadingBar");
+      const percentEl = document.getElementById("loadingPercent");
+
+      loadingProgress = 0;
+      bar.style.width = "0%";
+      percentEl.textContent = "0%";
+      overlay.style.display = "flex";
+
+      if (loadingInterval) clearInterval(loadingInterval);
+
+      // Incrementa de 5 em 5 até 95% durante a carga
+      loadingInterval = setInterval(() => {
+        if (loadingProgress >= 95) return;
+        loadingProgress += 5;
+        bar.style.width = loadingProgress + "%";
+        percentEl.textContent = loadingProgress + "%";
+      }, 120);
+    }
+
+    function finalizarProgresso() {
+      const overlay = document.getElementById("loadingOverlay");
+      const bar = document.getElementById("loadingBar");
+      const percentEl = document.getElementById("loadingPercent");
+
+      if (loadingInterval) {
+        clearInterval(loadingInterval);
+        loadingInterval = null;
+      }
+
+      loadingProgress = 100;
+      bar.style.width = "100%";
+      percentEl.textContent = "100%";
+
+      // Dá um pequeno tempo para o usuário ver 100% e some
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 200);
+    }
 
     // ========= INICIALIZAÇÃO DO PAINEL (VALIDA LOGIN) =========
     document.addEventListener("DOMContentLoaded", () => {
@@ -497,6 +611,9 @@
       const resumoQtdTotal = document.getElementById("resumoQtdTotal");
       const resumoValorTotal = document.getElementById("resumoValorTotal");
 
+      // Inicia overlay de progresso
+      iniciarProgresso();
+
       // Reseta estado visual
       statusEl.textContent = "Carregando relatórios...";
       listaEl.innerHTML = "";
@@ -532,6 +649,7 @@
         if (!resp.ok || !dados.sucesso) {
           statusEl.textContent =
             dados.message || "Erro ao carregar relatórios.";
+          finalizarProgresso();
           return;
         }
 
@@ -544,6 +662,7 @@
           resumoQtd.textContent = "";
           listaEl.innerHTML = "";
           registrosAtuais = [];
+          finalizarProgresso();
           return;
         }
 
@@ -613,6 +732,9 @@
                   <strong>Valor unitário (R$):</strong> ${r.valorUnitario || "-"}
                 </div>
 
+                <!-- Linha divisória igual à da parte superior, antes de Relatório -->
+                <div class="linha-divisoria"></div>
+
                 <div class="cartao-linha">
                   <strong>Relatório / Observação:</strong>
                 </div>
@@ -623,10 +745,13 @@
             `;
           })
           .join("");
+
+        finalizarProgresso();
       } catch (erro) {
         console.error("Erro ao carregar relatórios:", erro);
         statusEl.textContent = "Erro de conexão ao buscar relatórios.";
         registrosAtuais = [];
+        finalizarProgresso();
       }
     }
 
