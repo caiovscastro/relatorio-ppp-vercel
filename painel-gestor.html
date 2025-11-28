@@ -71,7 +71,7 @@
     }
 
     .bloco-filtros {
-      margin: 0 -4px 16px; /* ocupa mais largura dentro do card principal */
+      margin: 0 -4px 16px;
       padding: 14px;
       border-radius: 10px;
       background: #f7f8ff;
@@ -83,10 +83,7 @@
       font-size: 16px;
     }
 
-    /* GRID DOS FILTROS
-       Linha 1: Loja | Usuário | Departamento
-       Linha 2: Nº Doc | Data início | Data fim
-    */
+    /* GRID DOS FILTROS */
     .filtros-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -100,7 +97,7 @@
       display: flex;
       flex-direction: column;
       font-size: 13px;
-      min-width: 0; /* permite encolher e não estourar para fora */
+      min-width: 0;
     }
 
     .campo-filtro label {
@@ -154,6 +151,12 @@
       color: #333;
     }
 
+    /* novo botão, mantendo o padrão visual */
+    .btn-exportar {
+      background: #4caf50;
+      color: #fff;
+    }
+
     .status {
       font-size: 13px;
       margin-bottom: 8px;
@@ -169,7 +172,6 @@
     .cartao {
       background: #fff;
       border-radius: 10px;
-      /* sombra mais forte */
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
       padding: 12px 14px;
       margin-bottom: 10px;
@@ -323,6 +325,7 @@
 
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
+        <button class="btn btn-exportar" onclick="confirmarDownload()">Exportar XLS</button>
         <button class="btn btn-aplicar" onclick="carregarRelatorios()">Aplicar filtros</button>
       </div>
     </div>
@@ -342,8 +345,10 @@
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     let usuarioLogado = null;
 
+    // guarda os registros do filtro atual para exportar
+    let registrosAtuais = [];
+
     document.addEventListener("DOMContentLoaded", () => {
-      // Recupera dados do gestor do sessionStorage
       const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
       if (!raw) {
@@ -373,28 +378,21 @@
       carregarRelatorios();
     });
 
-    // Logout simples: limpa storage do gestor
     function logoutGestor() {
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
     }
 
-    // Função auxiliar para parse de números (quantidade / valor)
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
       if (!s) return 0;
 
-      // remove espaços
       s = s.replace(/\s+/g, "");
-      // remove separador de milhar e troca vírgula por ponto
       s = s.replace(/\./g, "").replace(",", ".");
       const n = Number(s);
       return isNaN(n) ? 0 : n;
     }
 
-    /**
-     * Monta query string com os filtros ativos e chama a API /api/relatorios
-     */
     async function carregarRelatorios() {
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
@@ -407,6 +405,7 @@
       resumoQtd.textContent = "";
       resumoQtdTotal.textContent = "0";
       resumoValorTotal.textContent = "0,00";
+      registrosAtuais = [];
 
       const loja = document.getElementById("filtroLoja").value.trim();
       const usuario = document.getElementById("filtroUsuario").value.trim();
@@ -444,10 +443,13 @@
             "Nenhum registro encontrado com os filtros atuais.";
           resumoQtd.textContent = "";
           listaEl.innerHTML = "";
+          registrosAtuais = [];
           return;
         }
 
-        // Cálculo dos totais
+        // guarda para exportação
+        registrosAtuais = registros;
+
         let totalQtd = 0;
         let totalValor = 0;
 
@@ -467,10 +469,11 @@
           maximumFractionDigits: 2,
         });
 
-        // Renderiza cartões (sem COD CONSINCO, GRUPO, SUBGRUPO, CATEGORIA)
+        // Renderiza cartões com quebra de linha no relatório
         listaEl.innerHTML = registros
-          .map(
-            (r) => `
+          .map((r) => {
+            const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "<br>");
+            return `
               <div class="cartao">
                 <div class="cartao-topo">
                   <div>
@@ -512,21 +515,19 @@
                   <strong>Relatório / Observação:</strong>
                 </div>
                 <div class="cartao-linha">
-                  ${r.relatorio || "-"}
+                  ${relatorioFormatado}
                 </div>
               </div>
-            `
-          )
+            `;
+          })
           .join("");
       } catch (erro) {
         console.error("Erro ao carregar relatórios:", erro);
         statusEl.textContent = "Erro de conexão ao buscar relatórios.";
+        registrosAtuais = [];
       }
     }
 
-    /**
-     * Limpa todos os filtros e recarrega.
-     */
     function limparFiltros() {
       document.getElementById("filtroLoja").value = "";
       document.getElementById("filtroUsuario").value = "";
@@ -536,6 +537,84 @@
       document.getElementById("dataFim").value = "";
 
       carregarRelatorios();
+    }
+
+    function confirmarDownload() {
+      if (!registrosAtuais || !registrosAtuais.length) {
+        alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
+        return;
+      }
+
+      const deseja = confirm("Você deseja mesmo fazer o download do arquivo?");
+      if (!deseja) return;
+
+      exportarParaXls(registrosAtuais);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function exportarParaXls(registros) {
+      let html = '<table border="1"><thead><tr>' +
+        "<th>Data/Hora</th>" +
+        "<th>Loja</th>" +
+        "<th>Usuário</th>" +
+        "<th>EAN</th>" +
+        "<th>Cod Consinco</th>" +
+        "<th>Produto</th>" +
+        "<th>Departamento</th>" +
+        "<th>Seção</th>" +
+        "<th>Grupo</th>" +
+        "<th>Subgrupo</th>" +
+        "<th>Categoria</th>" +
+        "<th>Relatório / Observação</th>" +
+        "<th>Quantidade</th>" +
+        "<th>Valor unitário</th>" +
+        "<th>Documento</th>" +
+        "</tr></thead><tbody>";
+
+      registros.forEach((r) => {
+        const relatorioHtml = (r.relatorio || "").replace(/\n/g, "<br>");
+        html += "<tr>" +
+          `<td>${escapeHtml(r.dataHora || "")}</td>` +
+          `<td>${escapeHtml(r.loja || "")}</td>` +
+          `<td>${escapeHtml(r.usuario || "")}</td>` +
+          `<td>${escapeHtml(r.ean || "")}</td>` +
+          `<td>${escapeHtml(r.codConsinco || "")}</td>` +
+          `<td>${escapeHtml(r.produto || "")}</td>` +
+          `<td>${escapeHtml(r.departamento || "")}</td>` +
+          `<td>${escapeHtml(r.secao || "")}</td>` +
+          `<td>${escapeHtml(r.grupo || "")}</td>` +
+          `<td>${escapeHtml(r.subgrupo || "")}</td>` +
+          `<td>${escapeHtml(r.categoria || "")}</td>` +
+          `<td>${relatorioHtml}</td>` +
+          `<td>${escapeHtml(r.quantidade || "")}</td>` +
+          `<td>${escapeHtml(r.valorUnitario || "")}</td>` +
+          `<td>${escapeHtml(r.documento || "")}</td>` +
+          "</tr>";
+      });
+
+      html += "</tbody></table>";
+
+      const blob = new Blob(["\ufeff" + html], {
+        type: "application/vnd.ms-excel;charset=utf-8;",
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "relatorios_ppp.xls";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   </script>
 </body>
