@@ -3,13 +3,13 @@
 
 import { google } from "googleapis";
 
-// NOMES EXATOS das variáveis de ambiente (iguais ao print da Vercel)
+// NOMES EXATOS das variáveis de ambiente (iguais aos da Vercel)
 const serviceAccountEmail =
   process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
 const privateKeyRaw = process.env["CHAVE_PRIVADA_DO_GOOGLE"];
 const spreadsheetId = process.env.SPREADSHEET_ID_EFETIVIDADE;
 
-// Log básico para debug (pode remover depois)
+// (Opcional) Log básico para debug em ambientes de teste
 console.log("EFETIVIDADE ENV CHECK:", {
   hasEmail: !!serviceAccountEmail,
   hasKey: !!privateKeyRaw,
@@ -29,11 +29,12 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: "v4", auth });
 
-// Nome da aba e da coluna de loja
+// Nome da aba e da coluna de loja na planilha Efetividade
 const ABA_BASE = "BASE_DADOS";
 const NOME_COL_LOJA = "LOJA";
 
 export default async function handler(req, res) {
+  // Só aceita GET
   if (req.method !== "GET") {
     return res
       .status(405)
@@ -59,7 +60,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Lê toda a aba BASE_DADOS
+    // Lê toda a aba BASE_DADOS (ajuste o range se precisar de mais colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: `${ABA_BASE}!A:Z`,
@@ -74,7 +75,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Cabeçalho + linhas
+    // Primeira linha = cabeçalho; demais = linhas
     const cabecalho = values[0];
     const linhas = values.slice(1);
 
@@ -90,7 +91,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Filtra só a loja logada
+    // Filtra apenas registros da loja solicitada
     const filtrados = linhas.filter((linha) => {
       const valorLoja = String(linha[idxLoja] || "").trim();
       return valorLoja === loja;
