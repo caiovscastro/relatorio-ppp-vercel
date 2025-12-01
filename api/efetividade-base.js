@@ -1,5 +1,5 @@
 // API/efetividade-base.js
-// Lê a aba BASE_DADOS da planilha de Efetividade, filtrando pela LOJA
+// Lê a aba BASE_DADOS da planilha de Efetividade, filtrando pela LOJA (coluna C)
 
 import { google } from "googleapis";
 
@@ -9,7 +9,7 @@ const serviceAccountEmail =
 const privateKeyRaw = process.env["CHAVE_PRIVADA_DO_GOOGLE"];
 const spreadsheetId = process.env.SPREADSHEET_ID_EFETIVIDADE;
 
-// (Opcional) Log básico para debug em ambientes de teste
+// (Opcional) Log básico para debug em logs da Vercel
 console.log("EFETIVIDADE ENV CHECK:", {
   hasEmail: !!serviceAccountEmail,
   hasKey: !!privateKeyRaw,
@@ -29,9 +29,10 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: "v4", auth });
 
-// Nome da aba e da coluna de loja na planilha Efetividade
+// Nome da aba na planilha Efetividade
 const ABA_BASE = "BASE_DADOS";
-const NOME_COL_LOJA = "LOJA";
+// Índice da coluna da LOJA: A=0, B=1, C=2
+const IDX_COL_LOJA = 2;
 
 export default async function handler(req, res) {
   // Só aceita GET
@@ -60,10 +61,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Lê toda a aba BASE_DADOS (ajuste o range se precisar de mais colunas)
+    // Lê a aba BASE_DADOS de A:J (10 colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${ABA_BASE}!A:Z`,
+      range: `${ABA_BASE}!A:J`,
     });
 
     const values = resp.data.values || [];
@@ -75,25 +76,12 @@ export default async function handler(req, res) {
       });
     }
 
-    // Primeira linha = cabeçalho; demais = linhas
-    const cabecalho = values[0];
+    // Considero a primeira linha como cabeçalho (mesmo que não use)
     const linhas = values.slice(1);
 
-    // Índice da coluna LOJA
-    const idxLoja = cabecalho.findIndex(
-      (col) => String(col || "").toUpperCase().trim() === NOME_COL_LOJA
-    );
-
-    if (idxLoja === -1) {
-      return res.status(500).json({
-        sucesso: false,
-        message: `Coluna "${NOME_COL_LOJA}" não encontrada no cabeçalho da aba ${ABA_BASE}.`,
-      });
-    }
-
-    // Filtra apenas registros da loja solicitada
+    // Filtra apenas registros da loja (coluna C = índice 2)
     const filtrados = linhas.filter((linha) => {
-      const valorLoja = String(linha[idxLoja] || "").trim();
+      const valorLoja = String(linha[IDX_COL_LOJA] || "").trim();
       return valorLoja === loja;
     });
 
