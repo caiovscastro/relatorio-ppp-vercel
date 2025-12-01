@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LOGIN EFETIVIDADE</title>
+
+    <style>
+        /* ======== ESTILO GERAL DA PÁGINA ======== */
+        body {
+            background: #f3f3f3;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 2;
+        }
+
+        /* Card central de login */
+        .container {
+            width: 70%;
+            max-width: 380px;
+            background: #ffffff;
+            padding: 24px 26px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        }
+
+        .titulo {
+            text-align: center;
+            font-size: 24px;
+            margin: 0 0 20px;
+        }
+
+        label {
+            font-weight: 600;
+            margin-top: 10px;
+            display: block;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 6px;
+            border: 1px solid #c3c3c3;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066ff;
+            box-shadow: 0 0 0 1px #0066ff33;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #0050cc;
+        }
+
+        /* Mensagem de erro/sucesso abaixo do botão */
+        .mensagem {
+            margin-top: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            min-height: 18px;
+        }
+
+        .mensagem.erro {
+            color: #b30000;
+        }
+
+        .mensagem.sucesso {
+            color: #008000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="titulo">ACESSO EFETIVIDADE OPERACIONAL</h2>
+
+        <!-- Campo Usuário -->
+        <label for="usuario">Usuário</label>
+        <input type="text" id="usuario" autocomplete="username" />
+
+        <!-- Campo Senha -->
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" autocomplete="current-password" />
+
+        <!-- Lista de lojas -->
+        <label for="loja">Loja</label>
+        <select id="loja">
+            <option value="">Selecione...</option>
+            <!--
+                IMPORTANTE:
+                Os textos das opções precisam bater com o campo "loja"
+                usado na validação da API (/api/login).
+                Ajuste essa lista se necessário.
+            -->
+            <option>ULT 01 - PLANALTINA</option>
+            <option>ULT 02 - GAMA</option>
+            <option>ULT 03 - COLORADO</option>
+            <option>ULT 04 - CEI SUL</option>
+            <option>ULT 05 - POLO JK</option>
+            <option>ULT 06 - SOBRADINHO</option>
+            <option>ULT 07 - ADE</option>
+            <option>ULT 08 - ARAPOANGA</option>
+            <option>ULT 09 - CEI NORTE</option>
+            <option>ULT 10 - ESTRUTURAL</option>
+        </select>
+
+        <!-- Botão de entrar -->
+        <button id="btnEntrar">Entrar</button>
+
+        <!-- Mensagem dinâmica (erro/sucesso) -->
+        <div id="msg" class="mensagem"></div>
+    </div>
+
+    <script>
+        // ======== FUNÇÃO PRINCIPAL DE LOGIN PARA EFETIVIDADE ========
+        async function loginEfetividade() {
+            const usuario = document.getElementById("usuario").value.trim();
+            const senha   = document.getElementById("senha").value.trim();
+            const loja    = document.getElementById("loja").value;
+
+            const msg = document.getElementById("msg");
+            msg.textContent = "";
+            msg.className = "mensagem"; // limpa classes de erro/sucesso
+
+            // Validação simples dos campos obrigatórios
+            if (!usuario || !senha || !loja) {
+                msg.textContent = "Preencha usuário, senha e loja.";
+                msg.classList.add("erro");
+                return;
+            }
+
+            try {
+                // Reutiliza a mesma API /api/login
+                const resposta = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ usuario, senha, loja })
+                });
+
+                const dados = await resposta.json().catch(() => ({}));
+
+                // Se o HTTP não for 2xx ou a API não retornar sucesso
+                if (!resposta.ok || !dados.sucesso) {
+                    msg.textContent =
+                        dados.message || "Usuário, senha ou loja inválidos.";
+                    msg.classList.add("erro");
+                    return;
+                }
+
+                // LOGIN OK
+                msg.textContent = "Login autorizado.";
+                msg.classList.add("sucesso");
+
+                // ======== GRAVA SESSÃO ESPECÍFICA DA EFETIVIDADE ========
+                try {
+                    const sessaoEfetividade = {
+                        usuario: dados.usuario || usuario,
+                        loja: dados.loja || loja,
+                        criadoEm: Date.now()
+                    };
+                    // Usa uma chave diferente da PPP para evitar conflito
+                    localStorage.setItem("efetividadeSession", JSON.stringify(sessaoEfetividade));
+                } catch (e) {
+                    console.warn("Não foi possível salvar sessão de Efetividade no localStorage:", e);
+                }
+
+                /*
+                    Após o login, o painel de Efetividade NÃO depende de parâmetros na URL.
+                    Ele vai ler diretamente do localStorage (efetividadeSession).
+                */
+                const destino = "/painel-efetividade.html";
+
+                setTimeout(() => {
+                    window.location.href = destino;
+                }, 300);
+
+            } catch (erro) {
+                console.error("Erro na requisição de login (Efetividade):", erro);
+                msg.textContent = "Erro de conexão com o servidor.";
+                msg.classList.add("erro");
+            }
+        }
+
+        // Associa o clique do botão à função de login
+        document.getElementById("btnEntrar").addEventListener("click", loginEfetividade);
+
+        // Permite enviar com Enter a partir de qualquer campo
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                loginEfetividade();
+            }
+        });
+    </script>
+</body>
+</html>
