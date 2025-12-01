@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Efetividade Operacional</title>
+
+  <style>
+    body {
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      margin: 2;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 900px;
+      background: #ffffff;
+      padding: 24px 28px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid #e1e1e1;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
+
+    .titulo {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .subtitulo {
+      margin: 4px 0 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .info-usuario {
+      text-align: right;
+      font-size: 14px;
+    }
+
+    .info-usuario strong {
+      display: block;
+    }
+
+    .conteudo {
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .bloco {
+      margin-bottom: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f7f8ff;
+      border: 1px solid #e0e3ff;
+    }
+
+    .bloco h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .btn-voltar {
+      margin-top: 10px;
+      display: inline-block;
+      padding: 8px 14px;
+      background: #0066ff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .btn-voltar:hover {
+      background: #0050cc;
+    }
+
+    /* Tela de erro */
+    .tela-erro {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-erro {
+      background: #fff;
+      padding: 26px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .card-erro h1 {
+      color: #c00000;
+      margin-top: 0;
+    }
+
+    /* Busca */
+    .search-container {
+      width: 100%;
+      position: relative;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    #campoBusca {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border: 1px solid #c3c3c3;
+      border-radius: 999px;
+      outline: none;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      box-sizing: border-box;
+    }
+
+    #campoBusca:focus {
+      border-color: #0066ff;
+      box-shadow: 0 0 0 1px #0066ff33;
+    }
+
+    .obs-label {
+      font-weight: 600;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+
+    .obs-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #c3c3c3;
+      padding: 10px 12px;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 80px;
+      background: #fff;
+    }
+
+    .linha-infos {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .campo-inline {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .campo-inline label {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .input-inline {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #c3c3c3;
+      padding: 8px 10px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    #status {
+      font-size: 13px;
+      margin-top: 4px;
+      text-align: center;
+      color: #333;
+    }
+
+    /* Resultados */
+    #resultado {
+      margin-top: 8px;
+    }
+
+    .cartao {
+      width: 90%;
+      background: white;
+      padding: 14px 16px;
+      margin: 10px auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: entrarCartao 0.22s ease-out forwards;
+      transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+    }
+
+    .cartao:hover {
+      transform: translateY(2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+    }
+
+    .cartao p {
+      margin: 4px 0;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .cartao strong {
+      font-size: 13px;
+      color: #111;
+    }
+
+    @keyframes entrarCartao {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Popup confirmação */
+    #confirmOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .confirm-box {
+      background: #fff;
+      padding: 18px 16px;
+      border-radius: 10px;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .confirm-box p {
+      margin-bottom: 12px;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btnConfirmar,
+    .btnCancelar {
+      flex: 1;
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btnConfirmar {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .btnCancelar {
+      background: #e0e0e0;
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Tela de erro se não houver sessão -->
+  <div id="erroAcesso" class="tela-erro" style="display: none;">
+    <div class="card-erro">
+      <h1>Acesso inválido</h1>
+      <p>Sessão de Efetividade não encontrada.</p>
+      <p>Volte para a tela de acesso e realize o login novamente.</p>
+      <a href="/index.html" class="btn-voltar">Voltar para seleção</a>
+    </div>
+  </div>
+
+  <!-- Popup de confirmação -->
+  <div id="confirmOverlay">
+    <div class="confirm-box">
+      <p>Confirmar lançamento na Efetividade?</p>
+      <div class="confirm-buttons">
+        <button class="btnConfirmar" onclick="confirmarEnvio(true)">Sim</button>
+        <button class="btnCancelar" onclick="confirmarEnvio(false)">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Painel principal -->
+  <div id="appRoot" class="container" style="display: none;">
+    <div class="cabecalho">
+      <div>
+        <h1 class="titulo">PAINEL EFETIVIDADE OPERACIONAL</h1>
+        <p class="subtitulo">
+          Dados carregados da aba BASE_DADOS (somente a loja logada).
+        </p>
+      </div>
+      <div class="info-usuario">
+        <strong>Usuário: <span id="usuarioSpan"></span></strong>
+        <span>Loja: <span id="lojaSpan"></span></span>
+      </div>
+    </div>
+
+    <div class="conteudo">
+      <div class="bloco">
+        <h3>Busca na base (Efetividade)</h3>
+
+        <div class="search-container">
+          <input
+            id="campoBusca"
+            type="text"
+            placeholder="Pesquisar por qualquer campo..."
+            onkeydown="if(event.key === 'Enter'){buscar();}"
+          />
+        </div>
+
+        <div class="obs-label">Observação / Relato:</div>
+        <textarea
+          id="observacao"
+          class="obs-textarea"
+          placeholder="Descreva a ocorrência ou observação relacionada à efetividade..."
+        ></textarea>
+
+        <div class="linha-infos">
+          <div class="campo-inline">
+            <label for="quantidade">Quantidade:</label>
+            <input
+              id="quantidade"
+              class="input-inline"
+              type="text"
+              inputmode="decimal"
+              placeholder="Qtd"
+              oninput="this.value = this.value.replace(/[^0-9.,]/g, '');"
+            />
+          </div>
+
+          <div class="campo-inline">
+            <label for="valorUnitario">Valor Un. R$:</label>
+            <input
+              id="valorUnitario"
+              class="input-inline"
+              type="text"
+              inputmode="decimal"
+              placeholder="0,00"
+              oninput="mascaraValorUnitario(this)"
+            />
+          </div>
+
+          <div class="campo-inline">
+            <label for="numeroDocumento">Nº de Doc:</label>
+            <input
+              id="numeroDocumento"
+              class="input-inline"
+              type="text"
+              inputmode="numeric"
+              placeholder="Número"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+            />
+          </div>
+        </div>
+
+        <div id="status"></div>
+      </div>
+
+      <div id="resultado"></div>
+
+      <a href="/index.html" class="btn-voltar" onclick="limparSessaoEfetividade()">Sair</a>
+    </div>
+  </div>
+
+  <script>
+    let dbEfetividade = [];      // Base da aba BASE_DADOS (somente loja logada)
+    let lojaLogada = null;
+    let usuarioLogado = null;
+    let ultimosResultados = [];
+    let envioPendente = null;
+
+    // ============ INICIALIZAÇÃO ============
+
+    document.addEventListener("DOMContentLoaded", () => {
+      let sessao = null;
+
+      try {
+        const raw = localStorage.getItem("efetividadeSession");
+        if (raw) sessao = JSON.parse(raw);
+      } catch (e) {
+        console.error("Erro ao ler efetividadeSession:", e);
+      }
+
+      if (!sessao || !sessao.usuario || !sessao.loja) {
+        document.getElementById("erroAcesso").style.display = "flex";
+        return;
+      }
+
+      usuarioLogado = sessao.usuario;
+      lojaLogada = sessao.loja;
+
+      document.getElementById("usuarioSpan").textContent = usuarioLogado;
+      document.getElementById("lojaSpan").textContent = lojaLogada;
+
+      document.getElementById("appRoot").style.display = "block";
+
+      carregarBaseEfetividade();
+    });
+
+    // ============ MÁSCARA R$ ============
+    function mascaraValorUnitario(campo) {
+      let v = campo.value.replace(/\D/g, "");
+
+      if (!v) {
+        campo.value = "";
+        return;
+      }
+
+      v = v.replace(/^0+/, "");
+      if (!v) v = "0";
+
+      while (v.length < 3) {
+        v = "0" + v;
+      }
+
+      const inteiro = v.slice(0, -2);
+      const centavos = v.slice(-2);
+      const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+      campo.value = inteiroFormatado + "," + centavos;
+    }
+
+    // ============ CARREGAR BASE (BASE_DADOS) ============
+
+    async function carregarBaseEfetividade() {
+      const status = document.getElementById("status");
+      status.textContent = "Carregando base de Efetividade...";
+
+      try {
+        const resp = await fetch("/api/efetividade-base?loja=" + encodeURIComponent(lojaLogada));
+        const dados = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
+          console.error("Resposta inesperada em /api/efetividade-base:", dados);
+          throw new Error(dados.message || "Falha ao carregar base.");
+        }
+
+        dbEfetividade = dados.registros;
+        status.textContent = `Base carregada com ${dbEfetividade.length} registro(s) da loja.`;
+      } catch (e) {
+        console.error("Erro ao carregar base Efetividade:", e);
+        status.textContent = "Erro ao carregar base de Efetividade.";
+      }
+    }
+
+    // ============ BUSCA LOCAL ============
+
+    function buscar() {
+      const campo = document.getElementById("campoBusca");
+      const termoBruto = campo.value.trim().toLowerCase();
+      const status = document.getElementById("status");
+
+      if (!termoBruto) {
+        status.textContent = "Digite um texto para buscar.";
+        return;
+      }
+
+      if (!dbEfetividade || !dbEfetividade.length) {
+        status.textContent = "Base ainda não carregada.";
+        return;
+      }
+
+      const resultados = dbEfetividade.filter((linha) => {
+        // linha é um array com as colunas da BASE_DADOS
+        // Fazemos uma busca genérica em todas as colunas
+        const texto = linha.map(c => String(c ?? "")).join(" ").toLowerCase();
+        return texto.includes(termoBruto);
+      });
+
+      mostrarResultados(resultados);
+      status.textContent = `${resultados.length} registro(s) encontrado(s).`;
+    }
+
+    // ============ EXIBIR RESULTADOS ============
+
+    function mostrarResultados(lista) {
+      const container = document.getElementById("resultado");
+      ultimosResultados = Array.isArray(lista) ? lista : [];
+
+      if (!ultimosResultados.length) {
+        container.innerHTML =
+          '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado.</p>';
+        return;
+      }
+
+      // Para exibição, usamos as primeiras colunas de forma genérica
+      const html = ultimosResultados
+        .map((linha, idx) => {
+          const col0 = linha[0] ?? "";
+          const col1 = linha[1] ?? "";
+          const col2 = linha[2] ?? "";
+          const col3 = linha[3] ?? "";
+          const col4 = linha[4] ?? "";
+
+          return `
+            <div class="cartao" onclick="prepararEnvio(${idx})">
+              <p><strong>Coluna 1:</strong> ${col0}</p>
+              <p><strong>Coluna 2:</strong> ${col1}</p>
+              <p><strong>Coluna 3:</strong> ${col2}</p>
+              <p><strong>Coluna 4:</strong> ${col3}</p>
+              <p><strong>Coluna 5:</strong> ${col4}</p>
+            </div>
+          `;
+        })
+        .join("");
+
+      container.innerHTML = html;
+    }
+
+    // ============ PREPARA ENVIO (ANTES DO POPUP) ============
+
+    function prepararEnvio(idx) {
+      const status = document.getElementById("status");
+
+      if (!ultimosResultados || !ultimosResultados[idx]) {
+        status.textContent = "Não foi possível identificar o registro selecionado.";
+        return;
+      }
+
+      const linhaBase = ultimosResultados[idx];
+      const obs = document.getElementById("observacao").value.trim();
+      const qtd = document.getElementById("quantidade").value.trim();
+      const valor = document.getElementById("valorUnitario").value.trim();
+      const doc = document.getElementById("numeroDocumento").value.trim();
+
+      if (!obs) {
+        status.textContent = "Preencha a observação antes de enviar.";
+        return;
+      }
+      if (!qtd) {
+        status.textContent = "Preencha a quantidade antes de enviar.";
+        return;
+      }
+      if (!valor) {
+        status.textContent = "Preencha o valor unitário antes de enviar.";
+        return;
+      }
+      if (!doc) {
+        status.textContent = "Preencha o Nº de documento antes de enviar.";
+        return;
+      }
+
+      if (!lojaLogada || !usuarioLogado) {
+        status.textContent = "Sessão inválida. Faça login novamente.";
+        return;
+      }
+
+      envioPendente = {
+        linhaBase,
+        observacao: obs,
+        quantidade: qtd,
+        valorUnitario: valor,
+        numeroDocumento: doc,
+      };
+
+      document.getElementById("confirmOverlay").style.display = "flex";
+    }
+
+    // ============ CONFIRMAÇÃO (SIM / NÃO) ============
+
+    async function confirmarEnvio(confirmado) {
+      const overlay = document.getElementById("confirmOverlay");
+      const status = document.getElementById("status");
+
+      if (!confirmado) {
+        overlay.style.display = "none";
+        envioPendente = null;
+        status.textContent = "Envio cancelado.";
+        return;
+      }
+
+      if (!envioPendente) {
+        overlay.style.display = "none";
+        return;
+      }
+
+      const {
+        linhaBase,
+        observacao,
+        quantidade,
+        valorUnitario,
+        numeroDocumento,
+      } = envioPendente;
+
+      envioPendente = null;
+      overlay.style.display = "none";
+
+      status.textContent = "Enviando lançamento de Efetividade...";
+
+      try {
+        const resposta = await fetch("/api/efetividade-lancar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            registroBase: linhaBase,
+            loja: lojaLogada,
+            usuario: usuarioLogado,
+            observacao,
+            quantidade,
+            valorUnitario,
+            numeroDocumento,
+          }),
+        });
+
+        const dados = await resposta.json().catch(() => ({}));
+
+        if (!resposta.ok || !dados.sucesso) {
+          status.textContent =
+            dados.message || "Erro ao registrar lançamento.";
+          return;
+        }
+
+        status.textContent = dados.message || "Lançamento registrado com sucesso.";
+
+        document.getElementById("observacao").value = "";
+        document.getElementById("quantidade").value = "";
+        document.getElementById("valorUnitario").value = "";
+        // Nº documento você decide se quer limpar ou manter
+      } catch (e) {
+        console.error("Erro ao enviar lançamento de Efetividade:", e);
+        status.textContent = "Erro de conexão ao enviar lançamento.";
+      }
+    }
+
+    // ============ SAIR (LIMPA SESSÃO) ============
+
+    function limparSessaoEfetividade() {
+      try {
+        localStorage.removeItem("efetividadeSession");
+      } catch (e) {
+        console.warn("Não foi possível limpar efetividadeSession:", e);
+      }
+      // navegação para index.html ocorre pelo href do link
+    }
+  </script>
+</body>
+</html>
