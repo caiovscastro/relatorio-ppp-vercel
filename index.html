@@ -50,6 +50,7 @@
       transition: 0.2s ease;
     }
 
+    /* Botão PPP (já existente) */
     .btn-ppp {
       background: #0066ff;
       color: white;
@@ -59,6 +60,7 @@
       background: #004ecc;
     }
 
+    /* Botão Gestor (já existente) */
     .btn-gestor {
       background: #444;
       color: white;
@@ -66,6 +68,16 @@
 
     .btn-gestor:hover {
       background: #222;
+    }
+
+    /* NOVO botão Efetividade Operacional */
+    .btn-efetividade {
+      background: #198754; /* tom de verde */
+      color: white;
+    }
+
+    .btn-efetividade:hover {
+      background: #146c43;
     }
   </style>
 </head>
@@ -75,12 +87,19 @@
     <h1>SELECIONE O ACESSO</h1>
     <p>Escolha abaixo qual painel deseja acessar.</p>
 
+    <!-- Mantido: acesso painel PPP (relatórios atuais) -->
     <button class="btn btn-ppp" onclick="window.location.href='login.html'">
       Acesso painel relatório
     </button>
 
+    <!-- Mantido: acesso painel gestor PPP -->
     <button class="btn btn-gestor" onclick="window.location.href='login-gestor.html'">
-      Acesso painel gerente ppp
+      Acesso painel gerente PPP
+    </button>
+
+    <!-- NOVO: acesso Efetividade Operacional -->
+    <button class="btn btn-efetividade" onclick="window.location.href='login-efetividade.html'">
+      Efetividade Operacional
     </button>
   </div>
 </body>
