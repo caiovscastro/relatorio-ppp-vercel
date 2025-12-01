@@ -3,13 +3,20 @@
 
 import { google } from "googleapis";
 
-// ATENÇÃO: nomes iguais aos da Vercel (print que você mandou)
+// NOMES EXATOS das variáveis de ambiente (iguais ao print da Vercel)
 const serviceAccountEmail =
   process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
 const privateKeyRaw = process.env["CHAVE_PRIVADA_DO_GOOGLE"];
 const spreadsheetId = process.env.SPREADSHEET_ID_EFETIVIDADE;
 
-// Corrige quebras de linha da chave privada (caso tenha vindo com "\n")
+// Log básico para debug (pode remover depois)
+console.log("EFETIVIDADE ENV CHECK:", {
+  hasEmail: !!serviceAccountEmail,
+  hasKey: !!privateKeyRaw,
+  hasSpreadsheet: !!spreadsheetId,
+});
+
+// Corrige quebras de linha da chave privada
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
 // Autenticação com a Service Account
@@ -22,9 +29,8 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: "v4", auth });
 
-// Nome da aba da base
+// Nome da aba e da coluna de loja
 const ABA_BASE = "BASE_DADOS";
-// Nome da coluna que identifica a loja (no cabeçalho)
 const NOME_COL_LOJA = "LOJA";
 
 export default async function handler(req, res) {
@@ -34,7 +40,7 @@ export default async function handler(req, res) {
       .json({ sucesso: false, message: "Método não permitido. Use GET." });
   }
 
-  // Confere se todas as variáveis de ambiente necessárias existem
+  // Validação das variáveis de ambiente
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
       sucesso: false,
@@ -53,7 +59,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Lê toda a aba BASE_DADOS (A até Z; ajuste se precisar de mais colunas)
+    // Lê toda a aba BASE_DADOS
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: `${ABA_BASE}!A:Z`,
@@ -68,11 +74,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // Primeira linha = cabeçalho
+    // Cabeçalho + linhas
     const cabecalho = values[0];
     const linhas = values.slice(1);
 
-    // Descobre índice da coluna LOJA
+    // Índice da coluna LOJA
     const idxLoja = cabecalho.findIndex(
       (col) => String(col || "").toUpperCase().trim() === NOME_COL_LOJA
     );
@@ -84,7 +90,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Filtra apenas registros da loja solicitada
+    // Filtra só a loja logada
     const filtrados = linhas.filter((linha) => {
       const valorLoja = String(linha[idxLoja] || "").trim();
       return valorLoja === loja;
