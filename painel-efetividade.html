@@ -114,7 +114,7 @@
       margin-top: 0;
     }
 
-    /* Busca */
+    /* Busca com câmera + lupa */
     .search-container {
       width: 100%;
       position: relative;
@@ -124,7 +124,7 @@
 
     #campoBusca {
       width: 100%;
-      padding: 12px 14px;
+      padding: 14px 48px 14px 56px;
       font-size: 14px;
       border: 1px solid #c3c3c3;
       border-radius: 999px;
@@ -137,6 +137,51 @@
     #campoBusca:focus {
       border-color: #0066ff;
       box-shadow: 0 0 0 1px #0066ff33;
+    }
+
+    .btnBarcodeLeft {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      width: 26px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-barcode-small {
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #333 0px,
+          #333 2px,
+          #fff 2px,
+          #fff 4px
+        );
+    }
+
+    .btnBuscarIcone {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .obs-label {
@@ -287,6 +332,34 @@
       background: #e0e0e0;
       color: #333;
     }
+
+    /* Área da câmera */
+    #cameraArea {
+      margin-top: 12px;
+      display: none;
+      width: 100%;
+    }
+
+    #cameraArea video {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-top: 6px;
+      background: white;
+    }
+
+    .btnFechar {
+      width: 100%;
+      max-width: 280px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 8px;
+      background: #777;
+      color: white;
+    }
   </style>
 </head>
 
@@ -332,12 +405,35 @@
         <h3>Busca na base (Efetividade)</h3>
 
         <div class="search-container">
+          <button
+            type="button"
+            class="btnBarcodeLeft"
+            onclick="abrirCamera()"
+            aria-label="Ler código de barras com a câmera"
+          >
+            <span class="icon-barcode-small"></span>
+          </button>
+
           <input
             id="campoBusca"
             type="text"
             placeholder="Pesquisar por qualquer campo..."
             onkeydown="if(event.key === 'Enter'){buscar();}"
           />
+
+          <button
+            type="button"
+            class="btnBuscarIcone"
+            onclick="buscar()"
+            aria-label="Buscar registro"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24"
+                 fill="none" stroke="#444" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
+            </svg>
+          </button>
         </div>
 
         <div class="obs-label">Observação / Relato:</div>
@@ -386,6 +482,14 @@
         </div>
 
         <div id="status"></div>
+
+        <!-- Área da câmera -->
+        <div id="cameraArea">
+          <p style="font-size: 13px;">Aponte para o código de barras:</p>
+          <video id="video" autoplay playsinline></video>
+          <p id="msgCamera" style="font-size: 12px;"></p>
+          <button class="btnFechar" onclick="fecharCamera()">Fechar câmera</button>
+        </div>
       </div>
 
       <div id="resultado"></div>
@@ -400,6 +504,10 @@
     let usuarioLogado = null;
     let ultimosResultados = [];
     let envioPendente = null;
+
+    // Câmera / leitor
+    let streamAtual = null;
+    let lendo = false;
 
     // ============ INICIALIZAÇÃO ============
 
@@ -483,7 +591,7 @@
       const status = document.getElementById("status");
 
       if (!termoBruto) {
-        status.textContent = "Digite um texto para buscar.";
+        status.textContent = "Digite ou leia um código para buscar.";
         return;
       }
 
@@ -493,8 +601,6 @@
       }
 
       const resultados = dbEfetividade.filter((linha) => {
-        // linha é um array com as colunas da BASE_DADOS
-        // Fazemos uma busca genérica em todas as colunas
         const texto = linha.map(c => String(c ?? "")).join(" ").toLowerCase();
         return texto.includes(termoBruto);
       });
@@ -515,7 +621,6 @@
         return;
       }
 
-      // Para exibição, usamos as primeiras colunas de forma genérica
       const html = ultimosResultados
         .map((linha, idx) => {
           const col0 = linha[0] ?? "";
@@ -647,11 +752,99 @@
         document.getElementById("observacao").value = "";
         document.getElementById("quantidade").value = "";
         document.getElementById("valorUnitario").value = "";
-        // Nº documento você decide se quer limpar ou manter
       } catch (e) {
         console.error("Erro ao enviar lançamento de Efetividade:", e);
         status.textContent = "Erro de conexão ao enviar lançamento.";
       }
+    }
+
+    // ============ CÂMERA / LEITOR DE CÓDIGO ============
+
+    function abrirCamera() {
+      const area = document.getElementById("cameraArea");
+      const msg = document.getElementById("msgCamera");
+      const video = document.getElementById("video");
+
+      area.style.display = "block";
+      msg.textContent = "Abrindo câmera...";
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        msg.textContent =
+          "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
+        return;
+      }
+
+      navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: "environment" } })
+        .then((stream) => {
+          streamAtual = stream;
+          video.srcObject = stream;
+          video.play();
+          msg.textContent = "Aponte para o código de barras...";
+          iniciarLeitura(video, msg);
+        })
+        .catch((err) => {
+          msg.textContent = "Erro ao acessar câmera: " + err.message;
+        });
+    }
+
+    async function iniciarLeitura(video, msg) {
+      if (!("BarcodeDetector" in window)) {
+        msg.textContent =
+          "Leitura automática não suportada neste navegador. Digite o código manualmente.";
+        return;
+      }
+
+      const detector = new BarcodeDetector({
+        formats: ["ean_13", "ean_8", "code_128"],
+      });
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      lendo = true;
+
+      async function scan() {
+        if (!lendo) return;
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          try {
+            const codes = await detector.detect(canvas);
+
+            if (codes.length > 0) {
+              const code = codes[0].rawValue;
+              msg.textContent = "Detectado: " + code;
+
+              document.getElementById("campoBusca").value = code;
+
+              fecharCamera();
+              buscar();
+              return;
+            }
+          } catch (e) {
+            // ignora erros do detector
+          }
+        }
+
+        requestAnimationFrame(scan);
+      }
+
+      scan();
+    }
+
+    function fecharCamera() {
+      lendo = false;
+
+      if (streamAtual) {
+        streamAtual.getTracks().forEach((t) => t.stop());
+      }
+
+      document.getElementById("video").srcObject = null;
+      document.getElementById("cameraArea").style.display = "none";
     }
 
     // ============ SAIR (LIMPA SESSÃO) ============
