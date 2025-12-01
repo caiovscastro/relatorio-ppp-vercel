@@ -1,14 +1,18 @@
-// api/efetividade-base.js
+// API/efetividade-base.js
+// Lê a aba BASE_DADOS da planilha de Efetividade, filtrando pela LOJA
+
 import { google } from "googleapis";
 
-const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
+// ATENÇÃO: nomes iguais aos da Vercel (print que você mandou)
+const serviceAccountEmail =
+  process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
+const privateKeyRaw = process.env["CHAVE_PRIVADA_DO_GOOGLE"];
 const spreadsheetId = process.env.SPREADSHEET_ID_EFETIVIDADE;
 
-// Conserta "\n" na chave privada
+// Corrige quebras de linha da chave privada (caso tenha vindo com "\n")
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
-// Autenticação
+// Autenticação com a Service Account
 const auth = new google.auth.JWT(
   serviceAccountEmail,
   null,
@@ -18,9 +22,9 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: "v4", auth });
 
-// Nome da aba de origem
+// Nome da aba da base
 const ABA_BASE = "BASE_DADOS";
-// Nome da coluna que representa a loja (ajuste se for diferente)
+// Nome da coluna que identifica a loja (no cabeçalho)
 const NOME_COL_LOJA = "LOJA";
 
 export default async function handler(req, res) {
@@ -30,14 +34,16 @@ export default async function handler(req, res) {
       .json({ sucesso: false, message: "Método não permitido. Use GET." });
   }
 
+  // Confere se todas as variáveis de ambiente necessárias existem
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
       sucesso: false,
       message:
-        "Configuração incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e SPREADSHEET_ID_EFETIVIDADE.",
+        "Configuração da API incompleta. Verifique E-MAIL DA CONTA DE SERVIÇO DO GOOGLE, CHAVE_PRIVADA_DO_GOOGLE e SPREADSHEET_ID_EFETIVIDADE na Vercel.",
     });
   }
 
+  // Loja vem na query string: /api/efetividade-base?loja=ULT%2001%20-%20PLANALTINA
   const loja = (req.query.loja || "").trim();
   if (!loja) {
     return res.status(400).json({
@@ -47,7 +53,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Lê toda a aba BASE_DADOS
+    // Lê toda a aba BASE_DADOS (A até Z; ajuste se precisar de mais colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: `${ABA_BASE}!A:Z`,
@@ -62,7 +68,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Primeiro linha = cabeçalho
+    // Primeira linha = cabeçalho
     const cabecalho = values[0];
     const linhas = values.slice(1);
 
