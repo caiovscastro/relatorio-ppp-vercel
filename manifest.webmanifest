@@ -1,9 +1,0 @@
-{
-  "name": "PPP",
-  "short_name": "PPP",
-  "start_url": "/login.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "description": "Aplicativo PPP"
-}
