@@ -6,360 +6,73 @@
   <title>Painel Efetividade Operacional</title>
 
   <style>
+    /* Estilo geral e cabeçalho */
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 2;
+      margin: 2px;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
     }
-
-    .container {
-      width: 95%;
-      max-width: 900px;
-      background: #ffffff;
-      padding: 24px 28px 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-    }
-
-    .cabecalho {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      border-bottom: 1px solid #e1e1e1;
-      padding-bottom: 14px;
-      margin-bottom: 16px;
-    }
-
-    .titulo {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    .subtitulo {
-      margin: 4px 0 0;
-      font-size: 14px;
-      color: #555;
-    }
-
-    .info-usuario {
-      text-align: right;
-      font-size: 14px;
-    }
-
-    .info-usuario strong {
-      display: block;
-    }
-
-    .conteudo {
-      margin-top: 12px;
-      font-size: 14px;
-    }
-
-    .bloco {
-      margin-bottom: 16px;
-      padding: 14px;
-      border-radius: 8px;
-      background: #f7f8ff;
-      border: 1px solid #e0e3ff;
-    }
-
-    .bloco h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
-    }
-
-    .btn-voltar {
-      margin-top: 10px;
-      display: inline-block;
-      padding: 8px 14px;
-      background: #0066ff;
-      color: #fff;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .btn-voltar:hover {
-      background: #0050cc;
-    }
+    .container { width: 95%; max-width: 900px; background: #fff; padding: 24px 28px 30px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); }
+    .cabecalho { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #e1e1e1; padding-bottom: 14px; margin-bottom: 16px; }
+    .titulo { margin: 2px; font-size: 22px; }
+    .subtitulo { margin: 4px 0 0; font-size: 14px; color: #555; }
+    .info-usuario { text-align: right; font-size: 14px; }
+    .info-usuario strong { display: block; }
+    .conteudo { margin-top: 12px; font-size: 14px; }
+    .bloco { margin-bottom: 16px; padding: 14px; border-radius: 8px; background: #f7f8ff; border: 1px solid #e0e3ff; }
+    .bloco h3 { margin: 0 0 8px; font-size: 16px; }
+    .btn-voltar { margin-top: 10px; display: inline-block; padding: 8px 14px; background: #0066ff; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; }
+    .btn-voltar:hover { background: #0050cc; }
 
     /* Tela de erro */
-    .tela-erro {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: #f3f3f3;
-      font-family: Arial, sans-serif;
-    }
-
-    .card-erro {
-      background: #fff;
-      padding: 26px 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-      max-width: 420px;
-      text-align: center;
-    }
-
-    .card-erro h1 {
-      color: #c00000;
-      margin-top: 0;
-    }
+    .tela-erro { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f3f3f3; font-family: Arial, sans-serif; }
+    .card-erro { background: #fff; padding: 26px 30px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); max-width: 420px; text-align: center; }
+    .card-erro h1 { color: #c00000; margin-top: 0; }
 
     /* Busca com câmera + lupa */
-    .search-container {
-      width: 100%;
-      position: relative;
-      margin-top: 8px;
-      margin-bottom: 12px;
-    }
+    .search-container { width: 100%; position: relative; margin-top: 8px; margin-bottom: 12px; }
+    #campoBusca { width: 100%; padding: 14px 48px 14px 56px; font-size: 14px; border: 1px solid #c3c3c3; border-radius: 999px; outline: none; background: white; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); box-sizing: border-box; }
+    #campoBusca:focus { border-color: #0066ff; box-shadow: 0 0 0 1px #0066ff33; }
+    .btnBarcodeLeft { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; padding: 0; margin: 0; cursor: pointer; width: 26px; height: 20px; display: flex; align-items: center; justify-content: center; }
+    .icon-barcode-small { width: 100%; height: 100%; border-radius: 4px; background: repeating-linear-gradient(90deg, #333 0px, #333 2px, #fff 2px, #fff 4px); }
+    .btnBuscarIcone { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
 
-    #campoBusca {
-      width: 100%;
-      padding: 14px 48px 14px 56px;
-      font-size: 14px;
-      border: 1px solid #c3c3c3;
-      border-radius: 999px;
-      outline: none;
-      background: white;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      box-sizing: border-box;
-    }
-
-    #campoBusca:focus {
-      border-color: #0066ff;
-      box-shadow: 0 0 0 1px #0066ff33;
-    }
-
-    .btnBarcodeLeft {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      border: none;
-      background: transparent;
-      padding: 0;
-      margin: 0;
-      cursor: pointer;
-      width: 26px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .icon-barcode-small {
-      width: 100%;
-      height: 100%;
-      border-radius: 4px;
-      background:
-        repeating-linear-gradient(
-          90deg,
-          #333 0px,
-          #333 2px,
-          #fff 2px,
-          #fff 4px
-        );
-    }
-
-    .btnBuscarIcone {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .obs-label {
-      font-weight: 600;
-      margin-top: 8px;
-      margin-bottom: 4px;
-    }
-
-    .obs-textarea {
-      width: 100%;
-      box-sizing: border-box;
-      border-radius: 8px;
-      border: 1px solid #c3c3c3;
-      padding: 10px 12px;
-      font-size: 14px;
-      resize: vertical;
-      min-height: 80px;
-      background: #fff;
-    }
-
-    .linha-infos {
-      width: 100%;
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
-
-    .campo-inline {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .campo-inline label {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .input-inline {
-      width: 100%;
-      box-sizing: border-box;
-      border-radius: 8px;
-      border: 1px solid #c3c3c3;
-      padding: 8px 10px;
-      font-size: 14px;
-      background: #fff;
-    }
-
-    #status {
-      font-size: 13px;
-      margin-top: 4px;
-      text-align: center;
-      color: #333;
-    }
+    /* Observação e status */
+    .obs-label { font-weight: 600; margin-top: 8px; margin-bottom: 4px; }
+    .obs-textarea { width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #c3c3c3; padding: 10px 12px; font-size: 14px; resize: vertical; min-height: 80px; background: #fff; }
+    #status { font-size: 13px; margin-top: 4px; text-align: center; color: #333; }
 
     /* Resultados */
-    #resultado {
-      margin-top: 8px;
-    }
-
-    .cartao {
-      width: 90%;
-      background: white;
-      padding: 14px 16px;
-      margin: 10px auto;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-      display: flex;
-      flex-direction: column;
-      cursor: pointer;
-      opacity: 0;
-      transform: translateY(8px);
-      animation: entrarCartao 0.22s ease-out forwards;
-      transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
-    }
-
-    .cartao:hover {
-      transform: translateY(2px);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
-    }
-
-    .cartao p {
-      margin: 4px 0;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .cartao strong {
-      font-size: 13px;
-      color: #111;
-    }
-
-    @keyframes entrarCartao {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    #resultado { margin-top: 8px; }
+    .cartao { width: 90%; background: white; padding: 14px 16px; margin: 10px auto; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); display: flex; flex-direction: column; cursor: pointer; opacity: 0; transform: translateY(8px); animation: entrarCartao 0.22s ease-out forwards; transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; }
+    .cartao:hover { transform: translateY(2px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14); }
+    .cartao p { margin: 4px 0; font-size: 13px; line-height: 1.4; }
+    .cartao strong { font-size: 13px; color: #111; }
+    @keyframes entrarCartao { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Popup confirmação */
-    #confirmOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.35);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-    }
-
-    .confirm-box {
-      background: #fff;
-      padding: 18px 16px;
-      border-radius: 10px;
-      max-width: 360px;
-      width: 90%;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .confirm-box p {
-      margin-bottom: 12px;
-    }
-
-    .confirm-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .btnConfirmar,
-    .btnCancelar {
-      flex: 1;
-      padding: 8px 6px;
-      border-radius: 8px;
-      border: none;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .btnConfirmar {
-      background: #4caf50;
-      color: #fff;
-    }
-
-    .btnCancelar {
-      background: #e0e0e0;
-      color: #333;
-    }
+    #confirmOverlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); display: none; align-items: center; justify-content: center; z-index: 10000; }
+    .confirm-box { background: #fff; padding: 18px 16px; border-radius: 10px; max-width: 360px; width: 90%; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); text-align: center; font-size: 14px; }
+    .confirm-buttons { display: flex; gap: 10px; justify-content: center; }
+    .btnConfirmar, .btnCancelar { flex: 1; padding: 8px 6px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; }
+    .btnConfirmar { background: #4caf50; color: #fff; }
+    .btnCancelar { background: #e0e0e0; color: #333; }
 
     /* Área da câmera */
-    #cameraArea {
-      margin-top: 12px;
-      display: none;
-      width: 100%;
-    }
+    #cameraArea { margin-top: 12px; display: none; width: 100%; }
+    #cameraArea video { width: 100%; border-radius: 8px; border: 1px solid #ddd; margin-top: 6px; background: white; }
+    .btnFechar { width: 100%; max-width: 280px; padding: 8px 10px; font-size: 13px; border: none; border-radius: 8px; cursor: pointer; margin-top: 8px; background: #777; color: white; }
 
-    #cameraArea video {
-      width: 100%;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      margin-top: 6px;
-      background: white;
-    }
-
-    .btnFechar {
-      width: 100%;
-      max-width: 280px;
-      padding: 8px 10px;
-      font-size: 13px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 8px;
-      background: #777;
-      color: white;
-    }
+    /* Overlay de carregamento 0→100% */
+    #loadingOverlay { position: fixed; inset: 0; background: rgba(243, 243, 243, 0.9); display: none; align-items: center; justify-content: center; z-index: 12000; }
+    .loading-box { background: #ffffff; border-radius: 10px; padding: 16px 20px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); text-align: center; font-size: 14px; min-width: 260px; }
+    .loading-bar-container { width: 100%; height: 8px; border-radius: 4px; background: #eeeeee; margin-top: 10px; overflow: hidden; }
+    .loading-bar { height: 100%; width: 0%; background: #0066ff; transition: width 0.15s linear; }
+    .loading-percent { margin-top: 8px; font-weight: 700; }
   </style>
 </head>
 
@@ -385,14 +98,23 @@
     </div>
   </div>
 
+  <!-- Overlay de carregamento da base -->
+  <div id="loadingOverlay">
+    <div class="loading-box">
+      <div>Carregando base de Efetividade...</div>
+      <div class="loading-bar-container">
+        <div id="loadingBar" class="loading-bar"></div>
+      </div>
+      <div id="loadingPercent" class="loading-percent">0%</div>
+    </div>
+  </div>
+
   <!-- Painel principal -->
   <div id="appRoot" class="container" style="display: none;">
     <div class="cabecalho">
       <div>
         <h1 class="titulo">PAINEL EFETIVIDADE OPERACIONAL</h1>
-        <p class="subtitulo">
-          Dados carregados da aba BASE_DADOS (somente a loja logada).
-        </p>
+        <p class="subtitulo">Dados carregados da aba BASE_DADOS (somente a loja logada).</p>
       </div>
       <div class="info-usuario">
         <strong>Usuário: <span id="usuarioSpan"></span></strong>
@@ -405,31 +127,19 @@
         <h3>Busca na base (Efetividade)</h3>
 
         <div class="search-container">
-          <button
-            type="button"
-            class="btnBarcodeLeft"
-            onclick="abrirCamera()"
-            aria-label="Ler código de barras com a câmera"
-          >
+          <button type="button" class="btnBarcodeLeft" onclick="abrirCamera()" aria-label="Ler código de barras com a câmera">
             <span class="icon-barcode-small"></span>
           </button>
 
           <input
             id="campoBusca"
             type="text"
-            placeholder="Pesquisar por qualquer campo..."
+            placeholder="Buscar por EAN (coluna A) ou Produto (coluna B)"
             onkeydown="if(event.key === 'Enter'){buscar();}"
           />
 
-          <button
-            type="button"
-            class="btnBuscarIcone"
-            onclick="buscar()"
-            aria-label="Buscar registro"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24"
-                 fill="none" stroke="#444" stroke-width="2.2"
-                 stroke-linecap="round" stroke-linejoin="round">
+          <button type="button" class="btnBuscarIcone" onclick="buscar()" aria-label="Buscar registro">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
             </svg>
@@ -442,44 +152,6 @@
           class="obs-textarea"
           placeholder="Descreva a ocorrência ou observação relacionada à efetividade..."
         ></textarea>
-
-        <div class="linha-infos">
-          <div class="campo-inline">
-            <label for="quantidade">Quantidade:</label>
-            <input
-              id="quantidade"
-              class="input-inline"
-              type="text"
-              inputmode="decimal"
-              placeholder="Qtd"
-              oninput="this.value = this.value.replace(/[^0-9.,]/g, '');"
-            />
-          </div>
-
-          <div class="campo-inline">
-            <label for="valorUnitario">Valor Un. R$:</label>
-            <input
-              id="valorUnitario"
-              class="input-inline"
-              type="text"
-              inputmode="decimal"
-              placeholder="0,00"
-              oninput="mascaraValorUnitario(this)"
-            />
-          </div>
-
-          <div class="campo-inline">
-            <label for="numeroDocumento">Nº de Doc:</label>
-            <input
-              id="numeroDocumento"
-              class="input-inline"
-              type="text"
-              inputmode="numeric"
-              placeholder="Número"
-              oninput="this.value = this.value.replace(/[^0-9]/g, '');"
-            />
-          </div>
-        </div>
 
         <div id="status"></div>
 
@@ -499,7 +171,7 @@
   </div>
 
   <script>
-    let dbEfetividade = [];      // Base da aba BASE_DADOS (somente loja logada)
+    let dbEfetividade = [];      // Base filtrada por loja (aba BASE_DADOS)
     let lojaLogada = null;
     let usuarioLogado = null;
     let ultimosResultados = [];
@@ -510,10 +182,8 @@
     let lendo = false;
 
     // ============ INICIALIZAÇÃO ============
-
     document.addEventListener("DOMContentLoaded", () => {
       let sessao = null;
-
       try {
         const raw = localStorage.getItem("efetividadeSession");
         if (raw) sessao = JSON.parse(raw);
@@ -531,78 +201,109 @@
 
       document.getElementById("usuarioSpan").textContent = usuarioLogado;
       document.getElementById("lojaSpan").textContent = lojaLogada;
-
       document.getElementById("appRoot").style.display = "block";
 
       carregarBaseEfetividade();
     });
 
-    // ============ MÁSCARA R$ ============
-    function mascaraValorUnitario(campo) {
-      let v = campo.value.replace(/\D/g, "");
-
-      if (!v) {
-        campo.value = "";
-        return;
+    // Som curto ao detectar código de barras
+    let audioCtx = null;
+    function beep() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = 900;
+        gain.gain.value = 0.18;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.18);
+      } catch (err) {
+        console.warn("Não foi possível reproduzir beep:", err);
       }
+    }
 
-      v = v.replace(/^0+/, "");
-      if (!v) v = "0";
-
-      while (v.length < 3) {
-        v = "0" + v;
-      }
-
-      const inteiro = v.slice(0, -2);
-      const centavos = v.slice(-2);
-      const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-      campo.value = inteiroFormatado + "," + centavos;
+    // Overlay de carregamento 0→100%
+    let loadingTimer = null;
+    let loadingPercent = 0;
+    function iniciarLoading() {
+      const overlay = document.getElementById("loadingOverlay");
+      const bar = document.getElementById("loadingBar");
+      const percentEl = document.getElementById("loadingPercent");
+      loadingPercent = 0;
+      bar.style.width = "0%";
+      percentEl.textContent = "0%";
+      overlay.style.display = "flex";
+      if (loadingTimer) clearInterval(loadingTimer);
+      loadingTimer = setInterval(() => {
+        if (loadingPercent >= 95) return;
+        loadingPercent += 5;
+        bar.style.width = `${loadingPercent}%`;
+        percentEl.textContent = `${loadingPercent}%`;
+      }, 120);
+    }
+    function finalizarLoading() {
+      const overlay = document.getElementById("loadingOverlay");
+      const bar = document.getElementById("loadingBar");
+      const percentEl = document.getElementById("loadingPercent");
+      if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+      loadingPercent = 100;
+      bar.style.width = "100%";
+      percentEl.textContent = "100%";
+      setTimeout(() => { overlay.style.display = "none"; }, 220);
     }
 
     // ============ CARREGAR BASE (BASE_DADOS) ============
-
     async function carregarBaseEfetividade() {
       const status = document.getElementById("status");
       status.textContent = "Carregando base de Efetividade...";
-
+      iniciarLoading();
       try {
         const resp = await fetch("/api/efetividade-base?loja=" + encodeURIComponent(lojaLogada));
         const dados = await resp.json().catch(() => ({}));
-
         if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
           console.error("Resposta inesperada em /api/efetividade-base:", dados);
-          throw new Error(dados.message || "Falha ao carregar base.");
+          const detalhe = dados.detalhe ? ` Detalhe: ${dados.detalhe}` : "";
+          throw new Error((dados.message || "Falha ao carregar base.") + detalhe);
         }
-
         dbEfetividade = dados.registros;
         status.textContent = `Base carregada com ${dbEfetividade.length} registro(s) da loja.`;
+        finalizarLoading();
       } catch (e) {
         console.error("Erro ao carregar base Efetividade:", e);
-        status.textContent = "Erro ao carregar base de Efetividade.";
+        status.textContent = `Erro ao carregar base de Efetividade. ${e.message || ""}`.trim();
+        finalizarLoading();
       }
     }
 
     // ============ BUSCA LOCAL ============
-
     function buscar() {
       const campo = document.getElementById("campoBusca");
-      const termoBruto = campo.value.trim().toLowerCase();
+      const termoBruto = campo.value.trim();
+      const termoMinusculo = termoBruto.toLowerCase();
       const status = document.getElementById("status");
 
       if (!termoBruto) {
         status.textContent = "Digite ou leia um código para buscar.";
         return;
       }
-
       if (!dbEfetividade || !dbEfetividade.length) {
         status.textContent = "Base ainda não carregada.";
         return;
       }
 
+      // Números -> busca EAN (coluna A); textos -> produto/código (coluna B)
+      const ehCodigoBarra = /^\d+$/.test(termoBruto);
       const resultados = dbEfetividade.filter((linha) => {
-        const texto = linha.map(c => String(c ?? "")).join(" ").toLowerCase();
-        return texto.includes(termoBruto);
+        const ean = String(linha[0] ?? "").trim().toLowerCase();
+        const produto = String(linha[1] ?? "").toLowerCase();
+        return ehCodigoBarra ? ean === termoMinusculo : produto.includes(termoMinusculo);
       });
 
       mostrarResultados(resultados);
@@ -610,148 +311,71 @@
     }
 
     // ============ EXIBIR RESULTADOS ============
-
     function mostrarResultados(lista) {
       const container = document.getElementById("resultado");
       ultimosResultados = Array.isArray(lista) ? lista : [];
-
       if (!ultimosResultados.length) {
-        container.innerHTML =
-          '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado.</p>';
+        container.innerHTML = '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado.</p>';
         return;
       }
-
-      const html = ultimosResultados
-        .map((linha, idx) => {
-          const col0 = linha[0] ?? "";
-          const col1 = linha[1] ?? "";
-          const col2 = linha[2] ?? "";
-          const col3 = linha[3] ?? "";
-          const col4 = linha[4] ?? "";
-
-          return `
-            <div class="cartao" onclick="prepararEnvio(${idx})">
-              <p><strong>Coluna 1:</strong> ${col0}</p>
-              <p><strong>Coluna 2:</strong> ${col1}</p>
-              <p><strong>Coluna 3:</strong> ${col2}</p>
-              <p><strong>Coluna 4:</strong> ${col3}</p>
-              <p><strong>Coluna 5:</strong> ${col4}</p>
-            </div>
-          `;
-        })
-        .join("");
-
+      const html = ultimosResultados.map((linha, idx) => {
+        const [ean="", codigoProduto="", loja="", secao="", estoqueDisponivel="", custo="", qtdPendente="", diasEstoque="", diasUltimaEntrada="", diasSemVendas=""] = linha;
+        return `
+          <div class="cartao" onclick="prepararEnvio(${idx})">
+            <p><strong>EAN (A):</strong> ${ean}</p>
+            <p><strong>COD - PRODUTO (B):</strong> ${codigoProduto}</p>
+            <p><strong>LOJAS (C):</strong> ${loja}</p>
+            <p><strong>SEÇÕES (D):</strong> ${secao}</p>
+            <p><strong>ESTOQUE DISPONÍVEL (E):</strong> ${estoqueDisponivel}</p>
+            <p><strong>CUSTO L. (F):</strong> ${custo}</p>
+            <p><strong>Qtd. Pend. Ped.Compra (G):</strong> ${qtdPendente}</p>
+            <p><strong>Dias de Estoque (H):</strong> ${diasEstoque}</p>
+            <p><strong>Dias Ult. Entrada (I):</strong> ${diasUltimaEntrada}</p>
+            <p><strong>Quantidade Dias Sem Vendas (J):</strong> ${diasSemVendas}</p>
+          </div>
+        `;
+      }).join("");
       container.innerHTML = html;
     }
 
     // ============ PREPARA ENVIO (ANTES DO POPUP) ============
-
     function prepararEnvio(idx) {
       const status = document.getElementById("status");
-
       if (!ultimosResultados || !ultimosResultados[idx]) {
         status.textContent = "Não foi possível identificar o registro selecionado.";
         return;
       }
-
       const linhaBase = ultimosResultados[idx];
       const obs = document.getElementById("observacao").value.trim();
-      const qtd = document.getElementById("quantidade").value.trim();
-      const valor = document.getElementById("valorUnitario").value.trim();
-      const doc = document.getElementById("numeroDocumento").value.trim();
+      if (!obs) { status.textContent = "Preencha a observação antes de enviar."; return; }
+      if (!lojaLogada || !usuarioLogado) { status.textContent = "Sessão inválida. Faça login novamente."; return; }
 
-      if (!obs) {
-        status.textContent = "Preencha a observação antes de enviar.";
-        return;
-      }
-      if (!qtd) {
-        status.textContent = "Preencha a quantidade antes de enviar.";
-        return;
-      }
-      if (!valor) {
-        status.textContent = "Preencha o valor unitário antes de enviar.";
-        return;
-      }
-      if (!doc) {
-        status.textContent = "Preencha o Nº de documento antes de enviar.";
-        return;
-      }
-
-      if (!lojaLogada || !usuarioLogado) {
-        status.textContent = "Sessão inválida. Faça login novamente.";
-        return;
-      }
-
-      envioPendente = {
-        linhaBase,
-        observacao: obs,
-        quantidade: qtd,
-        valorUnitario: valor,
-        numeroDocumento: doc,
-      };
-
+      envioPendente = { linhaBase, observacao: obs };
       document.getElementById("confirmOverlay").style.display = "flex";
     }
 
     // ============ CONFIRMAÇÃO (SIM / NÃO) ============
-
     async function confirmarEnvio(confirmado) {
       const overlay = document.getElementById("confirmOverlay");
       const status = document.getElementById("status");
+      if (!confirmado) { overlay.style.display = "none"; envioPendente = null; status.textContent = "Envio cancelado."; return; }
+      if (!envioPendente) { overlay.style.display = "none"; return; }
 
-      if (!confirmado) {
-        overlay.style.display = "none";
-        envioPendente = null;
-        status.textContent = "Envio cancelado.";
-        return;
-      }
-
-      if (!envioPendente) {
-        overlay.style.display = "none";
-        return;
-      }
-
-      const {
-        linhaBase,
-        observacao,
-        quantidade,
-        valorUnitario,
-        numeroDocumento,
-      } = envioPendente;
-
+      const { linhaBase, observacao } = envioPendente;
       envioPendente = null;
       overlay.style.display = "none";
-
       status.textContent = "Enviando lançamento de Efetividade...";
 
       try {
         const resposta = await fetch("/api/efetividade-lancar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            registroBase: linhaBase,
-            loja: lojaLogada,
-            usuario: usuarioLogado,
-            observacao,
-            quantidade,
-            valorUnitario,
-            numeroDocumento,
-          }),
+          body: JSON.stringify({ registroBase: linhaBase, loja: lojaLogada, usuario: usuarioLogado, observacao }),
         });
-
         const dados = await resposta.json().catch(() => ({}));
-
-        if (!resposta.ok || !dados.sucesso) {
-          status.textContent =
-            dados.message || "Erro ao registrar lançamento.";
-          return;
-        }
-
+        if (!resposta.ok || !dados.sucesso) { status.textContent = dados.message || "Erro ao registrar lançamento."; return; }
         status.textContent = dados.message || "Lançamento registrado com sucesso.";
-
         document.getElementById("observacao").value = "";
-        document.getElementById("quantidade").value = "";
-        document.getElementById("valorUnitario").value = "";
       } catch (e) {
         console.error("Erro ao enviar lançamento de Efetividade:", e);
         status.textContent = "Erro de conexão ao enviar lançamento.";
@@ -759,21 +383,16 @@
     }
 
     // ============ CÂMERA / LEITOR DE CÓDIGO ============
-
     function abrirCamera() {
       const area = document.getElementById("cameraArea");
       const msg = document.getElementById("msgCamera");
       const video = document.getElementById("video");
-
       area.style.display = "block";
       msg.textContent = "Abrindo câmera...";
-
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        msg.textContent =
-          "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
+        msg.textContent = "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
         return;
       }
-
       navigator.mediaDevices
         .getUserMedia({ video: { facingMode: "environment" } })
         .then((stream) => {
@@ -783,79 +402,55 @@
           msg.textContent = "Aponte para o código de barras...";
           iniciarLeitura(video, msg);
         })
-        .catch((err) => {
-          msg.textContent = "Erro ao acessar câmera: " + err.message;
-        });
+        .catch((err) => { msg.textContent = "Erro ao acessar câmera: " + err.message; });
     }
 
     async function iniciarLeitura(video, msg) {
       if (!("BarcodeDetector" in window)) {
-        msg.textContent =
-          "Leitura automática não suportada neste navegador. Digite o código manualmente.";
+        msg.textContent = "Leitura automática não suportada neste navegador. Digite o código manualmente.";
         return;
       }
-
-      const detector = new BarcodeDetector({
-        formats: ["ean_13", "ean_8", "code_128"],
-      });
-
+      const detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "code_128"] });
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-
       lendo = true;
 
       async function scan() {
         if (!lendo) return;
-
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
           try {
             const codes = await detector.detect(canvas);
-
             if (codes.length > 0) {
               const code = codes[0].rawValue;
               msg.textContent = "Detectado: " + code;
-
+              beep();                            // toca o beep
               document.getElementById("campoBusca").value = code;
-
               fecharCamera();
               buscar();
               return;
             }
-          } catch (e) {
-            // ignora erros do detector
-          }
+          } catch (e) { /* ignora erros do detector */ }
         }
-
         requestAnimationFrame(scan);
       }
-
       scan();
     }
 
     function fecharCamera() {
       lendo = false;
-
-      if (streamAtual) {
-        streamAtual.getTracks().forEach((t) => t.stop());
-      }
-
+      if (streamAtual) { streamAtual.getTracks().forEach((t) => t.stop()); }
       document.getElementById("video").srcObject = null;
       document.getElementById("cameraArea").style.display = "none";
     }
 
     // ============ SAIR (LIMPA SESSÃO) ============
-
     function limparSessaoEfetividade() {
-      try {
-        localStorage.removeItem("efetividadeSession");
-      } catch (e) {
-        console.warn("Não foi possível limpar efetividadeSession:", e);
-      }
-      // navegação para index.html ocorre pelo href do link
+      try { localStorage.removeItem("efetividadeSession"); }
+      catch (e) { console.warn("Não foi possível limpar efetividadeSession:", e); }
+      // navegação para index.html via href
     }
   </script>
 </body>
