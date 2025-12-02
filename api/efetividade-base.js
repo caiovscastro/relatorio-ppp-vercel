@@ -3,34 +3,12 @@
 
 import { google } from "googleapis";
 
-// NOMES EXATOS das variáveis de ambiente (iguais aos da Vercel)
-const serviceAccountEmail =
-  process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
-const privateKeyRaw = process.env["CHAVE_PRIVADA_DO_GOOGLE"];
-const spreadsheetId = process.env.SPREADSHEET_ID_EFETIVIDADE;
-
-// (Opcional) Log básico para debug em logs da Vercel
-console.log("EFETIVIDADE ENV CHECK:", {
-  hasEmail: !!serviceAccountEmail,
-  hasKey: !!privateKeyRaw,
-  hasSpreadsheet: !!spreadsheetId,
-});
-
-// Corrige quebras de linha da chave privada
-const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
-
-// Autenticação com a Service Account
-const auth = new google.auth.JWT(
-  serviceAccountEmail,
-  null,
-  privateKey,
-  ["https://www.googleapis.com/auth/spreadsheets"]
-);
-
-const sheets = google.sheets({ version: "v4", auth });
 // -----------------------------------------------------------------------------
-// Leitura das variáveis de ambiente com os nomes já usados na Vercel
-// (aceita o padrão em inglês e os nomes em português configurados antes).
+// Helper: lê variáveis de ambiente com nomes novos e legados e normaliza a chave.
+// Estrutura da aba BASE_DADOS (colunas A:J), usada como referência na filtragem:
+// A: EAN | B: COD - PRODUTO | C: LOJAS | D: SEÇÕES | E: ESTOQUE DISPONIVEL
+// F: CUSTO L. | G: Qtd. Pend. Ped.Compra | H: Dias de Estoque
+// I: Dias Ult. Entrada | J: Quantidade Dias Sem Vendas
 // -----------------------------------------------------------------------------
 function getEnv() {
   const serviceAccountEmail =
@@ -41,8 +19,7 @@ function getEnv() {
     process.env.GOOGLE_PRIVATE_KEY || process.env["CHAVE_PRIVADA_DO_GOOGLE"];
 
   // 1) Preferimos o ID dedicado de Efetividade.
-  // 2) Em último caso, aceita o ID genérico (SPREADSHEET_ID / ID_DA_PLANILHA)
-  //    para compatibilidade com ambientes já configurados.
+  // 2) Aceitamos o ID genérico como compatibilidade com configurações antigas.
   const spreadsheetId =
     process.env.SPREADSHEET_ID_EFETIVIDADE ||
     process.env.ID_DA_PLANILHA_EFETIVIDADE ||
@@ -56,15 +33,16 @@ function getEnv() {
     );
   }
 
-  // Corrige \n presentes na chave privada armazenada na Vercel
-  const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
-
-  return { serviceAccountEmail, privateKey, spreadsheetId };
+  return {
+    serviceAccountEmail,
+    privateKey: privateKeyRaw.replace(/\\n/g, "\n"),
+    spreadsheetId,
+  };
 }
 
-// Cria o cliente autenticado do Sheets e força a autorização
-async function getSheetsClient() {
-  const { serviceAccountEmail, privateKey } = getEnv();
+// Cria e autoriza o cliente do Google Sheets (opcionalmente usando config já lida)
+async function getSheetsClient(configFromHandler) {
+  const { serviceAccountEmail, privateKey } = configFromHandler || getEnv();
 
   const auth = new google.auth.JWT(
     serviceAccountEmail,
@@ -74,7 +52,6 @@ async function getSheetsClient() {
   );
 
   await auth.authorize();
-
   return google.sheets({ version: "v4", auth });
 }
 
@@ -91,12 +68,15 @@ export default async function handler(req, res) {
       .json({ sucesso: false, message: "Método não permitido. Use GET." });
   }
 
-  // Validação das variáveis de ambiente
-  if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
+  // Garante variáveis de ambiente válidas antes da requisição.
+  let config;
+  try {
+    config = getEnv();
+  } catch (erro) {
+    console.error("Configuração ausente na Efetividade:", erro);
     return res.status(500).json({
       sucesso: false,
-      message:
-        "Configuração da API incompleta. Verifique E-MAIL DA CONTA DE SERVIÇO DO GOOGLE, CHAVE_PRIVADA_DO_GOOGLE e SPREADSHEET_ID_EFETIVIDADE na Vercel.",
+      message: erro.message,
     });
   }
 
@@ -110,8 +90,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { spreadsheetId } = getEnv();
-    const sheets = await getSheetsClient();
+    const { spreadsheetId } = config;
+    const sheets = await getSheetsClient(config);
 
     // Lê a aba BASE_DADOS de A:J (10 colunas)
     const resp = await sheets.spreadsheets.values.get({
@@ -138,3 +118,15 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({
+      sucesso: true,
+      registros: filtrados,
+    });
+  } catch (erro) {
+    console.error("Erro em /api/efetividade-base:", erro);
+    return res.status(500).json({
+      sucesso: false,
+      message: "Erro ao ler BASE_DADOS da planilha de Efetividade.",
+      detalhe: erro.message,
+    });
+  }
+}
