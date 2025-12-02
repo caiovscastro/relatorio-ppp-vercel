@@ -28,6 +28,55 @@ const auth = new google.auth.JWT(
 );
 
 const sheets = google.sheets({ version: "v4", auth });
+// -----------------------------------------------------------------------------
+// Leitura das variáveis de ambiente com os nomes já usados na Vercel
+// (aceita o padrão em inglês e os nomes em português configurados antes).
+// -----------------------------------------------------------------------------
+function getEnv() {
+  const serviceAccountEmail =
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
+    process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
+
+  const privateKeyRaw =
+    process.env.GOOGLE_PRIVATE_KEY || process.env["CHAVE_PRIVADA_DO_GOOGLE"];
+
+  // 1) Preferimos o ID dedicado de Efetividade.
+  // 2) Em último caso, aceita o ID genérico (SPREADSHEET_ID / ID_DA_PLANILHA)
+  //    para compatibilidade com ambientes já configurados.
+  const spreadsheetId =
+    process.env.SPREADSHEET_ID_EFETIVIDADE ||
+    process.env.ID_DA_PLANILHA_EFETIVIDADE ||
+    process.env.SPREADSHEET_ID ||
+    process.env.ID_DA_PLANILHA;
+
+  if (!serviceAccountEmail || !privateKeyRaw || !spreadsheetId) {
+    throw new Error(
+      "Configuração da API incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL / E-MAIL DA CONTA DE SERVIÇO DO GOOGLE, " +
+        "GOOGLE_PRIVATE_KEY / CHAVE_PRIVADA_DO_GOOGLE e o ID da planilha (SPREADSHEET_ID_EFETIVIDADE, ID_DA_PLANILHA_EFETIVIDADE ou SPREADSHEET_ID)."
+    );
+  }
+
+  // Corrige \n presentes na chave privada armazenada na Vercel
+  const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
+
+  return { serviceAccountEmail, privateKey, spreadsheetId };
+}
+
+// Cria o cliente autenticado do Sheets e força a autorização
+async function getSheetsClient() {
+  const { serviceAccountEmail, privateKey } = getEnv();
+
+  const auth = new google.auth.JWT(
+    serviceAccountEmail,
+    null,
+    privateKey,
+    ["https://www.googleapis.com/auth/spreadsheets"]
+  );
+
+  await auth.authorize();
+
+  return google.sheets({ version: "v4", auth });
+}
 
 // Nome da aba na planilha Efetividade
 const ABA_BASE = "BASE_DADOS";
@@ -61,6 +110,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    const { spreadsheetId } = getEnv();
+    const sheets = await getSheetsClient();
+
     // Lê a aba BASE_DADOS de A:J (10 colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -86,15 +138,3 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({
-      sucesso: true,
-      registros: filtrados,
-    });
-  } catch (erro) {
-    console.error("Erro em /api/efetividade-base:", erro);
-    return res.status(500).json({
-      sucesso: false,
-      message: "Erro ao ler BASE_DADOS da planilha de Efetividade.",
-      detalhe: erro.message,
-    });
-  }
-}
