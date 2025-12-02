@@ -6,7 +6,9 @@
   <title>Painel Efetividade Operacional</title>
 
   <style>
-    /* Estilo geral e cabeçalho */
+    /* Estilo geral e cabeçalho
+       --------------------------------------------------
+       Mantém a página centralizada e com tipografia limpa para uso em mobile. */
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
@@ -17,18 +19,23 @@
       align-items: center;
     }
     .container { width: 95%; max-width: 900px; background: #fff; padding: 24px 28px 30px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); }
-    .cabecalho { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #e1e1e1; padding-bottom: 14px; margin-bottom: 16px; }
+    .cabecalho { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #e1e1e1; padding-bottom: 14px; margin-bottom: 16px; }
     /* Título um pouco menor para caber em uma linha no celular */
     .titulo { margin: 2px; font-size: 18px; }
-    .info-usuario { text-align: right; font-size: 14px; }
-    .info-usuario strong { display: block; }
+    /* Cartões compactos de usuário/loja alinhados à direita */
+    .info-usuario { display: flex; gap: 10px; align-items: flex-start; justify-content: flex-end; flex: 1 1 auto; }
+    .usuario-card { min-width: 110px; background: #f7f7f7; border: 1px solid #d5d5d5; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.2; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
+    .usuario-card .label { font-weight: 700; color: #333; margin-bottom: 2px; }
+    .usuario-card .value { font-weight: 600; color: #111; word-break: break-word; }
     .conteudo { margin-top: 12px; font-size: 14px; }
     .bloco { margin-bottom: 16px; padding: 14px; border-radius: 8px; background: #f7f8ff; border: 1px solid #e0e3ff; }
     .bloco h3 { margin: 0 0 8px; font-size: 16px; }
     .btn-voltar { margin-top: 10px; display: inline-block; padding: 8px 14px; background: #0066ff; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; }
     .btn-voltar:hover { background: #0050cc; }
 
-    /* Tela de erro */
+    /* Tela de erro
+       --------------------------------------------------
+       Mostra aviso quando não existe sessão ativa para o painel. */
     .tela-erro { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f3f3f3; font-family: Arial, sans-serif; }
     .card-erro { background: #fff; padding: 26px 30px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); max-width: 420px; text-align: center; }
     .card-erro h1 { color: #c00000; margin-top: 0; }
@@ -46,12 +53,16 @@
     .obs-textarea { width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #c3c3c3; padding: 10px 12px; font-size: 14px; resize: vertical; min-height: 80px; background: #fff; }
     #status { font-size: 13px; margin-top: 4px; text-align: center; color: #333; }
 
-    /* Resultados */
+    /* Resultados (cartões de produtos em formato de planilha)
+       --------------------------------------------------
+       Cada cartão imita uma grade, com o nome do produto no topo e linhas cinza. */
     #resultado { margin-top: 8px; }
-    .cartao { width: 90%; background: white; padding: 14px 16px; margin: 10px auto; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); display: flex; flex-direction: column; cursor: pointer; opacity: 0; transform: translateY(8px); animation: entrarCartao 0.22s ease-out forwards; transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; }
+    .cartao { width: 94%; background: white; padding: 12px 14px 10px; margin: 10px auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); cursor: pointer; opacity: 0; transform: translateY(8px); animation: entrarCartao 0.22s ease-out forwards; transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; }
     .cartao:hover { transform: translateY(2px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14); }
-    .cartao p { margin: 4px 0; font-size: 13px; line-height: 1.4; }
-    .cartao strong { font-size: 13px; color: #111; }
+    .cartao-header { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #111; }
+    .cartao-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .cartao-table th, .cartao-table td { border: 1px solid #c3c3c3; padding: 6px 8px; text-align: left; }
+    .cartao-table th { width: 42%; background: #f9f9f9; font-weight: 700; }
     @keyframes entrarCartao { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Popup confirmação */
@@ -87,7 +98,8 @@
     </div>
   </div>
 
-  <!-- Popup de confirmação -->
+  <!-- Popup de confirmação
+       Mostra antes de gravar na planilha, prevenindo cliques acidentais. -->
   <div id="confirmOverlay">
     <div class="confirm-box">
       <p>Confirmar lançamento na Efetividade?</p>
@@ -117,8 +129,15 @@
         <h1 class="titulo">PAINEL EFETIVIDADE OPERACIONAL</h1>
       </div>
       <div class="info-usuario">
-        <strong>Usuário: <span id="usuarioSpan"></span></strong>
-        <span>Loja: <span id="lojaSpan"></span></span>
+        <!-- Cartões independentes para Usuário e Loja, alinhados à direita -->
+        <div class="usuario-card">
+          <div class="label">Usuário:</div>
+          <div class="value" id="usuarioSpan"></div>
+        </div>
+        <div class="usuario-card">
+          <div class="label">Loja:</div>
+          <div class="value" id="lojaSpan"></div>
+        </div>
       </div>
     </div>
 
@@ -318,20 +337,24 @@
         container.innerHTML = '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado.</p>';
         return;
       }
+      // Monta cada cartão no padrão "planilha": cabeçalho com nome do produto
+      // e tabela com bordas cinza para destacar cada campo.
       const html = ultimosResultados.map((linha, idx) => {
         const [ean="", codigoProduto="", loja="", secao="", estoqueDisponivel="", custo="", qtdPendente="", diasEstoque="", diasUltimaEntrada="", diasSemVendas=""] = linha;
         return `
           <div class="cartao" onclick="prepararEnvio(${idx})">
-            <p><strong>EAN (A):</strong> ${ean}</p>
-            <p><strong>COD - PRODUTO (B):</strong> ${codigoProduto}</p>
-            <p><strong>LOJAS (C):</strong> ${loja}</p>
-            <p><strong>SEÇÕES (D):</strong> ${secao}</p>
-            <p><strong>ESTOQUE DISPONÍVEL (E):</strong> ${estoqueDisponivel}</p>
-            <p><strong>CUSTO L. (F):</strong> ${custo}</p>
-            <p><strong>Qtd. Pend. Ped.Compra (G):</strong> ${qtdPendente}</p>
-            <p><strong>Dias de Estoque (H):</strong> ${diasEstoque}</p>
-            <p><strong>Dias Ult. Entrada (I):</strong> ${diasUltimaEntrada}</p>
-            <p><strong>Quantidade Dias Sem Vendas (J):</strong> ${diasSemVendas}</p>
+            <div class="cartao-header">${codigoProduto || "Produto"}</div>
+            <table class="cartao-table" aria-label="Dados do produto">
+              <tr><th>EAN</th><td>${ean}</td></tr>
+              <tr><th>Loja</th><td>${loja}</td></tr>
+              <tr><th>Seção</th><td>${secao}</td></tr>
+              <tr><th>Estoque Disponível</th><td>${estoqueDisponivel}</td></tr>
+              <tr><th>Custo Líquido</th><td>${custo}</td></tr>
+              <tr><th>Qtd. Pend. Ped.Compra</th><td>${qtdPendente}</td></tr>
+              <tr><th>Dias de Estoque</th><td>${diasEstoque}</td></tr>
+              <tr><th>Dias Ult. Entrada</th><td>${diasUltimaEntrada}</td></tr>
+              <tr><th>Qtd Dias Sem Vendas</th><td>${diasSemVendas}</td></tr>
+            </table>
           </div>
         `;
       }).join("");
