@@ -9,7 +9,7 @@
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 2;
+      margin: 2px;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -37,7 +37,7 @@
     }
 
     .titulo {
-      margin: 0;
+      margin: 2px;
       font-size: 22px;
     }
 
@@ -417,7 +417,7 @@
           <input
             id="campoBusca"
             type="text"
-            placeholder="Pesquisar por qualquer campo..."
+            placeholder="Buscar por EAN (coluna A) ou Produto (coluna B)"
             onkeydown="if(event.key === 'Enter'){buscar();}"
           />
 
@@ -572,14 +572,15 @@
 
         if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
           console.error("Resposta inesperada em /api/efetividade-base:", dados);
-          throw new Error(dados.message || "Falha ao carregar base.");
+          const detalhe = dados.detalhe ? ` Detalhe: ${dados.detalhe}` : "";
+          throw new Error((dados.message || "Falha ao carregar base.") + detalhe);
         }
 
         dbEfetividade = dados.registros;
         status.textContent = `Base carregada com ${dbEfetividade.length} registro(s) da loja.`;
       } catch (e) {
         console.error("Erro ao carregar base Efetividade:", e);
-        status.textContent = "Erro ao carregar base de Efetividade.";
+        status.textContent = `Erro ao carregar base de Efetividade. ${e.message || ""}`.trim();
       }
     }
 
@@ -587,7 +588,8 @@
 
     function buscar() {
       const campo = document.getElementById("campoBusca");
-      const termoBruto = campo.value.trim().toLowerCase();
+      const termoBruto = campo.value.trim();
+      const termoMinusculo = termoBruto.toLowerCase();
       const status = document.getElementById("status");
 
       if (!termoBruto) {
@@ -600,9 +602,19 @@
         return;
       }
 
+      // Termos numéricos (câmera/código de barras) buscam EAN na coluna A;
+      // termos com letras fazem busca por nome/código do produto na coluna B.
+      const ehCodigoBarra = /^\d+$/.test(termoBruto);
+
       const resultados = dbEfetividade.filter((linha) => {
-        const texto = linha.map(c => String(c ?? "")).join(" ").toLowerCase();
-        return texto.includes(termoBruto);
+        const ean = String(linha[0] ?? "").trim().toLowerCase();
+        const produto = String(linha[1] ?? "").toLowerCase();
+
+        if (ehCodigoBarra) {
+          return ean === termoMinusculo;
+        }
+
+        return produto.includes(termoMinusculo);
       });
 
       mostrarResultados(resultados);
@@ -623,19 +635,32 @@
 
       const html = ultimosResultados
         .map((linha, idx) => {
-          const col0 = linha[0] ?? "";
-          const col1 = linha[1] ?? "";
-          const col2 = linha[2] ?? "";
-          const col3 = linha[3] ?? "";
-          const col4 = linha[4] ?? "";
+          // Colunas da BASE_DADOS: A:J
+          const [
+            ean = "",
+            codigoProduto = "",
+            loja = "",
+            secao = "",
+            estoqueDisponivel = "",
+            custo = "",
+            qtdPendente = "",
+            diasEstoque = "",
+            diasUltimaEntrada = "",
+            diasSemVendas = "",
+          ] = linha;
 
           return `
             <div class="cartao" onclick="prepararEnvio(${idx})">
-              <p><strong>Coluna 1:</strong> ${col0}</p>
-              <p><strong>Coluna 2:</strong> ${col1}</p>
-              <p><strong>Coluna 3:</strong> ${col2}</p>
-              <p><strong>Coluna 4:</strong> ${col3}</p>
-              <p><strong>Coluna 5:</strong> ${col4}</p>
+              <p><strong>EAN (A):</strong> ${ean}</p>
+              <p><strong>COD - PRODUTO (B):</strong> ${codigoProduto}</p>
+              <p><strong>LOJAS (C):</strong> ${loja}</p>
+              <p><strong>SEÇÕES (D):</strong> ${secao}</p>
+              <p><strong>ESTOQUE DISPONÍVEL (E):</strong> ${estoqueDisponivel}</p>
+              <p><strong>CUSTO L. (F):</strong> ${custo}</p>
+              <p><strong>Qtd. Pend. Ped.Compra (G):</strong> ${qtdPendente}</p>
+              <p><strong>Dias de Estoque (H):</strong> ${diasEstoque}</p>
+              <p><strong>Dias Ult. Entrada (I):</strong> ${diasUltimaEntrada}</p>
+              <p><strong>Quantidade Dias Sem Vendas (J):</strong> ${diasSemVendas}</p>
             </div>
           `;
         })

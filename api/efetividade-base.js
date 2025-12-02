@@ -3,31 +3,57 @@
 
 import { google } from "googleapis";
 
-// NOMES EXATOS das variáveis de ambiente (iguais aos da Vercel)
-const serviceAccountEmail =
-  process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
-const privateKeyRaw = process.env["CHAVE_PRIVADA_DO_GOOGLE"];
-const spreadsheetId = process.env.SPREADSHEET_ID_EFETIVIDADE;
+// -----------------------------------------------------------------------------
+// Helper: lê variáveis de ambiente com nomes novos e legados e normaliza a chave.
+// Estrutura da aba BASE_DADOS (colunas A:J), usada como referência na filtragem:
+// A: EAN | B: COD - PRODUTO | C: LOJAS | D: SEÇÕES | E: ESTOQUE DISPONIVEL
+// F: CUSTO L. | G: Qtd. Pend. Ped.Compra | H: Dias de Estoque
+// I: Dias Ult. Entrada | J: Quantidade Dias Sem Vendas
+// -----------------------------------------------------------------------------
+function getEnv() {
+  const serviceAccountEmail =
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
+    process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
 
-// (Opcional) Log básico para debug em logs da Vercel
-console.log("EFETIVIDADE ENV CHECK:", {
-  hasEmail: !!serviceAccountEmail,
-  hasKey: !!privateKeyRaw,
-  hasSpreadsheet: !!spreadsheetId,
-});
+  const privateKeyRaw =
+    process.env.GOOGLE_PRIVATE_KEY || process.env["CHAVE_PRIVADA_DO_GOOGLE"];
 
-// Corrige quebras de linha da chave privada
-const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
+  // 1) Preferimos o ID dedicado de Efetividade.
+  // 2) Aceitamos o ID genérico como compatibilidade com configurações antigas.
+  const spreadsheetId =
+    process.env.SPREADSHEET_ID_EFETIVIDADE ||
+    process.env.ID_DA_PLANILHA_EFETIVIDADE ||
+    process.env.SPREADSHEET_ID ||
+    process.env.ID_DA_PLANILHA;
 
-// Autenticação com a Service Account
-const auth = new google.auth.JWT(
-  serviceAccountEmail,
-  null,
-  privateKey,
-  ["https://www.googleapis.com/auth/spreadsheets"]
-);
+  if (!serviceAccountEmail || !privateKeyRaw || !spreadsheetId) {
+    throw new Error(
+      "Configuração da API incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL / E-MAIL DA CONTA DE SERVIÇO DO GOOGLE, " +
+        "GOOGLE_PRIVATE_KEY / CHAVE_PRIVADA_DO_GOOGLE e o ID da planilha (SPREADSHEET_ID_EFETIVIDADE, ID_DA_PLANILHA_EFETIVIDADE ou SPREADSHEET_ID)."
+    );
+  }
 
-const sheets = google.sheets({ version: "v4", auth });
+  return {
+    serviceAccountEmail,
+    privateKey: privateKeyRaw.replace(/\\n/g, "\n"),
+    spreadsheetId,
+  };
+}
+
+// Cria e autoriza o cliente do Google Sheets (opcionalmente usando config já lida)
+async function getSheetsClient(configFromHandler) {
+  const { serviceAccountEmail, privateKey } = configFromHandler || getEnv();
+
+  const auth = new google.auth.JWT(
+    serviceAccountEmail,
+    null,
+    privateKey,
+    ["https://www.googleapis.com/auth/spreadsheets"]
+  );
+
+  await auth.authorize();
+  return google.sheets({ version: "v4", auth });
+}
 
 // Nome da aba na planilha Efetividade
 const ABA_BASE = "BASE_DADOS";
@@ -42,12 +68,15 @@ export default async function handler(req, res) {
       .json({ sucesso: false, message: "Método não permitido. Use GET." });
   }
 
-  // Validação das variáveis de ambiente
-  if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
+  // Garante variáveis de ambiente válidas antes da requisição.
+  let config;
+  try {
+    config = getEnv();
+  } catch (erro) {
+    console.error("Configuração ausente na Efetividade:", erro);
     return res.status(500).json({
       sucesso: false,
-      message:
-        "Configuração da API incompleta. Verifique E-MAIL DA CONTA DE SERVIÇO DO GOOGLE, CHAVE_PRIVADA_DO_GOOGLE e SPREADSHEET_ID_EFETIVIDADE na Vercel.",
+      message: erro.message,
     });
   }
 
@@ -61,6 +90,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    const { spreadsheetId } = config;
+    const sheets = await getSheetsClient(config);
+
     // Lê a aba BASE_DADOS de A:J (10 colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
