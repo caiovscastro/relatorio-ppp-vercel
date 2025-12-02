@@ -68,9 +68,9 @@ export default async function handler(req, res) {
       loja,
       usuario,
       observacao,
-      quantidade,
-      valorUnitario,
-      numeroDocumento,
+      quantidade = "",
+      valorUnitario = "",
+      numeroDocumento = "",
     } = req.body || {};
 
     if (!Array.isArray(registroBase) || !registroBase.length) {
@@ -87,11 +87,10 @@ export default async function handler(req, res) {
       });
     }
 
-    if (!observacao || !quantidade || !valorUnitario || !numeroDocumento) {
+    if (!observacao) {
       return res.status(400).json({
         sucesso: false,
-        message:
-          "Observação, quantidade, valor unitário e número de documento são obrigatórios.",
+        message: "Observação é obrigatória para registrar o lançamento.",
       });
     }
 

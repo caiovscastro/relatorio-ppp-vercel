@@ -202,36 +202,6 @@
       background: #fff;
     }
 
-    .linha-infos {
-      width: 100%;
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
-
-    .campo-inline {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .campo-inline label {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .input-inline {
-      width: 100%;
-      box-sizing: border-box;
-      border-radius: 8px;
-      border: 1px solid #c3c3c3;
-      padding: 8px 10px;
-      font-size: 14px;
-      background: #fff;
-    }
-
     #status {
       font-size: 13px;
       margin-top: 4px;
@@ -360,6 +330,48 @@
       background: #777;
       color: white;
     }
+
+    /* Overlay de carregamento 0→100% */
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(243, 243, 243, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 12000;
+    }
+
+    .loading-box {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      font-size: 14px;
+      min-width: 260px;
+    }
+
+    .loading-bar-container {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #eeeeee;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .loading-bar {
+      height: 100%;
+      width: 0%;
+      background: #0066ff;
+      transition: width 0.15s linear;
+    }
+
+    .loading-percent {
+      margin-top: 8px;
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -382,6 +394,17 @@
         <button class="btnConfirmar" onclick="confirmarEnvio(true)">Sim</button>
         <button class="btnCancelar" onclick="confirmarEnvio(false)">Cancelar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Overlay de carregamento da base -->
+  <div id="loadingOverlay">
+    <div class="loading-box">
+      <div>Carregando base de Efetividade...</div>
+      <div class="loading-bar-container">
+        <div id="loadingBar" class="loading-bar"></div>
+      </div>
+      <div id="loadingPercent" class="loading-percent">0%</div>
     </div>
   </div>
 
@@ -436,50 +459,12 @@
           </button>
         </div>
 
-        <div class="obs-label">Observação / Relato:</div>
-        <textarea
-          id="observacao"
-          class="obs-textarea"
-          placeholder="Descreva a ocorrência ou observação relacionada à efetividade..."
-        ></textarea>
-
-        <div class="linha-infos">
-          <div class="campo-inline">
-            <label for="quantidade">Quantidade:</label>
-            <input
-              id="quantidade"
-              class="input-inline"
-              type="text"
-              inputmode="decimal"
-              placeholder="Qtd"
-              oninput="this.value = this.value.replace(/[^0-9.,]/g, '');"
-            />
-          </div>
-
-          <div class="campo-inline">
-            <label for="valorUnitario">Valor Un. R$:</label>
-            <input
-              id="valorUnitario"
-              class="input-inline"
-              type="text"
-              inputmode="decimal"
-              placeholder="0,00"
-              oninput="mascaraValorUnitario(this)"
-            />
-          </div>
-
-          <div class="campo-inline">
-            <label for="numeroDocumento">Nº de Doc:</label>
-            <input
-              id="numeroDocumento"
-              class="input-inline"
-              type="text"
-              inputmode="numeric"
-              placeholder="Número"
-              oninput="this.value = this.value.replace(/[^0-9]/g, '');"
-            />
-          </div>
-        </div>
+      <div class="obs-label">Observação / Relato:</div>
+      <textarea
+        id="observacao"
+        class="obs-textarea"
+        placeholder="Descreva a ocorrência ou observação relacionada à efetividade..."
+      ></textarea>
 
         <div id="status"></div>
 
@@ -537,27 +522,73 @@
       carregarBaseEfetividade();
     });
 
-    // ============ MÁSCARA R$ ============
-    function mascaraValorUnitario(campo) {
-      let v = campo.value.replace(/\D/g, "");
+    // Som curto ao detectar código de barras
+    let audioCtx = null;
+    function beep() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
 
-      if (!v) {
-        campo.value = "";
-        return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.frequency.value = 900;
+        gain.gain.value = 0.18;
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.18);
+      } catch (err) {
+        console.warn("Não foi possível reproduzir beep:", err);
+      }
+    }
+
+    // Controle do overlay de carregamento 0→100%
+    let loadingTimer = null;
+    let loadingPercent = 0;
+
+    function iniciarLoading() {
+      const overlay = document.getElementById("loadingOverlay");
+      const bar = document.getElementById("loadingBar");
+      const percentEl = document.getElementById("loadingPercent");
+
+      loadingPercent = 0;
+      bar.style.width = "0%";
+      percentEl.textContent = "0%";
+      overlay.style.display = "flex";
+
+      if (loadingTimer) clearInterval(loadingTimer);
+      loadingTimer = setInterval(() => {
+        if (loadingPercent >= 95) return;
+        loadingPercent += 5;
+        bar.style.width = `${loadingPercent}%`;
+        percentEl.textContent = `${loadingPercent}%`;
+      }, 120);
+    }
+
+    function finalizarLoading() {
+      const overlay = document.getElementById("loadingOverlay");
+      const bar = document.getElementById("loadingBar");
+      const percentEl = document.getElementById("loadingPercent");
+
+      if (loadingTimer) {
+        clearInterval(loadingTimer);
+        loadingTimer = null;
       }
 
-      v = v.replace(/^0+/, "");
-      if (!v) v = "0";
+      loadingPercent = 100;
+      bar.style.width = "100%";
+      percentEl.textContent = "100%";
 
-      while (v.length < 3) {
-        v = "0" + v;
-      }
-
-      const inteiro = v.slice(0, -2);
-      const centavos = v.slice(-2);
-      const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-      campo.value = inteiroFormatado + "," + centavos;
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 220);
     }
 
     // ============ CARREGAR BASE (BASE_DADOS) ============
@@ -565,6 +596,8 @@
     async function carregarBaseEfetividade() {
       const status = document.getElementById("status");
       status.textContent = "Carregando base de Efetividade...";
+
+      iniciarLoading();
 
       try {
         const resp = await fetch("/api/efetividade-base?loja=" + encodeURIComponent(lojaLogada));
@@ -578,9 +611,11 @@
 
         dbEfetividade = dados.registros;
         status.textContent = `Base carregada com ${dbEfetividade.length} registro(s) da loja.`;
+        finalizarLoading();
       } catch (e) {
         console.error("Erro ao carregar base Efetividade:", e);
         status.textContent = `Erro ao carregar base de Efetividade. ${e.message || ""}`.trim();
+        finalizarLoading();
       }
     }
 
@@ -681,24 +716,9 @@
 
       const linhaBase = ultimosResultados[idx];
       const obs = document.getElementById("observacao").value.trim();
-      const qtd = document.getElementById("quantidade").value.trim();
-      const valor = document.getElementById("valorUnitario").value.trim();
-      const doc = document.getElementById("numeroDocumento").value.trim();
 
       if (!obs) {
         status.textContent = "Preencha a observação antes de enviar.";
-        return;
-      }
-      if (!qtd) {
-        status.textContent = "Preencha a quantidade antes de enviar.";
-        return;
-      }
-      if (!valor) {
-        status.textContent = "Preencha o valor unitário antes de enviar.";
-        return;
-      }
-      if (!doc) {
-        status.textContent = "Preencha o Nº de documento antes de enviar.";
         return;
       }
 
@@ -710,9 +730,6 @@
       envioPendente = {
         linhaBase,
         observacao: obs,
-        quantidade: qtd,
-        valorUnitario: valor,
-        numeroDocumento: doc,
       };
 
       document.getElementById("confirmOverlay").style.display = "flex";
@@ -739,9 +756,6 @@
       const {
         linhaBase,
         observacao,
-        quantidade,
-        valorUnitario,
-        numeroDocumento,
       } = envioPendente;
 
       envioPendente = null;
@@ -758,9 +772,6 @@
             loja: lojaLogada,
             usuario: usuarioLogado,
             observacao,
-            quantidade,
-            valorUnitario,
-            numeroDocumento,
           }),
         });
 
@@ -775,8 +786,6 @@
         status.textContent = dados.message || "Lançamento registrado com sucesso.";
 
         document.getElementById("observacao").value = "";
-        document.getElementById("quantidade").value = "";
-        document.getElementById("valorUnitario").value = "";
       } catch (e) {
         console.error("Erro ao enviar lançamento de Efetividade:", e);
         status.textContent = "Erro de conexão ao enviar lançamento.";
@@ -843,6 +852,7 @@
             if (codes.length > 0) {
               const code = codes[0].rawValue;
               msg.textContent = "Detectado: " + code;
+              beep();
 
               document.getElementById("campoBusca").value = code;
 
