@@ -412,7 +412,7 @@
         const dados = await resposta.json().catch(() => ({}));
         if (!resposta.ok || !dados.sucesso) { status.textContent = dados.message || "Erro ao registrar lançamento."; return; }
         status.textContent = dados.message || "Lançamento registrado com sucesso.";
-        /*document.getElementById("observacao").value = "";*/
+        document.getElementById("observacao").value = "";
       } catch (e) {
         console.error("Erro ao enviar lançamento para a base de dados:", e);
         status.textContent = "Erro de conexão ao enviar lançamento.";
