@@ -3,34 +3,53 @@
 
 import { google } from "googleapis";
 
-// Lê as variáveis de ambiente da Vercel
-const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
-const spreadsheetId = process.env.SPREADSHEET_ID;
+// Marca de cabeçalho já garantido por planilha
+const headerGarantido = new Set();
 
-// Conserta quebras de linha da chave privada (vem com "\n" e precisa ser newline de verdade)
-const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
+function getEnvVars() {
+  const serviceAccountEmail =
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
+    process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
 
-// Autenticação com Service Account
-const auth = new google.auth.JWT(
-  serviceAccountEmail,
-  null,
-  privateKey,
-  ["https://www.googleapis.com/auth/spreadsheets"]
-);
+  const privateKeyRaw =
+    process.env.GOOGLE_PRIVATE_KEY || process.env.CHAVE_PRIVADA_DO_GOOGLE;
 
-const sheets = google.sheets({ version: "v4", auth });
+  const spreadsheetId =
+    process.env.SPREADSHEET_ID || process.env.ID_DA_PLANILHA;
+
+  if (!serviceAccountEmail || !privateKeyRaw || !spreadsheetId) {
+    throw new Error(
+      "Variáveis de ambiente ausentes. " +
+        "Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL / E-MAIL DA CONTA DE SERVIÇO DO GOOGLE, " +
+        "GOOGLE_PRIVATE_KEY / CHAVE_PRIVADA_DO_GOOGLE e " +
+        "SPREADSHEET_ID / ID_DA_PLANILHA."
+    );
+  }
+
+  return {
+    serviceAccountEmail,
+    privateKey: privateKeyRaw.replace(/\\n/g, "\n"),
+    spreadsheetId,
+  };
+}
+
+function getSheetsClient({ serviceAccountEmail, privateKey }) {
+  const auth = new google.auth.JWT(
+    serviceAccountEmail,
+    null,
+    privateKey,
+    ["https://www.googleapis.com/auth/spreadsheets"]
+  );
+
+  return { auth, sheets: google.sheets({ version: "v4", auth }) };
+}
 
 // Garante que a aba RELATORIO existe e tem o cabeçalho correto
-let headerGarantido = false;
-
-async function garantirAbaRelatorio() {
-  if (headerGarantido) return;
+async function garantirAbaRelatorio({ sheets, spreadsheetId }) {
+  if (headerGarantido.has(spreadsheetId)) return;
 
   // Consulta metadados da planilha
-  const spreadsheet = await sheets.spreadsheets.get({
-    spreadsheetId,
-  });
+  const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
 
   const sheetsList = spreadsheet.data.sheets || [];
   const existeRelatorio = sheetsList.some(
@@ -56,21 +75,21 @@ async function garantirAbaRelatorio() {
   // Cabeçalho (A:O) na ordem que você pediu
   const cabecalho = [
     [
-      "DATA/HORA",        // A
-      "LOJAS",            // B
-      "USÚARIOS",         // C
-      "EAN",              // D
-      "COD CONSINCO",     // E
-      "PRODUTO",          // F
-      "DEPARTAMENTO",     // G
-      "SECAO",            // H
-      "GRUPO",            // I
-      "SUBGRUPO",         // J
-      "CATEGORIA",        // K
+      "DATA/HORA", // A
+      "LOJAS", // B
+      "USÚARIOS", // C
+      "EAN", // D
+      "COD CONSINCO", // E
+      "PRODUTO", // F
+      "DEPARTAMENTO", // G
+      "SECAO", // H
+      "GRUPO", // I
+      "SUBGRUPO", // J
+      "CATEGORIA", // K
       "RELATORIO/OBSERVAÇÃO", // L
-      "QUANTIDADE",       // M
-      "VALOR UNITARIO",   // N
-      "DOCUMENTO",        // O
+      "QUANTIDADE", // M
+      "VALOR UNITARIO", // N
+      "DOCUMENTO", // O
     ],
   ];
 
@@ -84,7 +103,7 @@ async function garantirAbaRelatorio() {
     },
   });
 
-  headerGarantido = true;
+  headerGarantido.add(spreadsheetId);
 }
 
 export default async function handler(req, res) {
@@ -95,21 +114,32 @@ export default async function handler(req, res) {
       .json({ sucesso: false, message: "Método não permitido. Use POST." });
   }
 
-  // Confere se as variáveis da Vercel estão presentes
-  if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
-    return res.status(500).json({
-      sucesso: false,
-      message:
-        "Configuração da API incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e SPREADSHEET_ID.",
-    });
-  }
-
   try {
+    let envVars;
+
+    try {
+      envVars = getEnvVars();
+    } catch (err) {
+      return res.status(500).json({
+        sucesso: false,
+        message:
+          "Configuração da API incompleta. Verifique as variáveis de ambiente.",
+        detalhe: err.message,
+      });
+    }
+
+    const { serviceAccountEmail, privateKey, spreadsheetId } = envVars;
+    const { auth, sheets } = getSheetsClient({
+      serviceAccountEmail,
+      privateKey,
+    });
+    await auth.authorize();
+
     // Garante aba + cabeçalho
-    await garantirAbaRelatorio();
+    await garantirAbaRelatorio({ sheets, spreadsheetId });
 
     const {
-      produto,         // array [EAN, COD, PRODUTO, DEP, SEÇÃO, GRUPO, SUBGRUPO, CATEGORIA]
+      produto, // array [EAN, COD, PRODUTO, DEP, SEÇÃO, GRUPO, SUBGRUPO, CATEGORIA]
       loja,
       usuario,
       observacao,
@@ -164,9 +194,9 @@ export default async function handler(req, res) {
 
     // Monta a linha exatamente na ordem que você pediu
     const linha = [
-      dataHora,          // DATA/HORA
-      loja,              // LOJAS
-      usuario,           // USÚARIOS
+      dataHora, // DATA/HORA
+      loja, // LOJAS
+      usuario, // USÚARIOS
       ean,
       codConsinco,
       nomeProduto,

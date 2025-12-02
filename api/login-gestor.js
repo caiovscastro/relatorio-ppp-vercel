@@ -1,12 +1,23 @@
 // API de login do gestor: /api/login-gestor
 export default function handler(req, res) {
   if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
     return res
       .status(405)
       .json({ sucesso: false, message: "Método não permitido." });
   }
 
   const { usuario, senha } = req.body || {};
+
+  // Validação básica de entrada
+  if (!usuario || !senha) {
+    return res
+      .status(400)
+      .json({
+        sucesso: false,
+        message: "Usuário e senha são obrigatórios.",
+      });
+  }
 
   // Usuários autorizados para o painel de gestor
   const gestores = {
