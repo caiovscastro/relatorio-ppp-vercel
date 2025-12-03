@@ -238,6 +238,17 @@
       word-break: break-word;
     }
 
+    /* Valores menores para Data/Hora e Loja, evitando quebra de linha em telas estreitas */
+    .valor-compacto {
+      font-size: 10px;                  /* menor para manter tudo na mesma linha */
+    }
+
+    /* Espaço extra após o rótulo de Documento para afastar o número */
+    .valor-documento {
+      margin-left: 6px;                 /* distância maior para não grudar no título */
+      display: inline-block;
+    }
+
     /* Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário) */
     .cartao-linha {
       display: grid;
@@ -757,7 +768,7 @@
                 <div class="cartao-pares">
                   <div class="cartao-pareado">
                     <span class="rotulo">Data/Hora:</span>
-                    <span class="valor">${r.dataHora || "-"}</span>
+                    <span class="valor valor-compacto">${r.dataHora || "-"}</span>
                   </div>
                   <div class="cartao-pareado">
                     <span class="rotulo">Usuário:</span>
@@ -767,11 +778,11 @@
                 <div class="cartao-pares">
                   <div class="cartao-pareado">
                     <span class="rotulo">Loja:</span>
-                    <span class="valor">${r.loja || "-"}</span>
+                    <span class="valor valor-compacto">${r.loja || "-"}</span>
                   </div>
                   <div class="cartao-pareado">
                     <span class="rotulo">Documento:</span>
-                    <span class="valor">${r.documento || "-"}</span>
+                    <span class="valor valor-documento">${r.documento || "-"}</span>
                   </div>
                 </div>
                 <div class="cartao-separador"></div>
