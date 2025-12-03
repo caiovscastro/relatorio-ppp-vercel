@@ -186,49 +186,64 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro */
+    /* Cartão de cada registro (estilo tabela) */
     .cartao {
-      background: #f5f5f5; /* cinza bem leve para destacar do fundo branco */
+      background: #ffffff;
+      border: 1px solid #2f7e3a;           /* contorno verde como na referência */
       border-radius: 10px;
-      /* sombra removida conforme solicitado */
-      box-shadow: none;
-      padding: 12px 14px;
-      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      padding: 10px 12px 12px;
+      margin-bottom: 12px;
       font-size: 12px;
     }
 
-    .cartao-linha {
-      margin: 2px 0;
+    /* Tabela interna que simula a planilha da imagem */
+    .cartao-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      border: 1px solid #b3b3b3;
     }
 
-    .cartao-linha strong {
-      font-weight: 600;
+    .cartao-table th,
+    .cartao-table td {
+      border: 1px solid #b3b3b3;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
     }
 
-    .cartao-topo {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 6px;
+    /* Células de rótulo ficam um pouco mais escuras */
+    .cartao-table th {
+      background: #f7f7f7;
+      width: 26%;
+      font-weight: 700;
+      color: #111;
+    }
+
+    /* Linhas de destaque (EAN e Produto) ocupam toda a largura */
+    .cartao-table .linha-cheia th {
+      width: 18%;
+    }
+
+    .cartao-table .linha-cheia td {
+      font-weight: 700;
+      color: #000;
+    }
+
+    /* Bloco final de observação segue o formato da imagem */
+    .cartao-observacao {
+      border: 1px solid #b3b3b3;
+      border-top: none;
+      padding: 8px 10px;
+      background: #ffffff;
+      line-height: 1.4;
+    }
+
+    .cartao-observacao .obs-titulo {
+      font-weight: 700;
       margin-bottom: 4px;
-      border-bottom: 1px dashed #ddd;
-      padding-bottom: 4px;
-    }
-
-    /* Linha divisória igual à do topo, para usar acima de "Relatório / Observação:" */
-    .linha-divisoria {
-      border-bottom: 1px dashed #ddd;
-      margin: 4px 0;
-    }
-
-    .tag {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: #f0f0ff;
-      color: #333;
-      margin-left: 4px;
+      color: #111;
     }
 
     /* ========= RODAPÉ DO PAINEL ========= */
@@ -689,56 +704,39 @@
           maximumFractionDigits: 2,
         });
 
-        // Monta HTML dos cartões, aplicando quebra de linha do relatório
+        // Monta HTML dos cartões no formato de planilha (igual à referência visual)
         listaEl.innerHTML = registros
           .map((r) => {
             const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "<br>");
             return `
               <div class="cartao">
-                <div class="cartao-topo">
-                  <div>
-                    <div class="cartao-linha">
-                      <strong>Data/Hora:</strong> ${r.dataHora || "-"}
-                    </div>
-                    <div class="cartao-linha">
-                      <strong>Loja:</strong> ${r.loja || "-"}
-                    </div>
-                  </div>
-                  <div>
-                    <div class="cartao-linha">
-                      <strong>Usuário:</strong> ${r.usuario || "-"}
-                    </div>
-                    <div class="cartao-linha">
-                      <strong>Documento:</strong> ${r.documento || "-"}
-                    </div>
-                  </div>
-                </div>
-
-                <div class="cartao-linha">
-                  <strong>EAN:</strong> ${r.ean || "-"}
-                </div>
-                <div class="cartao-linha">
-                  <strong>Produto:</strong> ${r.produto || "-"}
-                </div>
-                <div class="cartao-linha">
-                  <strong>Departamento:</strong> ${r.departamento || "-"}
-                  <span class="tag">${r.secao || ""}</span>
-                </div>
-
-                <div class="cartao-linha">
-                  <strong>Quantidade:</strong> ${r.quantidade || "-"}
-                  &nbsp;&nbsp;|&nbsp;&nbsp;
-                  <strong>Valor unitário (R$):</strong> ${r.valorUnitario || "-"}
-                </div>
-
-                <!-- Linha divisória igual à da parte superior, antes de Relatório -->
-                <div class="linha-divisoria"></div>
-
-                <div class="cartao-linha">
-                  <strong>Relatório / Observação:</strong>
-                </div>
-                <div class="cartao-linha">
-                  ${relatorioFormatado}
+                <table class="cartao-table" aria-label="Registro de relatório">
+                  <tr>
+                    <th>Data/Hora:</th><td>${r.dataHora || "-"}</td>
+                    <th>Usuário:</th><td>${r.usuario || "-"}</td>
+                  </tr>
+                  <tr>
+                    <th>Loja:</th><td>${r.loja || "-"}</td>
+                    <th>Documento:</th><td>${r.documento || "-"}</td>
+                  </tr>
+                  <tr class="linha-cheia">
+                    <th>EAN</th><td colspan="3">${r.ean || "-"}</td>
+                  </tr>
+                  <tr class="linha-cheia">
+                    <th>Produto</th><td colspan="3">${r.produto || "-"}</td>
+                  </tr>
+                  <tr>
+                    <th>Departamento</th><td>${r.departamento || "-"}</td>
+                    <th>Seção</th><td>${r.secao || "-"}</td>
+                  </tr>
+                  <tr>
+                    <th>Quantidade</th><td>${r.quantidade || "-"}</td>
+                    <th>Valor Unitário R$</th><td>${r.valorUnitario || "-"}</td>
+                  </tr>
+                </table>
+                <div class="cartao-observacao">
+                  <div class="obs-titulo">Relatório / Observação:</div>
+                  <div class="obs-texto">${relatorioFormatado}</div>
                 </div>
               </div>
             `;
