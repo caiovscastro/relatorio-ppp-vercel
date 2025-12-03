@@ -186,83 +186,85 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro em formato de planilha
-       -----------------------------------------------------------------
-       A borda verde contorna todo o cartão. O cabeçalho com gradiente
-       verde destaca o bloco de observação, e a tabela em cinza claro
-       reproduz o aspecto de células de planilha. Mantemos esse layout
-       detalhado aqui para facilitar cópia/cola direta para outros
-       arquivos, como solicitado. */
+    /* Cartão de cada registro em formato de planilha (igual à imagem de referência)
+       ------------------------------------------------------------------------------
+       - Borda verde contornando o cartão inteiro
+       - Faixa de cabeçalho verde destacando "Relatório/Observação"
+       - Tabela com linhas cinza (#bfbfbf) e linha de Produto em cinza claro
+       - Bloco final de Observação com o mesmo contorno cinza
+    */
     .cartao {
       background: #ffffff;
-      border: 1px solid #2f7e3a;           /* contorno verde conforme referência */
+      border: 2px solid #3c9c46;           /* verde do contorno externo */
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      padding: 0;                          /* bordas externas, sem padding extra */
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      padding: 0;                          /* sem padding: tabela encosta na borda verde */
       margin-bottom: 12px;
       font-size: 12px;
-      overflow: hidden;                    /* garante que o cabeçalho verde siga as bordas */
+      overflow: hidden;                    /* mantém cabeçalho aderente às bordas arredondadas */
     }
 
-    /* Faixa superior destacando o bloco de observação */
+    /* Faixa superior verde que destaca o título da observação */
     .cartao-header {
-      background: linear-gradient(90deg, #3ca34b, #2f7e3a);
+      background: linear-gradient(90deg, #43ad4f, #2f7e3a);
       color: #ffffff;
       padding: 8px 10px;
       font-weight: 700;
-      font-size: 13px;
       letter-spacing: 0.2px;
+      font-size: 13px;
     }
 
-    /* Tabela interna que imita a planilha da imagem */
+    /* Tabela interna com linhas cinza para simular células de planilha */
     .cartao-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
-      border: 1px solid #b3b3b3;
+      border: 1px solid #bfbfbf;
     }
 
     .cartao-table th,
     .cartao-table td {
-      border: 1px solid #b3b3b3;
+      border: 1px solid #bfbfbf;
       padding: 6px 8px;
       text-align: left;
       vertical-align: top;
       background: #ffffff;
-    }
-
-    /* Células de rótulo ficam em cinza bem claro, simulando a planilha */
-    .cartao-table th {
-      background: #f7f7f7;
-      width: 26%;
-      font-weight: 700;
       color: #111;
     }
 
-    /* Linhas de destaque (EAN e Produto) ocupam toda a largura */
+    /* Células de rótulo em cinza clarinho para o contraste da imagem */
+    .cartao-table th {
+      background: #f1f1f1;
+      font-weight: 700;
+      width: 25%;
+    }
+
+    /* Linha de produto ocupa a linha inteira e leva fundo cinza claro */
+    .cartao-table .linha-produto th,
+    .cartao-table .linha-produto td {
+      background: #f1f1f1;
+      font-weight: 700;
+    }
+
+    /* Ajusta largura das células que ocupam a linha toda (EAN / Produto) */
     .cartao-table .linha-cheia th {
       width: 18%;
     }
 
-    .cartao-table .linha-cheia td {
-      font-weight: 700;
-      color: #000;
-    }
-
-    /* Bloco final de observação com borda contínua cinza */
+    /* Bloco final de observação com contorno cinza contínuo */
     .cartao-observacao {
-      border: 1px solid #b3b3b3;
+      border: 1px solid #bfbfbf;
       border-top: none;
       padding: 10px 12px;
       background: #ffffff;
       line-height: 1.45;
+      color: #111;
     }
 
     .cartao-observacao .obs-titulo {
       font-weight: 700;
       margin-bottom: 6px;
       color: #111;
-      letter-spacing: 0.2px;
     }
 
     /* ========= RODAPÉ DO PAINEL ========= */
@@ -723,10 +725,10 @@
           maximumFractionDigits: 2,
         });
 
-        // Monta HTML dos cartões no formato de planilha:
-        // - cabeçalho verde para destacar o bloco de observação
-        // - tabela com bordas cinza simulando células
-        // - bloco final de observação com texto formatado
+        // Monta HTML dos cartões no formato de planilha, igual à imagem de referência:
+        // - borda verde externa e cabeçalho verde "Relatório/Observação"
+        // - tabela com linhas cinza e linha de produto em cinza claro
+        // - bloco final de observação com borda contínua
         listaEl.innerHTML = registros
           .map((r) => {
             const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "<br>");
@@ -745,7 +747,7 @@
                   <tr class="linha-cheia">
                     <th>EAN</th><td colspan="3">${r.ean || "-"}</td>
                   </tr>
-                  <tr class="linha-cheia">
+                  <tr class="linha-cheia linha-produto">
                     <th>Produto</th><td colspan="3">${r.produto || "-"}</td>
                   </tr>
                   <tr>
