@@ -280,6 +280,37 @@
       color: #111;
     }
 
+    /* === NOVO: linhas em formato de tabela (título à esquerda, valor à direita) === */
+    .cartao-linha {
+      display: grid;
+      grid-template-columns: 34% 66%; /* título | valor */
+      align-items: center;
+      font-size: 13px;
+      padding: 4px 0;
+      border-bottom: 1px solid #e4e4e4;
+      column-gap: 6px;
+    }
+
+    .cartao-linha:last-child {
+      border-bottom: none;
+    }
+
+    .cartao-linha-label {
+      font-weight: 700;
+      color: #111;
+      white-space: nowrap;
+    }
+
+    .cartao-linha-valor {
+      color: #111;
+      word-break: break-word;
+    }
+
+    .cartao-linha-produto {
+      background: #f5f5f5;
+      font-weight: 700;
+    }
+
     @keyframes entrarCartao {
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -552,7 +583,7 @@
       <div id="resultado"></div>
 
       <!-- Botão para voltar a tela inicial -->
-  <a href="/index.html" class="btn-voltar" onclick="limparSessao()">Sair</a>
+      <a href="/index.html" class="btn-voltar" onclick="limparSessao()">Sair</a>
     </div>
   </div>
 
@@ -574,39 +605,39 @@
     let streamAtual = null;
     let lendo = false;
 
-// ================ INICIALIZAÇÃO DO PAINEL (AGORA LENDO SESSÃO) ================
-document.addEventListener("DOMContentLoaded", () => {
-  let sessao = null;
+    // ================ INICIALIZAÇÃO DO PAINEL (AGORA LENDO SESSÃO) ================
+    document.addEventListener("DOMContentLoaded", () => {
+      let sessao = null;
 
-  // Tenta ler a sessão do localStorage
-  try {
-    const raw = localStorage.getItem("pppSession");
-    if (raw) {
-      sessao = JSON.parse(raw);
-    }
-  } catch (e) {
-    console.error("Erro ao ler sessão do localStorage:", e);
-  }
+      // Tenta ler a sessão do localStorage
+      try {
+        const raw = localStorage.getItem("pppSession");
+        if (raw) {
+          sessao = JSON.parse(raw);
+        }
+      } catch (e) {
+        console.error("Erro ao ler sessão do localStorage:", e);
+      }
 
-  // Se não tiver sessão válida → bloqueia acesso
-  if (!sessao || !sessao.usuario || !sessao.loja) {
-    document.getElementById("erroAcesso").style.display = "flex";
-    return;
-  }
+      // Se não tiver sessão válida → bloqueia acesso
+      if (!sessao || !sessao.usuario || !sessao.loja) {
+        document.getElementById("erroAcesso").style.display = "flex";
+        return;
+      }
 
-  usuarioLogado = sessao.usuario;
-  lojaLogada    = sessao.loja;
+      usuarioLogado = sessao.usuario;
+      lojaLogada    = sessao.loja;
 
-  // Preenche cabeçalho
-  document.getElementById("usuarioSpan").textContent = usuarioLogado;
-  document.getElementById("lojaSpan").textContent    = lojaLogada;
+      // Preenche cabeçalho
+      document.getElementById("usuarioSpan").textContent = usuarioLogado;
+      document.getElementById("lojaSpan").textContent    = lojaLogada;
 
-  // Exibe o painel
-  document.getElementById("appRoot").style.display = "block";
+      // Exibe o painel
+      document.getElementById("appRoot").style.display = "block";
 
-  // Carrega a base completa de produtos
-  carregarBase();
-});
+      // Carrega a base completa de produtos
+      carregarBase();
+    });
 
     // ================ OVERLAY DE CARREGAMENTO 0→100% ================
 
@@ -763,18 +794,42 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Monta os cartões clicáveis
+      // Cartões em formato de tabela: produto primeiro, depois demais campos
       const html = ultimosResultados
         .map((linha, idx) => `
           <div class="cartao" onclick="enviarRelatorio(${idx})">
-            <p><strong>EAN:</strong> ${linha[0] ?? ""}</p>
-            <p><strong>Cód Consinco:</strong> ${linha[1] ?? ""}</p>
-            <p><strong>Produto:</strong> ${linha[2] ?? ""}</p>
-            <p><strong>Departamento:</strong> ${linha[3] ?? ""}</p>
-            <p><strong>Seção:</strong> ${linha[4] ?? ""}</p>
-            <p><strong>Grupo:</strong> ${linha[5] ?? ""}</p>
-            <p><strong>Subgrupo:</strong> ${linha[6] ?? ""}</p>
-            <p><strong>Categoria:</strong> ${linha[7] ?? ""}</p>
+            <div class="cartao-linha cartao-linha-produto">
+              <span class="cartao-linha-label">Produto:</span>
+              <span class="cartao-linha-valor">${linha[2] ?? ""}</span>
+            </div>
+            <div class="cartao-linha">
+              <span class="cartao-linha-label">EAN:</span>
+              <span class="cartao-linha-valor">${linha[0] ?? ""}</span>
+            </div>
+            <div class="cartao-linha">
+              <span class="cartao-linha-label">Cód Consinco:</span>
+              <span class="cartao-linha-valor">${linha[1] ?? ""}</span>
+            </div>
+            <div class="cartao-linha">
+              <span class="cartao-linha-label">Departamento:</span>
+              <span class="cartao-linha-valor">${linha[3] ?? ""}</span>
+            </div>
+            <div class="cartao-linha">
+              <span class="cartao-linha-label">Seção:</span>
+              <span class="cartao-linha-valor">${linha[4] ?? ""}</span>
+            </div>
+            <div class="cartao-linha">
+              <span class="cartao-linha-label">Grupo:</span>
+              <span class="cartao-linha-valor">${linha[5] ?? ""}</span>
+            </div>
+            <div class="cartao-linha">
+              <span class="cartao-linha-label">Subgrupo:</span>
+              <span class="cartao-linha-valor">${linha[6] ?? ""}</span>
+            </div>
+            <div class="cartao-linha">
+              <span class="cartao-linha-label">Categoria:</span>
+              <span class="cartao-linha-valor">${linha[7] ?? ""}</span>
+            </div>
           </div>
         `)
         .join("");
@@ -1000,17 +1055,15 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("cameraArea").style.display = "none";
     }
 
-    
-// ================ LIMPAR SESSÃO AO SAIR ================
-function limparSessao() {
-  try {
-    localStorage.removeItem("pppSession");
-  } catch (e) {
-    console.warn("Não foi possível limpar a sessão:", e);
-  }
-  // Navegação para /login.html continua pelo href do link
-}
-    
+    // ================ LIMPAR SESSÃO AO SAIR ================
+    function limparSessao() {
+      try {
+        localStorage.removeItem("pppSession");
+      } catch (e) {
+        console.warn("Não foi possível limpar a sessão:", e);
+      }
+      // Navegação para /index.html continua pelo href do link
+    }
   </script>
 </body>
 </html>
