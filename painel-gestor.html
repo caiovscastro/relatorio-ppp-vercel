@@ -10,7 +10,7 @@
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 2;
+      margin: 2px;                         /* margem mínima em px para evitar inconsistências de CSS */
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -190,7 +190,9 @@
        -----------------------------------------------------------------
        A borda verde contorna todo o cartão. O cabeçalho com gradiente
        verde destaca o bloco de observação, e a tabela em cinza claro
-       reproduz o aspecto de células de planilha. */
+       reproduz o aspecto de células de planilha. Mantemos esse layout
+       detalhado aqui para facilitar cópia/cola direta para outros
+       arquivos, como solicitado. */
     .cartao {
       background: #ffffff;
       border: 1px solid #2f7e3a;           /* contorno verde conforme referência */
