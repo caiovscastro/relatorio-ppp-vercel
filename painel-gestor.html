@@ -1,4 +1,4 @@
-@DOCTYPE html
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -186,19 +186,15 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro seguindo exatamente o modelo textual do exemplo:
-       -----------------------------------------------------------------------
+    /* Cartão de cada registro:
        - Linha 1: Data/Hora (coluna 1) | Usuário (coluna 2)
        - Linha 2: Loja (coluna 1)      | Documento (coluna 2)
-       - Linha divisória cinza
-       - Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário)
-         com apenas duas colunas (rótulo + valor)
-       - Nova divisória cinza antes do bloco Observação / Relatório
-       - Sem cabeçalho colorido; apenas contorno verde discreto
+       - Linhas únicas: EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário
+       - Observação / Relatório ao final
     */
     .cartao {
       background: #ffffff;
-      border: 2px solid #3c9c46;           /* contorno verde leve, mantendo destaque do cartão */
+      border: 2px solid #3c9c46;           /* contorno verde leve */
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       padding: 0;
@@ -218,42 +214,36 @@
       display: grid;
       grid-template-columns: 38% 62%;
       align-items: center;
-      padding: 8px 10px;                 /* padding padrão (será sobrescrito nos pares verdes) */
+      padding: 8px 10px;                 /* base (é sobrescrita nas linhas verdes) */
       border-right: 1px solid #c7c7c7;
       gap: 6px;
-      min-width: 0;                      /* evita quebra forçada nas células compactas */
+      min-width: 0;
     }
 
-    /* Versão usada apenas no par Loja/valor, com colunas mais próximas
-       (use aqui para regular exclusivamente a distância entre o rótulo
-       "Loja:" e seu texto, sem afetar Data/Hora ou Documento). */
+    /* Exclusivo para Loja, aproximando o valor */
     .cartao-pareado-loja {
-      grid-template-columns: 30% 50%;    /* aproxima o valor do rótulo Loja */
-      gap: 0px;                          /* espaço menor somente para esta linha */
+      grid-template-columns: 30% 50%;
+      gap: 0px;
     }
 
     .cartao-pareado:nth-child(2n) {
-      border-right: none;                /* remove a borda na coluna da direita */
+      border-right: none;
     }
 
-    /* ===== FUNDO VERDE CLARINHO + ALTURA AJUSTADA NOS 4 BLOCOS SUPERIORES =====
-       - .cartao-pares-superior: linha Data/Hora x Usuário → um pouco mais alta
-       - .cartao-pares-inferior: linha Loja x Documento → um pouco mais baixa
-       - As quatro células (rótulo + valor) ficam com fundo #e9fbe9
-    */
+    /* ===== FUNDO VERDE CLARINHO + ALTURA AJUSTADA NOS 4 BLOCOS SUPERIORES ===== */
     .cartao-pares-superior .cartao-pareado,
     .cartao-pares-inferior .cartao-pareado {
-      background: #e9fbe9;               /* verde clarinho nos quatro blocos superiores */
+      background: #e9fbe9;               /* verde clarinho */
     }
 
-    /* Linha 1: Data/Hora x Usuário → leve destaque (mais alta) */
+    /* Linha 1: Data/Hora x Usuário → um pouco mais alta */
     .cartao-pares-superior .cartao-pareado {
-      padding: 6px 10px;                 /* altura reduzida em relação ao original, mas maior que a linha de baixo */
+      padding: 6px 10px;
     }
 
-    /* Linha 2: Loja x Documento → ainda mais compacta */
+    /* Linha 2: Loja x Documento → um pouco mais baixa que a de cima */
     .cartao-pares-inferior .cartao-pareado {
-      padding: 4px 10px;                 /* um pouco mais baixa que a linha superior */
+      padding: 4px 10px;
     }
 
     .rotulo {
@@ -267,24 +257,24 @@
       word-break: break-word;
     }
 
-    /* Valores menores para Data/Hora e Loja, evitando quebra de linha em telas estreitas */
+    /* Valores mais compactos para Data/Hora e Loja */
     .valor-compacto {
-      font-size: 10px;                  /* menor para manter tudo na mesma linha */
-      white-space: nowrap;              /* impede quebra, mesmo em telas estreitas */
+      font-size: 10px;
+      white-space: nowrap;
       line-height: 1.1;
     }
 
-    /* Espaço extra após o rótulo de Documento para afastar o número */
     .valor-documento {
-      margin-left: 8px;                 /* distância maior para não grudar no título */
+      margin-left: 8px;
       display: inline-block;
     }
 
-    /* Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário) */
+    /* Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário)
+       → altura reduzida, mas ainda confortável (Opção 2) */
     .cartao-linha {
       display: grid;
       grid-template-columns: 38% 62%;
-      padding: 8px 10px;
+      padding: 4px 10px;                 /* ANTES: 8px 10px → agora mais compacto */
       border-bottom: 1px solid #d6d6d6;
       gap: 4px;
     }
@@ -293,23 +283,20 @@
       border-bottom: none;
     }
 
-    /* Produto fica levemente sombreado para destacar o nome */
+    /* Produto levemente sombreado para destaque */
     .cartao-linha-produto {
       background: #f5f5f5;
       font-weight: 700;
     }
 
-    /* Linha cinza inteira separando pares superiores das linhas simples */
     .cartao-separador {
       border-top: 1px solid #c7c7c7;
     }
 
-    /* Divisória antes do bloco de observação */
     .cartao-divisoria {
       border-top: 1px solid #c7c7c7;
     }
 
-    /* Bloco final de observação mantendo texto formatado em múltiplas linhas */
     .cartao-observacao {
       padding: 10px 12px 12px;
       background: #ffffff;
@@ -375,8 +362,8 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(220, 220, 220, 0.85); /* fundo cinza claro semi-transparente */
-      display: none;                         /* fica escondido até abrir via JS */
+      background: rgba(220, 220, 220, 0.85);
+      display: none;
       align-items: center;
       justify-content: center;
       z-index: 999;
@@ -437,10 +424,10 @@
       position: fixed;
       inset: 0;
       background: rgba(243, 243, 243, 0.9);
-      display: none;               /* mostrado via JS quando começa o carregamento */
+      display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1000;               /* acima do modal */
+      z-index: 1000;
     }
 
     .loading-box {
@@ -475,7 +462,7 @@
   </style>
 </head>
 <body>
-  @-- ========= TELA DE ERRO SE ACESSAR SEM LOGIN DO GESTOR ========= --
+  <!-- ========= TELA DE ERRO SE ACESSAR SEM LOGIN DO GESTOR ========= -->
   <div id="erroAcesso" class="tela-erro" style="display:none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
@@ -485,7 +472,7 @@
     </div>
   </div>
 
-  @-- ========= CONTEÚDO PRINCIPAL DO PAINEL ========= --
+  <!-- ========= CONTEÚDO PRINCIPAL DO PAINEL ========= -->
   <div id="appRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
@@ -493,7 +480,7 @@
       </div>
     </div>
 
-    @-- Cards de resumo: Qtd. Itens e Valor total (ocupam largura principal) --
+    <!-- Cards de resumo: Qtd. Itens e Valor total -->
     <div class="resumo-cards">
       <div class="card-resumo">
         <div class="resumo-titulo">Qtd. Itens</div>
@@ -505,11 +492,11 @@
       </div>
     </div>
 
-    @-- Bloco de filtros com inputs e botões --
+    <!-- Bloco de filtros com inputs e botões -->
     <div class="bloco-filtros">
       <h3>Filtros</h3>
 
-      @-- Campos de filtro em grid --
+      <!-- Campos de filtro em grid -->
       <div class="filtros-grid">
         <div class="campo-filtro campo-loja">
           <label for="filtroLoja">Loja (texto)</label>
@@ -550,7 +537,7 @@
         </div>
       </div>
 
-      @-- Botões de ação, com largura equivalente às três colunas de baixo --
+      <!-- Botões de ação -->
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
         <button class="btn btn-exportar" onclick="abrirModalDownload()">Exportar XLSX</button>
@@ -558,7 +545,7 @@
       </div>
     </div>
 
-    @-- Status e lista de registros em formato de cartões --
+    <!-- Status e lista de registros em formato de cartões -->
     <div class="status" id="status">Carregando relatórios...</div>
 
     <div class="lista-cartoes" id="listaCartoes"></div>
@@ -569,7 +556,7 @@
     </div>
   </div>
 
-  @-- ========= MODAL (POPUP) DE CONFIRMAÇÃO DO DOWNLOAD ========= --
+  <!-- ========= MODAL (POPUP) DE CONFIRMAÇÃO DO DOWNLOAD ========= -->
   <div id="modalDownload" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar download</div>
@@ -583,7 +570,7 @@
     </div>
   </div>
 
-  @-- ========= OVERLAY DE CARREGAMENTO 0–100% ========= --
+  <!-- ========= OVERLAY DE CARREGAMENTO 0–100% ========= -->
   <div id="loadingOverlay">
     <div class="loading-box">
       <div>Carregando relatórios...</div>
@@ -594,7 +581,7 @@
     </div>
   </div>
 
-  @-- SheetJS para gerar XLSX no navegador --
+  <!-- SheetJS para gerar XLSX no navegador -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
@@ -644,19 +631,15 @@
       bar.style.width = "100%";
       percentEl.textContent = "100%";
 
-      // Dá um pequeno tempo para o usuário ver 100% e some
       setTimeout(() => {
         overlay.style.display = "none";
       }, 200);
     }
 
     // ========= PARSE DE DATA (MESMA LÓGICA DA API) =========
-    // Converte valores de data/hora da planilha para Date apenas com dia/mês/ano,
-    // ignorando segundos e removendo vírgulas (ex.: "03/12/2025, 12:36:13").
     function parseDataDaPlanilha(dataHoraStr) {
       if (!dataHoraStr) return null;
       try {
-        // Remove qualquer vírgula e faz split apenas por espaço, evitando segundos.
         const limpo = String(dataHoraStr).replace(/,/g, "");
         const [parteData] = limpo.split(" ");
         const [dia, mes, ano] = (parteData || "").split("/");
@@ -696,7 +679,7 @@
       });
     }
 
-    // ========= INICIALIZAÇÃO DO PAINEL (VALIDA LOGIN E CARREGA BASE UMA ÚNICA VEZ) =========
+    // ========= INICIALIZAÇÃO DO PAINEL =========
     document.addEventListener("DOMContentLoaded", () => {
       const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
@@ -719,38 +702,33 @@
         return;
       }
 
-      // Se chegou aqui, login de gestor é válido
       usuarioLogado = dadosGestor.usuario;
 
-      // Mostra o painel e carrega a base completa apenas uma vez
       document.getElementById("appRoot").style.display = "block";
       carregarBaseInicial();
     });
 
-    // ========= LOGOUT DO GESTOR (LIMPA SESSION STORAGE) =========
+    // ========= LOGOUT DO GESTOR =========
     function logoutGestor() {
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
     }
 
-    // ========= FUNÇÃO AUXILIAR PARA PARSE DE NÚMEROS PT-BR =========
+    // ========= PARSE DE NÚMEROS PT-BR =========
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
       if (!s) return 0;
 
-      // remove espaços
       s = s.replace(/\s+/g, "");
-      // remove separador de milhar e troca vírgula por ponto
       s = s.replace(/\./g, "").replace(",", ".");
       const n = Number(s);
       return isNaN(n) ? 0 : n;
     }
 
-    // ========= CARREGA A BASE UMA VEZ E FILTRA LOCALMENTE =========
+    // ========= CARREGA A BASE E FILTRA LOCALMENTE =========
     async function carregarBaseInicial() {
       const statusEl = document.getElementById("status");
 
-      // Mostra overlay apenas na primeira carga do dataset
       iniciarProgresso();
       try {
         statusEl.textContent = "Carregando relatórios...";
@@ -764,8 +742,6 @@
         }
 
         registrosBase = Array.isArray(dados.registros) ? dados.registros : [];
-
-        // Assim que carregar, aplica os filtros atuais (ou ausência deles) localmente
         aplicarFiltrosLocal();
       } catch (erro) {
         console.error("Erro ao carregar relatórios:", erro);
@@ -776,7 +752,7 @@
       }
     }
 
-    // Executa os filtros atuais sobre a base já carregada em memória
+    // ========= APLICA FILTROS LOCAIS E MONTA CARTÕES =========
     function aplicarFiltrosLocal() {
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
@@ -784,7 +760,6 @@
       const resumoQtdTotal = document.getElementById("resumoQtdTotal");
       const resumoValorTotal = document.getElementById("resumoValorTotal");
 
-      // Se a base ainda não carregou (erro ou conexão), informa o usuário
       if (!registrosBase.length) {
         statusEl.textContent = "Base ainda não carregada ou vazia.";
         listaEl.innerHTML = "";
@@ -794,7 +769,6 @@
         return;
       }
 
-      // Filtra localmente com a mesma regra da API
       const registros = filtrarLocal();
 
       if (!registros.length) {
@@ -807,10 +781,8 @@
         return;
       }
 
-      // Guarda registros filtrados para exportação
       registrosAtuais = registros;
 
-      // Calcula totais de quantidade e valor
       let totalQtd = 0;
       let totalValor = 0;
 
@@ -821,7 +793,6 @@
         totalValor += qtd * vUnit;
       });
 
-      // Atualiza resumos
       statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
       resumoQtd.textContent = `Total de registros retornados: ${registros.length}`;
 
@@ -831,75 +802,70 @@
         maximumFractionDigits: 2,
       });
 
-      // Monta HTML dos cartões:
-      // - Primeiras duas linhas pareadas (Data/Hora x Usuário) e (Loja x Documento)
-      //   com fundo verde clarinho, sendo a primeira linha ligeiramente mais alta
-      // - Demais linhas simples: EAN, Produto, Departamento, Seção, Quantidade, Valor
-      // - Divisória e bloco final de Observação/Relatório
       listaEl.innerHTML = registros
         .map((r) => {
           const relatorioFormatado = r.relatorio || "-";
           return `
-              <div class="cartao">
-                <!-- Linha 1: Data/Hora x Usuário (fundo verde, ligeiramente mais alta) -->
-                <div class="cartao-pares cartao-pares-superior">
-                  <div class="cartao-pareado">
-                    <span class="rotulo">Data/Hora:</span>
-                    <span class="valor valor-compacto">${r.dataHora || "-"}</span>
-                  </div>
-                  <div class="cartao-pareado">
-                    <span class="rotulo">Usuário:</span>
-                    <span class="valor">${r.usuario || "-"}</span>
-                  </div>
+            <div class="cartao">
+              <!-- Linha 1: Data/Hora x Usuário -->
+              <div class="cartao-pares cartao-pares-superior">
+                <div class="cartao-pareado">
+                  <span class="rotulo">Data/Hora:</span>
+                  <span class="valor valor-compacto">${r.dataHora || "-"}</span>
                 </div>
-                <!-- Linha 2: Loja x Documento (fundo verde, um pouco mais baixa) -->
-                <div class="cartao-pares cartao-pares-inferior">
-                  <div class="cartao-pareado cartao-pareado-loja">
-                    <span class="rotulo">Loja:</span>
-                    <span class="valor valor-compacto">${r.loja || "-"}</span>
-                  </div>
-                  <div class="cartao-pareado">
-                    <span class="rotulo">Documento:</span>
-                    <span class="valor valor-documento">${r.documento || "-"}</span>
-                  </div>
-                </div>
-                <div class="cartao-separador"></div>
-                <div class="cartao-linha">
-                  <span class="rotulo">EAN</span>
-                  <span class="valor">${r.ean || "-"}</span>
-                </div>
-                <div class="cartao-linha cartao-linha-produto">
-                  <span class="rotulo">Produto</span>
-                  <span class="valor">${r.produto || "-"}</span>
-                </div>
-                <div class="cartao-linha">
-                  <span class="rotulo">Departamento</span>
-                  <span class="valor">${r.departamento || "-"}</span>
-                </div>
-                <div class="cartao-linha">
-                  <span class="rotulo">Seção</span>
-                  <span class="valor">${r.secao || "-"}</span>
-                </div>
-                <div class="cartao-linha">
-                  <span class="rotulo">Quantidade</span>
-                  <span class="valor">${r.quantidade || "-"}</span>
-                </div>
-                <div class="cartao-linha">
-                  <span class="rotulo">Valor Unitário</span>
-                  <span class="valor">${r.valorUnitario || "-"}</span>
-                </div>
-                <div class="cartao-divisoria"></div>
-                <div class="cartao-observacao">
-                  <div class="obs-titulo">Observação / Relatório:</div>
-                  <div class="obs-texto">${relatorioFormatado}</div>
+                <div class="cartao-pareado">
+                  <span class="rotulo">Usuário:</span>
+                  <span class="valor">${r.usuario || "-"}</span>
                 </div>
               </div>
-            `;
+              <!-- Linha 2: Loja x Documento -->
+              <div class="cartao-pares cartao-pares-inferior">
+                <div class="cartao-pareado cartao-pareado-loja">
+                  <span class="rotulo">Loja:</span>
+                  <span class="valor valor-compacto">${r.loja || "-"}</span>
+                </div>
+                <div class="cartao-pareado">
+                  <span class="rotulo">Documento:</span>
+                  <span class="valor valor-documento">${r.documento || "-"}</span>
+                </div>
+              </div>
+              <div class="cartao-separador"></div>
+              <div class="cartao-linha">
+                <span class="rotulo">EAN</span>
+                <span class="valor">${r.ean || "-"}</span>
+              </div>
+              <div class="cartao-linha cartao-linha-produto">
+                <span class="rotulo">Produto</span>
+                <span class="valor">${r.produto || "-"}</span>
+              </div>
+              <div class="cartao-linha">
+                <span class="rotulo">Departamento</span>
+                <span class="valor">${r.departamento || "-"}</span>
+              </div>
+              <div class="cartao-linha">
+                <span class="rotulo">Seção</span>
+                <span class="valor">${r.secao || "-"}</span>
+              </div>
+              <div class="cartao-linha">
+                <span class="rotulo">Quantidade</span>
+                <span class="valor">${r.quantidade || "-"}</span>
+              </div>
+              <div class="cartao-linha">
+                <span class="rotulo">Valor Unitário</span>
+                <span class="valor">${r.valorUnitario || "-"}</span>
+              </div>
+              <div class="cartao-divisoria"></div>
+              <div class="cartao-observacao">
+                <div class="obs-titulo">Observação / Relatório:</div>
+                <div class="obs-texto">${relatorioFormatado}</div>
+              </div>
+            </div>
+          `;
         })
         .join("");
     }
 
-    // ========= LIMPA TODOS OS FILTROS E RECARREGA =========
+    // ========= LIMPA FILTROS =========
     function limparFiltros() {
       document.getElementById("filtroLoja").value = "";
       document.getElementById("filtroUsuario").value = "";
@@ -911,9 +877,8 @@
       aplicarFiltrosLocal();
     }
 
-    // ========= CONTROLE DO MODAL DE DOWNLOAD =========
+    // ========= CONTROLE DO MODAL =========
     function abrirModalDownload() {
-      // Se não houver registros carregados, não abre modal
       if (!registrosAtuais || !registrosAtuais.length) {
         alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
         return;
@@ -925,15 +890,13 @@
       document.getElementById("modalDownload").style.display = "none";
     }
 
-    // Chamado ao clicar em "Sim" dentro do modal
     function confirmarDownload() {
-      fecharModalDownload();              // fecha o popup
-      exportarParaXlsx(registrosAtuais);  // gera o arquivo XLSX
+      fecharModalDownload();
+      exportarParaXlsx(registrosAtuais);
     }
 
-    // ========= EXPORTA REGISTROS ATUAIS PARA XLSX (USANDO SheetJS) =========
+    // ========= EXPORTA PARA XLSX =========
     function exportarParaXlsx(registros) {
-      // Cabeçalho da planilha
       const cabecalho = [
         "Data/Hora",
         "Loja",
@@ -952,7 +915,6 @@
         "Documento",
       ];
 
-      // Linhas de dados
       const linhas = registros.map((r) => {
         return [
           r.dataHora || "",
@@ -966,7 +928,6 @@
           r.grupo || "",
           r.subgrupo || "",
           r.categoria || "",
-          // mantém \n no texto, Excel interpreta como quebra de linha na célula
           r.relatorio || "",
           r.quantidade || "",
           r.valorUnitario || "",
@@ -976,7 +937,6 @@
 
       const dados = [cabecalho, ...linhas];
 
-      // Cria workbook e worksheet com SheetJS
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(dados);
 
