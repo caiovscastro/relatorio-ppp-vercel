@@ -29,6 +29,7 @@ export default function handler(req, res) {
     //    Depois podemos mover isso para uma planilha Google.
     const usuarios = [
         { usuario: "Uloja1", senha: "842142", loja: "ULT 01 - PLANALTINA" },
+        { usuario: "gaspar.silva", senha: "842142", loja: "ULT 01 - PLANALTINA" },
         { usuario: "Uloja2", senha: "842142", loja: "ULT 02 - GAMA" },
         { usuario: "Uloja3", senha: "842142", loja: "ULT 03 - COLORADO" },
         { usuario: "Uloja4", senha: "842142", loja: "ULT 04 - CEI SUL" },
