@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Login Gestor - PPP</title>
+  <title>LOGIN GERENTE PPP</title>
 
   <style>
     body {
@@ -102,7 +102,7 @@
 </head>
 <body>
   <div class="card">
-    <h1>Login do Gestor</h1>
+    <h1>LOGIN GERENTE PPP</h1>
     <p class="subtitulo">
       Acesso aos relatórios consolidados.
     </p>
@@ -167,7 +167,7 @@
 
         if (!resp.ok || !dados.sucesso) {
           erroBox.textContent =
-            dados.message || "Falha ao validar login de gestor.";
+            dados.message || "Falha ao validar login de gerente ppp.";
           return;
         }
 
@@ -183,9 +183,9 @@
         // Redireciona para o painel do gestor.
         window.location.href = "/painel-gestor.html";
       } catch (erro) {
-        console.error("Erro no login de gestor:", erro);
+        console.error("Erro no login de gerente ppp:", erro);
         erroBox.textContent =
-          "Erro de conexão ao tentar validar o login de gestor.";
+          "Erro de conexão ao tentar validar o login de gerente ppp.";
       }
     });
   </script>
