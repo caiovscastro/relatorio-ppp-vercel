@@ -186,16 +186,16 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro conforme o exemplo textual fornecido
+    /* Cartão de cada registro no formato do exemplo textual fornecido
        ------------------------------------------------------------------------------
-       - Apenas duas colunas (rótulo e valor) nas linhas principais
-       - Primeiras linhas em "duplas" (Data/Hora + Usuário) e (Loja + Documento)
-       - Linhas simples para EAN, Produto, Departamento, Seção, Quantidade, Valor
-       - Bloco final de Observação/Relatório separado por uma divisória cinza
+       - Duas colunas nos pares principais: (Data/Hora x Usuário) e (Loja x Documento)
+       - Demais campos ficam em linhas únicas com rótulo + valor
+       - Divisória cinza separando os dados do bloco de Observação/Relatório
+       - Contorno verde leve mantendo aparência de cartão simples
     */
     .cartao {
       background: #ffffff;
-      border: 2px solid #3c9c46;           /* verde do contorno externo */
+      border: 2px solid #3c9c46;           /* contorno verde como referência visual */
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       padding: 0;
@@ -204,19 +204,18 @@
       overflow: hidden;
     }
 
-    /* Linha com duas "subcolunas" (Data/Hora x Usuário) e (Loja x Documento) */
-    .cartao-dupla {
+    /* Pares lado a lado: Data/Hora x Usuário e Loja x Documento */
+    .cartao-pares {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0;
       border-bottom: 1px solid #c7c7c7;
     }
 
     .cartao-pareado {
       display: grid;
-      grid-template-columns: 34% 66%;
+      grid-template-columns: 36% 64%;
       align-items: center;
-      padding: 6px 10px;
+      padding: 8px 10px;
       border-right: 1px solid #c7c7c7;
     }
 
@@ -236,26 +235,21 @@
       word-break: break-word;
     }
 
-    /* Linhas simples (uma etiqueta + valor) com divisão em cinza */
-    .cartao-linhas {
-      border-bottom: 1px solid #c7c7c7;
-    }
-
+    /* Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário) */
     .cartao-linha {
       display: grid;
-      grid-template-columns: 34% 66%;
-      padding: 6px 10px;
+      grid-template-columns: 36% 64%;
+      padding: 8px 10px;
       border-bottom: 1px solid #e1e1e1;
-      background: #ffffff;
     }
 
-    .cartao-linha:last-child {
+    .cartao-linha:last-of-type {
       border-bottom: none;
     }
 
-    /* Linha de Produto com fundo cinza claro para destacar */
+    /* Linha de Produto com leve destaque em cinza */
     .cartao-linha-produto {
-      background: #f1f1f1;
+      background: #f3f3f3;
       font-weight: 700;
     }
 
@@ -264,7 +258,7 @@
       border-top: 1px solid #c7c7c7;
     }
 
-    /* Bloco final de observação com contorno cinza contínuo */
+    /* Bloco final de observação mantendo texto formatado em múltiplas linhas */
     .cartao-observacao {
       padding: 10px 12px 12px;
       background: #ffffff;
@@ -742,16 +736,15 @@
         });
 
         // Monta HTML dos cartões exatamente no formato textual solicitado:
-        // - Duas colunas por linha (rótulo | valor)
         // - Primeiras duas linhas pareadas (Data/Hora x Usuário) e (Loja x Documento)
-        // - Linhas simples para os demais campos
-        // - Divisória e bloco de Observação/Relatório ao final
+        // - Demais linhas simples: EAN, Produto, Departamento, Seção, Quantidade, Valor
+        // - Divisória e bloco final de Observação/Relatório
         listaEl.innerHTML = registros
           .map((r) => {
             const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "\n");
             return `
               <div class="cartao">
-                <div class="cartao-dupla">
+                <div class="cartao-pares">
                   <div class="cartao-pareado">
                     <span class="rotulo">Data/Hora:</span>
                     <span class="valor">${r.dataHora || "-"}</span>
@@ -761,7 +754,7 @@
                     <span class="valor">${r.usuario || "-"}</span>
                   </div>
                 </div>
-                <div class="cartao-dupla">
+                <div class="cartao-pares">
                   <div class="cartao-pareado">
                     <span class="rotulo">Loja:</span>
                     <span class="valor">${r.loja || "-"}</span>
@@ -771,31 +764,29 @@
                     <span class="valor">${r.documento || "-"}</span>
                   </div>
                 </div>
-                <div class="cartao-linhas">
-                  <div class="cartao-linha">
-                    <span class="rotulo">EAN</span>
-                    <span class="valor">${r.ean || "-"}</span>
-                  </div>
-                  <div class="cartao-linha cartao-linha-produto">
-                    <span class="rotulo">Produto</span>
-                    <span class="valor">${r.produto || "-"}</span>
-                  </div>
-                  <div class="cartao-linha">
-                    <span class="rotulo">Departamento</span>
-                    <span class="valor">${r.departamento || "-"}</span>
-                  </div>
-                  <div class="cartao-linha">
-                    <span class="rotulo">Seção</span>
-                    <span class="valor">${r.secao || "-"}</span>
-                  </div>
-                  <div class="cartao-linha">
-                    <span class="rotulo">Quantidade</span>
-                    <span class="valor">${r.quantidade || "-"}</span>
-                  </div>
-                  <div class="cartao-linha">
-                    <span class="rotulo">Valor Unitário</span>
-                    <span class="valor">${r.valorUnitario || "-"}</span>
-                  </div>
+                <div class="cartao-linha">
+                  <span class="rotulo">EAN</span>
+                  <span class="valor">${r.ean || "-"}</span>
+                </div>
+                <div class="cartao-linha cartao-linha-produto">
+                  <span class="rotulo">Produto</span>
+                  <span class="valor">${r.produto || "-"}</span>
+                </div>
+                <div class="cartao-linha">
+                  <span class="rotulo">Departamento</span>
+                  <span class="valor">${r.departamento || "-"}</span>
+                </div>
+                <div class="cartao-linha">
+                  <span class="rotulo">Seção</span>
+                  <span class="valor">${r.secao || "-"}</span>
+                </div>
+                <div class="cartao-linha">
+                  <span class="rotulo">Quantidade</span>
+                  <span class="valor">${r.quantidade || "-"}</span>
+                </div>
+                <div class="cartao-linha">
+                  <span class="rotulo">Valor Unitário</span>
+                  <span class="valor">${r.valorUnitario || "-"}</span>
                 </div>
                 <div class="cartao-divisoria"></div>
                 <div class="cartao-observacao">
