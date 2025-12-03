@@ -534,7 +534,7 @@
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
         <button class="btn btn-exportar" onclick="abrirModalDownload()">Exportar XLSX</button>
-        <button class="btn btn-aplicar" onclick="carregarRelatorios()">Aplicar filtros</button>
+        <button class="btn btn-aplicar" onclick="aplicarFiltrosLocal()">Aplicar filtros</button>
       </div>
     </div>
 
@@ -581,6 +581,7 @@
     // ========= CONSTANTES E VARIÁVEIS GLOBAIS =========
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     let usuarioLogado = null;
+    let registrosBase = [];   // base carregada uma única vez na abertura e mantida em memória
     let registrosAtuais = []; // guarda os registros do filtro atual para exportação
 
     // Controle do carregamento 0–100%
@@ -629,7 +630,53 @@
       }, 200);
     }
 
-    // ========= INICIALIZAÇÃO DO PAINEL (VALIDA LOGIN) =========
+    // ========= PARSE DE DATA (MESMA LÓGICA DA API) =========
+    // Converte valores de data/hora da planilha para Date apenas com dia/mês/ano,
+    // ignorando segundos e removendo vírgulas (ex.: "03/12/2025, 12:36:13").
+    function parseDataDaPlanilha(dataHoraStr) {
+      if (!dataHoraStr) return null;
+      try {
+        // Remove qualquer vírgula e faz split apenas por espaço, evitando segundos.
+        const limpo = String(dataHoraStr).replace(/,/g, "");
+        const [parteData] = limpo.split(" ");
+        const [dia, mes, ano] = (parteData || "").split("/");
+        if (!dia || !mes || !ano) return null;
+        return new Date(Number(ano), Number(mes) - 1, Number(dia));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // ========= FILTRO LOCAL (MESMA REGRA DA API) =========
+    function filtrarLocal() {
+      const lojaFiltro = document.getElementById("filtroLoja").value.trim().toLowerCase();
+      const usuarioFiltro = document.getElementById("filtroUsuario").value.trim().toLowerCase();
+      const docFiltro = document.getElementById("filtroDocumento").value.trim();
+      const depFiltro = document.getElementById("filtroDepartamento").value.trim().toUpperCase();
+      const dataInicio = document.getElementById("dataInicio").value;
+      const dataFim = document.getElementById("dataFim").value;
+
+      const iniDate = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
+      const fimDate = dataFim ? new Date(`${dataFim}T23:59:59`) : null;
+
+      return registrosBase.filter((reg) => {
+        if (lojaFiltro && !reg.loja.toLowerCase().includes(lojaFiltro)) return false;
+        if (usuarioFiltro && !reg.usuario.toLowerCase().includes(usuarioFiltro)) return false;
+        if (docFiltro && reg.documento !== docFiltro) return false;
+        if (depFiltro && reg.departamento.toUpperCase() !== depFiltro) return false;
+
+        if (iniDate || fimDate) {
+          const dataReg = parseDataDaPlanilha(reg.dataHora);
+          if (!dataReg) return false;
+          if (iniDate && dataReg < iniDate) return false;
+          if (fimDate && dataReg > fimDate) return false;
+        }
+
+        return true;
+      });
+    }
+
+    // ========= INICIALIZAÇÃO DO PAINEL (VALIDA LOGIN E CARREGA BASE UMA ÚNICA VEZ) =========
     document.addEventListener("DOMContentLoaded", () => {
       const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
@@ -655,9 +702,9 @@
       // Se chegou aqui, login de gestor é válido
       usuarioLogado = dadosGestor.usuario;
 
-      // Mostra o painel e carrega os relatórios iniciais
+      // Mostra o painel e carrega a base completa apenas uma vez
       document.getElementById("appRoot").style.display = "block";
-      carregarRelatorios();
+      carregarBaseInicial();
     });
 
     // ========= LOGOUT DO GESTOR (LIMPA SESSION STORAGE) =========
@@ -679,102 +726,100 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // ========= CARREGA RELATÓRIOS DA API /api/relatorios =========
-    async function carregarRelatorios() {
+    // ========= CARREGA A BASE UMA VEZ E FILTRA LOCALMENTE =========
+    async function carregarBaseInicial() {
+      const statusEl = document.getElementById("status");
+
+      // Mostra overlay apenas na primeira carga do dataset
+      iniciarProgresso();
+      try {
+        statusEl.textContent = "Carregando relatórios...";
+        const resp = await fetch("/api/relatorios");
+        const dados = await resp.json();
+
+        if (!resp.ok || !dados.sucesso) {
+          statusEl.textContent = dados.message || "Erro ao carregar relatórios.";
+          finalizarProgresso();
+          return;
+        }
+
+        registrosBase = Array.isArray(dados.registros) ? dados.registros : [];
+
+        // Assim que carregar, aplica os filtros atuais (ou ausência deles) localmente
+        aplicarFiltrosLocal();
+      } catch (erro) {
+        console.error("Erro ao carregar relatórios:", erro);
+        statusEl.textContent = "Erro de conexão ao buscar relatórios.";
+        registrosBase = [];
+      } finally {
+        finalizarProgresso();
+      }
+    }
+
+    // Executa os filtros atuais sobre a base já carregada em memória
+    function aplicarFiltrosLocal() {
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
       const resumoQtd = document.getElementById("resumoQtd");
       const resumoQtdTotal = document.getElementById("resumoQtdTotal");
       const resumoValorTotal = document.getElementById("resumoValorTotal");
 
-      // Inicia overlay de progresso
-      iniciarProgresso();
+      // Se a base ainda não carregou (erro ou conexão), informa o usuário
+      if (!registrosBase.length) {
+        statusEl.textContent = "Base ainda não carregada ou vazia.";
+        listaEl.innerHTML = "";
+        resumoQtd.textContent = "";
+        resumoQtdTotal.textContent = "0";
+        resumoValorTotal.textContent = "0,00";
+        return;
+      }
 
-      // Reseta estado visual
-      statusEl.textContent = "Carregando relatórios...";
-      listaEl.innerHTML = "";
-      resumoQtd.textContent = "";
-      resumoQtdTotal.textContent = "0";
-      resumoValorTotal.textContent = "0,00";
-      registrosAtuais = [];
+      // Filtra localmente com a mesma regra da API
+      const registros = filtrarLocal();
 
-      // Lê filtros da tela
-      const loja = document.getElementById("filtroLoja").value.trim();
-      const usuario = document.getElementById("filtroUsuario").value.trim();
-      const documento = document.getElementById("filtroDocumento").value.trim();
-      const departamento = document.getElementById("filtroDepartamento").value;
-      const dataInicio = document.getElementById("dataInicio").value;
-      const dataFim = document.getElementById("dataFim").value;
+      if (!registros.length) {
+        statusEl.textContent = "Nenhum registro encontrado com os filtros atuais.";
+        resumoQtd.textContent = "";
+        listaEl.innerHTML = "";
+        registrosAtuais = [];
+        resumoQtdTotal.textContent = "0";
+        resumoValorTotal.textContent = "0,00";
+        return;
+      }
 
-      // Monta query string com filtros ativos
-      const params = new URLSearchParams();
-      if (loja) params.append("loja", loja);
-      if (usuario) params.append("usuario", usuario);
-      if (documento) params.append("documento", documento);
-      if (departamento) params.append("departamento", departamento);
-      if (dataInicio) params.append("dataInicio", dataInicio);
-      if (dataFim) params.append("dataFim", dataFim);
+      // Guarda registros filtrados para exportação
+      registrosAtuais = registros;
 
-      const url =
-        "/api/relatorios" + (params.toString() ? `?${params.toString()}` : "");
+      // Calcula totais de quantidade e valor
+      let totalQtd = 0;
+      let totalValor = 0;
 
-      try {
-        const resp = await fetch(url);
-        const dados = await resp.json();
+      registros.forEach((r) => {
+        const qtd = parseNumeroBr(r.quantidade);
+        const vUnit = parseNumeroBr(r.valorUnitario);
+        totalQtd += qtd;
+        totalValor += qtd * vUnit;
+      });
 
-        if (!resp.ok || !dados.sucesso) {
-          statusEl.textContent =
-            dados.message || "Erro ao carregar relatórios.";
-          finalizarProgresso();
-          return;
-        }
+      // Atualiza resumos
+      statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
+      resumoQtd.textContent = `Total de registros retornados: ${registros.length}`;
 
-        const registros = Array.isArray(dados.registros) ? dados.registros : [];
+      resumoQtdTotal.textContent = totalQtd.toLocaleString("pt-BR");
+      resumoValorTotal.textContent = totalValor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
 
-        // Se não vier nenhum registro com os filtros atuais
-        if (!registros.length) {
-          statusEl.textContent =
-            "Nenhum registro encontrado com os filtros atuais.";
-          resumoQtd.textContent = "";
-          listaEl.innerHTML = "";
-          registrosAtuais = [];
-          finalizarProgresso();
-          return;
-        }
-
-        // Guarda registros para exportação
-        registrosAtuais = registros;
-
-        // Calcula totais de quantidade e valor
-        let totalQtd = 0;
-        let totalValor = 0;
-
-        registros.forEach((r) => {
-          const qtd = parseNumeroBr(r.quantidade);
-          const vUnit = parseNumeroBr(r.valorUnitario);
-          totalQtd += qtd;
-          totalValor += qtd * vUnit;
-        });
-
-        // Atualiza resumos
-        statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
-        resumoQtd.textContent = `Total de registros retornados: ${registros.length}`;
-
-        resumoQtdTotal.textContent = totalQtd.toLocaleString("pt-BR");
-        resumoValorTotal.textContent = totalValor.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
-
-        // Monta HTML dos cartões exatamente no formato textual solicitado:
-        // - Primeiras duas linhas pareadas (Data/Hora x Usuário) e (Loja x Documento)
-        // - Divisória simples
-        // - Demais linhas simples: EAN, Produto, Departamento, Seção, Quantidade, Valor
-        // - Divisória e bloco final de Observação/Relatório
-        listaEl.innerHTML = registros
-          .map((r) => {
-            const relatorioFormatado = r.relatorio || "-";
-            return `
+      // Monta HTML dos cartões exatamente no formato textual solicitado:
+      // - Primeiras duas linhas pareadas (Data/Hora x Usuário) e (Loja x Documento)
+      // - Divisória simples
+      // - Demais linhas simples: EAN, Produto, Departamento, Seção, Quantidade, Valor
+      // - Divisória e bloco final de Observação/Relatório
+      listaEl.innerHTML = registros
+        .map((r) => {
+          const relatorioFormatado = r.relatorio || "-";
+          return `
               <div class="cartao">
                 <div class="cartao-pares">
                   <div class="cartao-pareado">
@@ -828,16 +873,8 @@
                 </div>
               </div>
             `;
-          })
-          .join("");
-
-        finalizarProgresso();
-      } catch (erro) {
-        console.error("Erro ao carregar relatórios:", erro);
-        statusEl.textContent = "Erro de conexão ao buscar relatórios.";
-        registrosAtuais = [];
-        finalizarProgresso();
-      }
+        })
+        .join("");
     }
 
     // ========= LIMPA TODOS OS FILTROS E RECARREGA =========
@@ -849,7 +886,7 @@
       document.getElementById("dataInicio").value = "";
       document.getElementById("dataFim").value = "";
 
-      carregarRelatorios();
+      aplicarFiltrosLocal();
     }
 
     // ========= CONTROLE DO MODAL DE DOWNLOAD =========
