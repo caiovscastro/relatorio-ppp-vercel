@@ -194,13 +194,13 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       sucesso: true,
-      message: "Relatório registrado com sucesso na aba RELATORIO.",
+      message: "Relatório registrado com sucesso.",
     });
   } catch (erro) {
     console.error("Erro na API /api/relatorio:", erro);
     return res.status(500).json({
       sucesso: false,
-      message: "Erro ao registrar relatório na planilha.",
+      message: "Erro ao registrar relatório.",
       detalhe: erro.message,
     });
   }
