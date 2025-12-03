@@ -214,14 +214,22 @@
       border-bottom: 1px solid #c7c7c7;
     }
 
-      .cartao-pareado {
+    .cartao-pareado {
       display: grid;
-      grid-template-columns: 40% 60%;
+      grid-template-columns: 38% 62%;
       align-items: center;
       padding: 8px 10px;
       border-right: 1px solid #c7c7c7;
-      gap: 8px;
+      gap: 4px;
       min-width: 0;                     /* evita quebra forçada nas células compactas */
+    }
+
+    /* Versão usada apenas no par Loja/valor, com colunas mais próximas
+       (use aqui para regular exclusivamente a distância entre o rótulo
+       "Loja:" e seu texto, sem afetar Data/Hora ou Documento). */
+    .cartao-pareado-loja {
+      grid-template-columns: 40% 60%;   /* aproxima o valor do rótulo Loja */
+      gap: 2px;                         /* espaço menor somente para esta linha */
     }
 
     .cartao-pareado:nth-child(2n) {
@@ -779,7 +787,7 @@
                   </div>
                 </div>
                 <div class="cartao-pares">
-                  <div class="cartao-pareado">
+                  <div class="cartao-pareado cartao-pareado-loja">
                     <span class="rotulo">Loja:</span>
                     <span class="valor valor-compacto">${r.loja || "-"}</span>
                   </div>
