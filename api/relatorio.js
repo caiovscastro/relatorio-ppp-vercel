@@ -154,13 +154,22 @@ export default async function handler(req, res) {
       categoria = "",
     ] = produto;
 
-    // DATA/HORA em horário de Brasília, como texto
+    // DATA/HORA em horário de Brasília, sem vírgula e sem segundos
+    // Formato final: "dd/MM/aaaa HH:mm" (ex.: "03/12/2025 12:17")
+    // Usamos formatação manual para evitar quebras com vírgula ou segundos.
     const agora = new Date();
-    const dataHora = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: "America/Sao_Paulo",
-      dateStyle: "short",
-      timeStyle: "medium",
-    }).format(agora);
+    const options = { timeZone: "America/Sao_Paulo" };
+    const dataBrasilia = new Date(
+      agora.toLocaleString("en-US", options) // converte para string na TZ desejada
+    );
+
+    const dia = String(dataBrasilia.getDate()).padStart(2, "0");
+    const mes = String(dataBrasilia.getMonth() + 1).padStart(2, "0");
+    const ano = dataBrasilia.getFullYear();
+    const hora = String(dataBrasilia.getHours()).padStart(2, "0");
+    const minuto = String(dataBrasilia.getMinutes()).padStart(2, "0");
+
+    const dataHora = `${dia}/${mes}/${ano} ${hora}:${minuto}`;
 
     // Monta a linha exatamente na ordem que você pediu
     const linha = [
@@ -194,13 +203,13 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       sucesso: true,
-      message: "Relatório registrado com sucesso.",
+      message: "Relatório registrado com sucesso na aba RELATORIO.",
     });
   } catch (erro) {
     console.error("Erro na API /api/relatorio:", erro);
     return res.status(500).json({
       sucesso: false,
-      message: "Erro ao registrar relatório.",
+      message: "Erro ao registrar relatório na planilha.",
       detalhe: erro.message,
     });
   }
