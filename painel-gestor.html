@@ -121,7 +121,19 @@
       background: #fff;
       width: 100%;
       max-width: 100%;
-...
+    }
+
+    .campo-loja        { grid-area: loja; }
+    .campo-usuario     { grid-area: usuario; }
+    .campo-departamento{ grid-area: departamento; }
+    .campo-documento   { grid-area: documento; }
+    .campo-data-inicio { grid-area: dataInicio; }
+    .campo-data-fim    { grid-area: dataFim; }
+
+    /* ========= BOTÕES DOS FILTROS ========= */
+    .botoes-filtro {
+      margin-top: 10px;
+      /* Agora em GRID para ficar com o mesmo "tamanho de coluna"
          dos campos Documento / Data início / Data fim */
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -174,13 +186,15 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro seguindo exatamente o modelo textual:
-       ----------------------------------------------------------------
+    /* Cartão de cada registro seguindo exatamente o modelo textual do exemplo:
+       -----------------------------------------------------------------------
        - Linha 1: Data/Hora (coluna 1) | Usuário (coluna 2)
        - Linha 2: Loja (coluna 1)      | Documento (coluna 2)
-       - Linhas seguintes: rótulo à esquerda e valor à direita
-       - Divisória cinza antes do bloco Observação / Relatório
-       - Sem cabeçalho colorido; foco em linhas simples como no exemplo
+       - Linha divisória cinza
+       - Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário)
+         com apenas duas colunas (rótulo + valor)
+       - Nova divisória cinza antes do bloco Observação / Relatório
+       - Sem cabeçalho colorido; apenas contorno verde discreto
     */
     .cartao {
       background: #ffffff;
@@ -237,6 +251,17 @@
       border-bottom: none;
     }
 
+    /* Produto fica levemente sombreado para destacar o nome */
+    .cartao-linha-produto {
+      background: #f5f5f5;
+      font-weight: 700;
+    }
+
+    /* Linha cinza inteira separando pares superiores das linhas simples */
+    .cartao-separador {
+      border-top: 1px solid #c7c7c7;
+    }
+
     /* Divisória antes do bloco de observação */
     .cartao-divisoria {
       border-top: 1px solid #c7c7c7;
@@ -245,8 +270,6 @@
     /* Bloco final de observação mantendo texto formatado em múltiplas linhas */
     .cartao-observacao {
       padding: 10px 12px 12px;
-      background: #ffffff;
-root@50c14bf70196:/workspace/relatorio-ppp-vercel# sed -n '260,520p' painel-gestor.html
       background: #ffffff;
       line-height: 1.45;
       color: #111;
@@ -370,7 +393,20 @@ root@50c14bf70196:/workspace/relatorio-ppp-vercel# sed -n '260,520p' painel-gest
     /* ========= OVERLAY DE CARREGAMENTO 0–100% ========= */
     #loadingOverlay {
       position: fixed;
-...
+      inset: 0;
+      background: rgba(243, 243, 243, 0.9);
+      display: none;               /* mostrado via JS quando começa o carregamento */
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;               /* acima do modal */
+    }
+
+    .loading-box {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px 22px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
       font-size: 14px;
     }
 
@@ -495,8 +531,6 @@ root@50c14bf70196:/workspace/relatorio-ppp-vercel# sed -n '260,520p' painel-gest
   <div id="modalDownload" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar download</div>
-root@50c14bf70196:/workspace/relatorio-ppp-vercel# sed -n '520,1040p' painel-gestor.html
-      <div class="modal-titulo">Confirmar download</div>
       <div class="modal-texto">
         Você deseja mesmo fazer o download do arquivo?
       </div>
@@ -619,7 +653,134 @@ root@50c14bf70196:/workspace/relatorio-ppp-vercel# sed -n '520,1040p' painel-ges
       s = s.replace(/\s+/g, "");
       // remove separador de milhar e troca vírgula por ponto
       s = s.replace(/\./g, "").replace(",", ".");
-...
+      const n = Number(s);
+      return isNaN(n) ? 0 : n;
+    }
+
+    // ========= CARREGA RELATÓRIOS DA API /api/relatorios =========
+    async function carregarRelatorios() {
+      const statusEl = document.getElementById("status");
+      const listaEl = document.getElementById("listaCartoes");
+      const resumoQtd = document.getElementById("resumoQtd");
+      const resumoQtdTotal = document.getElementById("resumoQtdTotal");
+      const resumoValorTotal = document.getElementById("resumoValorTotal");
+
+      // Inicia overlay de progresso
+      iniciarProgresso();
+
+      // Reseta estado visual
+      statusEl.textContent = "Carregando relatórios...";
+      listaEl.innerHTML = "";
+      resumoQtd.textContent = "";
+      resumoQtdTotal.textContent = "0";
+      resumoValorTotal.textContent = "0,00";
+      registrosAtuais = [];
+
+      // Lê filtros da tela
+      const loja = document.getElementById("filtroLoja").value.trim();
+      const usuario = document.getElementById("filtroUsuario").value.trim();
+      const documento = document.getElementById("filtroDocumento").value.trim();
+      const departamento = document.getElementById("filtroDepartamento").value;
+      const dataInicio = document.getElementById("dataInicio").value;
+      const dataFim = document.getElementById("dataFim").value;
+
+      // Monta query string com filtros ativos
+      const params = new URLSearchParams();
+      if (loja) params.append("loja", loja);
+      if (usuario) params.append("usuario", usuario);
+      if (documento) params.append("documento", documento);
+      if (departamento) params.append("departamento", departamento);
+      if (dataInicio) params.append("dataInicio", dataInicio);
+      if (dataFim) params.append("dataFim", dataFim);
+
+      const url =
+        "/api/relatorios" + (params.toString() ? `?${params.toString()}` : "");
+
+      try {
+        const resp = await fetch(url);
+        const dados = await resp.json();
+
+        if (!resp.ok || !dados.sucesso) {
+          statusEl.textContent =
+            dados.message || "Erro ao carregar relatórios.";
+          finalizarProgresso();
+          return;
+        }
+
+        const registros = Array.isArray(dados.registros) ? dados.registros : [];
+
+        // Se não vier nenhum registro com os filtros atuais
+        if (!registros.length) {
+          statusEl.textContent =
+            "Nenhum registro encontrado com os filtros atuais.";
+          resumoQtd.textContent = "";
+          listaEl.innerHTML = "";
+          registrosAtuais = [];
+          finalizarProgresso();
+          return;
+        }
+
+        // Guarda registros para exportação
+        registrosAtuais = registros;
+
+        // Calcula totais de quantidade e valor
+        let totalQtd = 0;
+        let totalValor = 0;
+
+        registros.forEach((r) => {
+          const qtd = parseNumeroBr(r.quantidade);
+          const vUnit = parseNumeroBr(r.valorUnitario);
+          totalQtd += qtd;
+          totalValor += qtd * vUnit;
+        });
+
+        // Atualiza resumos
+        statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
+        resumoQtd.textContent = `Total de registros retornados: ${registros.length}`;
+
+        resumoQtdTotal.textContent = totalQtd.toLocaleString("pt-BR");
+        resumoValorTotal.textContent = totalValor.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+
+        // Monta HTML dos cartões exatamente no formato textual solicitado:
+        // - Primeiras duas linhas pareadas (Data/Hora x Usuário) e (Loja x Documento)
+        // - Divisória simples
+        // - Demais linhas simples: EAN, Produto, Departamento, Seção, Quantidade, Valor
+        // - Divisória e bloco final de Observação/Relatório
+        listaEl.innerHTML = registros
+          .map((r) => {
+            const relatorioFormatado = r.relatorio || "-";
+            return `
+              <div class="cartao">
+                <div class="cartao-pares">
+                  <div class="cartao-pareado">
+                    <span class="rotulo">Data/Hora:</span>
+                    <span class="valor">${r.dataHora || "-"}</span>
+                  </div>
+                  <div class="cartao-pareado">
+                    <span class="rotulo">Usuário:</span>
+                    <span class="valor">${r.usuario || "-"}</span>
+                  </div>
+                </div>
+                <div class="cartao-pares">
+                  <div class="cartao-pareado">
+                    <span class="rotulo">Loja:</span>
+                    <span class="valor">${r.loja || "-"}</span>
+                  </div>
+                  <div class="cartao-pareado">
+                    <span class="rotulo">Documento:</span>
+                    <span class="valor">${r.documento || "-"}</span>
+                  </div>
+                </div>
+                <div class="cartao-separador"></div>
+                <div class="cartao-linha">
+                  <span class="rotulo">EAN</span>
+                  <span class="valor">${r.ean || "-"}</span>
+                </div>
+                <div class="cartao-linha cartao-linha-produto">
+                  <span class="rotulo">Produto</span>
                   <span class="valor">${r.produto || "-"}</span>
                 </div>
                 <div class="cartao-linha">
