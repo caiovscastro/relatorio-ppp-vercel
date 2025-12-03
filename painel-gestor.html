@@ -186,7 +186,11 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro em formato de planilha */
+    /* Cartão de cada registro em formato de planilha
+       -----------------------------------------------------------------
+       A borda verde contorna todo o cartão. O cabeçalho com gradiente
+       verde destaca o bloco de observação, e a tabela em cinza claro
+       reproduz o aspecto de células de planilha. */
     .cartao {
       background: #ffffff;
       border: 1px solid #2f7e3a;           /* contorno verde conforme referência */
@@ -717,7 +721,10 @@
           maximumFractionDigits: 2,
         });
 
-        // Monta HTML dos cartões no formato de planilha (igual à referência visual)
+        // Monta HTML dos cartões no formato de planilha:
+        // - cabeçalho verde para destacar o bloco de observação
+        // - tabela com bordas cinza simulando células
+        // - bloco final de observação com texto formatado
         listaEl.innerHTML = registros
           .map((r) => {
             const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "<br>");
