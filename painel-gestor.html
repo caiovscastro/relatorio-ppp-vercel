@@ -186,13 +186,15 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro seguindo exatamente o modelo textual:
-       ----------------------------------------------------------------
+    /* Cartão de cada registro seguindo exatamente o modelo textual do exemplo:
+       -----------------------------------------------------------------------
        - Linha 1: Data/Hora (coluna 1) | Usuário (coluna 2)
        - Linha 2: Loja (coluna 1)      | Documento (coluna 2)
-       - Linhas seguintes: rótulo à esquerda e valor à direita (apenas 2 colunas)
-       - Divisória cinza antes do bloco Observação / Relatório
-       - Sem cabeçalho colorido; foco em linhas simples como no exemplo
+       - Linha divisória cinza
+       - Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário)
+         com apenas duas colunas (rótulo + valor)
+       - Nova divisória cinza antes do bloco Observação / Relatório
+       - Sem cabeçalho colorido; apenas contorno verde discreto
     */
     .cartao {
       background: #ffffff;
@@ -247,6 +249,17 @@
 
     .cartao-linha:last-of-type {
       border-bottom: none;
+    }
+
+    /* Produto fica levemente sombreado para destacar o nome */
+    .cartao-linha-produto {
+      background: #f5f5f5;
+      font-weight: 700;
+    }
+
+    /* Linha cinza inteira separando pares superiores das linhas simples */
+    .cartao-separador {
+      border-top: 1px solid #c7c7c7;
     }
 
     /* Divisória antes do bloco de observação */
@@ -733,11 +746,12 @@
 
         // Monta HTML dos cartões exatamente no formato textual solicitado:
         // - Primeiras duas linhas pareadas (Data/Hora x Usuário) e (Loja x Documento)
+        // - Divisória simples
         // - Demais linhas simples: EAN, Produto, Departamento, Seção, Quantidade, Valor
         // - Divisória e bloco final de Observação/Relatório
         listaEl.innerHTML = registros
           .map((r) => {
-            const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "\n");
+            const relatorioFormatado = r.relatorio || "-";
             return `
               <div class="cartao">
                 <div class="cartao-pares">
@@ -760,6 +774,7 @@
                     <span class="valor">${r.documento || "-"}</span>
                   </div>
                 </div>
+                <div class="cartao-separador"></div>
                 <div class="cartao-linha">
                   <span class="rotulo">EAN</span>
                   <span class="valor">${r.ean || "-"}</span>
