@@ -189,8 +189,8 @@
     /* Cartão de cada registro em formato de planilha (igual à imagem de referência)
        ------------------------------------------------------------------------------
        - Borda verde contornando o cartão inteiro
-       - Tabela com linhas cinza (#bfbfbf)
-       - Linha de Produto com fundo cinza claro
+       - Faixa de cabeçalho verde destacando "Relatório/Observação"
+       - Tabela com linhas cinza (#bfbfbf) e linha de Produto em cinza claro
        - Bloco final de Observação com o mesmo contorno cinza
     */
     .cartao {
@@ -198,9 +198,20 @@
       border: 2px solid #3c9c46;           /* verde do contorno externo */
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      padding: 10px 12px;
+      padding: 0;                          /* sem padding: tabela encosta na borda verde */
       margin-bottom: 12px;
       font-size: 12px;
+      overflow: hidden;                    /* mantém cabeçalho aderente às bordas arredondadas */
+    }
+
+    /* Faixa superior verde que destaca o título da observação */
+    .cartao-header {
+      background: linear-gradient(90deg, #43ad4f, #2f7e3a);
+      color: #ffffff;
+      padding: 8px 10px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      font-size: 13px;
     }
 
     /* Tabela interna com linhas cinza para simular células de planilha */
@@ -715,7 +726,7 @@
         });
 
         // Monta HTML dos cartões no formato de planilha, igual à imagem de referência:
-        // - borda verde externa
+        // - borda verde externa e cabeçalho verde "Relatório/Observação"
         // - tabela com linhas cinza e linha de produto em cinza claro
         // - bloco final de observação com borda contínua
         listaEl.innerHTML = registros
@@ -723,6 +734,7 @@
             const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "<br>");
             return `
               <div class="cartao">
+                <div class="cartao-header">RELATÓRIO / OBSERVAÇÃO</div>
                 <table class="cartao-table" aria-label="Registro de relatório">
                   <tr>
                     <th>Data/Hora:</th><td>${r.dataHora || "-"}</td>
@@ -748,7 +760,7 @@
                   </tr>
                 </table>
                 <div class="cartao-observacao">
-                  <div class="obs-titulo">Relatório / Observação:</div>
+                  <div class="obs-titulo">Observação:</div>
                   <div class="obs-texto">${relatorioFormatado}</div>
                 </div>
               </div>
