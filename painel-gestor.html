@@ -186,18 +186,29 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro (estilo tabela) */
+    /* Cartão de cada registro em formato de planilha */
     .cartao {
       background: #ffffff;
-      border: 1px solid #2f7e3a;           /* contorno verde como na referência */
+      border: 1px solid #2f7e3a;           /* contorno verde conforme referência */
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      padding: 10px 12px 12px;
+      padding: 0;                          /* bordas externas, sem padding extra */
       margin-bottom: 12px;
       font-size: 12px;
+      overflow: hidden;                    /* garante que o cabeçalho verde siga as bordas */
     }
 
-    /* Tabela interna que simula a planilha da imagem */
+    /* Faixa superior destacando o bloco de observação */
+    .cartao-header {
+      background: linear-gradient(90deg, #3ca34b, #2f7e3a);
+      color: #ffffff;
+      padding: 8px 10px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.2px;
+    }
+
+    /* Tabela interna que imita a planilha da imagem */
     .cartao-table {
       width: 100%;
       border-collapse: collapse;
@@ -211,9 +222,10 @@
       padding: 6px 8px;
       text-align: left;
       vertical-align: top;
+      background: #ffffff;
     }
 
-    /* Células de rótulo ficam um pouco mais escuras */
+    /* Células de rótulo ficam em cinza bem claro, simulando a planilha */
     .cartao-table th {
       background: #f7f7f7;
       width: 26%;
@@ -231,19 +243,20 @@
       color: #000;
     }
 
-    /* Bloco final de observação segue o formato da imagem */
+    /* Bloco final de observação com borda contínua cinza */
     .cartao-observacao {
       border: 1px solid #b3b3b3;
       border-top: none;
-      padding: 8px 10px;
+      padding: 10px 12px;
       background: #ffffff;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     .cartao-observacao .obs-titulo {
       font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       color: #111;
+      letter-spacing: 0.2px;
     }
 
     /* ========= RODAPÉ DO PAINEL ========= */
@@ -710,6 +723,7 @@
             const relatorioFormatado = (r.relatorio || "-").replace(/\n/g, "<br>");
             return `
               <div class="cartao">
+                <div class="cartao-header">RELATÓRIO / OBSERVAÇÃO</div>
                 <table class="cartao-table" aria-label="Registro de relatório">
                   <tr>
                     <th>Data/Hora:</th><td>${r.dataHora || "-"}</td>
@@ -735,7 +749,7 @@
                   </tr>
                 </table>
                 <div class="cartao-observacao">
-                  <div class="obs-titulo">Relatório / Observação:</div>
+                  <div class="obs-titulo">Observação:</div>
                   <div class="obs-texto">${relatorioFormatado}</div>
                 </div>
               </div>
