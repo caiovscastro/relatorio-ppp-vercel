@@ -186,16 +186,17 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro no formato do exemplo textual fornecido
-       ------------------------------------------------------------------------------
-       - Duas colunas nos pares principais: (Data/Hora x Usuário) e (Loja x Documento)
-       - Demais campos ficam em linhas únicas com rótulo + valor
-       - Divisória cinza separando os dados do bloco de Observação/Relatório
-       - Contorno verde leve mantendo aparência de cartão simples
+    /* Cartão de cada registro seguindo exatamente o modelo textual:
+       ----------------------------------------------------------------
+       - Linha 1: Data/Hora (coluna 1) | Usuário (coluna 2)
+       - Linha 2: Loja (coluna 1)      | Documento (coluna 2)
+       - Linhas seguintes: rótulo à esquerda e valor à direita
+       - Divisória cinza antes do bloco Observação / Relatório
+       - Sem cabeçalho colorido; foco em linhas simples como no exemplo
     */
     .cartao {
       background: #ffffff;
-      border: 2px solid #3c9c46;           /* contorno verde como referência visual */
+      border: 2px solid #3c9c46;           /* contorno verde leve, mantendo destaque do cartão */
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
       padding: 0;
@@ -204,7 +205,7 @@
       overflow: hidden;
     }
 
-    /* Pares lado a lado: Data/Hora x Usuário e Loja x Documento */
+    /* Duas colunas para os pares principais (Data/Hora x Usuário e Loja x Documento) */
     .cartao-pares {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -213,20 +214,20 @@
 
     .cartao-pareado {
       display: grid;
-      grid-template-columns: 36% 64%;
+      grid-template-columns: 38% 62%;
       align-items: center;
       padding: 8px 10px;
       border-right: 1px solid #c7c7c7;
+      gap: 4px;
     }
 
-    .cartao-pareado:last-child {
-      border-right: none;
+    .cartao-pareado:nth-child(2n) {
+      border-right: none;                   /* remove a borda na coluna da direita */
     }
 
     .rotulo {
       font-weight: 700;
       color: #111;
-      margin-right: 6px;
       white-space: nowrap;
     }
 
@@ -238,19 +239,14 @@
     /* Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário) */
     .cartao-linha {
       display: grid;
-      grid-template-columns: 36% 64%;
+      grid-template-columns: 38% 62%;
       padding: 8px 10px;
-      border-bottom: 1px solid #e1e1e1;
+      border-bottom: 1px solid #d6d6d6;
+      gap: 4px;
     }
 
     .cartao-linha:last-of-type {
       border-bottom: none;
-    }
-
-    /* Linha de Produto com leve destaque em cinza */
-    .cartao-linha-produto {
-      background: #f3f3f3;
-      font-weight: 700;
     }
 
     /* Divisória antes do bloco de observação */
