@@ -218,22 +218,42 @@
       display: grid;
       grid-template-columns: 38% 62%;
       align-items: center;
-      padding: 8px 10px;
+      padding: 8px 10px;                 /* padding padrão (será sobrescrito nos pares verdes) */
       border-right: 1px solid #c7c7c7;
       gap: 6px;
-      min-width: 0;                     /* evita quebra forçada nas células compactas */
+      min-width: 0;                      /* evita quebra forçada nas células compactas */
     }
 
     /* Versão usada apenas no par Loja/valor, com colunas mais próximas
        (use aqui para regular exclusivamente a distância entre o rótulo
        "Loja:" e seu texto, sem afetar Data/Hora ou Documento). */
     .cartao-pareado-loja {
-      grid-template-columns: 30% 50%;   /* aproxima o valor do rótulo Loja */
-      gap: 0px;                         /* espaço menor somente para esta linha */
+      grid-template-columns: 30% 50%;    /* aproxima o valor do rótulo Loja */
+      gap: 0px;                          /* espaço menor somente para esta linha */
     }
 
     .cartao-pareado:nth-child(2n) {
-      border-right: none;                   /* remove a borda na coluna da direita */
+      border-right: none;                /* remove a borda na coluna da direita */
+    }
+
+    /* ===== FUNDO VERDE CLARINHO + ALTURA AJUSTADA NOS 4 BLOCOS SUPERIORES =====
+       - .cartao-pares-superior: linha Data/Hora x Usuário → um pouco mais alta
+       - .cartao-pares-inferior: linha Loja x Documento → um pouco mais baixa
+       - As quatro células (rótulo + valor) ficam com fundo #e9fbe9
+    */
+    .cartao-pares-superior .cartao-pareado,
+    .cartao-pares-inferior .cartao-pareado {
+      background: #e9fbe9;               /* verde clarinho nos quatro blocos superiores */
+    }
+
+    /* Linha 1: Data/Hora x Usuário → leve destaque (mais alta) */
+    .cartao-pares-superior .cartao-pareado {
+      padding: 6px 10px;                 /* altura reduzida em relação ao original, mas maior que a linha de baixo */
+    }
+
+    /* Linha 2: Loja x Documento → ainda mais compacta */
+    .cartao-pares-inferior .cartao-pareado {
+      padding: 4px 10px;                 /* um pouco mais baixa que a linha superior */
     }
 
     .rotulo {
@@ -811,9 +831,9 @@
         maximumFractionDigits: 2,
       });
 
-      // Monta HTML dos cartões exatamente no formato textual solicitado:
+      // Monta HTML dos cartões:
       // - Primeiras duas linhas pareadas (Data/Hora x Usuário) e (Loja x Documento)
-      // - Divisória simples
+      //   com fundo verde clarinho, sendo a primeira linha ligeiramente mais alta
       // - Demais linhas simples: EAN, Produto, Departamento, Seção, Quantidade, Valor
       // - Divisória e bloco final de Observação/Relatório
       listaEl.innerHTML = registros
@@ -821,7 +841,8 @@
           const relatorioFormatado = r.relatorio || "-";
           return `
               <div class="cartao">
-                <div class="cartao-pares">
+                <!-- Linha 1: Data/Hora x Usuário (fundo verde, ligeiramente mais alta) -->
+                <div class="cartao-pares cartao-pares-superior">
                   <div class="cartao-pareado">
                     <span class="rotulo">Data/Hora:</span>
                     <span class="valor valor-compacto">${r.dataHora || "-"}</span>
@@ -831,7 +852,8 @@
                     <span class="valor">${r.usuario || "-"}</span>
                   </div>
                 </div>
-                <div class="cartao-pares">
+                <!-- Linha 2: Loja x Documento (fundo verde, um pouco mais baixa) -->
+                <div class="cartao-pares cartao-pares-inferior">
                   <div class="cartao-pareado cartao-pareado-loja">
                     <span class="rotulo">Loja:</span>
                     <span class="valor valor-compacto">${r.loja || "-"}</span>
