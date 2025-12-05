@@ -8,9 +8,9 @@ export default function handler(req, res) {
 
   const { usuario, senha } = req.body || {};
 
-  // Usuários autorizados para o painel de gestor
+  // Usuários autorizados para o painel gerente
   const gestores = {
-    "caio.castro": "842142",
+    "ana.soares": "864875",
     "gaspar.silva": "842142",
   };
 
