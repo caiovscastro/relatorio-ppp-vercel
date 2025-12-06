@@ -41,7 +41,7 @@ export default async function handler(req, res) {
       registroBase, // linha completa da aba BASE_DADOS
       loja,         // loja que está logada no front
       usuario,      // usuário logado
-      observacao,   // relato digitado (único campo obrigatório do front)
+      observacao,   // relato digitado (AGORA OPCIONAL)
     } = req.body || {};
 
     // Precisa vir exatamente a linha selecionada para manter a ordem de colunas
@@ -59,13 +59,14 @@ export default async function handler(req, res) {
       });
     }
 
-    // Observação continua obrigatória; campos Quantidade/Valor/Documento foram removidos
-    if (!observacao) {
-      return res.status(400).json({
-        sucesso: false,
-        message: "Observação é obrigatória.",
-      });
-    }
+    // >>> BLOCO REMOVIDO <<<
+    // Observação não é mais obrigatória:
+    // if (!observacao) {
+    //   return res.status(400).json({
+    //     sucesso: false,
+    //     message: "Observação é obrigatória.",
+    //   });
+    // }
 
     // Data/hora em Brasília
     const agora = new Date();
@@ -87,7 +88,7 @@ export default async function handler(req, res) {
       - Dias de Estoque
       - Dias Ult. Entrada
       - Qtd Dias Sem Vendas
-      - Observação
+      - Observação (pode vir vazio)
       - Data/Hora
 
       Qualquer coluna de quantidade/valor/documento foi removida para não ser enviada.
@@ -117,7 +118,7 @@ export default async function handler(req, res) {
       diasEstoque,
       diasUltimaEntrada,
       diasSemVendas,
-      observacao,
+      observacao || "", // garante string mesmo se vier undefined/null
       dataHora,
     ];
 
