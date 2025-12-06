@@ -45,7 +45,7 @@
       font-size: 18px;
     }
 
-    /* Card único de usuário + loja, um abaixo do outro, à direita do título */
+    /* Área de usuário/loja sem card, apenas texto no mesmo lugar, alinhado à direita */
     .info-usuario {
       display: flex;
       justify-content: flex-end;
@@ -53,15 +53,14 @@
     }
 
     .usuario-card {
-      min-width: 120px;
-      background: #f7f7f7;
-      border: 1px solid #d5d5d5;
-      border-radius: 8px;
-      padding: 4px 8px;     /* mais baixo para acompanhar o tamanho dos nomes */
-      line-height: 1.2;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      /* removendo "card": sem fundo, borda, sombra, padding mínimo */
+      min-width: auto;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
 
-      /* EMPILHADO (usuário em cima, loja embaixo) */
       display: flex;
       flex-direction: column;
       align-items: flex-end;
@@ -73,7 +72,7 @@
       font-weight: 600;
       color: #111;
       word-break: break-word;
-      font-size: 9px;       /* ~30% menor que o padrão */
+      font-size: 9px;       /* mantém o tamanho reduzido */
       text-align: right;
     }
 
@@ -279,11 +278,11 @@
       font-size: 12px;
     }
 
-    /* CÉLULAS MAIS BAIXAS (mais compacto) */
+    /* CÉLULAS AINDA MAIS BAIXAS (mais compacto) */
     .cartao-table th,
     .cartao-table td {
       border: 1px solid #c3c3c3;
-      padding: 4px 6px;   /* antes 6px 8px */
+      padding: 3px 5px;   /* antes 4px 6px */
       text-align: left;
     }
 
@@ -301,6 +300,12 @@
 
     .status-pendente {
       color: #c00000;
+      font-weight: 700;
+    }
+
+    /* Pendente já enviado (sessão atual) */
+    .status-pendente-enviado {
+      color: #d6a500; /* amarelo mais escuro pra ler bem */
       font-weight: 700;
     }
 
@@ -529,7 +534,7 @@
         <h1 class="titulo">PAINEL SCAN&SELL</h1>
       </div>
       <div class="info-usuario">
-        <!-- Card único com usuário em cima e loja embaixo -->
+        <!-- Mesmo lugar, sem card: só texto empilhado -->
         <div class="usuario-card">
           <div class="value" id="usuarioSpan"></div>
           <div class="value" id="lojaSpan"></div>
@@ -830,7 +835,6 @@
           const partes = String(empresaProduto).split(" : ");
           const produto = (partes[1] || partes[0] || "").trim();
 
-          // Classe de cor para o status
           const statusUpper = String(pendenteVerificado || "").trim().toUpperCase();
           const statusClass =
             statusUpper === "VERIFICADO"
@@ -843,7 +847,10 @@
           <div class="cartao" onclick="prepararEnvio(${idx})">
             <div class="cartao-header">${produto || "Produto"}</div>
             <table class="cartao-table" aria-label="Dados do produto">
-              <tr><th>Status</th><td><span class="${statusClass}">${pendenteVerificado}</span></td></tr>
+              <tr>
+                <th>Status</th>
+                <td><span id="status-cell-${idx}" class="${statusClass}">${pendenteVerificado}</span></td>
+              </tr>
               <tr><th>EAN</th><td>${ean}</td></tr>
               <tr><th>Seção</th><td>${secao}</td></tr>
               <tr><th>Qtd. Disponível</th><td>${qtdDisponivel}</td></tr>
@@ -900,7 +907,8 @@
         return;
       }
 
-      envioPendente = { linhaBase, observacao: obs };
+      // guarda também o índice para poder mexer na cor do status depois
+      envioPendente = { idx, linhaBase, observacao: obs };
       document.getElementById("confirmOverlay").style.display = "flex";
     }
 
@@ -923,7 +931,7 @@
         return;
       }
 
-      const { linhaBase, observacao } = envioPendente;
+      const { idx, linhaBase, observacao } = envioPendente;
       envioPendente = null;
       overlay.style.display = "none";
       status.textContent = "Enviando lançamento para a base de dados...";
@@ -949,6 +957,23 @@
         status.textContent =
           dados.message || "Lançamento registrado com sucesso.";
         document.getElementById("observacao").value = "";
+
+        // Vibração curta ao registrar (onde o navegador suportar)
+        if (navigator.vibrate) {
+          navigator.vibrate(100);
+        }
+
+        // Se o status ainda for "Pendente", marca como "pendente enviado" (amarelo) nesta sessão
+        if (typeof idx === "number") {
+          const spanStatus = document.getElementById(`status-cell-${idx}`);
+          if (spanStatus) {
+            const textoStatus = String(spanStatus.textContent || "").trim().toUpperCase();
+            if (textoStatus === "PENDENTE") {
+              spanStatus.classList.remove("status-pendente", "status-verificado");
+              spanStatus.classList.add("status-pendente-enviado");
+            }
+          }
+        }
       } catch (e) {
         console.error("Erro ao enviar lançamento para a base de dados:", e);
         status.textContent = "Erro de conexão ao enviar lançamento.";
