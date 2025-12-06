@@ -45,17 +45,15 @@
       font-size: 18px;
     }
 
-    /* Cartões compactos com apenas os valores (usuário / loja), fonte ~30% menor */
+    /* Card único de usuário + loja, um abaixo do outro, à direita do título */
     .info-usuario {
       display: flex;
-      gap: 10px;
-      align-items: flex-start;
       justify-content: flex-end;
       flex: 1 1 auto;
     }
 
     .usuario-card {
-      min-width: 110px;
+      min-width: 120px;
       background: #f7f7f7;
       border: 1px solid #d5d5d5;
       border-radius: 8px;
@@ -63,9 +61,12 @@
       line-height: 1.2;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 
+      /* EMPILHADO (usuário em cima, loja embaixo) */
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-end;
       justify-content: center;
+      gap: 2px;
     }
 
     .usuario-card .value {
@@ -73,6 +74,7 @@
       color: #111;
       word-break: break-word;
       font-size: 9px;       /* ~30% menor que o padrão */
+      text-align: right;
     }
 
     .conteudo {
@@ -209,7 +211,7 @@
     }
 
     /* ======================
-       OBSERVAÇÃO (AGORA OPCIONAL)
+       OBSERVAÇÃO (OPCIONAL)
        =======================*/
 
     .obs-label {
@@ -277,16 +279,28 @@
       font-size: 12px;
     }
 
+    /* CÉLULAS MAIS BAIXAS (mais compacto) */
     .cartao-table th,
     .cartao-table td {
       border: 1px solid #c3c3c3;
-      padding: 6px 8px;
+      padding: 4px 6px;   /* antes 6px 8px */
       text-align: left;
     }
 
     .cartao-table th {
       width: 42%;
       background: #f9f9f9;
+      font-weight: 700;
+    }
+
+    /* Cores do status */
+    .status-verificado {
+      color: #118000;
+      font-weight: 700;
+    }
+
+    .status-pendente {
+      color: #c00000;
       font-weight: 700;
     }
 
@@ -350,6 +364,43 @@
     .btnCancelar {
       background: #e0e0e0;
       color: #333;
+    }
+
+    /* ======================
+       POPUP DE AVISO "JÁ VERIFICADO"
+       =======================*/
+
+    #alertOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+    }
+
+    .alert-box {
+      background: #fff;
+      padding: 18px 16px;
+      border-radius: 10px;
+      max-width: 320px;
+      width: 90%;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .alert-box button {
+      margin-top: 12px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #4caf50;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
     }
 
     /* ======================
@@ -452,6 +503,14 @@
     </div>
   </div>
 
+  <!-- POPUP "JÁ VERIFICADO" -->
+  <div id="alertOverlay">
+    <div class="alert-box">
+      <p>Este produto já foi verificado.</p>
+      <button type="button" onclick="fecharAlertaVerificado()">OK</button>
+    </div>
+  </div>
+
   <!-- OVERLAY CARREGAMENTO -->
   <div id="loadingOverlay">
     <div class="loading-box">
@@ -470,11 +529,9 @@
         <h1 class="titulo">PAINEL SCAN&SELL</h1>
       </div>
       <div class="info-usuario">
-        <!-- Apenas os valores, já em fonte reduzida -->
+        <!-- Card único com usuário em cima e loja embaixo -->
         <div class="usuario-card">
           <div class="value" id="usuarioSpan"></div>
-        </div>
-        <div class="usuario-card">
           <div class="value" id="lojaSpan"></div>
         </div>
       </div>
@@ -672,8 +729,7 @@
 
         const lojaAlvo = (lojaLogada || "").trim().toUpperCase();
 
-        // A partir de agora a loja está EMBUTIDA em "Empresa : Produto" (coluna C da planilha).
-        // Cada linha (registroBase) é um array:
+        // Estrutura das linhas vinda da BASE_DADOS:
         // [0] EAN
         // [1] SECAO
         // [2] PENDENTE/VERIFICADO
@@ -687,7 +743,7 @@
         // [10] Dias Ult. Entrada
         // [11] Quantidade Dias Sem Vendas
 
-        // Garante filtrar PELA LOJA LOGADA usando o prefixo antes de " : "
+        // Filtra apenas registros da loja logada (prefixo antes de " : ")
         dbEfetividade = (dados.registros || []).filter((linha) => {
           const empresaProduto = String(linha[3] ?? "");
           const prefixo = empresaProduto.split(" : ")[0].trim().toUpperCase();
@@ -723,7 +779,7 @@
         return;
       }
 
-      // Números -> busca EAN (coluna A); texto -> nome do produto (parte após " : " em Empresa : Produto)
+      // Números -> busca EAN (coluna A); texto -> nome do produto (parte após " : ")
       const ehCodigoBarra = /^\d+$/.test(termoBruto);
 
       const resultados = dbEfetividade.filter((linha) => {
@@ -774,11 +830,20 @@
           const partes = String(empresaProduto).split(" : ");
           const produto = (partes[1] || partes[0] || "").trim();
 
+          // Classe de cor para o status
+          const statusUpper = String(pendenteVerificado || "").trim().toUpperCase();
+          const statusClass =
+            statusUpper === "VERIFICADO"
+              ? "status-verificado"
+              : statusUpper === "PENDENTE"
+              ? "status-pendente"
+              : "";
+
           return `
           <div class="cartao" onclick="prepararEnvio(${idx})">
             <div class="cartao-header">${produto || "Produto"}</div>
             <table class="cartao-table" aria-label="Dados do produto">
-              <tr><th>Status</th><td>${pendenteVerificado}</td></tr>
+              <tr><th>Status</th><td><span class="${statusClass}">${pendenteVerificado}</span></td></tr>
               <tr><th>EAN</th><td>${ean}</td></tr>
               <tr><th>Seção</th><td>${secao}</td></tr>
               <tr><th>Qtd. Disponível</th><td>${qtdDisponivel}</td></tr>
@@ -798,6 +863,17 @@
     }
 
     /* =========================
+       POPUP "JÁ VERIFICADO"
+       ==========================*/
+    function mostrarAlertaVerificado() {
+      document.getElementById("alertOverlay").style.display = "flex";
+    }
+
+    function fecharAlertaVerificado() {
+      document.getElementById("alertOverlay").style.display = "none";
+    }
+
+    /* =========================
        PREPARAR ENVIO (ANTES DO POPUP)
        ==========================*/
     function prepararEnvio(idx) {
@@ -808,6 +884,13 @@
       }
 
       const linhaBase = ultimosResultados[idx];
+
+      // Se já estiver VERIFICADO, não deixa enviar novamente
+      const pendenteVerificado = String(linhaBase[2] ?? "").trim().toUpperCase();
+      if (pendenteVerificado === "VERIFICADO") {
+        mostrarAlertaVerificado();
+        return;
+      }
 
       // Observação agora é OPCIONAL
       const obs = document.getElementById("observacao").value.trim();
