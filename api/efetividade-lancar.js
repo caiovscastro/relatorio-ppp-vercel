@@ -134,13 +134,13 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       sucesso: true,
-      message: "Lançamento registrado com sucesso na aba LANCADOS.",
+      message: "Lançamento registrado com sucesso na base de dados.",
     });
   } catch (erro) {
     console.error("Erro em /api/efetividade-lancar:", erro);
     return res.status(500).json({
       sucesso: false,
-      message: "Erro ao registrar lançamento na aba LANCADOS.",
+      message: "Erro ao registrar lançamento na base de dados.",
       detalhe: erro.message,
     });
   }
