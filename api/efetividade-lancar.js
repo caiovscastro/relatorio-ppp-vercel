@@ -7,7 +7,7 @@ const spreadsheetId = process.env.SPREADSHEET_ID_EFETIVIDADE;
 
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
-// Autenticação direta via service account para escrever na planilha
+// Autenticação via service account para escrever na planilha
 const auth = new google.auth.JWT(
   serviceAccountEmail,
   null,
@@ -20,14 +20,14 @@ const sheets = google.sheets({ version: "v4", auth });
 const ABA_LANCADOS = "LANCADOS";
 
 export default async function handler(req, res) {
-  // Endpoint só aceita POST porque apenas recebe lançamentos
+  // Só aceita POST
   if (req.method !== "POST") {
     return res
       .status(405)
       .json({ sucesso: false, message: "Método não permitido. Use POST." });
   }
 
-  // Garante que variáveis de ambiente obrigatórias estejam presentes
+  // Verifica variáveis de ambiente obrigatórias
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
       sucesso: false,
@@ -39,12 +39,12 @@ export default async function handler(req, res) {
   try {
     const {
       registroBase, // linha completa da aba BASE_DADOS
-      loja,         // loja que está logada no front
-      usuario,      // usuário logado
-      observacao,   // relato digitado (AGORA OPCIONAL)
+      loja,         // loja logada (não é gravada na linha, só usada para controle)
+      usuario,      // usuário logado (idem)
+      observacao,   // texto opcional
     } = req.body || {};
 
-    // Precisa vir exatamente a linha selecionada para manter a ordem de colunas
+    // Precisa vir a linha selecionada para manter a correspondência de colunas
     if (!Array.isArray(registroBase) || !registroBase.length) {
       return res.status(400).json({
         sucesso: false,
@@ -59,70 +59,99 @@ export default async function handler(req, res) {
       });
     }
 
-    // >>> BLOCO REMOVIDO <<<
-    // Observação não é mais obrigatória:
-    // if (!observacao) {
-    //   return res.status(400).json({
-    //     sucesso: false,
-    //     message: "Observação é obrigatória.",
-    //   });
-    // }
+    // Observação AGORA É OPCIONAL – não valida mais vazio
 
-    // Data/hora em Brasília
+    // Data/hora em Brasília, formato "dd/MM/yyyy HH:mm" (sem vírgula, sem segundos)
     const agora = new Date();
-    const dataHora = new Intl.DateTimeFormat("pt-BR", {
+
+    const dataBr = new Intl.DateTimeFormat("pt-BR", {
       timeZone: "America/Sao_Paulo",
-      dateStyle: "short",
-      timeStyle: "medium",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     }).format(agora);
 
-    /*
-      Montagem da linha (ordem solicitada pelo usuário):
-      - EAN
-      - Cod/Produto
-      - Loja
-      - Seção
-      - Estoque Disponivel
-      - Custo Liquido
-      - Qtd. Pend. Ped.Compra
-      - Dias de Estoque
-      - Dias Ult. Entrada
-      - Qtd Dias Sem Vendas
-      - Observação (pode vir vazio)
-      - Data/Hora
+    const horaBr = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(agora);
 
-      Qualquer coluna de quantidade/valor/documento foi removida para não ser enviada.
+    const dataHora = `${dataBr} ${horaBr}`; // Ex.: "06/12/2025 11:18"
+
+    /*
+      NOVO LAYOUT DA ABA BASE_DADOS (índices do array registroBase):
+
+      [0] EAN
+      [1] SECAO
+      [2] PENDENTE/VERIFICADO
+      [3] Empresa : Produto
+      [4] Código Produto
+      [5] Quantidade Disponível
+      [6] Preço Vda Unitário
+      [7] Custo Liq. Unitário
+      [8] Qtd. Pend. Ped.Compra
+      [9] Dias de Estoque
+      [10] Dias Ult. Entrada
+      [11] Quantidade Dias Sem Vendas
     */
+
     const [
       ean = "",
-      codigoProduto = "",
-      lojaBase = "",
       secao = "",
-      estoqueDisponivel = "",
-      custoLiquido = "",
+      pendenteVerificadoBase = "", // não será usado diretamente, vamos gravar sempre "Verificado"
+      empresaProduto = "",
+      codigoProduto = "",
+      qtdDisponivel = "",
+      precoVdaUnitario = "",
+      custoLiqUnitario = "",
       qtdPendente = "",
       diasEstoque = "",
       diasUltimaEntrada = "",
       diasSemVendas = "",
     ] = registroBase;
 
-    // Linha final enviada para LANCADOS; ordem exata da listagem acima
+    // Pendente/Verificado no LANCADOS -> sempre "Verificado"
+    const pendenteVerificadoSaida = "Verificado";
+
+    /*
+      NOVA ORDEM PARA A ABA LANCADOS:
+
+      1. EAN
+      2. Seção
+      3. Pendente/Verificado (sempre "Verificado")
+      4. Empresa : Produto
+      5. Código Produto
+      6. Quantidade Disponível
+      7. Preço Vda Unitário
+      8. Custo Liq. Unitário
+      9. Qtd. Pend. Ped.Compra
+      10. Dias de Estoque
+      11. Dias Ult. Entrada
+      12. Qtd. Dias Sem Vendas
+      13. Observação
+      14. Data/Hora (dd/MM/yyyy HH:mm)
+    */
+
     const linha = [
       ean,
-      codigoProduto,
-      lojaBase,
       secao,
-      estoqueDisponivel,
-      custoLiquido,
+      pendenteVerificadoSaida,
+      empresaProduto,
+      codigoProduto,
+      qtdDisponivel,
+      precoVdaUnitario,
+      custoLiqUnitario,
       qtdPendente,
       diasEstoque,
       diasUltimaEntrada,
       diasSemVendas,
-      observacao || "", // garante string mesmo se vier undefined/null
+      observacao || "",
       dataHora,
     ];
 
-    // Append na aba LANCADOS sem sobrescrever linhas existentes
+    // Append na aba LANCADOS
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: `${ABA_LANCADOS}!A:A`,
