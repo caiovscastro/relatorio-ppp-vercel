@@ -6,10 +6,7 @@
   <title>Seleção de Acesso</title>
 
   <style>
-    /* ============================
-       ESTILOS DO CARD PRINCIPAL
-       (layout preservado 100% igual)
-    ============================ */
+    /* Layout preservado 100% igual */
     body {
       background: #f3f3f3;
       margin: 0;
@@ -49,32 +46,14 @@
       transition: 0.2s ease;
     }
 
-    /* PPP */
-    .btn-ppp {
-      background: #0066ff;
-      color: white;
-    }
-    .btn-ppp:hover {
-      background: #004ecc;
-    }
+    .btn-ppp { background: #0066ff; color: white; }
+    .btn-ppp:hover { background: #004ecc; }
 
-    /* Gestor PPP */
-    .btn-gestor {
-      background: #444;
-      color: white;
-    }
-    .btn-gestor:hover {
-      background: #222;
-    }
+    .btn-gestor { background: #444; color: white; }
+    .btn-gestor:hover { background: #222; }
 
-    /* Efetividade Operacional */
-    .btn-efetividade {
-      background: #198754;
-      color: white;
-    }
-    .btn-efetividade:hover {
-      background: #146c43;
-    }
+    .btn-efetividade { background: #198754; color: white; }
+    .btn-efetividade:hover { background: #146c43; }
   </style>
 </head>
 
@@ -83,21 +62,59 @@
   <div class="container">
     <h1>SELECIONE O ACESSO</h1>
 
-    <!-- Botão PPP (Base e Gerente PPP) -->
-    <button class="btn btn-ppp" onclick="window.location.href='login.html'">
+    <button id="btnPPP" class="btn btn-ppp" onclick="window.location.href='login.html'">
       Acesso Prevenção de Perdas
     </button>
 
-    <!-- Botão Gestor PPP (perfil GERENTE_PPP ou ADMINISTRADOR) -->
-    <button class="btn btn-gestor" onclick="window.location.href='login-gestor.html'">
+    <button id="btnGestor" class="btn btn-gestor" onclick="window.location.href='login-gestor.html'">
       Acesso Gerente PPP
     </button>
 
-    <!-- Botão Efetividade Operacional (GERENTE_REGIONAL ou BASE_OPERACAO) -->
-    <button class="btn btn-efetividade" onclick="window.location.href='login-efetividade.html'">
+    <button id="btnEfetividade" class="btn btn-efetividade" onclick="window.location.href='login-efetividade.html'">
       Scan&Sell
     </button>
   </div>
+
+  <script>
+    /*
+      Comportamento inteligente:
+      - Se existir sessão, respeita o perfil do usuário
+      - Esconde botões que não pertencem ao perfil
+      - Evita que funcionários abram telas erradas
+    */
+
+    const perfil = localStorage.getItem("perfilUsuario");
+
+    if (perfil) {
+      // Administrador: pode tudo
+      if (perfil === "ADMINISTRADOR") {
+        // não esconde nada
+      }
+
+      // Gerente PPP → Pode PPP e Gestor
+      if (perfil === "GERENTE_PPP") {
+        document.getElementById("btnEfetividade").style.display = "none";
+      }
+
+      // Base PPP → Apenas PPP
+      if (perfil === "BASE_PPP") {
+        document.getElementById("btnGestor").style.display = "none";
+        document.getElementById("btnEfetividade").style.display = "none";
+      }
+
+      // Gerente Regional → Apenas Efetividade
+      if (perfil === "GERENTE_REGIONAL") {
+        document.getElementById("btnPPP").style.display = "none";
+        document.getElementById("btnGestor").style.display = "none";
+      }
+
+      // Base Operação → Apenas Efetividade
+      if (perfil === "BASE_OPERACAO") {
+        document.getElementById("btnPPP").style.display = "none";
+        document.getElementById("btnGestor").style.display = "none";
+      }
+    }
+  </script>
 
 </body>
 </html>
