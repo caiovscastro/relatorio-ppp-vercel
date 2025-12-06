@@ -18,86 +18,419 @@
       justify-content: center;
       align-items: center;
     }
-    .container { width: 95%; max-width: 900px; background: #fff; padding: 24px 28px 30px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); }
-    .cabecalho { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #e1e1e1; padding-bottom: 14px; margin-bottom: 16px; }
+
+    .container {
+      width: 95%;
+      max-width: 900px;
+      background: #fff;
+      padding: 24px 28px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid #e1e1e1;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
+
     /* Título um pouco menor para caber em uma linha no celular */
-    .titulo { margin: 2px; font-size: 18px; }
+    .titulo {
+      margin: 2px;
+      font-size: 18px;
+    }
+
     /* Cartões compactos de usuário/loja alinhados à direita */
-    .info-usuario { display: flex; gap: 10px; align-items: flex-start; justify-content: flex-end; flex: 1 1 auto; }
-    .usuario-card { min-width: 110px; background: #f7f7f7; border: 1px solid #d5d5d5; border-radius: 8px; padding: 8px 10px; font-size: 12px; line-height: 1.2; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
-    .usuario-card .label { font-weight: 700; color: #333; margin-bottom: 2px; }
-    .usuario-card .value { font-weight: 600; color: #111; word-break: break-word; }
-    .conteudo { margin-top: 12px; font-size: 14px; }
-    .bloco { margin-bottom: 16px; padding: 14px; border-radius: 8px; background: #f7f8ff; border: 1px solid #e0e3ff; }
-    .bloco h3 { margin: 0 0 8px; font-size: 16px; }
-    .btn-voltar { margin-top: 10px; display: inline-block; padding: 8px 14px; background: #0066ff; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; }
-    .btn-voltar:hover { background: #0050cc; }
+    .info-usuario {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      justify-content: flex-end;
+      flex: 1 1 auto;
+    }
+
+    .usuario-card {
+      min-width: 110px;
+      background: #f7f7f7;
+      border: 1px solid #d5d5d5;
+      border-radius: 8px;
+
+      /* DIMINUÍDO PARA ACOMPANHAR O TAMANHO DOS NOMES (cards mais baixos) */
+      padding: 4px 8px;           /* antes 8px 10px */
+
+      font-size: 12px;
+      line-height: 1.2;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .usuario-card .label {
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .usuario-card .value {
+      font-weight: 600;
+      color: #111;
+      word-break: break-word;
+
+      /* VALORES ~30% MENORES */
+      font-size: 9px;             /* ~30% menor que 12px */
+    }
+
+    .conteudo {
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .bloco {
+      margin-bottom: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f7f8ff;
+      border: 1px solid #e0e3ff;
+    }
+
+    .bloco h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .btn-voltar {
+      margin-top: 10px;
+      display: inline-block;
+      padding: 8px 14px;
+      background: #0066ff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .btn-voltar:hover {
+      background: #0050cc;
+    }
 
     /* Tela de erro
        --------------------------------------------------
        Mostra aviso quando não existe sessão ativa para o painel. */
-    .tela-erro { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f3f3f3; font-family: Arial, sans-serif; }
-    .card-erro { background: #fff; padding: 26px 30px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); max-width: 420px; text-align: center; }
-    .card-erro h1 { color: #c00000; margin-top: 0; }
+    .tela-erro {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-erro {
+      background: #fff;
+      padding: 26px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .card-erro h1 {
+      color: #c00000;
+      margin-top: 0;
+    }
 
     /* Busca com câmera + lupa */
-    .search-container { width: 100%; position: relative; margin-top: 8px; margin-bottom: 12px; }
-    #campoBusca { width: 100%; padding: 14px 48px 14px 56px; font-size: 14px; border: 1px solid #c3c3c3; border-radius: 999px; outline: none; background: white; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); box-sizing: border-box; }
-    #campoBusca:focus { border-color: #0066ff; box-shadow: 0 0 0 1px #0066ff33; }
-    .btnBarcodeLeft { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; padding: 0; margin: 0; cursor: pointer; width: 26px; height: 20px; display: flex; align-items: center; justify-content: center; }
-    .icon-barcode-small { width: 100%; height: 100%; border-radius: 4px; background: repeating-linear-gradient(90deg, #333 0px, #333 2px, #fff 2px, #fff 4px); }
-    .btnBuscarIcone { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
+    .search-container {
+      width: 100%;
+      position: relative;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    #campoBusca {
+      width: 100%;
+      padding: 14px 48px 14px 56px;
+      font-size: 14px;
+      border: 1px solid #c3c3c3;
+      border-radius: 999px;
+      outline: none;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      box-sizing: border-box;
+    }
+
+    #campoBusca:focus {
+      border-color: #0066ff;
+      box-shadow: 0 0 0 1px #0066ff33;
+    }
+
+    .btnBarcodeLeft {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      width: 26px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-barcode-small {
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+      background: repeating-linear-gradient(90deg, #333 0px, #333 2px, #fff 2px, #fff 4px);
+    }
+
+    .btnBuscarIcone {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     /* Observação e status */
-    .obs-label { font-weight: 600; margin-top: 8px; margin-bottom: 4px; }
-    .obs-textarea { width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #c3c3c3; padding: 10px 12px; font-size: 14px; resize: vertical; min-height: 80px; background: #fff; }
-    #status { font-size: 13px; margin-top: 4px; text-align: center; color: #333; }
+    .obs-label {
+      font-weight: 600;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+
+    .obs-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #c3c3c3;
+      padding: 10px 12px;
+      font-size: 14px;
+      resize: vertical;
+
+      /* ALTURA 30% MAIS BAIXA (80px → ~56px) */
+      min-height: 56px;
+
+      background: #fff;
+    }
+
+    #status {
+      font-size: 13px;
+      margin-top: 4px;
+      text-align: center;
+      color: #333;
+    }
 
     /* Resultados (cartões de produtos em formato de planilha)
        --------------------------------------------------
        Cada cartão imita uma grade, com o nome do produto no topo e linhas cinza. */
-    #resultado { margin-top: 8px; }
-    .cartao { width: 94%; background: white; padding: 12px 14px 10px; margin: 10px auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); cursor: pointer; opacity: 0; transform: translateY(8px); animation: entrarCartao 0.22s ease-out forwards; transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; }
-    .cartao:hover { transform: translateY(2px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14); }
-    .cartao-header { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #111; }
-    .cartao-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .cartao-table th, .cartao-table td { border: 1px solid #c3c3c3; padding: 6px 8px; text-align: left; }
-    .cartao-table th { width: 42%; background: #f9f9f9; font-weight: 700; }
-    @keyframes entrarCartao { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    #resultado {
+      margin-top: 8px;
+    }
+
+    .cartao {
+      width: 94%;
+      background: white;
+      padding: 12px 14px 10px;
+      margin: 10px auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: entrarCartao 0.22s ease-out forwards;
+      transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+    }
+
+    .cartao:hover {
+      transform: translateY(2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+    }
+
+    .cartao-header {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #111;
+    }
+
+    .cartao-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .cartao-table th,
+    .cartao-table td {
+      border: 1px solid #c3c3c3;
+      padding: 6px 8px;
+      text-align: left;
+    }
+
+    .cartao-table th {
+      width: 42%;
+      background: #f9f9f9;
+      font-weight: 700;
+    }
+
+    @keyframes entrarCartao {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
     /* Popup confirmação */
-    #confirmOverlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); display: none; align-items: center; justify-content: center; z-index: 10000; }
-    .confirm-box { background: #fff; padding: 18px 16px; border-radius: 10px; max-width: 360px; width: 90%; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); text-align: center; font-size: 14px; }
-    .confirm-buttons { display: flex; gap: 10px; justify-content: center; }
-    .btnConfirmar, .btnCancelar { flex: 1; padding: 8px 6px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; }
-    .btnConfirmar { background: #4caf50; color: #fff; }
-    .btnCancelar { background: #e0e0e0; color: #333; }
+    #confirmOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .confirm-box {
+      background: #fff;
+      padding: 18px 16px;
+      border-radius: 10px;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btnConfirmar,
+    .btnCancelar {
+      flex: 1;
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btnConfirmar {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .btnCancelar {
+      background: #e0e0e0;
+      color: #333;
+    }
 
     /* Área da câmera */
-    #cameraArea { margin-top: 12px; display: none; width: 100%; }
-    #cameraArea video { width: 100%; border-radius: 8px; border: 1px solid #ddd; margin-top: 6px; background: white; }
-    .btnFechar { width: 100%; max-width: 280px; padding: 8px 10px; font-size: 13px; border: none; border-radius: 8px; cursor: pointer; margin-top: 8px; background: #777; color: white; }
+    #cameraArea {
+      margin-top: 12px;
+      display: none;
+      width: 100%;
+    }
+
+    #cameraArea video {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-top: 6px;
+      background: white;
+    }
+
+    .btnFechar {
+      width: 100%;
+      max-width: 280px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 8px;
+      background: #777;
+      color: white;
+    }
 
     /* Overlay de carregamento 0→100% */
-    #loadingOverlay { position: fixed; inset: 0; background: rgba(243, 243, 243, 0.9); display: none; align-items: center; justify-content: center; z-index: 12000; }
-    .loading-box { background: #ffffff; border-radius: 10px; padding: 16px 20px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.20); text-align: center; font-size: 14px; min-width: 260px; }
-    .loading-bar-container { width: 100%; height: 8px; border-radius: 4px; background: #eeeeee; margin-top: 10px; overflow: hidden; }
-    .loading-bar { height: 100%; width: 0%; background: #0066ff; transition: width 0.15s linear; }
-    .loading-percent { margin-top: 8px; font-weight: 700; }
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(243, 243, 243, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 12000;
+    }
 
-/* ...seus outros estilos aqui... */
-.usuario-card {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.label {
-    font-weight: 600;
-}
-.value {
-    font-weight: 500;
-}
+    .loading-box {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      font-size: 14px;
+      min-width: 260px;
+    }
 
+    .loading-bar-container {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #eeeeee;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .loading-bar {
+      height: 100%;
+      width: 0%;
+      background: #0066ff;
+      transition: width 0.15s linear;
+    }
+
+    .loading-percent {
+      margin-top: 8px;
+      font-weight: 700;
+    }
+
+    /* Ajuste de layout interno do cartão de usuário */
+    .usuario-card {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .label {
+      font-weight: 600;
+    }
+
+    .value {
+      font-weight: 500;
+      /* o font-size do value já foi ajustado acima dentro de .usuario-card .value */
+    }
   </style>
 </head>
 
@@ -143,13 +476,11 @@
         <h1 class="titulo">PAINEL EFETIVIDADE OP.</h1>
       </div>
       <div class="info-usuario">
-        <!-- Cartões independentes para Usuário e Loja, alinhados à direita -->
+        <!-- TÍTULOS REMOVIDOS: agora só os valores, com fonte menor -->
         <div class="usuario-card">
-          <div class="label">Usuário:</div>
           <div class="value" id="usuarioSpan"></div>
         </div>
         <div class="usuario-card">
-          <div class="label">Loja:</div>
           <div class="value" id="lojaSpan"></div>
         </div>
       </div>
@@ -160,7 +491,12 @@
         <h3>Busca na base de dados</h3>
 
         <div class="search-container">
-          <button type="button" class="btnBarcodeLeft" onclick="abrirCamera()" aria-label="Ler código de barras com a câmera">
+          <button
+            type="button"
+            class="btnBarcodeLeft"
+            onclick="abrirCamera()"
+            aria-label="Ler código de barras com a câmera"
+          >
             <span class="icon-barcode-small"></span>
           </button>
 
@@ -171,8 +507,22 @@
             onkeydown="if(event.key === 'Enter'){buscar();}"
           />
 
-          <button type="button" class="btnBuscarIcone" onclick="buscar()" aria-label="Buscar registro">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <button
+            type="button"
+            class="btnBuscarIcone"
+            onclick="buscar()"
+            aria-label="Buscar registro"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#444"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
             </svg>
@@ -204,7 +554,7 @@
   </div>
 
   <script>
-    let dbEfetividade = [];      // Base filtrada por loja (aba BASE_DADOS)
+    let dbEfetividade = []; // Base filtrada por loja (aba BASE_DADOS)
     let lojaLogada = null;
     let usuarioLogado = null;
     let ultimosResultados = [];
@@ -285,11 +635,16 @@
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
       const percentEl = document.getElementById("loadingPercent");
-      if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+      if (loadingTimer) {
+        clearInterval(loadingTimer);
+        loadingTimer = null;
+      }
       loadingPercent = 100;
       bar.style.width = "100%";
       percentEl.textContent = "100%";
-      setTimeout(() => { overlay.style.display = "none"; }, 220);
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 220);
     }
 
     // ============ CARREGAR BASE (BASE_DADOS) ============
@@ -298,7 +653,9 @@
       status.textContent = "Carregando base de dados...";
       iniciarLoading();
       try {
-        const resp = await fetch("/api/efetividade-base?loja=" + encodeURIComponent(lojaLogada));
+        const resp = await fetch(
+          "/api/efetividade-base?loja=" + encodeURIComponent(lojaLogada)
+        );
         const dados = await resp.json().catch(() => ({}));
         if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
           console.error("Resposta inesperada em /api/efetividade-base:", dados);
@@ -310,7 +667,9 @@
         finalizarLoading();
       } catch (e) {
         console.error("Erro ao carregar base de dados:", e);
-        status.textContent = `Erro ao carregar base de dados. ${e.message || ""}`.trim();
+        status.textContent = `Erro ao carregar base de dados. ${
+          e.message || ""
+        }`.trim();
         finalizarLoading();
       }
     }
@@ -348,14 +707,27 @@
       const container = document.getElementById("resultado");
       ultimosResultados = Array.isArray(lista) ? lista : [];
       if (!ultimosResultados.length) {
-        container.innerHTML = '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado.</p>';
+        container.innerHTML =
+          '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado.</p>';
         return;
       }
       // Monta cada cartão no padrão "planilha": cabeçalho com nome do produto
       // e tabela com bordas cinza para destacar cada campo.
-      const html = ultimosResultados.map((linha, idx) => {
-        const [ean="", codigoProduto="", loja="", secao="", estoqueDisponivel="", custo="", qtdPendente="", diasEstoque="", diasUltimaEntrada="", diasSemVendas=""] = linha;
-        return `
+      const html = ultimosResultados
+        .map((linha, idx) => {
+          const [
+            ean = "",
+            codigoProduto = "",
+            loja = "",
+            secao = "",
+            estoqueDisponivel = "",
+            custo = "",
+            qtdPendente = "",
+            diasEstoque = "",
+            diasUltimaEntrada = "",
+            diasSemVendas = "",
+          ] = linha;
+          return `
           <div class="cartao" onclick="prepararEnvio(${idx})">
             <div class="cartao-header">${codigoProduto || "Produto"}</div>
             <table class="cartao-table" aria-label="Dados do produto">
@@ -371,7 +743,8 @@
             </table>
           </div>
         `;
-      }).join("");
+        })
+        .join("");
       container.innerHTML = html;
     }
 
@@ -382,10 +755,16 @@
         status.textContent = "Não foi possível identificar o registro selecionado.";
         return;
       }
+
       const linhaBase = ultimosResultados[idx];
+
+      // OBSERVAÇÃO DEIXA DE SER OBRIGATÓRIA
       const obs = document.getElementById("observacao").value.trim();
-      if (!obs) { status.textContent = "Preencha a observação antes de enviar."; return; }
-      if (!lojaLogada || !usuarioLogado) { status.textContent = "Sessão inválida. Faça login novamente."; return; }
+
+      if (!lojaLogada || !usuarioLogado) {
+        status.textContent = "Sessão inválida. Faça login novamente.";
+        return;
+      }
 
       envioPendente = { linhaBase, observacao: obs };
       document.getElementById("confirmOverlay").style.display = "flex";
@@ -395,8 +774,16 @@
     async function confirmarEnvio(confirmado) {
       const overlay = document.getElementById("confirmOverlay");
       const status = document.getElementById("status");
-      if (!confirmado) { overlay.style.display = "none"; envioPendente = null; status.textContent = "Envio cancelado."; return; }
-      if (!envioPendente) { overlay.style.display = "none"; return; }
+      if (!confirmado) {
+        overlay.style.display = "none";
+        envioPendente = null;
+        status.textContent = "Envio cancelado.";
+        return;
+      }
+      if (!envioPendente) {
+        overlay.style.display = "none";
+        return;
+      }
 
       const { linhaBase, observacao } = envioPendente;
       envioPendente = null;
@@ -407,11 +794,20 @@
         const resposta = await fetch("/api/efetividade-lancar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ registroBase: linhaBase, loja: lojaLogada, usuario: usuarioLogado, observacao }),
+          body: JSON.stringify({
+            registroBase: linhaBase,
+            loja: lojaLogada,
+            usuario: usuarioLogado,
+            observacao,
+          }),
         });
         const dados = await resposta.json().catch(() => ({}));
-        if (!resposta.ok || !dados.sucesso) { status.textContent = dados.message || "Erro ao registrar lançamento."; return; }
-        status.textContent = dados.message || "Lançamento registrado com sucesso.";
+        if (!resposta.ok || !dados.sucesso) {
+          status.textContent = dados.message || "Erro ao registrar lançamento.";
+          return;
+        }
+        status.textContent =
+          dados.message || "Lançamento registrado com sucesso.";
         document.getElementById("observacao").value = "";
       } catch (e) {
         console.error("Erro ao enviar lançamento para a base de dados:", e);
@@ -427,7 +823,8 @@
       area.style.display = "block";
       msg.textContent = "Abrindo câmera...";
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        msg.textContent = "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
+        msg.textContent =
+          "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
         return;
       }
       navigator.mediaDevices
@@ -439,15 +836,20 @@
           msg.textContent = "Aponte para o código de barras...";
           iniciarLeitura(video, msg);
         })
-        .catch((err) => { msg.textContent = "Erro ao acessar câmera: " + err.message; });
+        .catch((err) => {
+          msg.textContent = "Erro ao acessar câmera: " + err.message;
+        });
     }
 
     async function iniciarLeitura(video, msg) {
       if (!("BarcodeDetector" in window)) {
-        msg.textContent = "Leitura automática não suportada neste navegador. Digite o código manualmente.";
+        msg.textContent =
+          "Leitura automática não suportada neste navegador. Digite o código manualmente.";
         return;
       }
-      const detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "code_128"] });
+      const detector = new BarcodeDetector({
+        formats: ["ean_13", "ean_8", "code_128"],
+      });
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       lendo = true;
@@ -463,13 +865,15 @@
             if (codes.length > 0) {
               const code = codes[0].rawValue;
               msg.textContent = "Detectado: " + code;
-              beep();                            // toca o beep
+              beep(); // toca o beep
               document.getElementById("campoBusca").value = code;
               fecharCamera();
               buscar();
               return;
             }
-          } catch (e) { /* ignora erros do detector */ }
+          } catch (e) {
+            /* ignora erros do detector */
+          }
         }
         requestAnimationFrame(scan);
       }
@@ -478,15 +882,20 @@
 
     function fecharCamera() {
       lendo = false;
-      if (streamAtual) { streamAtual.getTracks().forEach((t) => t.stop()); }
+      if (streamAtual) {
+        streamAtual.getTracks().forEach((t) => t.stop());
+      }
       document.getElementById("video").srcObject = null;
       document.getElementById("cameraArea").style.display = "none";
     }
 
     // ============ SAIR (LIMPA SESSÃO) ============
     function limparSessaoEfetividade() {
-      try { localStorage.removeItem("efetividadeSession"); }
-      catch (e) { console.warn("Não foi possível limpar efetividadeSession:", e); }
+      try {
+        localStorage.removeItem("efetividadeSession");
+      } catch (e) {
+        console.warn("Não foi possível limpar efetividadeSession:", e);
+      }
       // navegação para index.html via href
     }
   </script>
