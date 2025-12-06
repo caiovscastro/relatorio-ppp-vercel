@@ -1,3 +1,5 @@
+//login-gestor.html
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,7 +9,7 @@
 
   <style>
     body {
-      margin: 0;
+      margin: 2;
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -129,10 +131,12 @@
 
     <div id="erroLoginGestor" class="msg-erro"></div>
 
+    <!-- Voltar para a tela inicial com os dois botões -->
     <a href="/index.html" class="link-voltar">Voltar para a tela inicial</a>
   </div>
 
   <script>
+    // Chave usada para guardar dados do gestor no sessionStorage.
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
 
     const form = document.getElementById("formLoginGestor");
@@ -165,28 +169,25 @@
 
         if (!resp.ok || !dados.sucesso) {
           erroBox.textContent =
-            dados.message || "Falha ao validar login de gerente PPP.";
+            dados.message || "Falha ao validar login de gerente ppp.";
           return;
         }
 
+        // Salva dados mínimos no sessionStorage.
         const payload = {
           usuario: dados.usuario || usuario,
-          perfil: dados.perfil || "",
-          lojas: dados.lojas || "",
+          token: dados.token || null,
           loginEm: new Date().toISOString(),
         };
 
-        // Sessão usada pelo painel-gestor (já existia)
         sessionStorage.setItem(STORAGE_KEY_GESTOR, JSON.stringify(payload));
 
-        // Perfil geral usado em todo o app
-        localStorage.setItem("perfilUsuario", dados.perfil || "");
-
+        // Redireciona para o painel do gestor.
         window.location.href = "/painel-gestor.html";
       } catch (erro) {
-        console.error("Erro no login de gerente PPP:", erro);
+        console.error("Erro no login de gerente ppp:", erro);
         erroBox.textContent =
-          "Erro de conexão ao tentar validar o login de gerente PPP.";
+          "Erro de conexão ao tentar validar o login de gerente ppp.";
       }
     });
   </script>
