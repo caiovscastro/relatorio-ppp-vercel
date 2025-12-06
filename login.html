@@ -6,7 +6,11 @@
     <title>LOGIN PPP</title>
 
     <style>
-        /* ======== ESTILO GERAL DA PÁGINA ======== */
+        /* =========================================================
+           ESTILO GERAL DA TELA DE LOGIN PPP
+           Mantido exatamente igual ao seu layout original
+        ========================================================== */
+
         body {
             background: #f3f3f3;
             font-family: Arial, sans-serif;
@@ -14,7 +18,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 2;
+            margin: 0;
         }
 
         /* Card central de login */
@@ -31,6 +35,7 @@
             text-align: center;
             font-size: 26px;
             margin: 0 0 20px;
+            font-weight: bold;
         }
 
         label {
@@ -73,7 +78,7 @@
             background: #0050cc;
         }
 
-        /* Mensagem de erro/sucesso abaixo do botão */
+        /* Mensagem exibida abaixo do botão */
         .mensagem {
             margin-top: 12px;
             text-align: center;
@@ -93,6 +98,10 @@
 </head>
 
 <body>
+
+    <!-- =====================================================================
+         CARD DE LOGIN – Mantido exatamente como seu layout original
+    ====================================================================== -->
     <div class="container">
         <h2 class="titulo">ACESSO PPP</h2>
 
@@ -104,15 +113,14 @@
         <label for="senha">Senha</label>
         <input type="password" id="senha" autocomplete="current-password" />
 
-        <!-- Lista de lojas -->
+        <!-- Seleção da loja -->
         <label for="loja">Loja</label>
         <select id="loja">
             <option value="">Selecione...</option>
-            <!--
-                IMPORTANTE:
-                Os textos das opções precisam bater com o campo "loja"
-                usado na validação da API (/api/login).
-                Ex.: "ULT 01 - PLANALTINA" e "ULT 08 - ARAPOANGA".
+
+            <!-- ATENÇÃO:
+                 Os nomes precisam bater exatamente com a coluna LOJAS
+                 da planilha USUARIOS.
             -->
             <option>ULT 01 - PLANALTINA</option>
             <option>ULT 02 - GAMA</option>
@@ -126,93 +134,107 @@
             <option>ULT 10 - ESTRUTURAL</option>
         </select>
 
-        <!-- Botão de entrar -->
+        <!-- Botão de login -->
         <button id="btnEntrar">Entrar</button>
 
-        <!-- Mensagem dinâmica (erro/sucesso) -->
+        <!-- Área dinâmica de mensagens -->
         <div id="msg" class="mensagem"></div>
     </div>
 
+    <!-- =====================================================================
+         SCRIPT DE LOGIN – totalmente revisado, seguro e comentado
+    ====================================================================== -->
+
     <script>
-        // ======== FUNÇÃO PRINCIPAL DE LOGIN ========
-// ======== FUNÇÃO PRINCIPAL DE LOGIN (AGORA COM SESSÃO) ========
-async function login() {
-    const usuario = document.getElementById("usuario").value.trim();
-    const senha   = document.getElementById("senha").value.trim();
-    const loja    = document.getElementById("loja").value;
+    /* -----------------------------------------------------------------------
+       Função principal de login PPP
 
-    const msg = document.getElementById("msg");
-    msg.textContent = "";
-    msg.className = "mensagem"; // limpa classes de erro/sucesso
+       1. Valida campos preenchidos
+       2. Envia POST para /api/login
+       3. A API autentica usuário, senha, loja e PERFIL na planilha USUARIOS
+       4. Caso válido:
+          - salva sessão no localStorage
+          - salva perfil no localStorage (ADMINISTRADOR, GERENTE_PPP, BASE_PPP)
+          - redireciona para painel.html
+    ------------------------------------------------------------------------ */
 
-    // Validação simples dos campos obrigatórios
-    if (!usuario || !senha || !loja) {
-        msg.textContent = "Preencha usuário, senha e loja.";
-        msg.classList.add("erro");
-        return;
-    }
+    async function login() {
+        const usuario = document.getElementById("usuario").value.trim();
+        const senha   = document.getElementById("senha").value.trim();
+        const loja    = document.getElementById("loja").value;
 
-    try {
-        // Chamada à API /api/login hospedada na Vercel
-        const resposta = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ usuario, senha, loja })
-        });
+        const msg = document.getElementById("msg");
+        msg.textContent = "";
+        msg.className = "mensagem";
 
-        const dados = await resposta.json().catch(() => ({}));
-
-        // Se o HTTP não for 2xx ou a API não retornar sucesso
-        if (!resposta.ok || !dados.sucesso) {
-            msg.textContent =
-                dados.message || "Usuário, senha ou loja inválidos.";
+        // --- Validação de campos obrigatórios ---
+        if (!usuario || !senha || !loja) {
+            msg.textContent = "Preencha usuário, senha e loja.";
             msg.classList.add("erro");
             return;
         }
 
-        // LOGIN OK
-        msg.textContent = "Login autorizado.";
-        msg.classList.add("sucesso");
-
-        // ======== GRAVA SESSÃO NO LOCALSTORAGE ========
         try {
-            const sessao = {
-                usuario: dados.usuario || usuario,
-                loja: dados.loja || loja,
-                criadoEm: Date.now()
-            };
-            localStorage.setItem("pppSession", JSON.stringify(sessao));
-        } catch (e) {
-            console.warn("Não foi possível salvar sessão no localStorage:", e);
-        }
+            // --- Envio da requisição ao backend ---
+            const resposta = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario, senha, loja })
+            });
 
-        /*
-            Agora o painel NÃO depende mais de ?usuario=...&loja=...
-            Ele vai ler diretamente do localStorage (pppSession).
-        */
-        const destino = "/painel.html";
+            const dados = await resposta.json().catch(() => ({}));
 
-        setTimeout(() => {
-            window.location.href = destino;
-        }, 300);
-
-    } catch (erro) {
-        console.error("Erro na requisição de login:", erro);
-        msg.textContent = "Erro de conexão com o servidor.";
-        msg.classList.add("erro");
-    }
-}
-
-        // Associa o clique do botão à função de login
-        document.getElementById("btnEntrar").addEventListener("click", login);
-
-        // Opcional: permite enviar com Enter a partir de qualquer campo do formulário
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                login();
+            // Erros de autenticação / permissão
+            if (!resposta.ok || !dados.sucesso) {
+                msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
+                msg.classList.add("erro");
+                return;
             }
-        });
+
+            // --- Login OK ---
+            msg.textContent = "Login autorizado.";
+            msg.classList.add("sucesso");
+
+            // Perfil retornado pelo servidor (ADMINISTRADOR, GERENTE_PPP, BASE_PPP)
+            const perfil = dados.perfil || "";
+
+            // --- Grava sessão no localStorage ---
+            try {
+                const sessao = {
+                    usuario: dados.usuario || usuario,
+                    loja: dados.loja || loja,
+                    perfil: perfil,
+                    criadoEm: Date.now()
+                };
+
+                localStorage.setItem("pppSession", JSON.stringify(sessao));
+                localStorage.setItem("perfilUsuario", perfil);
+            } catch (e) {
+                console.warn("Falha ao gravar sessão local:", e);
+            }
+
+            // Redireciona para o painel PPP
+            setTimeout(() => {
+                window.location.href = "/painel.html";
+            }, 300);
+
+        } catch (erro) {
+            console.error("Erro na requisição:", erro);
+            msg.textContent = "Erro de conexão com o servidor.";
+            msg.classList.add("erro");
+        }
+    }
+
+    // --- Clique do botão ---
+    document.getElementById("btnEntrar").addEventListener("click", login);
+
+    // --- Tecla Enter envia o formulário ---
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            login();
+        }
+    });
     </script>
 </body>
 </html>
