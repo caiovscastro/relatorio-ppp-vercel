@@ -6,9 +6,10 @@
   <title>Efetividade Operacional</title>
 
   <style>
-    /* Estilo geral e cabeçalho
-       --------------------------------------------------
-       Mantém a página centralizada e com tipografia limpa para uso em mobile. */
+    /* =========================
+       ESTILO GERAL E CABEÇALHO
+       ==========================*/
+
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
@@ -39,13 +40,12 @@
       margin-bottom: 16px;
     }
 
-    /* Título um pouco menor para caber em uma linha no celular */
     .titulo {
       margin: 2px;
       font-size: 18px;
     }
 
-    /* Cartões compactos de usuário/loja alinhados à direita */
+    /* Cartões compactos com apenas os valores (usuário / loja), fonte ~30% menor */
     .info-usuario {
       display: flex;
       gap: 10px;
@@ -59,28 +59,20 @@
       background: #f7f7f7;
       border: 1px solid #d5d5d5;
       border-radius: 8px;
-
-      /* DIMINUÍDO PARA ACOMPANHAR O TAMANHO DOS NOMES (cards mais baixos) */
-      padding: 4px 8px;           /* antes 8px 10px */
-
-      font-size: 12px;
+      padding: 4px 8px;     /* mais baixo para acompanhar o tamanho dos nomes */
       line-height: 1.2;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-    }
 
-    .usuario-card .label {
-      font-weight: 700;
-      color: #333;
-      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .usuario-card .value {
       font-weight: 600;
       color: #111;
       word-break: break-word;
-
-      /* VALORES ~30% MENORES */
-      font-size: 9px;             /* ~30% menor que 12px */
+      font-size: 9px;       /* ~30% menor que o padrão */
     }
 
     .conteudo {
@@ -117,9 +109,10 @@
       background: #0050cc;
     }
 
-    /* Tela de erro
-       --------------------------------------------------
-       Mostra aviso quando não existe sessão ativa para o painel. */
+    /* ======================
+       TELA DE ERRO (SEM SESSÃO)
+       =======================*/
+
     .tela-erro {
       display: flex;
       align-items: center;
@@ -143,7 +136,10 @@
       margin-top: 0;
     }
 
-    /* Busca com câmera + lupa */
+    /* ======================
+       BUSCA + ÍCONE CÂMERA / LUPA
+       =======================*/
+
     .search-container {
       width: 100%;
       position: relative;
@@ -189,7 +185,13 @@
       width: 100%;
       height: 100%;
       border-radius: 4px;
-      background: repeating-linear-gradient(90deg, #333 0px, #333 2px, #fff 2px, #fff 4px);
+      background: repeating-linear-gradient(
+        90deg,
+        #333 0px,
+        #333 2px,
+        #fff 2px,
+        #fff 4px
+      );
     }
 
     .btnBuscarIcone {
@@ -206,7 +208,10 @@
       justify-content: center;
     }
 
-    /* Observação e status */
+    /* ======================
+       OBSERVAÇÃO (AGORA OPCIONAL)
+       =======================*/
+
     .obs-label {
       font-weight: 600;
       margin-top: 8px;
@@ -221,10 +226,7 @@
       padding: 10px 12px;
       font-size: 14px;
       resize: vertical;
-
-      /* ALTURA 30% MAIS BAIXA (80px → ~56px) */
-      min-height: 56px;
-
+      min-height: 56px;  /* ~30% mais baixa que 80px */
       background: #fff;
     }
 
@@ -235,9 +237,10 @@
       color: #333;
     }
 
-    /* Resultados (cartões de produtos em formato de planilha)
-       --------------------------------------------------
-       Cada cartão imita uma grade, com o nome do produto no topo e linhas cinza. */
+    /* ======================
+       CARTÕES DE RESULTADO
+       =======================*/
+
     #resultado {
       margin-top: 8px;
     }
@@ -298,7 +301,10 @@
       }
     }
 
-    /* Popup confirmação */
+    /* ======================
+       POPUP CONFIRMAÇÃO
+       =======================*/
+
     #confirmOverlay {
       position: fixed;
       inset: 0;
@@ -346,7 +352,10 @@
       color: #333;
     }
 
-    /* Área da câmera */
+    /* ======================
+       ÁREA DA CÂMERA
+       =======================*/
+
     #cameraArea {
       margin-top: 12px;
       display: none;
@@ -374,7 +383,10 @@
       color: white;
     }
 
-    /* Overlay de carregamento 0→100% */
+    /* ======================
+       OVERLAY CARREGAMENTO 0–100%
+       =======================*/
+
     #loadingOverlay {
       position: fixed;
       inset: 0;
@@ -415,27 +427,11 @@
       margin-top: 8px;
       font-weight: 700;
     }
-
-    /* Ajuste de layout interno do cartão de usuário */
-    .usuario-card {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .label {
-      font-weight: 600;
-    }
-
-    .value {
-      font-weight: 500;
-      /* o font-size do value já foi ajustado acima dentro de .usuario-card .value */
-    }
   </style>
 </head>
 
 <body>
-  <!-- Tela de erro se não houver sessão -->
+  <!-- TELA DE ERRO (SEM SESSÃO) -->
   <div id="erroAcesso" class="tela-erro" style="display: none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
@@ -445,8 +441,7 @@
     </div>
   </div>
 
-  <!-- Popup de confirmação
-       Mostra antes de gravar na planilha, prevenindo cliques acidentais. -->
+  <!-- POPUP CONFIRMAÇÃO -->
   <div id="confirmOverlay">
     <div class="confirm-box">
       <p>Confirmar lançamento na base de dados?</p>
@@ -457,7 +452,7 @@
     </div>
   </div>
 
-  <!-- Overlay de carregamento da base -->
+  <!-- OVERLAY CARREGAMENTO -->
   <div id="loadingOverlay">
     <div class="loading-box">
       <div>Carregando base de dados...</div>
@@ -468,15 +463,14 @@
     </div>
   </div>
 
-  <!-- Painel principal -->
+  <!-- PAINEL PRINCIPAL -->
   <div id="appRoot" class="container" style="display: none;">
     <div class="cabecalho">
       <div>
-        <!-- Subtítulo removido conforme solicitado; apenas o título compacto permanece -->
         <h1 class="titulo">PAINEL EFETIVIDADE OP.</h1>
       </div>
       <div class="info-usuario">
-        <!-- TÍTULOS REMOVIDOS: agora só os valores, com fonte menor -->
+        <!-- Apenas os valores, já em fonte reduzida -->
         <div class="usuario-card">
           <div class="value" id="usuarioSpan"></div>
         </div>
@@ -533,12 +527,12 @@
         <textarea
           id="observacao"
           class="obs-textarea"
-          placeholder="Descreva a observação..."
+          placeholder="Descreva a observação (opcional)..."
         ></textarea>
 
         <div id="status"></div>
 
-        <!-- Área da câmera -->
+        <!-- ÁREA DA CÂMERA -->
         <div id="cameraArea">
           <p style="font-size: 13px;">Aponte para o código de barras:</p>
           <video id="video" autoplay playsinline></video>
@@ -554,17 +548,22 @@
   </div>
 
   <script>
-    let dbEfetividade = []; // Base filtrada por loja (aba BASE_DADOS)
+    /* =========================
+       VARIÁVEIS GLOBAIS
+       ==========================*/
+    let dbEfetividade = [];      // Base completa retornada pela API
     let lojaLogada = null;
     let usuarioLogado = null;
-    let ultimosResultados = [];
-    let envioPendente = null;
+    let ultimosResultados = [];  // Última lista exibida
+    let envioPendente = null;    // Registro selecionado antes do popup
 
     // Câmera / leitor
     let streamAtual = null;
     let lendo = false;
 
-    // ============ INICIALIZAÇÃO ============
+    /* =========================
+       INICIALIZAÇÃO
+       ==========================*/
     document.addEventListener("DOMContentLoaded", () => {
       let sessao = null;
       try {
@@ -580,7 +579,7 @@
       }
 
       usuarioLogado = sessao.usuario;
-      lojaLogada = sessao.loja;
+      lojaLogada = sessao.loja;          // Ex.: "ULT01-PLANDF"
 
       document.getElementById("usuarioSpan").textContent = usuarioLogado;
       document.getElementById("lojaSpan").textContent = lojaLogada;
@@ -589,7 +588,9 @@
       carregarBaseEfetividade();
     });
 
-    // Som curto ao detectar código de barras
+    /* =========================
+       BEEP CURTO (LEITOR)
+       ==========================*/
     let audioCtx = null;
     function beep() {
       try {
@@ -612,9 +613,12 @@
       }
     }
 
-    // Overlay de carregamento 0→100%
+    /* =========================
+       OVERLAY DE CARREGAMENTO
+       ==========================*/
     let loadingTimer = null;
     let loadingPercent = 0;
+
     function iniciarLoading() {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
@@ -631,6 +635,7 @@
         percentEl.textContent = `${loadingPercent}%`;
       }, 120);
     }
+
     function finalizarLoading() {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
@@ -647,7 +652,9 @@
       }, 220);
     }
 
-    // ============ CARREGAR BASE (BASE_DADOS) ============
+    /* =========================
+       CARREGAR BASE (API /efetividade-base)
+       ==========================*/
     async function carregarBaseEfetividade() {
       const status = document.getElementById("status");
       status.textContent = "Carregando base de dados...";
@@ -662,7 +669,31 @@
           const detalhe = dados.detalhe ? ` Detalhe: ${dados.detalhe}` : "";
           throw new Error((dados.message || "Falha ao carregar base.") + detalhe);
         }
-        dbEfetividade = dados.registros;
+
+        const lojaAlvo = (lojaLogada || "").trim().toUpperCase();
+
+        // A partir de agora a loja está EMBUTIDA em "Empresa : Produto" (coluna C da planilha).
+        // Cada linha (registroBase) é um array:
+        // [0] EAN
+        // [1] SECAO
+        // [2] PENDENTE/VERIFICADO
+        // [3] Empresa : Produto (ex.: "ULT01-PLANDF : ABS 14UN ...")
+        // [4] Código Produto
+        // [5] Quantidade Disponível
+        // [6] Preço Vda Unitário
+        // [7] Custo Liq. Unitário
+        // [8] Qtd. Pend. Ped.Compra
+        // [9] Dias de Estoque
+        // [10] Dias Ult. Entrada
+        // [11] Quantidade Dias Sem Vendas
+
+        // Garante filtrar PELA LOJA LOGADA usando o prefixo antes de " : "
+        dbEfetividade = (dados.registros || []).filter((linha) => {
+          const empresaProduto = String(linha[3] ?? "");
+          const prefixo = empresaProduto.split(" : ")[0].trim().toUpperCase();
+          return prefixo === lojaAlvo;
+        });
+
         status.textContent = `Base carregada com ${dbEfetividade.length} registro(s) da loja.`;
         finalizarLoading();
       } catch (e) {
@@ -674,7 +705,9 @@
       }
     }
 
-    // ============ BUSCA LOCAL ============
+    /* =========================
+       BUSCA LOCAL
+       ==========================*/
     function buscar() {
       const campo = document.getElementById("campoBusca");
       const termoBruto = campo.value.trim();
@@ -690,65 +723,84 @@
         return;
       }
 
-      // Números -> busca EAN (coluna A); textos -> produto/código (coluna B)
+      // Números -> busca EAN (coluna A); texto -> nome do produto (parte após " : " em Empresa : Produto)
       const ehCodigoBarra = /^\d+$/.test(termoBruto);
+
       const resultados = dbEfetividade.filter((linha) => {
         const ean = String(linha[0] ?? "").trim().toLowerCase();
-        const produto = String(linha[1] ?? "").toLowerCase();
-        return ehCodigoBarra ? ean === termoMinusculo : produto.includes(termoMinusculo);
+        const empresaProduto = String(linha[3] ?? "");
+        const partes = empresaProduto.split(" : ");
+        const nomeProduto = (partes[1] || partes[0] || "").trim().toLowerCase();
+
+        return ehCodigoBarra
+          ? ean === termoMinusculo
+          : nomeProduto.includes(termoMinusculo);
       });
 
       mostrarResultados(resultados);
       status.textContent = `${resultados.length} registro(s) encontrado(s).`;
     }
 
-    // ============ EXIBIR RESULTADOS ============
+    /* =========================
+       EXIBIR RESULTADOS NA TELA
+       ==========================*/
     function mostrarResultados(lista) {
       const container = document.getElementById("resultado");
       ultimosResultados = Array.isArray(lista) ? lista : [];
+
       if (!ultimosResultados.length) {
         container.innerHTML =
           '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado.</p>';
         return;
       }
-      // Monta cada cartão no padrão "planilha": cabeçalho com nome do produto
-      // e tabela com bordas cinza para destacar cada campo.
+
       const html = ultimosResultados
         .map((linha, idx) => {
           const [
             ean = "",
-            codigoProduto = "",
-            loja = "",
             secao = "",
-            estoqueDisponivel = "",
-            custo = "",
+            pendenteVerificado = "",
+            empresaProduto = "",
+            codigoProduto = "",
+            qtdDisponivel = "",
+            precoVdaUnitario = "",
+            custoLiqUnitario = "",
             qtdPendente = "",
             diasEstoque = "",
             diasUltimaEntrada = "",
             diasSemVendas = "",
           ] = linha;
+
+          const partes = String(empresaProduto).split(" : ");
+          const produto = (partes[1] || partes[0] || "").trim();
+
           return `
           <div class="cartao" onclick="prepararEnvio(${idx})">
-            <div class="cartao-header">${codigoProduto || "Produto"}</div>
+            <div class="cartao-header">${produto || "Produto"}</div>
             <table class="cartao-table" aria-label="Dados do produto">
+              <tr><th>Produto</th><td>${produto}</td></tr>
+              <tr><th>Pendente / Verificado</th><td>${pendenteVerificado}</td></tr>
               <tr><th>EAN</th><td>${ean}</td></tr>
-              <tr><th>Loja</th><td>${loja}</td></tr>
               <tr><th>Seção</th><td>${secao}</td></tr>
-              <tr><th>Estoque Disponível</th><td>${estoqueDisponivel}</td></tr>
-              <tr><th>Custo Líquido</th><td>${custo}</td></tr>
+              <tr><th>Qtd. Disponível</th><td>${qtdDisponivel}</td></tr>
+              <tr><th>Preço Vda Unitário</th><td>${precoVdaUnitario}</td></tr>
+              <tr><th>Custo Liq. Unitário</th><td>${custoLiqUnitario}</td></tr>
               <tr><th>Qtd. Pend. Ped.Compra</th><td>${qtdPendente}</td></tr>
               <tr><th>Dias de Estoque</th><td>${diasEstoque}</td></tr>
               <tr><th>Dias Ult. Entrada</th><td>${diasUltimaEntrada}</td></tr>
-              <tr><th>Qtd Dias Sem Vendas</th><td>${diasSemVendas}</td></tr>
+              <tr><th>Qtd. Dias Sem Vendas</th><td>${diasSemVendas}</td></tr>
             </table>
           </div>
         `;
         })
         .join("");
+
       container.innerHTML = html;
     }
 
-    // ============ PREPARA ENVIO (ANTES DO POPUP) ============
+    /* =========================
+       PREPARAR ENVIO (ANTES DO POPUP)
+       ==========================*/
     function prepararEnvio(idx) {
       const status = document.getElementById("status");
       if (!ultimosResultados || !ultimosResultados[idx]) {
@@ -758,7 +810,7 @@
 
       const linhaBase = ultimosResultados[idx];
 
-      // OBSERVAÇÃO DEIXA DE SER OBRIGATÓRIA
+      // Observação agora é OPCIONAL
       const obs = document.getElementById("observacao").value.trim();
 
       if (!lojaLogada || !usuarioLogado) {
@@ -770,16 +822,20 @@
       document.getElementById("confirmOverlay").style.display = "flex";
     }
 
-    // ============ CONFIRMAÇÃO (SIM / NÃO) ============
+    /* =========================
+       CONFIRMAÇÃO (SIM / NÃO)
+       ==========================*/
     async function confirmarEnvio(confirmado) {
       const overlay = document.getElementById("confirmOverlay");
       const status = document.getElementById("status");
+
       if (!confirmado) {
         overlay.style.display = "none";
         envioPendente = null;
         status.textContent = "Envio cancelado.";
         return;
       }
+
       if (!envioPendente) {
         overlay.style.display = "none";
         return;
@@ -801,11 +857,13 @@
             observacao,
           }),
         });
+
         const dados = await resposta.json().catch(() => ({}));
         if (!resposta.ok || !dados.sucesso) {
           status.textContent = dados.message || "Erro ao registrar lançamento.";
           return;
         }
+
         status.textContent =
           dados.message || "Lançamento registrado com sucesso.";
         document.getElementById("observacao").value = "";
@@ -815,18 +873,22 @@
       }
     }
 
-    // ============ CÂMERA / LEITOR DE CÓDIGO ============
+    /* =========================
+       CÂMERA / LEITOR DE CÓDIGO
+       ==========================*/
     function abrirCamera() {
       const area = document.getElementById("cameraArea");
       const msg = document.getElementById("msgCamera");
       const video = document.getElementById("video");
       area.style.display = "block";
       msg.textContent = "Abrindo câmera...";
+
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         msg.textContent =
           "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
         return;
       }
+
       navigator.mediaDevices
         .getUserMedia({ video: { facingMode: "environment" } })
         .then((stream) => {
@@ -847,6 +909,7 @@
           "Leitura automática não suportada neste navegador. Digite o código manualmente.";
         return;
       }
+
       const detector = new BarcodeDetector({
         formats: ["ean_13", "ean_8", "code_128"],
       });
@@ -865,14 +928,14 @@
             if (codes.length > 0) {
               const code = codes[0].rawValue;
               msg.textContent = "Detectado: " + code;
-              beep(); // toca o beep
+              beep();
               document.getElementById("campoBusca").value = code;
               fecharCamera();
               buscar();
               return;
             }
           } catch (e) {
-            /* ignora erros do detector */
+            // ignora erros do detector
           }
         }
         requestAnimationFrame(scan);
@@ -889,14 +952,16 @@
       document.getElementById("cameraArea").style.display = "none";
     }
 
-    // ============ SAIR (LIMPA SESSÃO) ============
+    /* =========================
+       SAIR (LIMPA SESSÃO)
+       ==========================*/
     function limparSessaoEfetividade() {
       try {
         localStorage.removeItem("efetividadeSession");
       } catch (e) {
         console.warn("Não foi possível limpar efetividadeSession:", e);
       }
-      // navegação para index.html via href
+      // Navegação acontece via href do botão
     }
   </script>
 </body>
