@@ -1,23 +1,24 @@
 // api/login.js
 // Endpoint de login PPP (ADMINISTRADOR, GERENTE_PPP, BASE_PPP)
-// Valida usuário, senha, loja e perfil usando a aba USUARIOS da planilha.
+// Usa a aba USUARIOS da planilha definida em ID_DA_PLANILHA.
 
 import { google } from "googleapis";
 
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
 
-// Cria cliente do Google Sheets usando as MESMAS variáveis de ambiente
-// que você já usa nos outros endpoints (service account).
+// Cria o cliente do Google Sheets usando as MESMAS variáveis
+// que você já configurou na Vercel:
 async function getSheetsClient() {
-  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY
-    ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n")
-    : null;
+  // ATENÇÃO: aqui usamos exatamente os nomes que aparecem na Vercel
+  const clientEmail = process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
+  const privateKeyRaw = process.env["CHAVE_PRIVADA_DO_GOOGLE"];
 
-  if (!clientEmail || !privateKey) {
-    console.error("Variáveis GOOGLE_SERVICE_ACCOUNT_EMAIL/GOOGLE_PRIVATE_KEY não configuradas.");
+  if (!clientEmail || !privateKeyRaw) {
+    console.error("Variáveis de credencial não configuradas corretamente.");
     throw new Error("Credenciais do Google não configuradas.");
   }
+
+  const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
 
   const auth = new google.auth.JWT(clientEmail, null, privateKey, SCOPES);
   await auth.authorize();
@@ -47,11 +48,12 @@ export default async function handler(req, res) {
 
     const spreadsheetId = process.env.ID_DA_PLANILHA;
     if (!spreadsheetId) {
-      console.error("Variável ID_DA_PLANILHA não configurada.");
-      throw new Error("ID da planilha não configurado.");
+      console.error("ID_DA_PLANILHA não configurado na Vercel.");
+      throw new Error("ID_DA_PLANILHA não configurado.");
     }
 
-    // A: USUARIO, B: SENHA, C: LOJAS, D: PERFIL
+    // Estrutura esperada:
+    // A: USUARIO | B: SENHA | C: LOJAS | D: PERFIL
     const range = "USUARIOS!A2:D";
 
     const response = await sheets.spreadsheets.values.get({
@@ -61,7 +63,7 @@ export default async function handler(req, res) {
 
     const rows = response.data.values || [];
 
-    // Procura usuário
+    // Procura o usuário na coluna A
     const linha = rows.find((r) => (r[0] || "").trim() === usuario.trim());
 
     if (!linha) {
@@ -75,7 +77,7 @@ export default async function handler(req, res) {
     const lojasStr      = (linha[2] || "").trim();
     const perfil        = (linha[3] || "").trim();
 
-    // Perfis que podem usar o módulo PPP
+    // Perfis que podem acessar o PPP
     const perfisPermitidos = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
 
     if (!perfisPermitidos.includes(perfil)) {
