@@ -1,10 +1,31 @@
 // api/login.js
-// Endpoint de login PPP (usado por ADMINISTRADOR, GERENTE_PPP e BASE_PPP)
+// Endpoint de login PPP (ADMINISTRADOR, GERENTE_PPP, BASE_PPP)
+// Valida usuário, senha, loja e perfil usando a aba USUARIOS da planilha.
 
 import { google } from "googleapis";
 
+const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
+
+// Cria cliente do Google Sheets usando as MESMAS variáveis de ambiente
+// que você já usa nos outros endpoints (service account).
+async function getSheetsClient() {
+  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY
+    ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n")
+    : null;
+
+  if (!clientEmail || !privateKey) {
+    console.error("Variáveis GOOGLE_SERVICE_ACCOUNT_EMAIL/GOOGLE_PRIVATE_KEY não configuradas.");
+    throw new Error("Credenciais do Google não configuradas.");
+  }
+
+  const auth = new google.auth.JWT(clientEmail, null, privateKey, SCOPES);
+  await auth.authorize();
+
+  return google.sheets({ version: "v4", auth });
+}
+
 export default async function handler(req, res) {
-  // 1) Garante que apenas o método POST seja aceito
   if (req.method !== "POST") {
     return res.status(405).json({
       sucesso: false,
@@ -12,7 +33,6 @@ export default async function handler(req, res) {
     });
   }
 
-  // 2) Extrai os campos enviados no corpo da requisição
   const { usuario, senha, loja } = req.body || {};
 
   if (!usuario || !senha || !loja) {
@@ -23,22 +43,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 3) Autentica na API do Google Sheets com Service Account
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n")
-      },
-      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-    });
+    const sheets = await getSheetsClient();
 
-    const sheets = google.sheets({ version: "v4", auth });
-
-    // 4) Usa a variável de ambiente com o ID da planilha
     const spreadsheetId = process.env.ID_DA_PLANILHA;
-    const range = "USUARIOS!A2:D"; // A: USUARIO, B: SENHA, C: LOJAS, D: PERFIL
+    if (!spreadsheetId) {
+      console.error("Variável ID_DA_PLANILHA não configurada.");
+      throw new Error("ID da planilha não configurado.");
+    }
 
-    // 5) Lê a aba USUARIOS
+    // A: USUARIO, B: SENHA, C: LOJAS, D: PERFIL
+    const range = "USUARIOS!A2:D";
+
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range
@@ -46,7 +61,7 @@ export default async function handler(req, res) {
 
     const rows = response.data.values || [];
 
-    // 6) Procura o usuário na coluna A
+    // Procura usuário
     const linha = rows.find((r) => (r[0] || "").trim() === usuario.trim());
 
     if (!linha) {
@@ -58,9 +73,9 @@ export default async function handler(req, res) {
 
     const senhaPlanilha = (linha[1] || "").trim();
     const lojasStr      = (linha[2] || "").trim();
-    const perfil        = (linha[3] || "").trim(); // ADMINISTRADOR, GERENTE_PPP, BASE_PPP, etc.
+    const perfil        = (linha[3] || "").trim();
 
-    // 7) Perfis que podem usar o módulo PPP
+    // Perfis que podem usar o módulo PPP
     const perfisPermitidos = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
 
     if (!perfisPermitidos.includes(perfil)) {
@@ -70,7 +85,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 8) Valida senha
+    // Valida senha
     if (senha !== senhaPlanilha) {
       return res.status(401).json({
         sucesso: false,
@@ -78,7 +93,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 9) Valida loja
+    // Valida loja
     let temPermissao = false;
 
     if (lojasStr.toUpperCase() === "TODAS") {
@@ -88,7 +103,6 @@ export default async function handler(req, res) {
         .split("|")
         .map((s) => s.trim())
         .filter((s) => s !== "");
-
       temPermissao = lojasPermitidas.includes(loja);
     }
 
@@ -99,14 +113,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // 10) Login OK
+    // Login OK
     return res.status(200).json({
       sucesso: true,
       usuario,
       loja,
       perfil
     });
-
   } catch (erro) {
     console.error("Erro no /api/login:", erro);
     return res.status(500).json({
