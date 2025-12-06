@@ -1,64 +1,23 @@
-// API/efetividade-base.js
-// Lê a aba BASE_DADOS da planilha de Efetividade, filtrando pela LOJA (coluna C)
-
+// api/efetividade-base.js
 import { google } from "googleapis";
 
-// -----------------------------------------------------------------------------
-// Helper: lê variáveis de ambiente com nomes novos e legados e normaliza a chave.
-// Estrutura da aba BASE_DADOS (colunas A:J), usada como referência na filtragem:
-// A: EAN | B: COD - PRODUTO | C: LOJAS | D: SEÇÕES | E: ESTOQUE DISPONIVEL
-// F: CUSTO L. | G: Qtd. Pend. Ped.Compra | H: Dias de Estoque
-// I: Dias Ult. Entrada | J: Quantidade Dias Sem Vendas
-// -----------------------------------------------------------------------------
-function getEnv() {
-  const serviceAccountEmail =
-    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
-    process.env["E-MAIL DA CONTA DE SERVIÇO DO GOOGLE"];
+const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
+const spreadsheetId = process.env.SPREADSHEET_ID_EFETIVIDADE;
 
-  const privateKeyRaw =
-    process.env.GOOGLE_PRIVATE_KEY || process.env["CHAVE_PRIVADA_DO_GOOGLE"];
+const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
-  // 1) Preferimos o ID dedicado de Efetividade.
-  // 2) Aceitamos o ID genérico como compatibilidade com configurações antigas.
-  const spreadsheetId =
-    process.env.SPREADSHEET_ID_EFETIVIDADE ||
-    process.env.ID_DA_PLANILHA_EFETIVIDADE ||
-    process.env.SPREADSHEET_ID ||
-    process.env.ID_DA_PLANILHA;
+// Autenticação via service account para LER a planilha
+const auth = new google.auth.JWT(
+  serviceAccountEmail,
+  null,
+  privateKey,
+  ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+);
 
-  if (!serviceAccountEmail || !privateKeyRaw || !spreadsheetId) {
-    throw new Error(
-      "Configuração da API incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL / E-MAIL DA CONTA DE SERVIÇO DO GOOGLE, " +
-        "GOOGLE_PRIVATE_KEY / CHAVE_PRIVADA_DO_GOOGLE e o ID da planilha (SPREADSHEET_ID_EFETIVIDADE, ID_DA_PLANILHA_EFETIVIDADE ou SPREADSHEET_ID)."
-    );
-  }
+const sheets = google.sheets({ version: "v4", auth });
 
-  return {
-    serviceAccountEmail,
-    privateKey: privateKeyRaw.replace(/\\n/g, "\n"),
-    spreadsheetId,
-  };
-}
-
-// Cria e autoriza o cliente do Google Sheets (opcionalmente usando config já lida)
-async function getSheetsClient(configFromHandler) {
-  const { serviceAccountEmail, privateKey } = configFromHandler || getEnv();
-
-  const auth = new google.auth.JWT(
-    serviceAccountEmail,
-    null,
-    privateKey,
-    ["https://www.googleapis.com/auth/spreadsheets"]
-  );
-
-  await auth.authorize();
-  return google.sheets({ version: "v4", auth });
-}
-
-// Nome da aba na planilha Efetividade
 const ABA_BASE = "BASE_DADOS";
-// Índice da coluna da LOJA: A=0, B=1, C=2
-const IDX_COL_LOJA = 2;
 
 export default async function handler(req, res) {
   // Só aceita GET
@@ -68,64 +27,65 @@ export default async function handler(req, res) {
       .json({ sucesso: false, message: "Método não permitido. Use GET." });
   }
 
-  // Garante variáveis de ambiente válidas antes da requisição.
-  let config;
-  try {
-    config = getEnv();
-  } catch (erro) {
-    console.error("Configuração ausente na Efetividade:", erro);
+  // Verificação de variáveis de ambiente
+  if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
       sucesso: false,
-      message: erro.message,
-    });
-  }
-
-  // Loja vem na query string: /api/efetividade-base?loja=ULT%2001%20-%20PLANALTINA
-  const loja = (req.query.loja || "").trim();
-  if (!loja) {
-    return res.status(400).json({
-      sucesso: false,
-      message: "Informe a loja na query string (?loja=...).",
+      message:
+        "Configuração incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e SPREADSHEET_ID_EFETIVIDADE.",
     });
   }
 
   try {
-    const { spreadsheetId } = config;
-    const sheets = await getSheetsClient(config);
+    // loja vem da query, ex.: ULT01-PLANDF
+    const lojaParam = (req.query.loja || "").trim().toUpperCase();
 
-    // Lê a aba BASE_DADOS de A:J (10 colunas)
+    // Lê a base sem o cabeçalho: A2 até L (12 colunas, conforme seu print)
+    const range = `${ABA_BASE}!A2:L`;
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${ABA_BASE}!A:J`,
+      range,
     });
 
-    const values = resp.data.values || [];
-    if (!values.length) {
-      return res.status(200).json({
-        sucesso: true,
-        registros: [],
-        message: "Nenhum dado encontrado em BASE_DADOS.",
+    const linhas = resp.data.values || [];
+
+    /*
+      Layout esperado da BASE_DADOS (por linha):
+
+      [0] EAN
+      [1] SECAO
+      [2] PENDENTE/VERIFICADO
+      [3] Empresa : Produto   (Ex.: "ULT01-PLANDF : ABS 14UN INTIMUS ...")
+      [4] Código Produto
+      [5] Quantidade Disponível
+      [6] Preço Vda Unitário
+      [7] Custo Liq. Unitário
+      [8] Qtd. Pend. Ped.Compra
+      [9] Dias de Estoque
+      [10] Dias Ult. Entrada
+      [11] Quantidade Dias Sem Vendas
+    */
+
+    // Se não vier loja, devolve tudo (mas o front SEMPRE manda)
+    let registrosFiltrados = linhas;
+
+    if (lojaParam) {
+      registrosFiltrados = linhas.filter((linha) => {
+        const empresaProduto = String(linha[3] ?? "");      // "ULT01-PLANDF : PRODUTO"
+        const prefixo = empresaProduto.split(" : ")[0].trim().toUpperCase();
+        return prefixo === lojaParam;
       });
     }
 
-    // Considero a primeira linha como cabeçalho (mesmo que não use)
-    const linhas = values.slice(1);
-
-    // Filtra apenas registros da loja (coluna C = índice 2)
-    const filtrados = linhas.filter((linha) => {
-      const valorLoja = String(linha[IDX_COL_LOJA] || "").trim();
-      return valorLoja === loja;
-    });
-
     return res.status(200).json({
       sucesso: true,
-      registros: filtrados,
+      registros: registrosFiltrados,
     });
   } catch (erro) {
     console.error("Erro em /api/efetividade-base:", erro);
     return res.status(500).json({
       sucesso: false,
-      message: "Erro ao ler BASE_DADOS de Efetividade.",
+      message: "Erro ao carregar base de dados.",
       detalhe: erro.message,
     });
   }
