@@ -6,9 +6,13 @@
   <title>Seleção de Acesso</title>
 
   <style>
+    /* ============================
+       ESTILOS DO CARD PRINCIPAL
+       (layout preservado 100% igual)
+    ============================ */
     body {
       background: #f3f3f3;
-      margin: 8;
+      margin: 0;
       height: 100vh;
       display: flex;
       justify-content: center;
@@ -30,12 +34,7 @@
       margin-top: 0;
       font-size: 22px;
       color: #111;
-    }
-
-    p {
-      font-size: 14px;
-      color: #444;
-      margin-bottom: 24px;
+      font-weight: bold;
     }
 
     .btn {
@@ -50,32 +49,29 @@
       transition: 0.2s ease;
     }
 
-    /* Botão PPP (já existente) */
+    /* PPP */
     .btn-ppp {
       background: #0066ff;
       color: white;
     }
-
     .btn-ppp:hover {
       background: #004ecc;
     }
 
-    /* Botão Gestor (já existente) */
+    /* Gestor PPP */
     .btn-gestor {
       background: #444;
       color: white;
     }
-
     .btn-gestor:hover {
       background: #222;
     }
 
-    /* NOVO botão Efetividade Operacional */
+    /* Efetividade Operacional */
     .btn-efetividade {
-      background: #198754; /* tom de verde */
+      background: #198754;
       color: white;
     }
-
     .btn-efetividade:hover {
       background: #146c43;
     }
@@ -83,24 +79,25 @@
 </head>
 
 <body>
+
   <div class="container">
     <h1>SELECIONE O ACESSO</h1>
-   <!-- <p>Escolha abaixo qual painel deseja acessar.</p>  -->
 
-    <!-- Mantido: acesso painel PPP (relatórios atuais) -->
+    <!-- Botão PPP (Base e Gerente PPP) -->
     <button class="btn btn-ppp" onclick="window.location.href='login.html'">
-      Acesso prevenção de perdas
+      Acesso Prevenção de Perdas
     </button>
 
-    <!-- Mantido: acesso painel gestor PPP -->
+    <!-- Botão Gestor PPP (perfil GERENTE_PPP ou ADMINISTRADOR) -->
     <button class="btn btn-gestor" onclick="window.location.href='login-gestor.html'">
-      Acesso gerente PPP
+      Acesso Gerente PPP
     </button>
 
-    <!-- NOVO: acesso Efetividade Operacional -->
+    <!-- Botão Efetividade Operacional (GERENTE_REGIONAL ou BASE_OPERACAO) -->
     <button class="btn btn-efetividade" onclick="window.location.href='login-efetividade.html'">
       Scan&Sell
     </button>
   </div>
+
 </body>
 </html>
