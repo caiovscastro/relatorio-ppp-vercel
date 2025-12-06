@@ -6,10 +6,6 @@
   <title>LOGIN GERENTE PPP</title>
 
   <style>
-    /* ============================================================
-       Estilo visual — MANTIDO 100% como sua versão original
-    ============================================================ */
-
     body {
       margin: 0;
       min-height: 100vh;
@@ -52,11 +48,11 @@
 
     input {
       width: 100%;
+      box-sizing: border-box;
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid #c3c3c3;
       font-size: 14px;
-      box-sizing: border-box;
     }
 
     input:focus {
@@ -104,20 +100,29 @@
     }
   </style>
 </head>
-
 <body>
-
   <div class="card">
     <h1>LOGIN GERENTE PPP</h1>
-    <p class="subtitulo">Acesso aos relatórios gerenciais consolidados.</p>
+    <p class="subtitulo">
+      Acesso aos relatórios consolidados.
+    </p>
 
-    <!-- Formulário -->
     <form id="formLoginGestor">
       <label for="usuarioGestor">Usuário (e-mail corporativo)</label>
-      <input id="usuarioGestor" type="text" autocomplete="username" placeholder="ex.: gaspar.silva" />
+      <input
+        id="usuarioGestor"
+        type="text"
+        autocomplete="username"
+        placeholder="ex.: gaspar.silva"
+      />
 
       <label for="senhaGestor">Senha</label>
-      <input id="senhaGestor" type="password" autocomplete="current-password" placeholder="Senha" />
+      <input
+        id="senhaGestor"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Senha"
+      />
 
       <button type="submit" class="btn-login">Entrar</button>
     </form>
@@ -127,24 +132,20 @@
     <a href="/index.html" class="link-voltar">Voltar para a tela inicial</a>
   </div>
 
-  <!-- ============================================================
-       SCRIPT — NOVA LÓGICA TOTALMENTE INTEGRADA AO MODELO DE PERFIS
-       Aqui eliminamos a API antiga (/api/login-gestor)
-       Agora usamos APENAS /api/login (planilha USUARIOS)
-    ============================================================ -->
-
   <script>
+    const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
+
+    const form = document.getElementById("formLoginGestor");
     const erroBox = document.getElementById("erroLoginGestor");
     const campoUsuario = document.getElementById("usuarioGestor");
     const campoSenha = document.getElementById("senhaGestor");
-    const form = document.getElementById("formLoginGestor");
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       erroBox.textContent = "";
 
-      const usuario = campoUsuario.value.trim();
-      const senha = campoSenha.value.trim();
+      const usuario = (campoUsuario.value || "").trim();
+      const senha   = (campoSenha.value || "").trim();
 
       if (!usuario || !senha) {
         erroBox.textContent = "Preencha usuário e senha.";
@@ -154,60 +155,40 @@
       try {
         erroBox.textContent = "Validando login...";
 
-        /*
-          IMPORTANTE:
-          Agora o login do GESTOR será validado pelo mesmo endpoint do PPP,
-          porém o back-end só permitirá perfis:
-
-          - ADMINISTRADOR
-          - GERENTE_PPP
-
-          Ou seja, GERENTE_REGIONAL, BASE_PPP e BASE_OPERACAO são negados aqui.
-        */
-
-        const resp = await fetch("/api/login", {
+        const resp = await fetch("/api/login-gestor", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            usuario,
-            senha,
-            loja: "TODAS" // ← Forçamos loja aqui, pois gestor não escolhe loja individual
-          }),
+          body: JSON.stringify({ usuario, senha }),
         });
 
-        const dados = await resp.json();
+        const dados = await resp.json().catch(() => ({}));
 
         if (!resp.ok || !dados.sucesso) {
-          erroBox.textContent = dados.message || "Usuário ou senha inválidos.";
+          erroBox.textContent =
+            dados.message || "Falha ao validar login de gerente PPP.";
           return;
         }
 
-        // PERFIL obrigatório para acesso
-        if (dados.perfil !== "ADMINISTRADOR" && dados.perfil !== "GERENTE_PPP") {
-          erroBox.textContent = "Este usuário não tem permissão para acessar o Painel de Gerente PPP.";
-          return;
-        }
-
-        // Grava sessão
         const payload = {
-          usuario: dados.usuario,
-          perfil: dados.perfil,
-          loja: dados.loja,
-          loginEm: Date.now()
+          usuario: dados.usuario || usuario,
+          perfil: dados.perfil || "",
+          lojas: dados.lojas || "",
+          loginEm: new Date().toISOString(),
         };
 
-        localStorage.setItem("perfilUsuario", dados.perfil);
-        localStorage.setItem("pppSession", JSON.stringify(payload));
+        // Sessão usada pelo painel-gestor (já existia)
+        sessionStorage.setItem(STORAGE_KEY_GESTOR, JSON.stringify(payload));
 
-        // Redireciona para o painel do gestor
+        // Perfil geral usado em todo o app
+        localStorage.setItem("perfilUsuario", dados.perfil || "");
+
         window.location.href = "/painel-gestor.html";
-
-      } catch (e) {
-        console.error("Erro no login de gerente PPP:", e);
-        erroBox.textContent = "Erro de conexão ao validar login.";
+      } catch (erro) {
+        console.error("Erro no login de gerente PPP:", erro);
+        erroBox.textContent =
+          "Erro de conexão ao tentar validar o login de gerente PPP.";
       }
     });
   </script>
-
 </body>
 </html>
