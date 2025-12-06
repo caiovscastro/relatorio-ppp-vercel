@@ -10,7 +10,7 @@
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 2px;                         /* margem mínima em px para evitar inconsistências de CSS */
+      margin: 2px;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -47,19 +47,19 @@
     /* ========= CARDS DE RESUMO (QTD / VALOR) ========= */
     .resumo-cards {
       display: flex;
-      flex-wrap: nowrap;        /* mantém os dois cards sempre na mesma linha */
+      flex-wrap: nowrap;
       gap: 6px;
       margin: 10px 0 14px;
       justify-content: space-between;
     }
 
     .card-resumo {
-      flex: 1 1 50%;            /* cada card ocupa metade da largura disponível */
-      min-width: 0;             /* permite encolher sem estourar o layout */
+      flex: 1 1 50%;
+      min-width: 0;
       background: #f9fafc;
       border-radius: 10px;
       padding: 8px 10px;
-      box-shadow: none;         /* continua sem sombra, como você pediu antes */
+      box-shadow: none;
       font-size: 13px;
     }
 
@@ -89,7 +89,6 @@
       font-size: 16px;
     }
 
-    /* GRID DOS CAMPOS DE FILTRO */
     .filtros-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -133,8 +132,6 @@
     /* ========= BOTÕES DOS FILTROS ========= */
     .botoes-filtro {
       margin-top: 10px;
-      /* Agora em GRID para ficar com o mesmo "tamanho de coluna"
-         dos campos Documento / Data início / Data fim */
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px 10px;
@@ -151,10 +148,9 @@
       white-space: nowrap;
     }
 
-    /* Botões dentro da área de filtros ocupam 100% da coluna e fonte um pouco menor */
     .botoes-filtro .btn {
       width: 100%;
-      font-size: 12px;      /* fonte reduzida, conforme permitido */
+      font-size: 12px;
       padding: 6px 8px;
     }
 
@@ -186,24 +182,25 @@
       overflow-y: auto;
     }
 
-    /* Cartão de cada registro:
-       - Linha 1: Data/Hora (coluna 1) | Usuário (coluna 2)
-       - Linha 2: Loja (coluna 1)      | Documento (coluna 2)
-       - Linhas únicas: EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário
-       - Observação / Relatório ao final
-    */
+    /* ========= CARTÃO DE CADA REGISTRO ========= */
     .cartao {
       background: #ffffff;
-      border: 2px solid #3c9c46;           /* contorno verde leve */
+      border: 2px solid #3c9c46;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+      /* ==== ALTO RELEVO: sombra externa + realce interno (NOVO) ==== */
+      box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.18),       /* sombra projetada para baixo */
+        0 -2px 4px rgba(255, 255, 255, 0.75) inset, /* luz suave em cima */
+        0 2px 4px rgba(0, 0, 0, 0.05) inset;       /* leve sombra interna embaixo */
+      /* ============================================================ */
+
       padding: 0;
       margin-bottom: 12px;
       font-size: 12px;
       overflow: hidden;
     }
 
-    /* Duas colunas para os pares principais (Data/Hora x Usuário e Loja x Documento) */
     .cartao-pares {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -214,13 +211,12 @@
       display: grid;
       grid-template-columns: 38% 62%;
       align-items: center;
-      padding: 8px 10px;                 /* base (é sobrescrita nas linhas verdes) */
+      padding: 8px 10px;
       border-right: 1px solid #c7c7c7;
       gap: 6px;
       min-width: 0;
     }
 
-    /* Exclusivo para Loja, aproximando o valor */
     .cartao-pareado-loja {
       grid-template-columns: 30% 50%;
       gap: 0px;
@@ -230,18 +226,15 @@
       border-right: none;
     }
 
-    /* ===== FUNDO VERDE CLARINHO + ALTURA AJUSTADA NOS 4 BLOCOS SUPERIORES ===== */
     .cartao-pares-superior .cartao-pareado,
     .cartao-pares-inferior .cartao-pareado {
-      background: #e9fbe9;               /* verde clarinho */
+      background: #e9fbe9;
     }
 
-    /* Linha 1: Data/Hora x Usuário → um pouco mais alta */
     .cartao-pares-superior .cartao-pareado {
       padding: 6px 10px;
     }
 
-    /* Linha 2: Loja x Documento → um pouco mais baixa que a de cima */
     .cartao-pares-inferior .cartao-pareado {
       padding: 4px 10px;
     }
@@ -257,7 +250,6 @@
       word-break: break-word;
     }
 
-    /* Valores mais compactos para Data/Hora e Loja */
     .valor-compacto {
       font-size: 10px;
       white-space: nowrap;
@@ -269,12 +261,10 @@
       display: inline-block;
     }
 
-    /* Linhas únicas (EAN, Produto, Departamento, Seção, Quantidade, Valor Unitário)
-       → altura reduzida, mas ainda confortável (Opção 2) */
     .cartao-linha {
       display: grid;
       grid-template-columns: 38% 62%;
-      padding: 4px 10px;                 /* ANTES: 8px 10px → agora mais compacto */
+      padding: 4px 10px;
       border-bottom: 1px solid #d6d6d6;
       gap: 4px;
     }
@@ -283,7 +273,6 @@
       border-bottom: none;
     }
 
-    /* Produto levemente sombreado para destaque */
     .cartao-linha-produto {
       background: #f5f5f5;
       font-weight: 700;
@@ -314,6 +303,16 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
+
+    /* ==== VALOR TOTAL (Qtd x Unit) AO LADO DO VALOR UNITÁRIO (NOVO) ==== */
+    .valor-total-linha {
+      margin-left: 18px;               /* espaçamento à direita do unitário */
+      font-weight: 700;
+      color: #1b5e20;                  /* verde mais escuro, combina com o tema */
+      text-shadow: 0 0 6px rgba(129, 199, 132, 0.9); /* sombra verde clara */
+      white-space: nowrap;
+    }
+    /* ================================================================ */
 
     /* ========= RODAPÉ DO PAINEL ========= */
     .rodape {
@@ -496,7 +495,6 @@
     <div class="bloco-filtros">
       <h3>Filtros</h3>
 
-      <!-- Campos de filtro em grid -->
       <div class="filtros-grid">
         <div class="campo-filtro campo-loja">
           <label for="filtroLoja">Loja (texto)</label>
@@ -537,7 +535,6 @@
         </div>
       </div>
 
-      <!-- Botões de ação -->
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
         <button class="btn btn-exportar" onclick="abrirModalDownload()">Exportar XLSX</button>
@@ -545,7 +542,6 @@
       </div>
     </div>
 
-    <!-- Status e lista de registros em formato de cartões -->
     <div class="status" id="status">Carregando relatórios...</div>
 
     <div class="lista-cartoes" id="listaCartoes"></div>
@@ -556,7 +552,7 @@
     </div>
   </div>
 
-  <!-- ========= MODAL (POPUP) DE CONFIRMAÇÃO DO DOWNLOAD ========= -->
+  <!-- ========= MODAL DE CONFIRMAÇÃO DO DOWNLOAD ========= -->
   <div id="modalDownload" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar download</div>
@@ -581,21 +577,18 @@
     </div>
   </div>
 
-  <!-- SheetJS para gerar XLSX no navegador -->
+  <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
-    // ========= CONSTANTES E VARIÁVEIS GLOBAIS =========
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     let usuarioLogado = null;
-    let registrosBase = [];   // base carregada uma única vez na abertura e mantida em memória
-    let registrosAtuais = []; // guarda os registros do filtro atual para exportação
+    let registrosBase = [];
+    let registrosAtuais = [];
 
-    // Controle do carregamento 0–100%
     let loadingInterval = null;
     let loadingProgress = 0;
 
-    // ========= FUNÇÕES DE CONTROLE DO LOADING =========
     function iniciarProgresso() {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
@@ -608,7 +601,6 @@
 
       if (loadingInterval) clearInterval(loadingInterval);
 
-      // Incrementa de 5 em 5 até 95% durante a carga
       loadingInterval = setInterval(() => {
         if (loadingProgress >= 95) return;
         loadingProgress += 5;
@@ -636,7 +628,6 @@
       }, 200);
     }
 
-    // ========= PARSE DE DATA (MESMA LÓGICA DA API) =========
     function parseDataDaPlanilha(dataHoraStr) {
       if (!dataHoraStr) return null;
       try {
@@ -650,7 +641,6 @@
       }
     }
 
-    // ========= FILTRO LOCAL (MESMA REGRA DA API) =========
     function filtrarLocal() {
       const lojaFiltro = document.getElementById("filtroLoja").value.trim().toLowerCase();
       const usuarioFiltro = document.getElementById("filtroUsuario").value.trim().toLowerCase();
@@ -679,7 +669,6 @@
       });
     }
 
-    // ========= INICIALIZAÇÃO DO PAINEL =========
     document.addEventListener("DOMContentLoaded", () => {
       const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
@@ -708,12 +697,10 @@
       carregarBaseInicial();
     });
 
-    // ========= LOGOUT DO GESTOR =========
     function logoutGestor() {
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
     }
 
-    // ========= PARSE DE NÚMEROS PT-BR =========
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
@@ -725,7 +712,6 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // ========= CARREGA A BASE E FILTRA LOCALMENTE =========
     async function carregarBaseInicial() {
       const statusEl = document.getElementById("status");
 
@@ -752,7 +738,6 @@
       }
     }
 
-    // ========= APLICA FILTROS LOCAIS E MONTA CARTÕES =========
     function aplicarFiltrosLocal() {
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
@@ -802,9 +787,23 @@
         maximumFractionDigits: 2,
       });
 
+      /* ==== MONTA OS CARTÕES, INCLUINDO O VALOR TOTAL POR LINHA (NOVO) ==== */
       listaEl.innerHTML = registros
         .map((r) => {
           const relatorioFormatado = r.relatorio || "-";
+
+          // calcula total da linha apenas se houver qtd e valor unitário preenchidos
+          let totalLinhaFormatado = "";
+          if (r.quantidade && r.valorUnitario) {
+            const qtdNum = parseNumeroBr(r.quantidade);
+            const vUnitNum = parseNumeroBr(r.valorUnitario);
+            const totalNum = qtdNum * vUnitNum;
+            totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+          }
+
           return `
             <div class="cartao">
               <!-- Linha 1: Data/Hora x Usuário -->
@@ -852,7 +851,14 @@
               </div>
               <div class="cartao-linha">
                 <span class="rotulo">Valor Unitário</span>
-                <span class="valor">${r.valorUnitario || "-"}</span>
+                <span class="valor">
+                  ${r.valorUnitario || "-"}
+                  ${
+                    totalLinhaFormatado
+                      ? `<span class="valor-total-linha">Total: ${totalLinhaFormatado}</span>`
+                      : ""
+                  }
+                </span>
               </div>
               <div class="cartao-divisoria"></div>
               <div class="cartao-observacao">
@@ -863,9 +869,9 @@
           `;
         })
         .join("");
+      /* =============================================================== */
     }
 
-    // ========= LIMPA FILTROS =========
     function limparFiltros() {
       document.getElementById("filtroLoja").value = "";
       document.getElementById("filtroUsuario").value = "";
@@ -877,7 +883,6 @@
       aplicarFiltrosLocal();
     }
 
-    // ========= CONTROLE DO MODAL =========
     function abrirModalDownload() {
       if (!registrosAtuais || !registrosAtuais.length) {
         alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
@@ -895,27 +900,40 @@
       exportarParaXlsx(registrosAtuais);
     }
 
-    // ========= EXPORTA PARA XLSX =========
+    /* ==== EXPORTAÇÃO COM COLUNA O = VALOR TOTAL E P = DOCUMENTO (NOVO) ==== */
     function exportarParaXlsx(registros) {
+      // A=1 ... O=15, P=16
       const cabecalho = [
-        "Data/Hora",
-        "Loja",
-        "Usuário",
-        "EAN",
-        "Cod Consinco",
-        "Produto",
-        "Departamento",
-        "Seção",
-        "Grupo",
-        "Subgrupo",
-        "Categoria",
-        "Relatório / Observação",
-        "Quantidade",
-        "Valor unitário",
-        "Documento",
+        "Data/Hora",                    // A
+        "Loja",                         // B
+        "Usuário",                      // C
+        "EAN",                          // D
+        "Cod Consinco",                 // E
+        "Produto",                      // F
+        "Departamento",                 // G
+        "Seção",                        // H
+        "Grupo",                        // I
+        "Subgrupo",                     // J
+        "Categoria",                    // K
+        "Relatório / Observação",       // L
+        "Quantidade",                   // M
+        "Valor unitário",               // N
+        "Valor total (Qtd x Unit)",     // O  ← NOVO
+        "Documento",                    // P  ← continua Documento, só mudou a posição
       ];
 
       const linhas = registros.map((r) => {
+        let totalLinhaFormatado = "";
+        if (r.quantidade && r.valorUnitario) {
+          const qtdNum = parseNumeroBr(r.quantidade);
+          const vUnitNum = parseNumeroBr(r.valorUnitario);
+          const totalNum = qtdNum * vUnitNum;
+          totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        }
+
         return [
           r.dataHora || "",
           r.loja || "",
@@ -931,6 +949,7 @@
           r.relatorio || "",
           r.quantidade || "",
           r.valorUnitario || "",
+          totalLinhaFormatado || "",
           r.documento || "",
         ];
       });
@@ -943,6 +962,7 @@
       XLSX.utils.book_append_sheet(wb, ws, "Relatorios PPP");
       XLSX.writeFile(wb, "relatorios_ppp.xlsx");
     }
+    /* =================================================================== */
   </script>
 </body>
 </html>
