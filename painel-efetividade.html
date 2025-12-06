@@ -467,7 +467,7 @@
   <div id="appRoot" class="container" style="display: none;">
     <div class="cabecalho">
       <div>
-        <h1 class="titulo">PAINEL EFETIVIDADE OP.</h1>
+        <h1 class="titulo">PAINEL SCAN&SELL</h1>
       </div>
       <div class="info-usuario">
         <!-- Apenas os valores, já em fonte reduzida -->
@@ -778,17 +778,16 @@
           <div class="cartao" onclick="prepararEnvio(${idx})">
             <div class="cartao-header">${produto || "Produto"}</div>
             <table class="cartao-table" aria-label="Dados do produto">
-              <tr><th>Produto</th><td>${produto}</td></tr>
-              <tr><th>Pendente / Verificado</th><td>${pendenteVerificado}</td></tr>
+              <tr><th>Status</th><td>${pendenteVerificado}</td></tr>
               <tr><th>EAN</th><td>${ean}</td></tr>
               <tr><th>Seção</th><td>${secao}</td></tr>
               <tr><th>Qtd. Disponível</th><td>${qtdDisponivel}</td></tr>
               <tr><th>Preço Vda Unitário</th><td>${precoVdaUnitario}</td></tr>
               <tr><th>Custo Liq. Unitário</th><td>${custoLiqUnitario}</td></tr>
-              <tr><th>Qtd. Pend. Ped.Compra</th><td>${qtdPendente}</td></tr>
+              <tr><th>Pend. Ped.Compra</th><td>${qtdPendente}</td></tr>
               <tr><th>Dias de Estoque</th><td>${diasEstoque}</td></tr>
               <tr><th>Dias Ult. Entrada</th><td>${diasUltimaEntrada}</td></tr>
-              <tr><th>Qtd. Dias Sem Vendas</th><td>${diasSemVendas}</td></tr>
+              <tr><th>Dias Sem Vendas</th><td>${diasSemVendas}</td></tr>
             </table>
           </div>
         `;
