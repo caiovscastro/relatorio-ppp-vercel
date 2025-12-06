@@ -125,7 +125,7 @@ export default async function handler(req, res) {
     console.error("Erro em /api/efetividade-base:", erro);
     return res.status(500).json({
       sucesso: false,
-      message: "Erro ao ler BASE_DADOS da planilha de Efetividade.",
+      message: "Erro ao ler BASE_DADOS de Efetividade.",
       detalhe: erro.message,
     });
   }
