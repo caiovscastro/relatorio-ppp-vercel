@@ -165,10 +165,31 @@
       text-decoration: none;
       font-size: 14px;
       font-weight: 600;
+      text-align: center;
     }
 
     .btn-voltar:hover {
       background: #0050cc;   /* AZUL MAIS ESCURO NO HOVER */
+    }
+
+    /* Container para os botões de rodapé (Sair + R. Exceção) */
+    .botoes-footer {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .botoes-footer .btn-voltar {
+      flex: 1; /* Faz os dois botões terem o mesmo tamanho horizontal */
+    }
+
+    /* Estilo específico do botão R. Exceção */
+    .btn-excecao {
+      background: #ff9800; /* LARANJA PARA DESTACAR */
+    }
+
+    .btn-excecao:hover {
+      background: #f57c00;
     }
 
     /* ======================
@@ -678,7 +699,24 @@
 
       <div id="resultado"></div>
 
-      <a href="/index.html" class="btn-voltar" onclick="limparSessaoEfetividade()">Sair</a>
+      <!-- NOVO GRUPO DE BOTÕES -->
+      <div class="botoes-footer">
+        <a
+          href="/index.html"
+          class="btn-voltar"
+          onclick="limparSessaoEfetividade()"
+        >
+          Sair
+        </a>
+
+        <button
+          type="button"
+          class="btn-voltar btn-excecao"
+          onclick="irRelatorioExcecao()"
+        >
+          R. Exceção
+        </button>
+      </div>
     </div>
   </div>
 
@@ -707,6 +745,14 @@
       const empresaProduto = String(linha[3] ?? "").trim();
       // Combinação suficiente para identificar o item na sessão
       return `${ean}|||${empresaProduto}`;
+    }
+
+    /* =========================
+       NAVEGAR PARA RELATÓRIO DE EXCEÇÃO
+       ==========================*/
+    function irRelatorioExcecao() {
+      // Apenas navega; a nova tela também vai validar a sessão via localStorage
+      window.location.href = "/relatorio-excecao.html";
     }
 
     /* =========================
@@ -831,7 +877,7 @@
         percPen.toFixed(1) + "%";
 
       const textoTotal = `de ${total} itens`;
-      document.getElementById("totalVerificados").textContent = textoTotal;
+      document.getElementById("totalVerificados").textContent =textoTotal;
       document.getElementById("totalPendentes").textContent = textoTotal;
     }
 
