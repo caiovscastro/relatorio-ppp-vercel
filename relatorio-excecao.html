@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatório de Exceção – Scan&Sell</title>
+
+  <style>
+    body {
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      margin: 8px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 900px;
+      background: #fff;
+      padding: 24px 28px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid #e1e1e1;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
+
+    .titulo {
+      margin: 2px;
+      font-size: 18px;
+    }
+
+    .info-usuario {
+      display: flex;
+      justify-content: flex-end;
+      flex: 1 1 auto;
+    }
+
+    .usuario-card {
+      min-width: auto;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .usuario-card .value {
+      font-weight: 600;
+      color: #111;
+      word-break: break-word;
+      font-size: 9px;
+      text-align: right;
+    }
+
+    .filtros-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    .filtro-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    .filtro-group label {
+      font-weight: 600;
+    }
+
+    select {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #c3c3c3;
+      font-size: 13px;
+      min-width: 150px;
+    }
+
+    .btn-exportar {
+      margin-left: auto;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #4caf50;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .btn-exportar:hover {
+      background: #439944;
+    }
+
+    #statusExcecao {
+      font-size: 13px;
+      margin-top: 4px;
+      text-align: center;
+      color: #333;
+    }
+
+    #resultadoExcecao {
+      margin-top: 12px;
+    }
+
+    .cartao {
+      width: 94%;
+      background: white;
+      padding: 12px 14px 10px;
+      margin: 10px auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      opacity: 0;
+      transform: translateY(8px);
+      animation: entrarCartao 0.22s ease-out forwards;
+    }
+
+    .cartao-header {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #111;
+    }
+
+    .cartao-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .cartao-table th,
+    .cartao-table td {
+      border: 1px solid #c3c3c3;
+      padding: 3px 5px;
+      text-align: left;
+    }
+
+    .cartao-table th {
+      width: 42%;
+      background: #f9f9f9;
+      font-weight: 700;
+    }
+
+    .status-verificado {
+      color: #118000;
+      font-weight: 700;
+    }
+
+    .status-pendente {
+      color: #c00000;
+      font-weight: 700;
+    }
+
+    @keyframes entrarCartao {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .btn-voltar-painel {
+      margin-top: 14px;
+      display: inline-block;
+      padding: 8px 14px;
+      background: #0066ff;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .btn-voltar-painel:hover {
+      background: #0050cc;
+    }
+
+    /* Tela de erro */
+    .tela-erro {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-erro {
+      background: #fff;
+      padding: 26px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .card-erro h1 {
+      color: #c00000;
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- TELA DE ERRO (SEM SESSÃO) -->
+  <div id="erroAcessoExcecao" class="tela-erro" style="display:none;">
+    <div class="card-erro">
+      <h1>Acesso inválido</h1>
+      <p>Sessão de Efetividade não encontrada.</p>
+      <p>Volte para o painel principal e realize o login.</p>
+      <a href="/painel-efetividade.html" class="btn-voltar-painel">
+        Ir para o Painel Scan&Sell
+      </a>
+    </div>
+  </div>
+
+  <!-- TELA PRINCIPAL RELATÓRIO EXCEÇÃO -->
+  <div id="appExcecao" class="container" style="display:none;">
+    <div class="cabecalho">
+      <div>
+        <h1 class="titulo">Relatório de Exceção</h1>
+      </div>
+      <div class="info-usuario">
+        <div class="usuario-card">
+          <div class="value" id="usuarioExcecaoSpan"></div>
+          <div class="value" id="lojaExcecaoSpan"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filtros-container">
+      <div class="filtro-group">
+        <label for="filtroStatus">Status</label>
+        <select id="filtroStatus">
+          <option value="TODOS">Todos</option>
+          <option value="VERIFICADO">Verificado</option>
+          <option value="PENDENTE">Pendente</option>
+        </select>
+      </div>
+
+      <div class="filtro-group">
+        <label for="filtroSecao">Seção</label>
+        <select id="filtroSecao">
+          <option value="TODAS">Todas as seções</option>
+          <option>ALTO GIRO</option>
+          <option>SECA DOCE</option>
+          <option>HORTIFRUTI</option>
+          <option>ARRUMACAO E FVM</option>
+          <option>CASA</option>
+          <option>PERFUMARIA</option>
+          <option>SECA SALGADA</option>
+          <option>PAS CONGELADOS</option>
+          <option>LIQUIDA</option>
+          <option>LIMPEZA</option>
+          <option>SALSICHARIA</option>
+          <option>PET E JARDIM</option>
+          <option>ACOUGUE</option>
+          <option>DESCARTAVEIS</option>
+          <option>LIMPEZA DA CASA</option>
+          <option>LAZER</option>
+          <option>ELETRO</option>
+          <option>PAS RESFRIADOS</option>
+          <option>NAO ENCONTRADO</option>
+          <option>PADARIA</option>
+          <option>VEST CASA</option>
+          <option>PAPELARIA - M. ESCRITORIO</option>
+          <option>LANCHONETE</option>
+          <option>ROTISSERIA</option>
+          <option>CAMA - MESA - BANHO</option>
+          <option>AUTOMOTIVOS</option>
+          <option>TABACARIA</option>
+          <option>ADEGA</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn-exportar" onclick="exportarXLSX()">
+        Exportar XLSX
+      </button>
+    </div>
+
+    <div id="statusExcecao"></div>
+    <div id="resultadoExcecao"></div>
+
+    <a href="/painel-efetividade.html" class="btn-voltar-painel">
+      Voltar ao Painel
+    </a>
+  </div>
+
+  <script>
+    let dbEfetividadeExcecao = [];
+    let lojaExcecao = null;
+    let usuarioExcecao = null;
+    let listaFiltrada = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      let sessao = null;
+      try {
+        const raw = localStorage.getItem("efetividadeSession");
+        if (raw) sessao = JSON.parse(raw);
+      } catch (e) {
+        console.error("Erro ao ler efetividadeSession:", e);
+      }
+
+      if (!sessao || !sessao.usuario || !sessao.loja) {
+        document.getElementById("erroAcessoExcecao").style.display = "flex";
+        return;
+      }
+
+      usuarioExcecao = sessao.usuario;
+      lojaExcecao = sessao.loja;
+
+      document.getElementById("usuarioExcecaoSpan").textContent = usuarioExcecao;
+      document.getElementById("lojaExcecaoSpan").textContent = lojaExcecao;
+      document.getElementById("appExcecao").style.display = "block";
+
+      document.getElementById("filtroStatus").addEventListener("change", aplicarFiltros);
+      document.getElementById("filtroSecao").addEventListener("change", aplicarFiltros);
+
+      carregarBaseExcecao();
+    });
+
+    async function carregarBaseExcecao() {
+      const status = document.getElementById("statusExcecao");
+      status.textContent = "Carregando base de dados...";
+      try {
+        const resp = await fetch(
+          "/api/efetividade-base?loja=" + encodeURIComponent(lojaExcecao)
+        );
+        const dados = await resp.json().catch(() => ({}));
+        if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
+          console.error("Resposta inesperada em /api/efetividade-base:", dados);
+          const detalhe = dados.detalhe ? " Detalhe: " + dados.detalhe : "";
+          throw new Error((dados.message || "Falha ao carregar base.") + detalhe);
+        }
+
+        const lojaAlvo = (lojaExcecao || "").trim().toUpperCase();
+        dbEfetividadeExcecao = (dados.registros || []).filter((linha) => {
+          const empresaProduto = String(linha[3] ?? "");
+          const prefixo = empresaProduto.split(" : ")[0].trim().toUpperCase();
+          return prefixo === lojaAlvo;
+        });
+
+        status.textContent = `Base carregada com ${dbEfetividadeExcecao.length} itens da loja.`;
+        aplicarFiltros();
+      } catch (e) {
+        console.error("Erro ao carregar base:", e);
+        status.textContent = "Erro ao carregar base de dados: " + (e.message || "");
+      }
+    }
+
+    function aplicarFiltros() {
+      const statusSel = document.getElementById("filtroStatus").value;
+      const secaoSel = document.getElementById("filtroSecao").value;
+      const status = document.getElementById("statusExcecao");
+
+      listaFiltrada = dbEfetividadeExcecao.filter((linha) => {
+        const secao = String(linha[1] ?? "").trim().toUpperCase();
+        const pendenteVerificado = String(linha[2] ?? "").trim().toUpperCase();
+
+        if (statusSel !== "TODOS" && pendenteVerificado !== statusSel) {
+          return false;
+        }
+
+        if (secaoSel !== "TODAS" && secao !== secaoSel.toUpperCase()) {
+          return false;
+        }
+
+        return true;
+      });
+
+      status.textContent = `${listaFiltrada.length} item(s) no filtro atual.`;
+      renderizarListaExcecao();
+    }
+
+    function renderizarListaExcecao() {
+      const container = document.getElementById("resultadoExcecao");
+
+      if (!listaFiltrada.length) {
+        container.innerHTML =
+          '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado com os filtros selecionados.</p>';
+        return;
+      }
+
+      const html = listaFiltrada
+        .map((linha) => {
+          const [
+            ean = "",
+            secao = "",
+            pendenteVerificado = "",
+            empresaProduto = "",
+            codigoProduto = "",
+            qtdDisponivel = "",
+            precoVdaUnitario = "",
+            custoLiqUnitario = "",
+            qtdPendente = "",
+            diasEstoque = "",
+            diasUltimaEntrada = "",
+            diasSemVendas = "",
+          ] = linha;
+
+          const partes = String(empresaProduto).split(" : ");
+          const produto = (partes[1] || partes[0] || "").trim();
+
+          const statusUpper = String(pendenteVerificado || "").trim().toUpperCase();
+          let statusClass = "";
+          let statusLabel = pendenteVerificado;
+
+          if (statusUpper === "VERIFICADO") {
+            statusClass = "status-verificado";
+            statusLabel = "✔ Verificado";
+          } else if (statusUpper === "PENDENTE") {
+            statusClass = "status-pendente";
+            statusLabel = "⏳ Pendente";
+          }
+
+          return `
+            <div class="cartao">
+              <div class="cartao-header">${produto || "Produto"}</div>
+              <table class="cartao-table">
+                <tr>
+                  <th>Status</th>
+                  <td><span class="${statusClass}">${statusLabel}</span></td>
+                </tr>
+                <tr><th>EAN</th><td>${ean}</td></tr>
+                <tr><th>Seção</th><td>${secao}</td></tr>
+                <tr><th>Qtd. Disponível</th><td>${qtdDisponivel}</td></tr>
+                <tr><th>Preço Vda Unitário</th><td>${precoVdaUnitario}</td></tr>
+                <tr><th>Custo Liq. Unitário</th><td>${custoLiqUnitario}</td></tr>
+                <tr><th>Pend. Ped.Compra</th><td>${qtdPendente}</td></tr>
+                <tr><th>Dias de Estoque</th><td>${diasEstoque}</td></tr>
+                <tr><th>Dias Ult. Entrada</th><td>${diasUltimaEntrada}</td></tr>
+                <tr><th>Dias Sem Vendas</th><td>${diasSemVendas}</td></tr>
+              </table>
+            </div>
+          `;
+        })
+        .join("");
+
+      container.innerHTML = html;
+    }
+
+    async function exportarXLSX() {
+      if (!listaFiltrada.length) {
+        alert("Não há dados no filtro atual para exportar.");
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/efetividade-excecao-export", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            loja: lojaExcecao,
+            usuario: usuarioExcecao,
+            filtros: {
+              status: document.getElementById("filtroStatus").value,
+              secao: document.getElementById("filtroSecao").value,
+            },
+            registros: listaFiltrada,
+          }),
+        });
+
+        if (!resp.ok) {
+          const erroTexto = await resp.text();
+          console.error("Erro na exportação:", erroTexto);
+          alert("Falha ao exportar XLSX.");
+          return;
+        }
+
+        const blob = await resp.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const dataAgora = new Date().toISOString().slice(0, 10);
+        a.download = `relatorio_excecao_${lojaExcecao}_${dataAgora}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error("Erro ao exportar XLSX:", e);
+        alert("Erro inesperado ao exportar XLSX.");
+      }
+    }
+  </script>
+</body>
+</html>
