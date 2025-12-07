@@ -13,14 +13,11 @@
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 8px;
+      margin: 8px;              /* MARGEM EXTERNA (LATERAL E TOPO/BASE) */
       min-height: 100vh;
-
-      /* Mantém centralizado horizontalmente, mas
-         AGORA cola o card no TOPO da tela (não mais no centro). */
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* <-- topo da tela */
+      align-items: flex-start;   /* CARD PRINCIPAL COLADO NO TOPO */
     }
 
     .container {
@@ -30,6 +27,15 @@
       padding: 24px 28px 30px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+
+      /* Faz o card principal ocupar a altura da tela
+         com a mesma margem de 8px do body (100vh - 16px). */
+      min-height: calc(100vh - 16px);
+
+      /* Permite organizar conteúdo em coluna:
+         topo fixo, lista ocupando o meio, botões na base. */
+      display: flex;
+      flex-direction: column;
     }
 
     .cabecalho {
@@ -80,7 +86,6 @@
 
     /* =========================
        CARDS DE RESUMO (VERIFICADOS / PENDENTES)
-       FICAM LOGO ABAIXO DO CABEÇALHO
        ==========================*/
 
     .resumo-container {
@@ -137,13 +142,20 @@
       color: #c00000;        /* VERMELHO PARA O PERCENTUAL */
     }
 
+    /* =========================
+       CONTEÚDO PRINCIPAL
+       ==========================*/
+
     .conteudo {
       margin-top: 12px;
       font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;               /* Ocupa o restante da altura do card */
     }
 
     .bloco {
-      margin-bottom: 16px;
+      margin-bottom: 8px;
       padding: 14px;
       border-radius: 8px;
       background: #f7f8ff;
@@ -155,21 +167,47 @@
       font-size: 16px;
     }
 
+    /* WRAPPER QUE CONTÉM APENAS A LISTA
+       (APENAS ESSA ÁREA VAI ROLAR) */
+    .lista-wrapper {
+      flex: 1;               /* Pega o espaço disponível entre o bloco e os botões */
+      overflow-y: auto;      /* Scroll somente na lista */
+      padding-bottom: 4px;
+    }
+
+    /* Rodapé de botões fixados na base do card principal */
+    .botoes-rodape {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
     .btn-voltar {
-      margin-top: 10px;
       display: inline-block;
       padding: 8px 14px;
-      background: #0066ff;   /* AZUL DO BOTÃO SAIR */
+      background: #0066ff;   /* AZUL DO BOTÃO */
       color: #fff;
       border-radius: 6px;
       text-decoration: none;
       font-size: 14px;
       font-weight: 600;
+      border: none;
+      cursor: pointer;
+      text-align: center;
     }
 
     .btn-voltar:hover {
       background: #0050cc;   /* AZUL MAIS ESCURO NO HOVER */
     }
+
+    /* Mesma largura para os dois botões da base */
+    .btn-rodape {
+      flex: 1;               /* Mesma largura dentro do flex container */
+    }
+
+    /* Você pode mudar a cor do botão de exceção aqui, se quiser diferenciar:
+       .btn-excecao { background: #ff9800; }
+    */
 
     /* ======================
        TELA DE ERRO (SEM SESSÃO)
@@ -601,7 +639,7 @@
       </div>
     </div>
 
-    <!-- NOVOS CARDS DE RESUMO (VERIFICADOS / PENDENTES) -->
+    <!-- CARDS DE RESUMO -->
     <div class="resumo-container">
       <div class="resumo-card resumo-verificado">
         <div class="resumo-titulo">Verificados</div>
@@ -676,9 +714,28 @@
         </div>
       </div>
 
-      <div id="resultado"></div>
+      <!-- APENAS ESTA ÁREA ROLA -->
+      <div class="lista-wrapper">
+        <div id="resultado"></div>
+      </div>
 
-      <a href="/index.html" class="btn-voltar" onclick="limparSessaoEfetividade()">Sair</a>
+      <!-- BOTÕES NA BASE DO CARD PRINCIPAL -->
+      <div class="botoes-rodape">
+        <a
+          href="/index.html"
+          class="btn-voltar btn-rodape"
+          onclick="limparSessaoEfetividade()"
+        >
+          Sair
+        </a>
+        <button
+          type="button"
+          class="btn-voltar btn-rodape btn-excecao"
+          onclick="abrirRelatorioExcecao()"
+        >
+          R. Exceção
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1186,6 +1243,14 @@
       }
       document.getElementById("video").srcObject = null;
       document.getElementById("cameraArea").style.display = "none";
+    }
+
+    /* =========================
+       R. EXCEÇÃO (PLACEHOLDER)
+       ==========================*/
+    function abrirRelatorioExcecao() {
+      // Aqui depois vamos redirecionar ou abrir outra tela.
+      alert("Tela de 'R. Exceção' ainda será implementada.");
     }
 
     /* =========================
