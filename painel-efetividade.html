@@ -53,7 +53,6 @@
     }
 
     .usuario-card {
-      /* removendo "card": sem fundo, borda, sombra, padding mínimo */
       min-width: auto;
       background: transparent;
       border: none;
@@ -72,7 +71,7 @@
       font-weight: 600;
       color: #111;
       word-break: break-word;
-      font-size: 9px;       /* mantém o tamanho reduzido */
+      font-size: 9px;
       text-align: right;
     }
 
@@ -227,7 +226,7 @@
       padding: 10px 12px;
       font-size: 14px;
       resize: vertical;
-      min-height: 56px;  /* ~30% mais baixa que 80px */
+      min-height: 56px;
       background: #fff;
     }
 
@@ -278,11 +277,11 @@
       font-size: 12px;
     }
 
-    /* CÉLULAS AINDA MAIS BAIXAS (mais compacto) */
+    /* Mais compacto */
     .cartao-table th,
     .cartao-table td {
       border: 1px solid #c3c3c3;
-      padding: 3px 5px;   /* antes 4px 6px */
+      padding: 3px 5px;
       text-align: left;
     }
 
@@ -303,9 +302,8 @@
       font-weight: 700;
     }
 
-    /* Pendente já enviado (sessão atual) */
     .status-pendente-enviado {
-      color: #d6a500; /* amarelo mais escuro pra ler bem */
+      color: #d6a500;
       font-weight: 700;
     }
 
@@ -534,7 +532,6 @@
         <h1 class="titulo">PAINEL SCAN&SELL</h1>
       </div>
       <div class="info-usuario">
-        <!-- Mesmo lugar, sem card: só texto empilhado -->
         <div class="usuario-card">
           <div class="value" id="usuarioSpan"></div>
           <div class="value" id="lojaSpan"></div>
@@ -613,15 +610,28 @@
     /* =========================
        VARIÁVEIS GLOBAIS
        ==========================*/
-    let dbEfetividade = [];      // Base completa retornada pela API
+    let dbEfetividade = [];
     let lojaLogada = null;
     let usuarioLogado = null;
-    let ultimosResultados = [];  // Última lista exibida
-    let envioPendente = null;    // Registro selecionado antes do popup
+    let ultimosResultados = [];
+    let envioPendente = null;
+
+    // Produtos enviados nesta sessão (para manter amarelo até recarregar)
+    const enviadosSessao = new Set();
 
     // Câmera / leitor
     let streamAtual = null;
     let lendo = false;
+
+    /* =========================
+       FUNÇÃO PARA GERAR CHAVE ÚNICA DO REGISTRO
+       ==========================*/
+    function gerarChaveRegistro(linha) {
+      const ean = String(linha[0] ?? "").trim();
+      const empresaProduto = String(linha[3] ?? "").trim();
+      // Combinação suficiente para identificar o item na sessão
+      return `${ean}|||${empresaProduto}`;
+    }
 
     /* =========================
        INICIALIZAÇÃO
@@ -641,7 +651,7 @@
       }
 
       usuarioLogado = sessao.usuario;
-      lojaLogada = sessao.loja;          // Ex.: "ULT01-PLANDF"
+      lojaLogada = sessao.loja;
 
       document.getElementById("usuarioSpan").textContent = usuarioLogado;
       document.getElementById("lojaSpan").textContent = lojaLogada;
@@ -734,21 +744,6 @@
 
         const lojaAlvo = (lojaLogada || "").trim().toUpperCase();
 
-        // Estrutura das linhas vinda da BASE_DADOS:
-        // [0] EAN
-        // [1] SECAO
-        // [2] PENDENTE/VERIFICADO
-        // [3] Empresa : Produto (ex.: "ULT01-PLANDF : ABS 14UN ...")
-        // [4] Código Produto
-        // [5] Quantidade Disponível
-        // [6] Preço Vda Unitário
-        // [7] Custo Liq. Unitário
-        // [8] Qtd. Pend. Ped.Compra
-        // [9] Dias de Estoque
-        // [10] Dias Ult. Entrada
-        // [11] Quantidade Dias Sem Vendas
-
-        // Filtra apenas registros da loja logada (prefixo antes de " : ")
         dbEfetividade = (dados.registros || []).filter((linha) => {
           const empresaProduto = String(linha[3] ?? "");
           const prefixo = empresaProduto.split(" : ")[0].trim().toUpperCase();
@@ -784,7 +779,6 @@
         return;
       }
 
-      // Números -> busca EAN (coluna A); texto -> nome do produto (parte após " : ")
       const ehCodigoBarra = /^\d+$/.test(termoBruto);
 
       const resultados = dbEfetividade.filter((linha) => {
@@ -836,12 +830,23 @@
           const produto = (partes[1] || partes[0] || "").trim();
 
           const statusUpper = String(pendenteVerificado || "").trim().toUpperCase();
-          const statusClass =
-            statusUpper === "VERIFICADO"
-              ? "status-verificado"
-              : statusUpper === "PENDENTE"
-              ? "status-pendente"
-              : "";
+          const chave = gerarChaveRegistro(linha);
+
+          let statusClass = "";
+          let statusLabel = pendenteVerificado;
+
+          if (statusUpper === "VERIFICADO") {
+            statusClass = "status-verificado";
+            statusLabel = "✔ Verificado";
+          } else if (statusUpper === "PENDENTE") {
+            if (enviadosSessao.has(chave)) {
+              statusClass = "status-pendente-enviado";
+              statusLabel = "➜ Pendente";
+            } else {
+              statusClass = "status-pendente";
+              statusLabel = "⏳ Pendente";
+            }
+          }
 
           return `
           <div class="cartao" onclick="prepararEnvio(${idx})">
@@ -849,7 +854,15 @@
             <table class="cartao-table" aria-label="Dados do produto">
               <tr>
                 <th>Status</th>
-                <td><span id="status-cell-${idx}" class="${statusClass}">${pendenteVerificado}</span></td>
+                <td>
+                  <span
+                    id="status-cell-${idx}"
+                    data-key="${chave}"
+                    class="${statusClass}"
+                  >
+                    ${statusLabel}
+                  </span>
+                </td>
               </tr>
               <tr><th>EAN</th><td>${ean}</td></tr>
               <tr><th>Seção</th><td>${secao}</td></tr>
@@ -892,14 +905,12 @@
 
       const linhaBase = ultimosResultados[idx];
 
-      // Se já estiver VERIFICADO, não deixa enviar novamente
       const pendenteVerificado = String(linhaBase[2] ?? "").trim().toUpperCase();
       if (pendenteVerificado === "VERIFICADO") {
         mostrarAlertaVerificado();
         return;
       }
 
-      // Observação agora é OPCIONAL
       const obs = document.getElementById("observacao").value.trim();
 
       if (!lojaLogada || !usuarioLogado) {
@@ -907,7 +918,6 @@
         return;
       }
 
-      // guarda também o índice para poder mexer na cor do status depois
       envioPendente = { idx, linhaBase, observacao: obs };
       document.getElementById("confirmOverlay").style.display = "flex";
     }
@@ -958,20 +968,24 @@
           dados.message || "Lançamento registrado com sucesso.";
         document.getElementById("observacao").value = "";
 
-        // Vibração curta ao registrar (onde o navegador suportar)
+        // Vibração curta ao registrar (onde suportado)
         if (navigator.vibrate) {
           navigator.vibrate(100);
         }
 
-        // Se o status ainda for "Pendente", marca como "pendente enviado" (amarelo) nesta sessão
+        // Marca o registro como "pendente enviado" (amarelo) nesta sessão
         if (typeof idx === "number") {
+          const chave = gerarChaveRegistro(linhaBase);
+          enviadosSessao.add(chave);
+
           const spanStatus = document.getElementById(`status-cell-${idx}`);
           if (spanStatus) {
-            const textoStatus = String(spanStatus.textContent || "").trim().toUpperCase();
-            if (textoStatus === "PENDENTE") {
-              spanStatus.classList.remove("status-pendente", "status-verificado");
-              spanStatus.classList.add("status-pendente-enviado");
-            }
+            spanStatus.classList.remove(
+              "status-pendente",
+              "status-verificado"
+            );
+            spanStatus.classList.add("status-pendente-enviado");
+            spanStatus.textContent = "➜ Pendente";
           }
         }
       } catch (e) {
@@ -1068,7 +1082,6 @@
       } catch (e) {
         console.warn("Não foi possível limpar efetividadeSession:", e);
       }
-      // Navegação acontece via href do botão
     }
   </script>
 </body>
