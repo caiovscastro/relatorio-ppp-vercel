@@ -10,22 +10,18 @@
        ESTILO GERAL E CABEÇALHO
        ==========================*/
 
-    html {
+    html, body {
       height: 100%;
-      overflow: hidden;              /* impede rolagem da página inteira */
+      margin: 0;
+      padding: 0;
     }
 
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 0;
-      height: 100%;
-      display: flex;
-      justify-content: center;       /* centraliza horizontalmente o card */
-      align-items: stretch;          /* faz o card ocupar a altura toda */
-      padding: 8px;                  /* margem externa igual nas bordas */
+      padding: 8px;                 /* margem externa igual à largura */
       box-sizing: border-box;
-      overflow: hidden;              /* sem scroll no body */
+      overflow: hidden;             /* não deixa a página inteira rolar */
     }
 
     .container {
@@ -39,8 +35,9 @@
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      overflow: hidden;              /* card não rola, só o conteúdo interno */
-      height: 100%;                  /* ocupa toda a altura disponível */
+      overflow: hidden;             /* card principal fixo */
+      height: calc(100vh - 16px);   /* 100vh menos padding (8px + 8px) */
+      margin: 0 auto;
     }
 
     /* área principal acima dos botões – cresce e comporta a lista rolável */
@@ -48,7 +45,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      min-height: 0;                 /* necessário para o scroll interno funcionar */
+      min-height: 0;                /* necessário para o scroll interno */
     }
 
     .cabecalho {
@@ -170,6 +167,7 @@
       border-radius: 8px;
       background: #f7f8ff;
       border: 1px solid #e0e3ff;
+      flex-shrink: 0;                 /* não deixa a área de busca “apertar” demais */
     }
 
     .bloco h3 {
@@ -187,6 +185,7 @@
       margin-top: 8px;
       padding-bottom: 4px;
       -webkit-overflow-scrolling: touch; /* rolagem suave no iOS */
+      min-height: 0;
     }
 
     #resultado {
@@ -201,6 +200,7 @@
       display: flex;
       gap: 10px;
       margin-top: 12px;
+      flex-shrink: 0;                 /* rodapé sempre visível */
     }
 
     .btn-voltar {
