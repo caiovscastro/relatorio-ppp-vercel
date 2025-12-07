@@ -15,11 +15,11 @@
       font-family: Arial, sans-serif;
       margin: 8px;
       min-height: 100vh;
-      height: 100vh;          /* NOVO: força a altura exata da viewport */
+      height: 100vh;          /* ALTURA TRAVADA NA VIEWPORT */
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      overflow: hidden;       /* NOVO: impede que o body role */
+      align-items: flex-start; /* <-- topo da tela */
+      overflow: hidden;        /* NÃO DEIXA A PÁGINA INTEIRA ROLAR */
     }
 
     .container {
@@ -29,13 +29,17 @@
       padding: 24px 28px 30px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-      min-height: calc(100vh - 16px);
-      height: calc(100vh - 16px);  /* NOVO: fixa altura do card principal */
+
+      /* NOVO: card principal ocupa quase a tela inteira,
+         com margem vertical de 8px (igual à margem do body) */
+      height: calc(100vh - 16px);
+      box-sizing: border-box;
+
+      /* Layout em coluna para conseguir fixar os botões na base */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      box-sizing: border-box;
-      overflow: hidden;            /* NOVO: evita rolagem do card, só da lista */
+      overflow: hidden;  /* impede scroll no card, só na lista interna */
     }
 
     .cabecalho {
@@ -51,7 +55,7 @@
 
     .titulo {
       margin: 2px;
-      font-size: 18px;
+      font-size: 18px; /* TAMANHO DO TÍTULO PRINCIPAL */
     }
 
     /* Área de usuário/loja sem card, apenas texto no mesmo lugar, alinhado à direita */
@@ -78,18 +82,78 @@
 
     .usuario-card .value {
       font-weight: 600;
-      color: #111;
+      color: #111;   /* COR DO NOME DE USUÁRIO/LOJA */
       word-break: break-word;
-      font-size: 9px;
+      font-size: 9px;  /* FONTE MENOR PARA OS DADOS DO TOPO */
       text-align: right;
+    }
+
+    /* =========================
+       CARDS DE RESUMO (VERIFICADOS / PENDENTES)
+       FICAM LOGO ABAIXO DO CABEÇALHO
+       ==========================*/
+
+    .resumo-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
+
+    .resumo-card {
+      flex: 1;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #f7f7f7;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .resumo-titulo {
+      font-size: 12px;       /* TÍTULO MENOR DO CARD */
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .resumo-percent {
+      font-size: 18px;       /* NÚMERO GRANDE DO PERCENTUAL */
+      font-weight: 700;
+    }
+
+    .resumo-total {
+      font-size: 11px;       /* TEXTO MENOR DO RODAPÉ DO CARD */
+      color: #555;
+      margin-top: 2px;
+    }
+
+    /* Cores específicas dos cards de resumo */
+    .resumo-verificado .resumo-titulo {
+      color: #118000;        /* VERDE PARA VERIFICADOS */
+    }
+
+    .resumo-verificado .resumo-percent {
+      color: #118000;        /* VERDE PARA O PERCENTUAL */
+    }
+
+    .resumo-pendente .resumo-titulo {
+      color: #c00000;        /* VERMELHO PARA PENDENTES */
+    }
+
+    .resumo-pendente .resumo-percent {
+      color: #c00000;        /* VERMELHO PARA O PERCENTUAL */
     }
 
     .conteudo {
       margin-top: 12px;
       font-size: 14px;
+      flex: 1;                     /* CONTEÚDO OCUPA O ESPAÇO ENTRE CABEÇALHO E BOTÕES */
       display: flex;
       flex-direction: column;
-      height: 100%;
+      min-height: 0;               /* IMPORTANTE PARA O FLEX + SCROLL FUNCIONAR */
     }
 
     .bloco {
@@ -105,10 +169,29 @@
       font-size: 16px;
     }
 
+    /* ÁREA ROLÁVEL EXCLUSIVA DA LISTA DE RESULTADOS */
+    .lista-wrapper {
+      flex: 1;
+      overflow-y: auto;   /* SÓ AQUI DEVE ROLAR */
+      margin-top: 8px;
+      padding-bottom: 4px;
+    }
+
+    #resultado {
+      margin-top: 0;      /* SEM MARGEM EXTRA AQUI */
+    }
+
+    /* BOTÕES NA BASE DO CARD PRINCIPAL */
+    .footer-botoes {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
     .btn-voltar {
-      margin-top: 10px;
+      display: inline-block;
       padding: 8px 14px;
-      background: #0066ff;
+      background: #0066ff;   /* AZUL DO BOTÃO SAIR */
       color: #fff;
       border-radius: 6px;
       text-decoration: none;
@@ -116,24 +199,18 @@
       font-weight: 600;
       border: none;
       cursor: pointer;
+      text-align: center;
+      flex: 1;               /* MESMO TAMANHO HORIZONTAL DOS BOTÕES */
     }
 
     .btn-voltar:hover {
-      background: #0050cc;
-    }
-
-    /* NOVO: wrapper para os dois botões no rodapé do card */
-    .footer-botoes {
-      margin-top: 8px;
-      display: flex;
-      justify-content: flex-start;
-      gap: 8px;
+      background: #0050cc;   /* AZUL MAIS ESCURO NO HOVER */
     }
 
     .btn-excecao {
-      margin-top: 10px;
+      display: inline-block;
       padding: 8px 14px;
-      background: #ff9800;
+      background: #ff9800;   /* LARANJA DO BOTÃO R. EXCEÇÃO */
       color: #fff;
       border-radius: 6px;
       text-decoration: none;
@@ -141,10 +218,12 @@
       font-weight: 600;
       border: none;
       cursor: pointer;
+      text-align: center;
+      flex: 1;               /* MESMO TAMANHO QUE O SAIR */
     }
 
     .btn-excecao:hover {
-      background: #f57c00;
+      background: #f57c00;   /* LARANJA MAIS ESCURO NO HOVER */
     }
 
     /* ======================
@@ -170,7 +249,7 @@
     }
 
     .card-erro h1 {
-      color: #c00000;
+      color: #c00000;          /* VERMELHO DE ERRO */
       margin-top: 0;
     }
 
@@ -279,18 +358,6 @@
        CARTÕES DE RESULTADO
        =======================*/
 
-    /* NOVO: wrapper rolável só para a lista */
-    .lista-wrapper {
-      flex: 1;
-      margin-top: 8px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    #resultado {
-      margin-top: 0;
-    }
-
     .cartao {
       width: 94%;
       background: white;
@@ -311,7 +378,7 @@
     }
 
     .cartao-header {
-      font-size: 14px;
+      font-size: 14px;      /* TÍTULO DO CARTÃO DE PRODUTO */
       font-weight: 700;
       margin-bottom: 8px;
       color: #111;
@@ -320,14 +387,14 @@
     .cartao-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size: 12px;      /* FONTE DA TABELA DE DADOS */
     }
 
-    /* Mais compacto */
+    /* Mais compacto: células mais baixas */
     .cartao-table th,
     .cartao-table td {
       border: 1px solid #c3c3c3;
-      padding: 3px 5px;
+      padding: 3px 5px;     /* ALTURA DAS CÉLULAS */
       text-align: left;
     }
 
@@ -339,17 +406,17 @@
 
     /* Cores do status */
     .status-verificado {
-      color: #118000;
+      color: #118000;       /* VERDE STATUS VERIFICADO */
       font-weight: 700;
     }
 
     .status-pendente {
-      color: #c00000;
+      color: #c00000;       /* VERMELHO STATUS PENDENTE */
       font-weight: 700;
     }
 
     .status-pendente-enviado {
-      color: #d6a500;
+      color: #d6a500;       /* AMARELO STATUS PENDENTE ENVIADO */
       font-weight: 700;
     }
 
@@ -406,12 +473,12 @@
     }
 
     .btnConfirmar {
-      background: #4caf50;
+      background: #4caf50;  /* VERDE BOTÃO "SIM" */
       color: #fff;
     }
 
     .btnCancelar {
-      background: #e0e0e0;
+      background: #e0e0e0;  /* CINZA BOTÃO "CANCELAR" */
       color: #333;
     }
 
@@ -445,7 +512,7 @@
       padding: 8px 16px;
       border-radius: 8px;
       border: none;
-      background: #4caf50;
+      background: #4caf50;   /* VERDE DO BOTÃO OK */
       color: #fff;
       font-size: 14px;
       cursor: pointer;
@@ -519,7 +586,7 @@
     .loading-bar {
       height: 100%;
       width: 0%;
-      background: #0066ff;
+      background: #0066ff;  /* COR DA BARRA DE CARREGAMENTO */
       transition: width 0.15s linear;
     }
 
@@ -586,6 +653,20 @@
         </div>
       </div>
 
+      <!-- CARDS DE RESUMO -->
+      <div class="resumo-container">
+        <div class="resumo-card resumo-verificado">
+          <div class="resumo-titulo">Verificados</div>
+          <div class="resumo-percent" id="percentVerificados">0%</div>
+          <div class="resumo-total" id="totalVerificados">de 0 itens</div>
+        </div>
+        <div class="resumo-card resumo-pendente">
+          <div class="resumo-titulo">Pendentes</div>
+          <div class="resumo-percent" id="percentPendentes">0%</div>
+          <div class="resumo-total" id="totalPendentes">de 0 itens</div>
+        </div>
+      </div>
+
       <div class="conteudo">
         <div class="bloco">
           <h3>Busca na base de dados</h3>
@@ -647,19 +728,26 @@
           </div>
         </div>
 
-        <!-- LISTA ROLÁVEL -->
+        <!-- APENAS ESTA ÁREA ROLA -->
         <div class="lista-wrapper">
           <div id="resultado"></div>
         </div>
       </div>
     </div>
 
-    <!-- BOTÕES NO RODAPÉ DO CARD -->
+    <!-- BOTÕES FIXOS NA BASE DO CARD PRINCIPAL -->
     <div class="footer-botoes">
-      <button class="btn-voltar" onclick="limparSessaoEfetividade(); window.location.href='/index.html';">
+      <button
+        class="btn-voltar"
+        onclick="limparSessaoEfetividade(); window.location.href='/index.html';"
+      >
         Sair
       </button>
-      <button class="btn-excecao" onclick="abrirRelatorioExcecao()">
+      <button
+        class="btn-excecao"
+        type="button"
+        onclick="abrirRelatorioExcecao()"
+      >
         R. Exceção
       </button>
     </div>
@@ -682,7 +770,7 @@
     let streamAtual = null;
     let lendo = false;
 
-    /* Stub para o futuro relatório de exceção */
+    /* STUB DA FUTURA TELA "R. EXCEÇÃO" */
     function abrirRelatorioExcecao() {
       alert("Tela de R. Exceção ainda será implementada.");
     }
@@ -789,6 +877,41 @@
     }
 
     /* =========================
+       ATUALIZA OS CARDS DE RESUMO
+       ==========================*/
+    function atualizarResumoStatus() {
+      const total = dbEfetividade.length;
+      if (!total) {
+        document.getElementById("percentVerificados").textContent = "0%";
+        document.getElementById("percentPendentes").textContent = "0%";
+        document.getElementById("totalVerificados").textContent = "de 0 itens";
+        document.getElementById("totalPendentes").textContent = "de 0 itens";
+        return;
+      }
+
+      let verificados = 0;
+      let pendentes = 0;
+
+      dbEfetividade.forEach((linha) => {
+        const status = String(linha[2] ?? "").trim().toUpperCase();
+        if (status === "VERIFICADO") verificados++;
+        else if (status === "PENDENTE") pendentes++;
+      });
+
+      const percVer = (verificados / total) * 100;
+      const percPen = (pendentes / total) * 100;
+
+      document.getElementById("percentVerificados").textContent =
+        percVer.toFixed(1) + "%";
+      document.getElementById("percentPendentes").textContent =
+        percPen.toFixed(1) + "%";
+
+      const textoTotal = `de ${total} itens`;
+      document.getElementById("totalVerificados").textContent = textoTotal;
+      document.getElementById("totalPendentes").textContent = textoTotal;
+    }
+
+    /* =========================
        CARREGAR BASE (API /efetividade-base)
        ==========================*/
     async function carregarBaseEfetividade() {
@@ -815,6 +938,10 @@
         });
 
         status.textContent = `Base carregada com ${dbEfetividade.length} itens da loja.`;
+
+        // Atualiza os percentuais nos dois cards
+        atualizarResumoStatus();
+
         finalizarLoading();
       } catch (e) {
         console.error("Erro ao carregar base de dados:", e);
