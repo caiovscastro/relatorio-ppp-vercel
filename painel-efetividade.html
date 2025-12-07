@@ -13,13 +13,13 @@
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 8px;
-      min-height: 100vh;
-      height: 100vh;          /* ALTURA TRAVADA NA VIEWPORT */
+      margin: 0;                 /* margem zero no body */
+      min-height: 100dvh;        /* altura cheia da viewport (corrige mobile) */
+      height: 100dvh;
       display: flex;
-      justify-content: center;
-      align-items: flex-start; /* <-- topo da tela */
-      overflow: hidden;        /* NÃO DEIXA A PÁGINA INTEIRA ROLAR */
+      justify-content: center;   /* centraliza horizontal */
+      align-items: flex-start;   /* card colado no topo visual */
+      overflow: hidden;          /* impede rolagem da página inteira */
     }
 
     .container {
@@ -30,16 +30,23 @@
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 
-      /* NOVO: card principal ocupa quase a tela inteira,
-         com margem vertical de 8px (igual à margem do body) */
-      height: calc(100vh - 16px);
-      box-sizing: border-box;
+      /* card ocupa a tela com uma margem de 8px em cima/baixo e laterais */
+      height: calc(100dvh - 16px);
+      margin: 8px auto;
 
-      /* Layout em coluna para conseguir fixar os botões na base */
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      overflow: hidden;  /* impede scroll no card, só na lista interna */
+      overflow: hidden;          /* card não rola, só area interna */
+    }
+
+    /* área principal acima dos botões – precisa ocupar o espaço todo */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;             /* importante para flex + scroll funcionar */
     }
 
     .cabecalho {
@@ -90,7 +97,6 @@
 
     /* =========================
        CARDS DE RESUMO (VERIFICADOS / PENDENTES)
-       FICAM LOGO ABAIXO DO CABEÇALHO
        ==========================*/
 
     .resumo-container {
@@ -130,30 +136,26 @@
       margin-top: 2px;
     }
 
-    /* Cores específicas dos cards de resumo */
     .resumo-verificado .resumo-titulo {
       color: #118000;        /* VERDE PARA VERIFICADOS */
     }
-
     .resumo-verificado .resumo-percent {
-      color: #118000;        /* VERDE PARA O PERCENTUAL */
+      color: #118000;
     }
-
     .resumo-pendente .resumo-titulo {
       color: #c00000;        /* VERMELHO PARA PENDENTES */
     }
-
     .resumo-pendente .resumo-percent {
-      color: #c00000;        /* VERMELHO PARA O PERCENTUAL */
+      color: #c00000;
     }
 
     .conteudo {
       margin-top: 12px;
       font-size: 14px;
-      flex: 1;                     /* CONTEÚDO OCUPA O ESPAÇO ENTRE CABEÇALHO E BOTÕES */
+      flex: 1;                     /* ocupa espaço entre resumo e botões */
       display: flex;
       flex-direction: column;
-      min-height: 0;               /* IMPORTANTE PARA O FLEX + SCROLL FUNCIONAR */
+      min-height: 0;               /* permite que lista ganho altura para scroll */
     }
 
     .bloco {
@@ -172,16 +174,17 @@
     /* ÁREA ROLÁVEL EXCLUSIVA DA LISTA DE RESULTADOS */
     .lista-wrapper {
       flex: 1;
-      overflow-y: auto;   /* SÓ AQUI DEVE ROLAR */
+      overflow-y: auto;            /* SOMENTE A LISTA ROLA */
       margin-top: 8px;
       padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch; /* rolagem suave no iOS */
     }
 
     #resultado {
-      margin-top: 0;      /* SEM MARGEM EXTRA AQUI */
+      margin-top: 0;
     }
 
-    /* BOTÕES NA BASE DO CARD PRINCIPAL */
+    /* BOTÕES NA BASE DO CARD PRINCIPAL – SEMPRE VISÍVEIS */
     .footer-botoes {
       display: flex;
       gap: 10px;
@@ -640,7 +643,8 @@
 
   <!-- PAINEL PRINCIPAL -->
   <div id="appRoot" class="container" style="display: none;">
-    <div>
+    <!-- área principal que deve "crescer" e permitir scroll interno -->
+    <div class="main-area">
       <div class="cabecalho">
         <div>
           <h1 class="titulo">PAINEL SCAN&SELL</h1>
