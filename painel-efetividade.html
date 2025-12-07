@@ -15,9 +15,12 @@
       font-family: Arial, sans-serif;
       margin: 8px;
       min-height: 100vh;
+
+      /* Mantém centralizado horizontalmente, mas
+         AGORA cola o card no TOPO da tela (não mais no centro). */
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start; /* <-- topo da tela */
     }
 
     .container {
@@ -42,7 +45,7 @@
 
     .titulo {
       margin: 2px;
-      font-size: 18px;
+      font-size: 18px; /* TAMANHO DO TÍTULO PRINCIPAL */
     }
 
     /* Área de usuário/loja sem card, apenas texto no mesmo lugar, alinhado à direita */
@@ -69,10 +72,69 @@
 
     .usuario-card .value {
       font-weight: 600;
-      color: #111;
+      color: #111;   /* COR DO NOME DE USUÁRIO/LOJA */
       word-break: break-word;
-      font-size: 9px;
+      font-size: 9px;  /* FONTE MENOR PARA OS DADOS DO TOPO */
       text-align: right;
+    }
+
+    /* =========================
+       CARDS DE RESUMO (VERIFICADOS / PENDENTES)
+       FICAM LOGO ABAIXO DO CABEÇALHO
+       ==========================*/
+
+    .resumo-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
+
+    .resumo-card {
+      flex: 1;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #f7f7f7;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .resumo-titulo {
+      font-size: 12px;       /* TÍTULO MENOR DO CARD */
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .resumo-percent {
+      font-size: 18px;       /* NÚMERO GRANDE DO PERCENTUAL */
+      font-weight: 700;
+    }
+
+    .resumo-total {
+      font-size: 11px;       /* TEXTO MENOR DO RODAPÉ DO CARD */
+      color: #555;
+      margin-top: 2px;
+    }
+
+    /* Cores específicas dos cards de resumo */
+    .resumo-verificado .resumo-titulo {
+      color: #118000;        /* VERDE PARA VERIFICADOS */
+    }
+
+    .resumo-verificado .resumo-percent {
+      color: #118000;        /* VERDE PARA O PERCENTUAL */
+    }
+
+    .resumo-pendente .resumo-titulo {
+      color: #c00000;        /* VERMELHO PARA PENDENTES */
+    }
+
+    .resumo-pendente .resumo-percent {
+      color: #c00000;        /* VERMELHO PARA O PERCENTUAL */
     }
 
     .conteudo {
@@ -97,7 +159,7 @@
       margin-top: 10px;
       display: inline-block;
       padding: 8px 14px;
-      background: #0066ff;
+      background: #0066ff;   /* AZUL DO BOTÃO SAIR */
       color: #fff;
       border-radius: 6px;
       text-decoration: none;
@@ -106,7 +168,7 @@
     }
 
     .btn-voltar:hover {
-      background: #0050cc;
+      background: #0050cc;   /* AZUL MAIS ESCURO NO HOVER */
     }
 
     /* ======================
@@ -132,7 +194,7 @@
     }
 
     .card-erro h1 {
-      color: #c00000;
+      color: #c00000;          /* VERMELHO DE ERRO */
       margin-top: 0;
     }
 
@@ -265,7 +327,7 @@
     }
 
     .cartao-header {
-      font-size: 14px;
+      font-size: 14px;      /* TÍTULO DO CARTÃO DE PRODUTO */
       font-weight: 700;
       margin-bottom: 8px;
       color: #111;
@@ -274,14 +336,14 @@
     .cartao-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size: 12px;      /* FONTE DA TABELA DE DADOS */
     }
 
-    /* Mais compacto */
+    /* Mais compacto: células mais baixas */
     .cartao-table th,
     .cartao-table td {
       border: 1px solid #c3c3c3;
-      padding: 3px 5px;
+      padding: 3px 5px;     /* ALTURA DAS CÉLULAS */
       text-align: left;
     }
 
@@ -293,17 +355,17 @@
 
     /* Cores do status */
     .status-verificado {
-      color: #118000;
+      color: #118000;       /* VERDE STATUS VERIFICADO */
       font-weight: 700;
     }
 
     .status-pendente {
-      color: #c00000;
+      color: #c00000;       /* VERMELHO STATUS PENDENTE */
       font-weight: 700;
     }
 
     .status-pendente-enviado {
-      color: #d6a500;
+      color: #d6a500;       /* AMARELO STATUS PENDENTE ENVIADO */
       font-weight: 700;
     }
 
@@ -360,12 +422,12 @@
     }
 
     .btnConfirmar {
-      background: #4caf50;
+      background: #4caf50;  /* VERDE BOTÃO "SIM" */
       color: #fff;
     }
 
     .btnCancelar {
-      background: #e0e0e0;
+      background: #e0e0e0;  /* CINZA BOTÃO "CANCELAR" */
       color: #333;
     }
 
@@ -399,7 +461,7 @@
       padding: 8px 16px;
       border-radius: 8px;
       border: none;
-      background: #4caf50;
+      background: #4caf50;   /* VERDE DO BOTÃO OK */
       color: #fff;
       font-size: 14px;
       cursor: pointer;
@@ -473,7 +535,7 @@
     .loading-bar {
       height: 100%;
       width: 0%;
-      background: #0066ff;
+      background: #0066ff;  /* COR DA BARRA DE CARREGAMENTO */
       transition: width 0.15s linear;
     }
 
@@ -536,6 +598,20 @@
           <div class="value" id="usuarioSpan"></div>
           <div class="value" id="lojaSpan"></div>
         </div>
+      </div>
+    </div>
+
+    <!-- NOVOS CARDS DE RESUMO (VERIFICADOS / PENDENTES) -->
+    <div class="resumo-container">
+      <div class="resumo-card resumo-verificado">
+        <div class="resumo-titulo">Verificados</div>
+        <div class="resumo-percent" id="percentVerificados">0%</div>
+        <div class="resumo-total" id="totalVerificados">de 0 itens</div>
+      </div>
+      <div class="resumo-card resumo-pendente">
+        <div class="resumo-titulo">Pendentes</div>
+        <div class="resumo-percent" id="percentPendentes">0%</div>
+        <div class="resumo-total" id="totalPendentes">de 0 itens</div>
       </div>
     </div>
 
@@ -725,6 +801,41 @@
     }
 
     /* =========================
+       ATUALIZA OS CARDS DE RESUMO
+       ==========================*/
+    function atualizarResumoStatus() {
+      const total = dbEfetividade.length;
+      if (!total) {
+        document.getElementById("percentVerificados").textContent = "0%";
+        document.getElementById("percentPendentes").textContent = "0%";
+        document.getElementById("totalVerificados").textContent = "de 0 itens";
+        document.getElementById("totalPendentes").textContent = "de 0 itens";
+        return;
+      }
+
+      let verificados = 0;
+      let pendentes = 0;
+
+      dbEfetividade.forEach((linha) => {
+        const status = String(linha[2] ?? "").trim().toUpperCase();
+        if (status === "VERIFICADO") verificados++;
+        else if (status === "PENDENTE") pendentes++;
+      });
+
+      const percVer = (verificados / total) * 100;
+      const percPen = (pendentes / total) * 100;
+
+      document.getElementById("percentVerificados").textContent =
+        percVer.toFixed(1) + "%";
+      document.getElementById("percentPendentes").textContent =
+        percPen.toFixed(1) + "%";
+
+      const textoTotal = `de ${total} itens`;
+      document.getElementById("totalVerificados").textContent = textoTotal;
+      document.getElementById("totalPendentes").textContent = textoTotal;
+    }
+
+    /* =========================
        CARREGAR BASE (API /efetividade-base)
        ==========================*/
     async function carregarBaseEfetividade() {
@@ -751,6 +862,10 @@
         });
 
         status.textContent = `Base carregada com ${dbEfetividade.length} itens da loja.`;
+
+        // Atualiza os percentuais nos dois cards
+        atualizarResumoStatus();
+
         finalizarLoading();
       } catch (e) {
         console.error("Erro ao carregar base de dados:", e);
