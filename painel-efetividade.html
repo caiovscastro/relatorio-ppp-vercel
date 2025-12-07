@@ -10,16 +10,20 @@
        ESTILO GERAL E CABEÇALHO
        ==========================*/
 
+    html {
+      height: 100%;
+      overflow: hidden;           /* impede rolagem da página inteira */
+    }
+
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      margin: 0;                 /* margem zero no body */
-      min-height: 100dvh;        /* altura cheia da viewport (corrige mobile) */
-      height: 100dvh;
+      margin: 0;
+      height: 100%;
       display: flex;
-      justify-content: center;   /* centraliza horizontal */
-      align-items: flex-start;   /* card colado no topo visual */
-      overflow: hidden;          /* impede rolagem da página inteira */
+      justify-content: center;    /* centraliza horizontalmente */
+      align-items: center;        /* vamos centralizar, mas o card será fixo */
+      overflow: hidden;           /* evita scroll do body */
     }
 
     .container {
@@ -30,15 +34,18 @@
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 
-      /* card ocupa a tela com uma margem de 8px em cima/baixo e laterais */
-      height: calc(100dvh - 16px);
-      margin: 8px auto;
-
+      /* Card fixo ocupando a tela com margem de 8px em cima/baixo */
+      position: fixed;
+      top: 8px;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
       box-sizing: border-box;
+
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      overflow: hidden;          /* card não rola, só area interna */
+      overflow: hidden;          /* card não rola, só área interna */
     }
 
     /* área principal acima dos botões – precisa ocupar o espaço todo */
@@ -155,7 +162,7 @@
       flex: 1;                     /* ocupa espaço entre resumo e botões */
       display: flex;
       flex-direction: column;
-      min-height: 0;               /* permite que lista ganho altura para scroll */
+      min-height: 0;               /* permite que lista ganhe altura para scroll */
     }
 
     .bloco {
