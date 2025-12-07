@@ -10,42 +10,26 @@
        ESTILO GERAL E CABEÇALHO
        ==========================*/
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
-      padding: 8px;                 /* margem externa igual à largura */
-      box-sizing: border-box;
-      overflow: hidden;             /* não deixa a página inteira rolar */
+      margin: 8px;
+      min-height: 100vh;
+
+      /* Mantém centralizado horizontalmente, mas
+         AGORA cola o card no TOPO da tela (não mais no centro). */
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* <-- topo da tela */
     }
 
     .container {
-      width: 100%;
+      width: 95%;
       max-width: 900px;
       background: #fff;
-      padding: 24px 28px 20px;
+      padding: 24px 28px 30px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;             /* card principal fixo */
-      height: calc(100vh - 16px);   /* 100vh menos padding (8px + 8px) */
-      margin: 0 auto;
-    }
-
-    /* área principal acima dos botões – cresce e comporta a lista rolável */
-    .main-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;                /* necessário para o scroll interno */
     }
 
     .cabecalho {
@@ -96,6 +80,7 @@
 
     /* =========================
        CARDS DE RESUMO (VERIFICADOS / PENDENTES)
+       FICAM LOGO ABAIXO DO CABEÇALHO
        ==========================*/
 
     .resumo-container {
@@ -155,10 +140,6 @@
     .conteudo {
       margin-top: 12px;
       font-size: 14px;
-      flex: 1;                        /* ocupa espaço restante da main-area */
-      display: flex;
-      flex-direction: column;
-      min-height: 0;                  /* permite que a lista tenha scroll */
     }
 
     .bloco {
@@ -167,7 +148,6 @@
       border-radius: 8px;
       background: #f7f8ff;
       border: 1px solid #e0e3ff;
-      flex-shrink: 0;                 /* não deixa a área de busca “apertar” demais */
     }
 
     .bloco h3 {
@@ -175,35 +155,8 @@
       font-size: 16px;
     }
 
-    /* ======================
-       ÁREA ROLÁVEL DA LISTA
-       =======================*/
-
-    .lista-wrapper {
-      flex: 1;
-      overflow-y: auto;               /* SOMENTE A LISTA ROLA */
-      margin-top: 8px;
-      padding-bottom: 4px;
-      -webkit-overflow-scrolling: touch; /* rolagem suave no iOS */
-      min-height: 0;
-    }
-
-    #resultado {
-      margin-top: 0;
-    }
-
-    /* ======================
-       BOTÕES FIXOS NA BASE DO CARD
-       =======================*/
-
-    .footer-botoes {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-      flex-shrink: 0;                 /* rodapé sempre visível */
-    }
-
     .btn-voltar {
+      margin-top: 10px;
       display: inline-block;
       padding: 8px 14px;
       background: #0066ff;   /* AZUL DO BOTÃO SAIR */
@@ -212,33 +165,10 @@
       text-decoration: none;
       font-size: 14px;
       font-weight: 600;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-      flex: 1;               /* MESMO TAMANHO HORIZONTAL */
     }
 
     .btn-voltar:hover {
       background: #0050cc;   /* AZUL MAIS ESCURO NO HOVER */
-    }
-
-    .btn-excecao {
-      display: inline-block;
-      padding: 8px 14px;
-      background: #ff9800;   /* LARANJA DO BOTÃO R. EXCEÇÃO */
-      color: #fff;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-      flex: 1;               /* MESMO TAMANHO QUE O SAIR */
-    }
-
-    .btn-excecao:hover {
-      background: #f57c00;   /* LARANJA MAIS ESCURO NO HOVER */
     }
 
     /* ======================
@@ -372,6 +302,10 @@
     /* ======================
        CARTÕES DE RESULTADO
        =======================*/
+
+    #resultado {
+      margin-top: 8px;
+    }
 
     .cartao {
       width: 94%;
@@ -655,118 +589,96 @@
 
   <!-- PAINEL PRINCIPAL -->
   <div id="appRoot" class="container" style="display: none;">
-    <!-- Área principal que deve crescer e permitir scroll interno -->
-    <div class="main-area">
-      <div class="cabecalho">
-        <div>
-          <h1 class="titulo">PAINEL SCAN&SELL</h1>
-        </div>
-        <div class="info-usuario">
-          <div class="usuario-card">
-            <div class="value" id="usuarioSpan"></div>
-            <div class="value" id="lojaSpan"></div>
-          </div>
-        </div>
+    <div class="cabecalho">
+      <div>
+        <h1 class="titulo">PAINEL SCAN&SELL</h1>
       </div>
-
-      <!-- NOVOS CARDS DE RESUMO (VERIFICADOS / PENDENTES) -->
-      <div class="resumo-container">
-        <div class="resumo-card resumo-verificado">
-          <div class="resumo-titulo">Verificados</div>
-          <div class="resumo-percent" id="percentVerificados">0%</div>
-          <div class="resumo-total" id="totalVerificados">de 0 itens</div>
-        </div>
-        <div class="resumo-card resumo-pendente">
-          <div class="resumo-titulo">Pendentes</div>
-          <div class="resumo-percent" id="percentPendentes">0%</div>
-          <div class="resumo-total" id="totalPendentes">de 0 itens</div>
-        </div>
-      </div>
-
-      <div class="conteudo">
-        <div class="bloco">
-          <h3>Busca na base de dados</h3>
-
-          <div class="search-container">
-            <button
-              type="button"
-              class="btnBarcodeLeft"
-              onclick="abrirCamera()"
-              aria-label="Ler código de barras com a câmera"
-            >
-              <span class="icon-barcode-small"></span>
-            </button>
-
-            <input
-              id="campoBusca"
-              type="text"
-              placeholder="Buscar por Produto"
-              onkeydown="if(event.key === 'Enter'){buscar();}"
-            />
-
-            <button
-              type="button"
-              class="btnBuscarIcone"
-              onclick="buscar()"
-              aria-label="Buscar registro"
-            >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#444"
-                stroke-width="2.2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="11" cy="11" r="7"></circle>
-                <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
-              </svg>
-            </button>
-          </div>
-
-          <div class="obs-label">Observação:</div>
-          <textarea
-            id="observacao"
-            class="obs-textarea"
-            placeholder="Observação (opcional)..."
-          ></textarea>
-
-          <div id="status"></div>
-
-          <!-- ÁREA DA CÂMERA -->
-          <div id="cameraArea">
-            <p style="font-size: 13px;">Aponte para o código de barras:</p>
-            <video id="video" autoplay playsinline></video>
-            <p id="msgCamera" style="font-size: 12px;"></p>
-            <button class="btnFechar" onclick="fecharCamera()">Fechar câmera</button>
-          </div>
-        </div>
-
-        <!-- SOMENTE ESTA ÁREA ROLA -->
-        <div class="lista-wrapper">
-          <div id="resultado"></div>
+      <div class="info-usuario">
+        <div class="usuario-card">
+          <div class="value" id="usuarioSpan"></div>
+          <div class="value" id="lojaSpan"></div>
         </div>
       </div>
     </div>
 
-    <!-- BOTÕES FIXOS NA BASE DO CARD PRINCIPAL -->
-    <div class="footer-botoes">
-      <button
-        class="btn-voltar"
-        type="button"
-        onclick="limparSessaoEfetividade(); window.location.href='/index.html';"
-      >
-        Sair
-      </button>
-      <button
-        class="btn-excecao"
-        type="button"
-        onclick="abrirRelatorioExcecao()"
-      >
-        R. Exceção
-      </button>
+    <!-- NOVOS CARDS DE RESUMO (VERIFICADOS / PENDENTES) -->
+    <div class="resumo-container">
+      <div class="resumo-card resumo-verificado">
+        <div class="resumo-titulo">Verificados</div>
+        <div class="resumo-percent" id="percentVerificados">0%</div>
+        <div class="resumo-total" id="totalVerificados">de 0 itens</div>
+      </div>
+      <div class="resumo-card resumo-pendente">
+        <div class="resumo-titulo">Pendentes</div>
+        <div class="resumo-percent" id="percentPendentes">0%</div>
+        <div class="resumo-total" id="totalPendentes">de 0 itens</div>
+      </div>
+    </div>
+
+    <div class="conteudo">
+      <div class="bloco">
+        <h3>Busca na base de dados</h3>
+
+        <div class="search-container">
+          <button
+            type="button"
+            class="btnBarcodeLeft"
+            onclick="abrirCamera()"
+            aria-label="Ler código de barras com a câmera"
+          >
+            <span class="icon-barcode-small"></span>
+          </button>
+
+          <input
+            id="campoBusca"
+            type="text"
+            placeholder="Buscar por Produto"
+            onkeydown="if(event.key === 'Enter'){buscar();}"
+          />
+
+          <button
+            type="button"
+            class="btnBuscarIcone"
+            onclick="buscar()"
+            aria-label="Buscar registro"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#444"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="obs-label">Observação:</div>
+        <textarea
+          id="observacao"
+          class="obs-textarea"
+          placeholder="Observação (opcional)..."
+        ></textarea>
+
+        <div id="status"></div>
+
+        <!-- ÁREA DA CÂMERA -->
+        <div id="cameraArea">
+          <p style="font-size: 13px;">Aponte para o código de barras:</p>
+          <video id="video" autoplay playsinline></video>
+          <p id="msgCamera" style="font-size: 12px;"></p>
+          <button class="btnFechar" onclick="fecharCamera()">Fechar câmera</button>
+        </div>
+      </div>
+
+      <div id="resultado"></div>
+
+      <a href="/index.html" class="btn-voltar" onclick="limparSessaoEfetividade()">Sair</a>
     </div>
   </div>
 
@@ -787,11 +699,6 @@
     let streamAtual = null;
     let lendo = false;
 
-    /* STUB DA FUTURA TELA "R. EXCEÇÃO" */
-    function abrirRelatorioExcecao() {
-      alert("Tela de R. Exceção ainda será implementada.");
-    }
-
     /* =========================
        FUNÇÃO PARA GERAR CHAVE ÚNICA DO REGISTRO
        ==========================*/
@@ -799,7 +706,7 @@
       const ean = String(linha[0] ?? "").trim();
       const empresaProduto = String(linha[3] ?? "").trim();
       // Combinação suficiente para identificar o item na sessão
-      return `${ean}|||${empresaProduto}`;
+      return ${ean}|||${empresaProduto};
     }
 
     /* =========================
@@ -872,8 +779,8 @@
       loadingTimer = setInterval(() => {
         if (loadingPercent >= 95) return;
         loadingPercent += 5;
-        bar.style.width = `${loadingPercent}%`;
-        percentEl.textContent = `${loadingPercent}%`;
+        bar.style.width = ${loadingPercent}%;
+        percentEl.textContent = ${loadingPercent}%;
       }, 120);
     }
 
@@ -923,7 +830,7 @@
       document.getElementById("percentPendentes").textContent =
         percPen.toFixed(1) + "%";
 
-      const textoTotal = `de ${total} itens`;
+      const textoTotal = de ${total} itens;
       document.getElementById("totalVerificados").textContent = textoTotal;
       document.getElementById("totalPendentes").textContent = textoTotal;
     }
@@ -954,7 +861,7 @@
           return prefixo === lojaAlvo;
         });
 
-        status.textContent = `Base carregada com ${dbEfetividade.length} itens da loja.`;
+        status.textContent = Base carregada com ${dbEfetividade.length} itens da loja.;
 
         // Atualiza os percentuais nos dois cards
         atualizarResumoStatus();
@@ -1001,7 +908,7 @@
       });
 
       mostrarResultados(resultados);
-      status.textContent = `${resultados.length} iten(s) encontrado(s).`;
+      status.textContent = ${resultados.length} iten(s) encontrado(s).;
     }
 
     /* =========================
@@ -1186,7 +1093,7 @@
           const chave = gerarChaveRegistro(linhaBase);
           enviadosSessao.add(chave);
 
-          const spanStatus = document.getElementById(`status-cell-${idx}`);
+          const spanStatus = document.getElementById(status-cell-${idx});
           if (spanStatus) {
             spanStatus.classList.remove(
               "status-pendente",
