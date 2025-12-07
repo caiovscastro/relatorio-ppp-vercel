@@ -12,7 +12,7 @@
 
     html {
       height: 100%;
-      overflow: hidden;           /* impede rolagem da página inteira */
+      overflow: hidden;              /* impede rolagem da página inteira */
     }
 
     body {
@@ -21,39 +21,34 @@
       margin: 0;
       height: 100%;
       display: flex;
-      justify-content: center;    /* centraliza horizontalmente */
-      align-items: center;        /* vamos centralizar, mas o card será fixo */
-      overflow: hidden;           /* evita scroll do body */
+      justify-content: center;       /* centraliza horizontalmente o card */
+      align-items: stretch;          /* faz o card ocupar a altura toda */
+      padding: 8px;                  /* margem externa igual nas bordas */
+      box-sizing: border-box;
+      overflow: hidden;              /* sem scroll no body */
     }
 
     .container {
-      width: 95%;
+      width: 100%;
       max-width: 900px;
       background: #fff;
-      padding: 24px 28px 30px;
+      padding: 24px 28px 20px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 
-      /* Card fixo ocupando a tela com margem de 8px em cima/baixo */
-      position: fixed;
-      top: 8px;
-      bottom: 8px;
-      left: 50%;
-      transform: translateX(-50%);
       box-sizing: border-box;
-
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      overflow: hidden;          /* card não rola, só área interna */
+      overflow: hidden;              /* card não rola, só o conteúdo interno */
+      height: 100%;                  /* ocupa toda a altura disponível */
     }
 
-    /* área principal acima dos botões – precisa ocupar o espaço todo */
+    /* área principal acima dos botões – cresce e comporta a lista rolável */
     .main-area {
       flex: 1;
       display: flex;
       flex-direction: column;
-      min-height: 0;             /* importante para flex + scroll funcionar */
+      min-height: 0;                 /* necessário para o scroll interno funcionar */
     }
 
     .cabecalho {
@@ -143,26 +138,30 @@
       margin-top: 2px;
     }
 
+    /* Cores específicas dos cards de resumo */
     .resumo-verificado .resumo-titulo {
       color: #118000;        /* VERDE PARA VERIFICADOS */
     }
+
     .resumo-verificado .resumo-percent {
-      color: #118000;
+      color: #118000;        /* VERDE PARA O PERCENTUAL */
     }
+
     .resumo-pendente .resumo-titulo {
       color: #c00000;        /* VERMELHO PARA PENDENTES */
     }
+
     .resumo-pendente .resumo-percent {
-      color: #c00000;
+      color: #c00000;        /* VERMELHO PARA O PERCENTUAL */
     }
 
     .conteudo {
       margin-top: 12px;
       font-size: 14px;
-      flex: 1;                     /* ocupa espaço entre resumo e botões */
+      flex: 1;                        /* ocupa espaço restante da main-area */
       display: flex;
       flex-direction: column;
-      min-height: 0;               /* permite que lista ganhe altura para scroll */
+      min-height: 0;                  /* permite que a lista tenha scroll */
     }
 
     .bloco {
@@ -178,10 +177,13 @@
       font-size: 16px;
     }
 
-    /* ÁREA ROLÁVEL EXCLUSIVA DA LISTA DE RESULTADOS */
+    /* ======================
+       ÁREA ROLÁVEL DA LISTA
+       =======================*/
+
     .lista-wrapper {
       flex: 1;
-      overflow-y: auto;            /* SOMENTE A LISTA ROLA */
+      overflow-y: auto;               /* SOMENTE A LISTA ROLA */
       margin-top: 8px;
       padding-bottom: 4px;
       -webkit-overflow-scrolling: touch; /* rolagem suave no iOS */
@@ -191,7 +193,10 @@
       margin-top: 0;
     }
 
-    /* BOTÕES NA BASE DO CARD PRINCIPAL – SEMPRE VISÍVEIS */
+    /* ======================
+       BOTÕES FIXOS NA BASE DO CARD
+       =======================*/
+
     .footer-botoes {
       display: flex;
       gap: 10px;
@@ -210,7 +215,7 @@
       border: none;
       cursor: pointer;
       text-align: center;
-      flex: 1;               /* MESMO TAMANHO HORIZONTAL DOS BOTÕES */
+      flex: 1;               /* MESMO TAMANHO HORIZONTAL */
     }
 
     .btn-voltar:hover {
@@ -650,7 +655,7 @@
 
   <!-- PAINEL PRINCIPAL -->
   <div id="appRoot" class="container" style="display: none;">
-    <!-- área principal que deve "crescer" e permitir scroll interno -->
+    <!-- Área principal que deve crescer e permitir scroll interno -->
     <div class="main-area">
       <div class="cabecalho">
         <div>
@@ -664,7 +669,7 @@
         </div>
       </div>
 
-      <!-- CARDS DE RESUMO -->
+      <!-- NOVOS CARDS DE RESUMO (VERIFICADOS / PENDENTES) -->
       <div class="resumo-container">
         <div class="resumo-card resumo-verificado">
           <div class="resumo-titulo">Verificados</div>
@@ -739,7 +744,7 @@
           </div>
         </div>
 
-        <!-- APENAS ESTA ÁREA ROLA -->
+        <!-- SOMENTE ESTA ÁREA ROLA -->
         <div class="lista-wrapper">
           <div id="resultado"></div>
         </div>
@@ -750,6 +755,7 @@
     <div class="footer-botoes">
       <button
         class="btn-voltar"
+        type="button"
         onclick="limparSessaoEfetividade(); window.location.href='/index.html';"
       >
         Sair
