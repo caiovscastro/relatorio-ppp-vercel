@@ -6,6 +6,10 @@
   <title>Relatório de Exceção – SCAN&SELL</title>
 
   <style>
+    /* =========================
+       LAYOUT GERAL DA PÁGINA
+       ==========================*/
+
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
@@ -75,7 +79,10 @@
       text-align: right;
     }
 
-    /* RESUMO */
+    /* =========================
+       CARDS DE RESUMO
+       ==========================*/
+
     .resumo-container {
       display: flex;
       gap: 10px;
@@ -128,7 +135,20 @@
       color: #333;
     }
 
-    /* FILTROS */
+    /* IMPORTANTE:
+       O cartão de "Total de Itens na Loja" continua no HTML,
+       mas fica oculto visualmente. Dessa forma:
+       - O layout fica sem esse card (como solicitado).
+       - O JavaScript que atualiza esses elementos continua funcionando
+         sem erro de referência. */
+    .resumo-total-itens {
+      display: none;
+    }
+
+    /* =========================
+       FILTROS (STATUS + SEÇÃO + BOTÕES)
+       ==========================*/
+
     .filtros-container {
       display: flex;
       flex-wrap: wrap;
@@ -157,6 +177,10 @@
       border: 1px solid #c3c3c3;
       background: #fff;
     }
+
+    /* Os dois filtros principais (Status e Seção)
+       estão no mesmo .filtros-container com flex row,
+       garantindo que fiquem lado a lado quando houver espaço. */
 
     .btn-exportar {
       padding: 8px 14px;
@@ -197,7 +221,10 @@
       color: #333;
     }
 
-    /* LISTA DE RESULTADOS */
+    /* =========================
+       LISTA DE RESULTADOS
+       ==========================*/
+
     #listaRelatorio {
       margin-top: 8px;
     }
@@ -263,7 +290,10 @@
       }
     }
 
-    /* ERRO DE SESSÃO */
+    /* =========================
+       TELA DE ERRO (SEM SESSÃO)
+       ==========================*/
+
     .tela-erro {
       display: flex;
       align-items: center;
@@ -286,10 +316,57 @@
       color: #c00000;
       margin-top: 0;
     }
+
+    /* =========================
+       OVERLAY DE CARREGAMENTO 0–100%
+       ==========================*/
+
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(243, 243, 243, 0.9);
+      display: none;              /* exibido apenas durante o carregamento */
+      align-items: center;
+      justify-content: center;
+      z-index: 12000;             /* acima de todo o restante da tela */
+    }
+
+    .loading-box {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      font-size: 14px;
+      min-width: 260px;
+    }
+
+    .loading-bar-container {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #eeeeee;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .loading-bar {
+      height: 100%;
+      width: 0%;
+      background: #0066ff;
+      transition: width 0.15s linear;
+    }
+
+    .loading-percent {
+      margin-top: 8px;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
-  <!-- TELA DE ERRO (CASO NÃO TENHA SESSÃO) -->
+  <!-- =========================
+       TELA DE ERRO (CASO NÃO TENHA SESSÃO)
+       ==========================-->
   <div id="erroAcesso" class="tela-erro" style="display:none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
@@ -301,7 +378,24 @@
     </div>
   </div>
 
-  <!-- CONTEÚDO PRINCIPAL -->
+  <!-- =========================
+       OVERLAY DE CARREGAMENTO 0–100%
+       (SÓ APARECE QUANDO OS DADOS ESTÃO SENDO CARREGADOS)
+       ==========================-->
+  <div id="loadingOverlay">
+    <div class="loading-box">
+      <div>Carregando relatório de exceção...</div>
+      <div class="loading-bar-container">
+        <div id="loadingBar" class="loading-bar"></div>
+      </div>
+      <div id="loadingPercent" class="loading-percent">0%</div>
+    </div>
+  </div>
+
+  <!-- =========================
+       CONTEÚDO PRINCIPAL DO RELATÓRIO
+       (INICIALMENTE ESCONDIDO, SÓ APARECE APÓS CARREGAR A BASE)
+       ==========================-->
   <div id="relatorioRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
@@ -316,18 +410,24 @@
       </div>
     </div>
 
-    <!-- RESUMOS -->
+    <!-- ======================
+         CARDS DE RESUMO
+         (O PRIMEIRO CARD ESTÁ OCULTO POR CSS)
+         =======================-->
     <div class="resumo-container">
+      <!-- Card de "Total de Itens na Loja" (oculto via CSS .resumo-total-itens) -->
       <div class="resumo-card resumo-total-itens">
         <div class="resumo-titulo">Total de Itens na Loja</div>
         <div class="resumo-percent" id="totalItensLoja">0</div>
         <div class="resumo-total" id="totalItensTexto">Itens carregados da BASE_DADOS</div>
       </div>
+
       <div class="resumo-card resumo-verificado">
         <div class="resumo-titulo">Verificados</div>
         <div class="resumo-percent" id="percentVerificadosEx">0%</div>
         <div class="resumo-total" id="totalVerificadosEx">0 itens</div>
       </div>
+
       <div class="resumo-card resumo-pendente">
         <div class="resumo-titulo">Pendentes</div>
         <div class="resumo-percent" id="percentPendentesEx">0%</div>
@@ -335,8 +435,11 @@
       </div>
     </div>
 
-    <!-- FILTROS -->
+    <!-- ======================
+         FILTROS (STATUS + SEÇÃO + BOTÕES)
+         =======================-->
     <div class="filtros-container">
+      <!-- Filtro de Status -->
       <div class="filtro-grupo">
         <label class="filtro-label" for="filtroStatus">Status</label>
         <select id="filtroStatus" class="filtro-select" onchange="aplicarFiltros()">
@@ -346,6 +449,7 @@
         </select>
       </div>
 
+      <!-- Filtro de Seção -->
       <div class="filtro-grupo">
         <label class="filtro-label" for="filtroSecao">Seção</label>
         <select id="filtroSecao" class="filtro-select" onchange="aplicarFiltros()">
@@ -381,6 +485,7 @@
         </select>
       </div>
 
+      <!-- Botão Exportar XLSX -->
       <div class="filtro-grupo" style="flex-grow:1; align-items:flex-start;">
         <label class="filtro-label">&nbsp;</label>
         <button class="btn-exportar" type="button" onclick="exportarXLSX()">
@@ -388,6 +493,7 @@
         </button>
       </div>
 
+      <!-- Botão Voltar ao Painel -->
       <div class="filtro-grupo" style="align-items:flex-start;">
         <label class="filtro-label">&nbsp;</label>
         <button class="btn-voltar-painel" type="button" onclick="irParaPainel()">
@@ -398,7 +504,7 @@
 
     <div id="statusRelatorio"></div>
 
-    <!-- LISTA -->
+    <!-- LISTA DE REGISTROS FILTRADOS -->
     <div id="listaRelatorio"></div>
   </div>
 
@@ -406,15 +512,79 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <script>
+    /* =========================================================
+       VARIÁVEIS GLOBAIS DO RELATÓRIO
+       ==========================================================*/
     let lojaLogada = null;
     let usuarioLogado = null;
-    let baseLoja = [];        // todos os registros da loja
-    let filtrados = [];       // registros após filtros (status + seção)
+    let baseLoja = [];   // todos os registros da loja (retorno da API)
+    let filtrados = [];  // registros após aplicação de filtros
 
+    // Controle do overlay de carregamento 0–100%
+    let loadingTimer = null;
+    let loadingPercent = 0;
+
+    /* =========================================================
+       NAVEGAÇÃO PARA O PAINEL PRINCIPAL
+       ==========================================================*/
     function irParaPainel() {
       window.location.href = "/painel-efetividade.html";
     }
 
+    /* =========================================================
+       CONTROLE DO LOADING 0–100% (PULA DE 2 EM 2)
+       ==========================================================*/
+    function iniciarLoading() {
+      const overlay = document.getElementById("loadingOverlay");
+      const bar = document.getElementById("loadingBar");
+      const percentEl = document.getElementById("loadingPercent");
+
+      loadingPercent = 0;
+      bar.style.width = "0%";
+      percentEl.textContent = "0%";
+
+      overlay.style.display = "flex";
+
+      // Incrementa de 2 em 2 até no máximo ~98%,
+      // o restante é completado quando os dados terminarem de carregar.
+      if (loadingTimer) clearInterval(loadingTimer);
+      loadingTimer = setInterval(() => {
+        if (loadingPercent >= 98) return;
+        loadingPercent += 2;
+        bar.style.width = loadingPercent + "%";
+        percentEl.textContent = loadingPercent + "%";
+      }, 120);
+    }
+
+    function finalizarLoading() {
+      const overlay = document.getElementById("loadingOverlay");
+      const bar = document.getElementById("loadingBar");
+      const percentEl = document.getElementById("loadingPercent");
+
+      if (loadingTimer) {
+        clearInterval(loadingTimer);
+        loadingTimer = null;
+      }
+
+      // Completa até 100% visualmente
+      loadingPercent = 100;
+      bar.style.width = "100%";
+      percentEl.textContent = "100%";
+
+      // Pequeno atraso apenas para o usuário perceber o 100%,
+      // e em seguida liberamos a tela principal do relatório.
+      setTimeout(() => {
+        overlay.style.display = "none";
+        const root = document.getElementById("relatorioRoot");
+        if (root) {
+          root.style.display = "block";
+        }
+      }, 220);
+    }
+
+    /* =========================================================
+       INICIALIZAÇÃO (VALIDAÇÃO DA SESSÃO + DISPARO DO CARREGAMENTO)
+       ==========================================================*/
     document.addEventListener("DOMContentLoaded", () => {
       let sessao = null;
       try {
@@ -424,23 +594,30 @@
         console.error("Erro ao ler efetividadeSession:", e);
       }
 
+      // Se não houver sessão válida, mostra a tela de erro
       if (!sessao || !sessao.usuario || !sessao.loja) {
-        // sem sessão -> mostra tela de erro e não mostra o relatório
         document.getElementById("erroAcesso").style.display = "flex";
         return;
       }
 
+      // Sessão OK: guardamos usuário e loja logados
       usuarioLogado = sessao.usuario;
       lojaLogada = sessao.loja;
 
+      // Preenche cabeçalho com usuário + loja
       document.getElementById("usuarioSpan").textContent = usuarioLogado;
       document.getElementById("lojaSpan").textContent = lojaLogada;
 
-      document.getElementById("relatorioRoot").style.display = "block";
-
+      // Não mostramos o container ainda (relatorioRoot ainda está display:none).
+      // Primeiro exibimos o overlay de carregamento, depois carregamos a base
+      // e só então liberamos a tela.
+      iniciarLoading();
       carregarBaseRelatorio();
     });
 
+    /* =========================================================
+       CARREGAMENTO DA BASE A PARTIR DA API
+       ==========================================================*/
     async function carregarBaseRelatorio() {
       const statusLabel = document.getElementById("statusRelatorio");
       statusLabel.textContent = "Carregando base de dados da loja...";
@@ -450,31 +627,52 @@
           "/api/efetividade-base?loja=" + encodeURIComponent(lojaLogada)
         );
         const dados = await resp.json().catch(() => ({}));
+
         if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
           console.error("Resposta inesperada em /api/efetividade-base:", dados);
           const detalhe = dados.detalhe ? " Detalhe: " + dados.detalhe : "";
           throw new Error((dados.message || "Falha ao carregar base.") + detalhe);
         }
 
-        // todos os registros da loja
+        // todos os registros da loja retornados pela API
         baseLoja = dados.registros || [];
         statusLabel.textContent =
           "Base carregada com " + baseLoja.length + " itens da loja.";
 
+        // Atualiza os cards de resumo geral
         atualizarResumoGeral();
+
+        // Aplica filtros iniciais (Status = TODOS, Seção = todas)
         aplicarFiltros();
+
+        // Agora que tudo está carregado/renderizado, finalizamos o loading
+        finalizarLoading();
       } catch (e) {
         console.error("Erro ao carregar base de dados:", e);
         statusLabel.textContent =
           "Erro ao carregar base de dados. " + (e.message || "");
+
+        // Mesmo em caso de erro, encerramos o overlay para liberar a tela
+        finalizarLoading();
       }
     }
 
+    /* =========================================================
+       RESUMO GERAL (CARDS DE VERIFICADOS / PENDENTES)
+       ==========================================================*/
     function atualizarResumoGeral() {
       const total = baseLoja.length;
-      document.getElementById("totalItensLoja").textContent = total;
-      document.getElementById("totalItensTexto").textContent =
-        "Itens carregados da BASE_DADOS da loja";
+
+      // Esses dois elementos pertencem ao card oculto, mas continuam sendo atualizados
+      // para não quebrar nenhuma lógica existente.
+      const totalItensLojaEl = document.getElementById("totalItensLoja");
+      const totalItensTextoEl = document.getElementById("totalItensTexto");
+
+      if (totalItensLojaEl) totalItensLojaEl.textContent = total;
+      if (totalItensTextoEl) {
+        totalItensTextoEl.textContent =
+          "Itens carregados da BASE_DADOS da loja";
+      }
 
       let verificados = 0;
       let pendentes = 0;
@@ -499,6 +697,9 @@
         pendentes + " itens";
     }
 
+    /* =========================================================
+       APLICAÇÃO DE FILTROS (STATUS + SEÇÃO)
+       ==========================================================*/
     function aplicarFiltros() {
       const statusSelect = document.getElementById("filtroStatus").value; // TODOS / VERIFICADO / PENDENTE
       const secaoSelect = document.getElementById("filtroSecao").value;   // "" ou nome da seção
@@ -521,6 +722,9 @@
       renderizarLista();
     }
 
+    /* =========================================================
+       RENDERIZAÇÃO DOS CARTÕES DE RELATÓRIO
+       ==========================================================*/
     function renderizarLista() {
       const container = document.getElementById("listaRelatorio");
       const statusLabel = document.getElementById("statusRelatorio");
@@ -592,13 +796,16 @@
       container.innerHTML = html;
     }
 
+    /* =========================================================
+       EXPORTAÇÃO PARA XLSX (APENAS REGISTROS FILTRADOS)
+       ==========================================================*/
     function exportarXLSX() {
       if (!filtrados.length) {
         alert("Não há registros no filtro atual para exportar.");
         return;
       }
 
-      // Cabeçalho
+      // Cabeçalho da planilha
       const cabecalho = [
         "EAN",
         "Seção",
@@ -614,6 +821,7 @@
         "Dias Sem Vendas",
       ];
 
+      // Corpo com base nos registros filtrados
       const corpo = filtrados.map((linha) => {
         const [
           ean = "",
@@ -646,10 +854,12 @@
         ];
       });
 
+      // Monta worksheet e workbook com SheetJS
       const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...corpo]);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "RelatorioExcecao");
 
+      // Nome do arquivo inclui a loja, higienizada
       const lojaSafe = (lojaLogada || "LOJA").replace(/[^A-Za-z0-9_-]/g, "_");
       const nomeArquivo = `relatorio-excecao-${lojaSafe}.xlsx`;
 
