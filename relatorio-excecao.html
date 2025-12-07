@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Relatório de Exceção – Scan&Sell</title>
+  <title>Relatório de Exceção – SCAN&SELL</title>
 
   <style>
     body {
@@ -18,7 +18,7 @@
 
     .container {
       width: 95%;
-      max-width: 900px;
+      max-width: 1000px;
       background: #fff;
       padding: 24px 28px 30px;
       border-radius: 12px;
@@ -39,6 +39,12 @@
     .titulo {
       margin: 2px;
       font-size: 18px;
+    }
+
+    .subtitulo {
+      font-size: 13px;
+      color: #555;
+      margin-top: 2px;
     }
 
     .info-usuario {
@@ -69,59 +75,131 @@
       text-align: right;
     }
 
+    /* RESUMO */
+    .resumo-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .resumo-card {
+      flex: 1;
+      min-width: 150px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #f7f7f7;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .resumo-titulo {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .resumo-percent {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .resumo-total {
+      font-size: 11px;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .resumo-verificado .resumo-titulo,
+    .resumo-verificado .resumo-percent {
+      color: #118000;
+    }
+
+    .resumo-pendente .resumo-titulo,
+    .resumo-pendente .resumo-percent {
+      color: #c00000;
+    }
+
+    .resumo-total-itens .resumo-titulo {
+      color: #333;
+    }
+
+    /* FILTROS */
     .filtros-container {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 12px;
-      align-items: center;
+      align-items: flex-end;
+      margin-top: 8px;
+      margin-bottom: 10px;
     }
 
-    .filtro-group {
+    .filtro-grupo {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      font-size: 13px;
+      min-width: 140px;
     }
 
-    .filtro-group label {
+    .filtro-label {
+      font-size: 12px;
       font-weight: 600;
     }
 
-    select {
+    .filtro-select {
       padding: 6px 8px;
+      font-size: 13px;
       border-radius: 6px;
       border: 1px solid #c3c3c3;
-      font-size: 13px;
-      min-width: 150px;
+      background: #fff;
     }
 
     .btn-exportar {
-      margin-left: auto;
       padding: 8px 14px;
+      font-size: 13px;
       border-radius: 6px;
       border: none;
       cursor: pointer;
-      background: #4caf50;
+      background: #0066ff;
       color: #fff;
       font-weight: 600;
-      font-size: 14px;
       white-space: nowrap;
     }
 
     .btn-exportar:hover {
-      background: #439944;
+      background: #0050cc;
     }
 
-    #statusExcecao {
+    .btn-voltar-painel {
+      padding: 8px 14px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #777;
+      color: #fff;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .btn-voltar-painel:hover {
+      background: #555;
+    }
+
+    #statusRelatorio {
       font-size: 13px;
       margin-top: 4px;
-      text-align: center;
+      text-align: left;
       color: #333;
     }
 
-    #resultadoExcecao {
-      margin-top: 12px;
+    /* LISTA DE RESULTADOS */
+    #listaRelatorio {
+      margin-top: 8px;
     }
 
     .cartao {
@@ -131,9 +209,11 @@
       margin: 10px auto;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      cursor: default;
       opacity: 0;
       transform: translateY(8px);
       animation: entrarCartao 0.22s ease-out forwards;
+      transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
     }
 
     .cartao-header {
@@ -183,23 +263,7 @@
       }
     }
 
-    .btn-voltar-painel {
-      margin-top: 14px;
-      display: inline-block;
-      padding: 8px 14px;
-      background: #0066ff;
-      color: #fff;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .btn-voltar-painel:hover {
-      background: #0050cc;
-    }
-
-    /* Tela de erro */
+    /* ERRO DE SESSÃO */
     .tela-erro {
       display: flex;
       align-items: center;
@@ -225,46 +289,67 @@
   </style>
 </head>
 <body>
-  <!-- TELA DE ERRO (SEM SESSÃO) -->
-  <div id="erroAcessoExcecao" class="tela-erro" style="display:none;">
+  <!-- TELA DE ERRO (CASO NÃO TENHA SESSÃO) -->
+  <div id="erroAcesso" class="tela-erro" style="display:none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
       <p>Sessão de Efetividade não encontrada.</p>
-      <p>Volte para o painel principal e realize o login.</p>
-      <a href="/painel-efetividade.html" class="btn-voltar-painel">
-        Ir para o Painel Scan&Sell
-      </a>
+      <p>Faça login primeiro no painel de Efetividade.</p>
+      <button class="btn-voltar-painel" onclick="irParaPainel()">
+        Ir para painel-efetividade
+      </button>
     </div>
   </div>
 
-  <!-- TELA PRINCIPAL RELATÓRIO EXCEÇÃO -->
-  <div id="appExcecao" class="container" style="display:none;">
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div id="relatorioRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
         <h1 class="titulo">Relatório de Exceção</h1>
+        <div class="subtitulo">Visão de pendências e verificados por seção</div>
       </div>
       <div class="info-usuario">
         <div class="usuario-card">
-          <div class="value" id="usuarioExcecaoSpan"></div>
-          <div class="value" id="lojaExcecaoSpan"></div>
+          <div class="value" id="usuarioSpan"></div>
+          <div class="value" id="lojaSpan"></div>
         </div>
       </div>
     </div>
 
+    <!-- RESUMOS -->
+    <div class="resumo-container">
+      <div class="resumo-card resumo-total-itens">
+        <div class="resumo-titulo">Total de Itens na Loja</div>
+        <div class="resumo-percent" id="totalItensLoja">0</div>
+        <div class="resumo-total" id="totalItensTexto">Itens carregados da BASE_DADOS</div>
+      </div>
+      <div class="resumo-card resumo-verificado">
+        <div class="resumo-titulo">Verificados</div>
+        <div class="resumo-percent" id="percentVerificadosEx">0%</div>
+        <div class="resumo-total" id="totalVerificadosEx">0 itens</div>
+      </div>
+      <div class="resumo-card resumo-pendente">
+        <div class="resumo-titulo">Pendentes</div>
+        <div class="resumo-percent" id="percentPendentesEx">0%</div>
+        <div class="resumo-total" id="totalPendentesEx">0 itens</div>
+      </div>
+    </div>
+
+    <!-- FILTROS -->
     <div class="filtros-container">
-      <div class="filtro-group">
-        <label for="filtroStatus">Status</label>
-        <select id="filtroStatus">
+      <div class="filtro-grupo">
+        <label class="filtro-label" for="filtroStatus">Status</label>
+        <select id="filtroStatus" class="filtro-select" onchange="aplicarFiltros()">
           <option value="TODOS">Todos</option>
           <option value="VERIFICADO">Verificado</option>
           <option value="PENDENTE">Pendente</option>
         </select>
       </div>
 
-      <div class="filtro-group">
-        <label for="filtroSecao">Seção</label>
-        <select id="filtroSecao">
-          <option value="TODAS">Todas as seções</option>
+      <div class="filtro-grupo">
+        <label class="filtro-label" for="filtroSecao">Seção</label>
+        <select id="filtroSecao" class="filtro-select" onchange="aplicarFiltros()">
+          <option value="">Todas as seções</option>
           <option>ALTO GIRO</option>
           <option>SECA DOCE</option>
           <option>HORTIFRUTI</option>
@@ -296,24 +381,39 @@
         </select>
       </div>
 
-      <button type="button" class="btn-exportar" onclick="exportarXLSX()">
-        Exportar XLSX
-      </button>
+      <div class="filtro-grupo" style="flex-grow:1; align-items:flex-start;">
+        <label class="filtro-label">&nbsp;</label>
+        <button class="btn-exportar" type="button" onclick="exportarXLSX()">
+          Exportar XLSX
+        </button>
+      </div>
+
+      <div class="filtro-grupo" style="align-items:flex-start;">
+        <label class="filtro-label">&nbsp;</label>
+        <button class="btn-voltar-painel" type="button" onclick="irParaPainel()">
+          Voltar ao Painel
+        </button>
+      </div>
     </div>
 
-    <div id="statusExcecao"></div>
-    <div id="resultadoExcecao"></div>
+    <div id="statusRelatorio"></div>
 
-    <a href="/painel-efetividade.html" class="btn-voltar-painel">
-      Voltar ao Painel
-    </a>
+    <!-- LISTA -->
+    <div id="listaRelatorio"></div>
   </div>
 
+  <!-- SheetJS (para exportar XLSX no navegador, sem mexer no package.json) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
   <script>
-    let dbEfetividadeExcecao = [];
-    let lojaExcecao = null;
-    let usuarioExcecao = null;
-    let listaFiltrada = [];
+    let lojaLogada = null;
+    let usuarioLogado = null;
+    let baseLoja = [];        // todos os registros da loja
+    let filtrados = [];       // registros após filtros (status + seção)
+
+    function irParaPainel() {
+      window.location.href = "/painel-efetividade.html";
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
       let sessao = null;
@@ -325,29 +425,29 @@
       }
 
       if (!sessao || !sessao.usuario || !sessao.loja) {
-        document.getElementById("erroAcessoExcecao").style.display = "flex";
+        // sem sessão -> mostra tela de erro e não mostra o relatório
+        document.getElementById("erroAcesso").style.display = "flex";
         return;
       }
 
-      usuarioExcecao = sessao.usuario;
-      lojaExcecao = sessao.loja;
+      usuarioLogado = sessao.usuario;
+      lojaLogada = sessao.loja;
 
-      document.getElementById("usuarioExcecaoSpan").textContent = usuarioExcecao;
-      document.getElementById("lojaExcecaoSpan").textContent = lojaExcecao;
-      document.getElementById("appExcecao").style.display = "block";
+      document.getElementById("usuarioSpan").textContent = usuarioLogado;
+      document.getElementById("lojaSpan").textContent = lojaLogada;
 
-      document.getElementById("filtroStatus").addEventListener("change", aplicarFiltros);
-      document.getElementById("filtroSecao").addEventListener("change", aplicarFiltros);
+      document.getElementById("relatorioRoot").style.display = "block";
 
-      carregarBaseExcecao();
+      carregarBaseRelatorio();
     });
 
-    async function carregarBaseExcecao() {
-      const status = document.getElementById("statusExcecao");
-      status.textContent = "Carregando base de dados...";
+    async function carregarBaseRelatorio() {
+      const statusLabel = document.getElementById("statusRelatorio");
+      statusLabel.textContent = "Carregando base de dados da loja...";
+
       try {
         const resp = await fetch(
-          "/api/efetividade-base?loja=" + encodeURIComponent(lojaExcecao)
+          "/api/efetividade-base?loja=" + encodeURIComponent(lojaLogada)
         );
         const dados = await resp.json().catch(() => ({}));
         if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
@@ -356,55 +456,85 @@
           throw new Error((dados.message || "Falha ao carregar base.") + detalhe);
         }
 
-        const lojaAlvo = (lojaExcecao || "").trim().toUpperCase();
-        dbEfetividadeExcecao = (dados.registros || []).filter((linha) => {
-          const empresaProduto = String(linha[3] ?? "");
-          const prefixo = empresaProduto.split(" : ")[0].trim().toUpperCase();
-          return prefixo === lojaAlvo;
-        });
+        // todos os registros da loja
+        baseLoja = dados.registros || [];
+        statusLabel.textContent =
+          "Base carregada com " + baseLoja.length + " itens da loja.";
 
-        status.textContent = `Base carregada com ${dbEfetividadeExcecao.length} itens da loja.`;
+        atualizarResumoGeral();
         aplicarFiltros();
       } catch (e) {
-        console.error("Erro ao carregar base:", e);
-        status.textContent = "Erro ao carregar base de dados: " + (e.message || "");
+        console.error("Erro ao carregar base de dados:", e);
+        statusLabel.textContent =
+          "Erro ao carregar base de dados. " + (e.message || "");
       }
     }
 
+    function atualizarResumoGeral() {
+      const total = baseLoja.length;
+      document.getElementById("totalItensLoja").textContent = total;
+      document.getElementById("totalItensTexto").textContent =
+        "Itens carregados da BASE_DADOS da loja";
+
+      let verificados = 0;
+      let pendentes = 0;
+
+      baseLoja.forEach((linha) => {
+        const status = String(linha[2] ?? "").trim().toUpperCase();
+        if (status === "VERIFICADO") verificados++;
+        else if (status === "PENDENTE") pendentes++;
+      });
+
+      const percVer = total ? (verificados / total) * 100 : 0;
+      const percPen = total ? (pendentes / total) * 100 : 0;
+
+      document.getElementById("percentVerificadosEx").textContent =
+        percVer.toFixed(1) + "%";
+      document.getElementById("percentPendentesEx").textContent =
+        percPen.toFixed(1) + "%";
+
+      document.getElementById("totalVerificadosEx").textContent =
+        verificados + " itens";
+      document.getElementById("totalPendentesEx").textContent =
+        pendentes + " itens";
+    }
+
     function aplicarFiltros() {
-      const statusSel = document.getElementById("filtroStatus").value;
-      const secaoSel = document.getElementById("filtroSecao").value;
-      const status = document.getElementById("statusExcecao");
+      const statusSelect = document.getElementById("filtroStatus").value; // TODOS / VERIFICADO / PENDENTE
+      const secaoSelect = document.getElementById("filtroSecao").value;   // "" ou nome da seção
 
-      listaFiltrada = dbEfetividadeExcecao.filter((linha) => {
+      filtrados = baseLoja.filter((linha) => {
+        const status = String(linha[2] ?? "").trim().toUpperCase();
         const secao = String(linha[1] ?? "").trim().toUpperCase();
-        const pendenteVerificado = String(linha[2] ?? "").trim().toUpperCase();
 
-        if (statusSel !== "TODOS" && pendenteVerificado !== statusSel) {
+        if (statusSelect !== "TODOS" && status !== statusSelect) {
           return false;
         }
 
-        if (secaoSel !== "TODAS" && secao !== secaoSel.toUpperCase()) {
+        if (secaoSelect && secao !== secaoSelect.toUpperCase()) {
           return false;
         }
 
         return true;
       });
 
-      status.textContent = `${listaFiltrada.length} item(s) no filtro atual.`;
-      renderizarListaExcecao();
+      renderizarLista();
     }
 
-    function renderizarListaExcecao() {
-      const container = document.getElementById("resultadoExcecao");
+    function renderizarLista() {
+      const container = document.getElementById("listaRelatorio");
+      const statusLabel = document.getElementById("statusRelatorio");
 
-      if (!listaFiltrada.length) {
+      if (!filtrados.length) {
         container.innerHTML =
-          '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado com os filtros selecionados.</p>';
+          '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum registro encontrado para o filtro atual.</p>';
+        statusLabel.textContent = "Nenhum registro para o filtro selecionado.";
         return;
       }
 
-      const html = listaFiltrada
+      statusLabel.textContent = filtrados.length + " registro(s) no filtro atual.";
+
+      const html = filtrados
         .map((linha) => {
           const [
             ean = "",
@@ -426,84 +556,104 @@
 
           const statusUpper = String(pendenteVerificado || "").trim().toUpperCase();
           let statusClass = "";
-          let statusLabel = pendenteVerificado;
+          let statusLabelTexto = pendenteVerificado;
 
           if (statusUpper === "VERIFICADO") {
             statusClass = "status-verificado";
-            statusLabel = "✔ Verificado";
+            statusLabelTexto = "✔ Verificado";
           } else if (statusUpper === "PENDENTE") {
             statusClass = "status-pendente";
-            statusLabel = "⏳ Pendente";
+            statusLabelTexto = "Pendente";
           }
 
           return `
-            <div class="cartao">
-              <div class="cartao-header">${produto || "Produto"}</div>
-              <table class="cartao-table">
-                <tr>
-                  <th>Status</th>
-                  <td><span class="${statusClass}">${statusLabel}</span></td>
-                </tr>
-                <tr><th>EAN</th><td>${ean}</td></tr>
-                <tr><th>Seção</th><td>${secao}</td></tr>
-                <tr><th>Qtd. Disponível</th><td>${qtdDisponivel}</td></tr>
-                <tr><th>Preço Vda Unitário</th><td>${precoVdaUnitario}</td></tr>
-                <tr><th>Custo Liq. Unitário</th><td>${custoLiqUnitario}</td></tr>
-                <tr><th>Pend. Ped.Compra</th><td>${qtdPendente}</td></tr>
-                <tr><th>Dias de Estoque</th><td>${diasEstoque}</td></tr>
-                <tr><th>Dias Ult. Entrada</th><td>${diasUltimaEntrada}</td></tr>
-                <tr><th>Dias Sem Vendas</th><td>${diasSemVendas}</td></tr>
-              </table>
-            </div>
-          `;
+          <div class="cartao">
+            <div class="cartao-header">${produto || "Produto"}</div>
+            <table class="cartao-table" aria-label="Dados do produto">
+              <tr>
+                <th>Status</th>
+                <td><span class="${statusClass}">${statusLabelTexto}</span></td>
+              </tr>
+              <tr><th>EAN</th><td>${ean}</td></tr>
+              <tr><th>Seção</th><td>${secao}</td></tr>
+              <tr><th>Qtd. Disponível</th><td>${qtdDisponivel}</td></tr>
+              <tr><th>Preço Vda Unitário</th><td>${precoVdaUnitario}</td></tr>
+              <tr><th>Custo Liq. Unitário</th><td>${custoLiqUnitario}</td></tr>
+              <tr><th>Pend. Ped.Compra</th><td>${qtdPendente}</td></tr>
+              <tr><th>Dias de Estoque</th><td>${diasEstoque}</td></tr>
+              <tr><th>Dias Ult. Entrada</th><td>${diasUltimaEntrada}</td></tr>
+              <tr><th>Dias Sem Vendas</th><td>${diasSemVendas}</td></tr>
+            </table>
+          </div>
+        `;
         })
         .join("");
 
       container.innerHTML = html;
     }
 
-    async function exportarXLSX() {
-      if (!listaFiltrada.length) {
-        alert("Não há dados no filtro atual para exportar.");
+    function exportarXLSX() {
+      if (!filtrados.length) {
+        alert("Não há registros no filtro atual para exportar.");
         return;
       }
 
-      try {
-        const resp = await fetch("/api/efetividade-excecao-export", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            loja: lojaExcecao,
-            usuario: usuarioExcecao,
-            filtros: {
-              status: document.getElementById("filtroStatus").value,
-              secao: document.getElementById("filtroSecao").value,
-            },
-            registros: listaFiltrada,
-          }),
-        });
+      // Cabeçalho
+      const cabecalho = [
+        "EAN",
+        "Seção",
+        "Status",
+        "Empresa : Produto",
+        "Código Produto",
+        "Qtd. Disponível",
+        "Preço Vda Unitário",
+        "Custo Liq. Unitário",
+        "Qtd. Pend. Ped.Compra",
+        "Dias de Estoque",
+        "Dias Ult. Entrada",
+        "Dias Sem Vendas",
+      ];
 
-        if (!resp.ok) {
-          const erroTexto = await resp.text();
-          console.error("Erro na exportação:", erroTexto);
-          alert("Falha ao exportar XLSX.");
-          return;
-        }
+      const corpo = filtrados.map((linha) => {
+        const [
+          ean = "",
+          secao = "",
+          pendenteVerificado = "",
+          empresaProduto = "",
+          codigoProduto = "",
+          qtdDisponivel = "",
+          precoVdaUnitario = "",
+          custoLiqUnitario = "",
+          qtdPendente = "",
+          diasEstoque = "",
+          diasUltimaEntrada = "",
+          diasSemVendas = "",
+        ] = linha;
 
-        const blob = await resp.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        const dataAgora = new Date().toISOString().slice(0, 10);
-        a.download = `relatorio_excecao_${lojaExcecao}_${dataAgora}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      } catch (e) {
-        console.error("Erro ao exportar XLSX:", e);
-        alert("Erro inesperado ao exportar XLSX.");
-      }
+        return [
+          ean,
+          secao,
+          pendenteVerificado,
+          empresaProduto,
+          codigoProduto,
+          qtdDisponivel,
+          precoVdaUnitario,
+          custoLiqUnitario,
+          qtdPendente,
+          diasEstoque,
+          diasUltimaEntrada,
+          diasSemVendas,
+        ];
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...corpo]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "RelatorioExcecao");
+
+      const lojaSafe = (lojaLogada || "LOJA").replace(/[^A-Za-z0-9_-]/g, "_");
+      const nomeArquivo = `relatorio-excecao-${lojaSafe}.xlsx`;
+
+      XLSX.writeFile(wb, nomeArquivo);
     }
   </script>
 </body>
