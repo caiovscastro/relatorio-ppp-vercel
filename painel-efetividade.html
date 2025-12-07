@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Efetividade Operacional</title>
+  <title>PAINEL SCAN&SELL</title>
 
   <style>
     /* =========================
@@ -586,7 +586,7 @@
         <textarea
           id="observacao"
           class="obs-textarea"
-          placeholder="Descreva a observação (opcional)..."
+          placeholder="Observação (opcional)..."
         ></textarea>
 
         <div id="status"></div>
@@ -750,7 +750,7 @@
           return prefixo === lojaAlvo;
         });
 
-        status.textContent = `Base carregada com ${dbEfetividade.length} registro(s) da loja.`;
+        status.textContent = `Base carregada com ${dbEfetividade.length} itens da loja.`;
         finalizarLoading();
       } catch (e) {
         console.error("Erro ao carregar base de dados:", e);
@@ -793,7 +793,7 @@
       });
 
       mostrarResultados(resultados);
-      status.textContent = `${resultados.length} registro(s) encontrado(s).`;
+      status.textContent = `${resultados.length} iten(s) encontrado(s).`;
     }
 
     /* =========================
@@ -944,7 +944,7 @@
       const { idx, linhaBase, observacao } = envioPendente;
       envioPendente = null;
       overlay.style.display = "none";
-      status.textContent = "Enviando lançamento para a base de dados...";
+      status.textContent = "Enviando lançamento...";
 
       try {
         const resposta = await fetch("/api/efetividade-lancar", {
@@ -989,7 +989,7 @@
           }
         }
       } catch (e) {
-        console.error("Erro ao enviar lançamento para a base de dados:", e);
+        console.error("Erro ao enviar lançamento:", e);
         status.textContent = "Erro de conexão ao enviar lançamento.";
       }
     }
