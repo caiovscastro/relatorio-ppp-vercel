@@ -79,17 +79,20 @@
     }
 
     /* =========================
-       CARDS DE RESUMO (APENAS VERIFICADOS E PENDENTES)
+       CARDS DE RESUMO
+       Agora só DOIS cards (Verificados / Pendentes)
+       e forçamos lado a lado inclusive em celular.
        ==========================*/
     .resumo-container {
       display: flex;
       gap: 10px;
       margin-bottom: 12px;
       margin-top: 4px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;           /* força manter em linha */
     }
 
     .resumo-card {
+      flex: 0 0 50%;               /* exatamente 50% cada card */
       border-radius: 10px;
       padding: 10px 12px;
       background: #f7f7f7;
@@ -98,10 +101,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-
-      /* força 2 colunas (Verificados / Pendentes) lado a lado, inclusive no celular */
-      flex: 1 1 calc(50% - 5px);
-      min-width: 0;
+      box-sizing: border-box;
     }
 
     .resumo-titulo {
@@ -132,28 +132,44 @@
     }
 
     /* =========================
-       FILTROS (STATUS / SEÇÃO / BOTÕES)
+       FILTROS
+       Status e Seção SEMPRE lado a lado (mesmo no celular)
        ==========================*/
     .filtros-container {
       display: flex;
-      flex-wrap: wrap;      /* permite que botões quebrem linha sem afetar os filtros principais */
+      flex-wrap: wrap;
       gap: 10px;
       align-items: flex-end;
       margin-top: 8px;
       margin-bottom: 10px;
     }
 
+    /* Cada grupo de filtro em coluna, mas
+       vamos controlar o tamanho com flex-basis */
     .filtro-grupo {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      min-width: 0;         /* deixa o flex controlar a largura */
+      min-width: 140px;
+      box-sizing: border-box;
     }
 
-    /* Primeiro grupo: Status / Segundo grupo: Seção -> 50% / 50% da linha */
-    .filtros-container .filtro-grupo:nth-child(1),
-    .filtros-container .filtro-grupo:nth-child(2) {
-      flex: 1 1 calc(50% - 5px);
+    /* Grupo de Status e Seção: 50% cada (lado a lado) */
+    .filtro-grupo.status,
+    .filtro-grupo.secao {
+      flex: 0 0 calc(50% - 5px);
+    }
+
+    /* Grupo do Exportar: ocupa espaço restante */
+    .filtro-grupo.exportar {
+      flex: 1 1 auto;
+      align-items: flex-start;
+    }
+
+    /* Grupo do Voltar ao painel: tamanho automático */
+    .filtro-grupo.voltar {
+      flex: 0 0 auto;
+      align-items: flex-start;
     }
 
     .filtro-label {
@@ -305,17 +321,17 @@
     /* =========================
        OVERLAY DE CARREGAMENTO 0–100%
        ==========================*/
-    #loadingOverlay {
+    #loadingOverlayEx {
       position: fixed;
       inset: 0;
       background: rgba(243, 243, 243, 0.9);
-      display: none;              /* exibido via JS */
+      display: none; /* exibido via JS */
       align-items: center;
       justify-content: center;
-      z-index: 12000;             /* acima de todo o restante */
+      z-index: 12000;
     }
 
-    .loading-box {
+    .loading-box-ex {
       background: #ffffff;
       border-radius: 10px;
       padding: 16px 20px;
@@ -325,7 +341,7 @@
       min-width: 260px;
     }
 
-    .loading-bar-container {
+    .loading-bar-container-ex {
       width: 100%;
       height: 8px;
       border-radius: 4px;
@@ -334,31 +350,20 @@
       overflow: hidden;
     }
 
-    .loading-bar {
+    .loading-bar-ex {
       height: 100%;
       width: 0%;
       background: #0066ff;
-      transition: width 0.15s linear;
+      transition: width 0.12s linear;
     }
 
-    .loading-percent {
+    .loading-percent-ex {
       margin-top: 8px;
       font-weight: 700;
     }
   </style>
 </head>
 <body>
-  <!-- OVERLAY DE CARREGAMENTO (TRAVA A TELA ATÉ 100%) -->
-  <div id="loadingOverlay">
-    <div class="loading-box">
-      <div>Carregando dados do relatório...</div>
-      <div class="loading-bar-container">
-        <div id="loadingBar" class="loading-bar"></div>
-      </div>
-      <div id="loadingPercent" class="loading-percent">0%</div>
-    </div>
-  </div>
-
   <!-- TELA DE ERRO (CASO NÃO TENHA SESSÃO) -->
   <div id="erroAcesso" class="tela-erro" style="display:none;">
     <div class="card-erro">
@@ -368,6 +373,17 @@
       <button class="btn-voltar-painel" onclick="irParaPainel()">
         Ir para painel-efetividade
       </button>
+    </div>
+  </div>
+
+  <!-- OVERLAY DE CARREGAMENTO 0–100% -->
+  <div id="loadingOverlayEx">
+    <div class="loading-box-ex">
+      <div>Carregando dados do relatório...</div>
+      <div class="loading-bar-container-ex">
+        <div id="loadingBarEx" class="loading-bar-ex"></div>
+      </div>
+      <div id="loadingPercentEx" class="loading-percent-ex">0%</div>
     </div>
   </div>
 
@@ -386,7 +402,7 @@
       </div>
     </div>
 
-    <!-- RESUMOS (APENAS VERIFICADOS / PENDENTES) -->
+    <!-- RESUMOS (somente Verificados / Pendentes) -->
     <div class="resumo-container">
       <div class="resumo-card resumo-verificado">
         <div class="resumo-titulo">Verificados</div>
@@ -402,8 +418,8 @@
 
     <!-- FILTROS -->
     <div class="filtros-container">
-      <!-- 1) STATUS (vem padrão em PENDENTE) -->
-      <div class="filtro-grupo">
+      <!-- Status (já inicia em PENDENTE) -->
+      <div class="filtro-grupo status">
         <label class="filtro-label" for="filtroStatus">Status</label>
         <select id="filtroStatus" class="filtro-select" onchange="aplicarFiltros()">
           <option value="TODOS">Todos</option>
@@ -412,8 +428,8 @@
         </select>
       </div>
 
-      <!-- 2) SEÇÃO -->
-      <div class="filtro-grupo">
+      <!-- Seção -->
+      <div class="filtro-grupo secao">
         <label class="filtro-label" for="filtroSecao">Seção</label>
         <select id="filtroSecao" class="filtro-select" onchange="aplicarFiltros()">
           <option value="">Todas as seções</option>
@@ -448,16 +464,16 @@
         </select>
       </div>
 
-      <!-- 3) EXPORTAR -->
-      <div class="filtro-grupo" style="flex-grow:1; align-items:flex-start;">
+      <!-- Exportar XLSX -->
+      <div class="filtro-grupo exportar">
         <label class="filtro-label">&nbsp;</label>
         <button class="btn-exportar" type="button" onclick="exportarXLSX()">
           Exportar XLSX
         </button>
       </div>
 
-      <!-- 4) VOLTAR AO PAINEL -->
-      <div class="filtro-grupo" style="align-items:flex-start;">
+      <!-- Voltar ao painel -->
+      <div class="filtro-grupo voltar">
         <label class="filtro-label">&nbsp;</label>
         <button class="btn-voltar-painel" type="button" onclick="irParaPainel()">
           Voltar ao Painel
@@ -475,73 +491,61 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <script>
-    /* =========================
-       VARIÁVEIS GLOBAIS
-       ==========================*/
     let lojaLogada = null;
     let usuarioLogado = null;
-    let baseLoja = [];   // todos os registros da loja (BASE_DADOS)
-    let filtrados = [];  // registros após filtros (status + seção)
+    let baseLoja = [];   // todos os registros da loja
+    let filtrados = [];  // registros após aplicar filtros (status + seção)
 
-    // Controle do overlay de carregamento 0–100%
-    let loadingTimer = null;
-    let loadingPercent = 0;
-
-    /* =========================
-       NAVEGAÇÃO
-       ==========================*/
+    /* Navegação de volta para o painel principal */
     function irParaPainel() {
       window.location.href = "/painel-efetividade.html";
     }
 
-    /* =========================
-       OVERLAY DE CARREGAMENTO
-       ==========================*/
-    function iniciarLoading() {
-      const overlay = document.getElementById("loadingOverlay");
-      const bar = document.getElementById("loadingBar");
-      const percentEl = document.getElementById("loadingPercent");
+    /* Controle do overlay de carregamento 0–100% pulando de 2 em 2 */
+    let loadingTimerEx = null;
+    let loadingPercentEx = 0;
 
-      loadingPercent = 0;
+    function iniciarLoadingEx() {
+      const overlay = document.getElementById("loadingOverlayEx");
+      const bar = document.getElementById("loadingBarEx");
+      const percentEl = document.getElementById("loadingPercentEx");
+
+      loadingPercentEx = 0;
       bar.style.width = "0%";
       percentEl.textContent = "0%";
-
       overlay.style.display = "flex";
 
-      if (loadingTimer) clearInterval(loadingTimer);
+      if (loadingTimerEx) clearInterval(loadingTimerEx);
 
-      // Sobe de 2 em 2% até 98%; o 100% só vem quando finalizarLoading() for chamado
-      loadingTimer = setInterval(() => {
-        if (loadingPercent >= 98) return;
-        loadingPercent += 2;
-        bar.style.width = loadingPercent + "%";
-        percentEl.textContent = loadingPercent + "%";
-      }, 120);
+      loadingTimerEx = setInterval(() => {
+        if (loadingPercentEx >= 98) return; // deixa 100% para o final
+        loadingPercentEx += 2;              // pula de 2 em 2
+        bar.style.width = loadingPercentEx + "%";
+        percentEl.textContent = loadingPercentEx + "%";
+      }, 100);
     }
 
-    function finalizarLoading() {
-      const overlay = document.getElementById("loadingOverlay");
-      const bar = document.getElementById("loadingBar");
-      const percentEl = document.getElementById("loadingPercent");
+    function finalizarLoadingEx() {
+      const overlay = document.getElementById("loadingOverlayEx");
+      const bar = document.getElementById("loadingBarEx");
+      const percentEl = document.getElementById("loadingPercentEx");
 
-      if (loadingTimer) {
-        clearInterval(loadingTimer);
-        loadingTimer = null;
+      if (loadingTimerEx) {
+        clearInterval(loadingTimerEx);
+        loadingTimerEx = null;
       }
 
-      loadingPercent = 100;
+      loadingPercentEx = 100;
       bar.style.width = "100%";
       percentEl.textContent = "100%";
 
-      // Pequeno delay para o usuário visualizar o 100%
+      // pequeno delay só para o usuário perceber que completou
       setTimeout(() => {
         overlay.style.display = "none";
-      }, 220);
+      }, 200);
     }
 
-    /* =========================
-       INICIALIZAÇÃO DA PÁGINA
-       ==========================*/
+    /* Valida sessão e inicia carregamento da base */
     document.addEventListener("DOMContentLoaded", () => {
       let sessao = null;
       try {
@@ -551,7 +555,6 @@
         console.error("Erro ao ler efetividadeSession:", e);
       }
 
-      // Se não houver sessão, mostra tela de erro e NÃO libera o relatório
       if (!sessao || !sessao.usuario || !sessao.loja) {
         document.getElementById("erroAcesso").style.display = "flex";
         return;
@@ -563,21 +566,14 @@
       document.getElementById("usuarioSpan").textContent = usuarioLogado;
       document.getElementById("lojaSpan").textContent = lojaLogada;
 
-      // Exibe o container do relatório
-      document.getElementById("relatorioRoot").style.display = "block";
+      // overlay de loading visível ENQUANTO carrega
+      iniciarLoadingEx();
+      document.getElementById("relatorioRoot").style.display = "none";
 
-      // Garante que o filtro de Status inicie em "PENDENTE"
-      const selectStatus = document.getElementById("filtroStatus");
-      if (selectStatus) selectStatus.value = "PENDENTE";
-
-      // Inicia overlay + carrega base da loja
-      iniciarLoading();
       carregarBaseRelatorio();
     });
 
-    /* =========================
-       CARREGAMENTO DA BASE (via /api/efetividade-base)
-       ==========================*/
+    /* Carrega a base da loja via /api/efetividade-base */
     async function carregarBaseRelatorio() {
       const statusLabel = document.getElementById("statusRelatorio");
       statusLabel.textContent = "Carregando base de dados da loja...";
@@ -594,36 +590,46 @@
           throw new Error((dados.message || "Falha ao carregar base.") + detalhe);
         }
 
-        // todos os registros da loja
         baseLoja = dados.registros || [];
         statusLabel.textContent =
           "Base carregada com " + baseLoja.length + " itens da loja.";
 
-        // Atualiza resumo (percentuais Verificado / Pendente com base na loja toda)
-        atualizarResumoGeral();
-
-        // Aplica filtros iniciais (já começando em PENDENTE)
+        // Assim que a base está disponível, aplicamos filtros
+        // (Status PENDENTE já está selecionado por padrão)
         aplicarFiltros();
+
+        // Mostra o conteúdo principal e encerra o overlay
+        document.getElementById("relatorioRoot").style.display = "block";
+        finalizarLoadingEx();
       } catch (e) {
         console.error("Erro ao carregar base de dados:", e);
         statusLabel.textContent =
           "Erro ao carregar base de dados. " + (e.message || "");
-      } finally {
-        // Somente aqui libera a tela (overlay some)
-        finalizarLoading();
+        finalizarLoadingEx();
       }
     }
 
-    /* =========================
-       RESUMO GERAL (PERCENTUAIS)
-       ==========================*/
-    function atualizarResumoGeral() {
-      const total = baseLoja.length;
+    /* Atualiza os RESUMOS (Verificado / Pendente) conforme o filtro de SEÇÃO:
+       - Se Seção = "" -> considera TODA a loja (baseLoja)
+       - Se Seção específica -> considera SOMENTE aquela seção
+       O filtro de Status NÃO interfere aqui, só a seção. */
+    function atualizarResumoPorSecao() {
+      const secaoSelect = document.getElementById("filtroSecao").value;
+      let universo = baseLoja;
 
+      if (secaoSelect) {
+        const secaoUpper = secaoSelect.toUpperCase();
+        universo = baseLoja.filter((linha) => {
+          const secao = String(linha[1] ?? "").trim().toUpperCase();
+          return secao === secaoUpper;
+        });
+      }
+
+      const total = universo.length;
       let verificados = 0;
       let pendentes = 0;
 
-      baseLoja.forEach((linha) => {
+      universo.forEach((linha) => {
         const status = String(linha[2] ?? "").trim().toUpperCase();
         if (status === "VERIFICADO") verificados++;
         else if (status === "PENDENTE") pendentes++;
@@ -643,9 +649,8 @@
         pendentes + " itens";
     }
 
-    /* =========================
-       APLICAÇÃO DE FILTROS
-       ==========================*/
+    /* Aplica os filtros de Status + Seção para a LISTA
+       e chama o resumo por seção em seguida. */
     function aplicarFiltros() {
       const statusSelect = document.getElementById("filtroStatus").value; // TODOS / VERIFICADO / PENDENTE
       const secaoSelect = document.getElementById("filtroSecao").value;   // "" ou nome da seção
@@ -665,12 +670,12 @@
         return true;
       });
 
+      // Atualiza lista e resumos
       renderizarLista();
+      atualizarResumoPorSecao();
     }
 
-    /* =========================
-       RENDERIZAÇÃO DA LISTA
-       ==========================*/
+    /* Renderiza a lista de cartões */
     function renderizarLista() {
       const container = document.getElementById("listaRelatorio");
       const statusLabel = document.getElementById("statusRelatorio");
@@ -682,8 +687,7 @@
         return;
       }
 
-      statusLabel.textContent =
-        filtrados.length + " registro(s) no filtro atual.";
+      statusLabel.textContent = filtrados.length + " registro(s) no filtro atual.";
 
       const html = filtrados
         .map((linha) => {
@@ -743,16 +747,13 @@
       container.innerHTML = html;
     }
 
-    /* =========================
-       EXPORTAÇÃO XLSX (FILTRO ATUAL)
-       ==========================*/
+    /* Exporta o filtro atual para XLSX (filtrados) */
     function exportarXLSX() {
       if (!filtrados.length) {
         alert("Não há registros no filtro atual para exportar.");
         return;
       }
 
-      // Cabeçalho
       const cabecalho = [
         "EAN",
         "Seção",
