@@ -16,11 +16,10 @@
       margin: 8px;
       min-height: 100vh;
 
-      /* Mantém centralizado horizontalmente, mas
-         AGORA cola o card no TOPO da tela (não mais no centro). */
+      /* Card centralizado horizontalmente, colado no topo */
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* <-- topo da tela */
+      align-items: flex-start;
     }
 
     .container {
@@ -45,10 +44,10 @@
 
     .titulo {
       margin: 2px;
-      font-size: 18px; /* TAMANHO DO TÍTULO PRINCIPAL */
+      font-size: 18px; /* TÍTULO PRINCIPAL */
     }
 
-    /* Área de usuário/loja sem card, apenas texto no mesmo lugar, alinhado à direita */
+    /* Área de usuário/loja sem card, apenas texto no topo, à direita */
     .info-usuario {
       display: flex;
       justify-content: flex-end;
@@ -72,15 +71,14 @@
 
     .usuario-card .value {
       font-weight: 600;
-      color: #111;   /* COR DO NOME DE USUÁRIO/LOJA */
+      color: #111;
       word-break: break-word;
-      font-size: 9px;  /* FONTE MENOR PARA OS DADOS DO TOPO */
+      font-size: 9px;
       text-align: right;
     }
 
     /* =========================
        CARDS DE RESUMO (VERIFICADOS / PENDENTES)
-       FICAM LOGO ABAIXO DO CABEÇALHO
        ==========================*/
 
     .resumo-container {
@@ -104,37 +102,37 @@
     }
 
     .resumo-titulo {
-      font-size: 12px;       /* TÍTULO MENOR DO CARD */
+      font-size: 12px;
       font-weight: 600;
       margin-bottom: 4px;
     }
 
     .resumo-percent {
-      font-size: 18px;       /* NÚMERO GRANDE DO PERCENTUAL */
+      font-size: 18px;
       font-weight: 700;
     }
 
     .resumo-total {
-      font-size: 11px;       /* TEXTO MENOR DO RODAPÉ DO CARD */
+      font-size: 11px;
       color: #555;
       margin-top: 2px;
     }
 
     /* Cores específicas dos cards de resumo */
     .resumo-verificado .resumo-titulo {
-      color: #118000;        /* VERDE PARA VERIFICADOS */
+      color: #118000;
     }
 
     .resumo-verificado .resumo-percent {
-      color: #118000;        /* VERDE PARA O PERCENTUAL */
+      color: #118000;
     }
 
     .resumo-pendente .resumo-titulo {
-      color: #c00000;        /* VERMELHO PARA PENDENTES */
+      color: #c00000;
     }
 
     .resumo-pendente .resumo-percent {
-      color: #c00000;        /* VERMELHO PARA O PERCENTUAL */
+      color: #c00000;
     }
 
     .conteudo {
@@ -172,7 +170,7 @@
       background: #0050cc;   /* AZUL MAIS ESCURO NO HOVER */
     }
 
-    /* Container para os botões de rodapé (Sair + R. Exceção) */
+    /* Container dos botões de rodapé (Sair + R. Exceção) */
     .botoes-footer {
       margin-top: 10px;
       display: flex;
@@ -180,7 +178,7 @@
     }
 
     .botoes-footer .btn-voltar {
-      flex: 1; /* Faz os dois botões terem o mesmo tamanho horizontal */
+      flex: 1; /* dois botões com o mesmo tamanho horizontal */
     }
 
     /* Estilo específico do botão R. Exceção */
@@ -220,7 +218,7 @@
     }
 
     /* ======================
-       BUSCA + ÍCONE CÂMERA / LUPA
+       BUSCA + ÍCONES (LUPA ESQUERDA / CÂMERA DIREITA)
        =======================*/
 
     .search-container {
@@ -232,7 +230,8 @@
 
     #campoBusca {
       width: 100%;
-      padding: 14px 48px 14px 56px;
+      /* Espaço à esquerda e à direita para os ícones */
+      padding: 14px 56px 14px 56px;
       font-size: 14px;
       border: 1px solid #c3c3c3;
       border-radius: 999px;
@@ -247,6 +246,7 @@
       box-shadow: 0 0 0 1px #0066ff33;
     }
 
+    /* Botão da ESQUERDA -> agora é a LUPA (buscar) */
     .btnBarcodeLeft {
       position: absolute;
       left: 10px;
@@ -277,6 +277,7 @@
       );
     }
 
+    /* Botão da DIREITA -> agora é a CÂMERA (30% maior) */
     .btnBuscarIcone {
       position: absolute;
       right: 10px;
@@ -285,10 +286,13 @@
       border: none;
       background: transparent;
       cursor: pointer;
-      padding: 4px;
+      padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      /* 30% maior que 26x20 -> aprox. 34x26 */
+      width: 34px;
+      height: 26px;
     }
 
     /* ======================
@@ -348,7 +352,7 @@
     }
 
     .cartao-header {
-      font-size: 14px;      /* TÍTULO DO CARTÃO DE PRODUTO */
+      font-size: 14px;
       font-weight: 700;
       margin-bottom: 8px;
       color: #111;
@@ -357,14 +361,13 @@
     .cartao-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;      /* FONTE DA TABELA DE DADOS */
+      font-size: 12px;
     }
 
-    /* Mais compacto: células mais baixas */
     .cartao-table th,
     .cartao-table td {
       border: 1px solid #c3c3c3;
-      padding: 3px 5px;     /* ALTURA DAS CÉLULAS */
+      padding: 3px 5px;
       text-align: left;
     }
 
@@ -376,17 +379,17 @@
 
     /* Cores do status */
     .status-verificado {
-      color: #118000;       /* VERDE STATUS VERIFICADO */
+      color: #118000;
       font-weight: 700;
     }
 
     .status-pendente {
-      color: #c00000;       /* VERMELHO STATUS PENDENTE */
+      color: #c00000;
       font-weight: 700;
     }
 
     .status-pendente-enviado {
-      color: #d6a500;       /* AMARELO STATUS PENDENTE ENVIADO */
+      color: #d6a500;
       font-weight: 700;
     }
 
@@ -482,7 +485,7 @@
       padding: 8px 16px;
       border-radius: 8px;
       border: none;
-      background: #4caf50;   /* VERDE DO BOTÃO OK */
+      background: #4caf50;
       color: #fff;
       font-size: 14px;
       cursor: pointer;
@@ -556,7 +559,7 @@
     .loading-bar {
       height: 100%;
       width: 0%;
-      background: #0066ff;  /* COR DA BARRA DE CARREGAMENTO */
+      background: #0066ff;
       transition: width 0.15s linear;
     }
 
@@ -583,8 +586,9 @@
     <div class="confirm-box">
       <p>Confirmar lançamento na base de dados?</p>
       <div class="confirm-buttons">
-        <button class="btnConfirmar" onclick="confirmarEnvio(true)">Sim</button>
+        <!-- ORDEM INVERTIDA: AGORA CANCELAR (ESQ) E SIM (DIR) -->
         <button class="btnCancelar" onclick="confirmarEnvio(false)">Cancelar</button>
+        <button class="btnConfirmar" onclick="confirmarEnvio(true)">Sim</button>
       </div>
     </div>
   </div>
@@ -622,17 +626,17 @@
       </div>
     </div>
 
-    <!-- NOVOS CARDS DE RESUMO (VERIFICADOS / PENDENTES) -->
+    <!-- CARDS DE RESUMO (VERIFICADOS / PENDENTES) -->
     <div class="resumo-container">
       <div class="resumo-card resumo-verificado">
         <div class="resumo-titulo">Verificados</div>
         <div class="resumo-percent" id="percentVerificados">0%</div>
-        <div class="resumo-total" id="totalVerificados">de 0 itens</div>
+        <div class="resumo-total" id="totalVerificados">0 itens</div>
       </div>
       <div class="resumo-card resumo-pendente">
         <div class="resumo-titulo">Pendentes</div>
         <div class="resumo-percent" id="percentPendentes">0%</div>
-        <div class="resumo-total" id="totalPendentes">de 0 itens</div>
+        <div class="resumo-total" id="totalPendentes">0 itens</div>
       </div>
     </div>
 
@@ -641,25 +645,10 @@
         <h3>Busca na base de dados</h3>
 
         <div class="search-container">
+          <!-- LUPA À ESQUERDA -->
           <button
             type="button"
             class="btnBarcodeLeft"
-            onclick="abrirCamera()"
-            aria-label="Ler código de barras com a câmera"
-          >
-            <span class="icon-barcode-small"></span>
-          </button>
-
-          <input
-            id="campoBusca"
-            type="text"
-            placeholder="Buscar por Produto"
-            onkeydown="if(event.key === 'Enter'){buscar();}"
-          />
-
-          <button
-            type="button"
-            class="btnBuscarIcone"
             onclick="buscar()"
             aria-label="Buscar registro"
           >
@@ -676,6 +665,23 @@
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="16.65" y1="16.65" x2="21" y2="21"></line>
             </svg>
+          </button>
+
+          <input
+            id="campoBusca"
+            type="text"
+            placeholder="Buscar por Produto"
+            onkeydown="if(event.key === 'Enter'){buscar();}"
+          />
+
+          <!-- CÂMERA À DIREITA (30% MAIOR) -->
+          <button
+            type="button"
+            class="btnBuscarIcone"
+            onclick="abrirCamera()"
+            aria-label="Ler código de barras com a câmera"
+          >
+            <span class="icon-barcode-small"></span>
           </button>
         </div>
 
@@ -699,7 +705,7 @@
 
       <div id="resultado"></div>
 
-      <!-- NOVO GRUPO DE BOTÕES -->
+      <!-- BOTÕES DE RODAPÉ (SAIR + RELATÓRIO DE EXCEÇÃO) -->
       <div class="botoes-footer">
         <a
           href="/index.html"
@@ -737,6 +743,9 @@
     let streamAtual = null;
     let lendo = false;
 
+    // Fila offline para lançamentos (armazenada em localStorage)
+    const FILA_OFFLINE_KEY = "efetividadeFilaOffline";
+
     /* =========================
        FUNÇÃO PARA GERAR CHAVE ÚNICA DO REGISTRO
        ==========================*/
@@ -751,9 +760,97 @@
        NAVEGAR PARA RELATÓRIO DE EXCEÇÃO
        ==========================*/
     function irRelatorioExcecao() {
-      // Apenas navega; a nova tela também vai validar a sessão via localStorage
+      // A nova tela também valida a sessão via localStorage
       window.location.href = "/relatorio-excecao.html";
     }
+
+    /* =========================
+       CONTROLE DA FILA OFFLINE (LOCALSTORAGE)
+       ==========================*/
+
+    // Lê a fila do localStorage
+    function carregarFilaOffline() {
+      try {
+        const raw = localStorage.getItem(FILA_OFFLINE_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) {
+        console.error("Erro ao carregar fila offline:", e);
+        return [];
+      }
+    }
+
+    // Salva a fila inteira no localStorage
+    function salvarFilaOffline(fila) {
+      try {
+        localStorage.setItem(FILA_OFFLINE_KEY, JSON.stringify(fila || []));
+      } catch (e) {
+        console.error("Erro ao salvar fila offline:", e);
+      }
+    }
+
+    // Adiciona um item na fila offline
+    function adicionarNaFilaOffline(item) {
+      const fila = carregarFilaOffline();
+      fila.push({
+        ...item,
+        criadoEm: Date.now(), // só metadado para auditoria, se quiser
+      });
+      salvarFilaOffline(fila);
+    }
+
+    // Processa a fila offline assim que houver conexão
+    async function processarFilaOffline() {
+      if (!navigator.onLine) return;
+
+      let fila = carregarFilaOffline();
+      if (!fila.length) return;
+
+      const status = document.getElementById("status");
+      if (status) {
+        status.textContent = `Enviando ${fila.length} lançamento(s) pendente(s)...`;
+      }
+
+      const novaFila = [];
+
+      for (const item of fila) {
+        try {
+          const resposta = await fetch("/api/efetividade-lancar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          });
+
+          const dados = await resposta.json().catch(() => ({}));
+          if (!resposta.ok || !dados.sucesso) {
+            console.error("Falha ao enviar item da fila offline:", dados);
+            // Mantém o item na fila para tentar de novo depois
+            novaFila.push(item);
+          }
+        } catch (e) {
+          console.error("Erro de conexão ao enviar fila offline:", e);
+          // Mantém o item na fila
+          novaFila.push(item);
+        }
+      }
+
+      salvarFilaOffline(novaFila);
+
+      if (status) {
+        if (novaFila.length === 0) {
+          status.textContent = "Lançamentos pendentes enviados com sucesso.";
+        } else {
+          status.textContent =
+            `Alguns lançamentos ainda não foram enviados. Restam ${novaFila.length}.`;
+        }
+      }
+    }
+
+    // Escuta evento de voltar a ficar online e tenta enviar fila
+    window.addEventListener("online", () => {
+      processarFilaOffline();
+    });
 
     /* =========================
        INICIALIZAÇÃO
@@ -779,7 +876,11 @@
       document.getElementById("lojaSpan").textContent = lojaLogada;
       document.getElementById("appRoot").style.display = "block";
 
+      // Carrega base principal
       carregarBaseEfetividade();
+
+      // Se já existe fila offline e estiver online, tenta enviar logo na abertura
+      processarFilaOffline();
     });
 
     /* =========================
@@ -854,8 +955,8 @@
       if (!total) {
         document.getElementById("percentVerificados").textContent = "0%";
         document.getElementById("percentPendentes").textContent = "0%";
-        document.getElementById("totalVerificados").textContent = "de 0 itens";
-        document.getElementById("totalPendentes").textContent = "de 0 itens";
+        document.getElementById("totalVerificados").textContent = "0 itens";
+        document.getElementById("totalPendentes").textContent = "0 itens";
         return;
       }
 
@@ -876,9 +977,11 @@
       document.getElementById("percentPendentes").textContent =
         percPen.toFixed(1) + "%";
 
-      const textoTotal = `de ${total} itens`;
-      document.getElementById("totalVerificados").textContent =textoTotal;
-      document.getElementById("totalPendentes").textContent = textoTotal;
+      // Agora exibe TOTAL DE CADA STATUS, não o total geral
+      document.getElementById("totalVerificados").textContent =
+        verificados + " itens";
+      document.getElementById("totalPendentes").textContent =
+        pendentes + " itens";
     }
 
     /* =========================
@@ -909,7 +1012,7 @@
 
         status.textContent = `Base carregada com ${dbEfetividade.length} itens da loja.`;
 
-        // Atualiza os percentuais nos dois cards
+        // Atualiza os percentuais e totais nos dois cards
         atualizarResumoStatus();
 
         finalizarLoading();
@@ -1084,6 +1187,23 @@
     }
 
     /* =========================
+       MARCAR REGISTRO COMO "PENDENTE ENVIADO" NA SESSÃO
+       ==========================*/
+    function marcarRegistroComoEnviadoNaSessao(idx, linhaBase) {
+      if (typeof idx !== "number" || !linhaBase) return;
+
+      const chave = gerarChaveRegistro(linhaBase);
+      enviadosSessao.add(chave);
+
+      const spanStatus = document.getElementById(`status-cell-${idx}`);
+      if (spanStatus) {
+        spanStatus.classList.remove("status-pendente", "status-verificado");
+        spanStatus.classList.add("status-pendente-enviado");
+        spanStatus.textContent = "➜ Pendente";
+      }
+    }
+
+    /* =========================
        CONFIRMAÇÃO (SIM / NÃO)
        ==========================*/
     async function confirmarEnvio(confirmado) {
@@ -1105,18 +1225,39 @@
       const { idx, linhaBase, observacao } = envioPendente;
       envioPendente = null;
       overlay.style.display = "none";
+
+      // Monta o payload padrão da API
+      const payload = {
+        registroBase: linhaBase,
+        loja: lojaLogada,
+        usuario: usuarioLogado,
+        observacao,
+      };
+
+      // Se NÃO houver conexão, guarda em fila offline e não tenta chamar a API agora
+      if (!navigator.onLine) {
+        adicionarNaFilaOffline(payload);
+        status.textContent =
+          "Sem conexão. Lançamento armazenado e será enviado automaticamente quando a internet voltar.";
+
+        // Vibração curta (opcional) para feedback
+        if (navigator.vibrate) {
+          navigator.vibrate(60);
+        }
+
+        // Visualmente já marca como "pendente enviado" na sessão
+        marcarRegistroComoEnviadoNaSessao(idx, linhaBase);
+        return;
+      }
+
+      // Fluxo normal online
       status.textContent = "Enviando lançamento...";
 
       try {
         const resposta = await fetch("/api/efetividade-lancar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            registroBase: linhaBase,
-            loja: lojaLogada,
-            usuario: usuarioLogado,
-            observacao,
-          }),
+          body: JSON.stringify(payload),
         });
 
         const dados = await resposta.json().catch(() => ({}));
@@ -1135,20 +1276,10 @@
         }
 
         // Marca o registro como "pendente enviado" (amarelo) nesta sessão
-        if (typeof idx === "number") {
-          const chave = gerarChaveRegistro(linhaBase);
-          enviadosSessao.add(chave);
+        marcarRegistroComoEnviadoNaSessao(idx, linhaBase);
 
-          const spanStatus = document.getElementById(`status-cell-${idx}`);
-          if (spanStatus) {
-            spanStatus.classList.remove(
-              "status-pendente",
-              "status-verificado"
-            );
-            spanStatus.classList.add("status-pendente-enviado");
-            spanStatus.textContent = "➜ Pendente";
-          }
-        }
+        // Depois de um envio bem-sucedido, tenta processar qualquer fila pendente antiga
+        processarFilaOffline();
       } catch (e) {
         console.error("Erro ao enviar lançamento:", e);
         status.textContent = "Erro de conexão ao enviar lançamento.";
