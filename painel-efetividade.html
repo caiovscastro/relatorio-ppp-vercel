@@ -246,7 +246,7 @@
       box-shadow: 0 0 0 1px #0066ff33;
     }
 
-    /* Botão da ESQUERDA -> agora é a LUPA (buscar) */
+    /* Botão da ESQUERDA -> LUPA (buscar) */
     .btnBarcodeLeft {
       position: absolute;
       left: 10px;
@@ -277,7 +277,8 @@
       );
     }
 
-    /* Botão da DIREITA -> agora é a CÂMERA (30% maior) */
+    /* Botão da DIREITA -> CÂMERA
+       LARGURA AUMENTADA (~30% A MAIS) PARA FACILITAR O TOQUE NO DEDO */
     .btnBuscarIcone {
       position: absolute;
       right: 10px;
@@ -290,9 +291,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      /* 30% maior que 26x20 -> aprox. 34x26 */
-      width: 34px;
-      height: 26px;
+      width: 44px;  /* ANTES ~34px, agora mais largo (~+30%) */
+      height: 26px; /* Mantém a altura */
     }
 
     /* ======================
@@ -313,7 +313,8 @@
       padding: 10px 12px;
       font-size: 14px;
       resize: vertical;
-      min-height: 56px;
+      /* ALTURA MÍNIMA REDUZIDA ~30% (DE 56px PARA 40px) */
+      min-height: 40px;
       background: #fff;
     }
 
@@ -456,10 +457,11 @@
     }
 
     /* ======================
-       POPUP DE AVISO "JÁ VERIFICADO"
+       POPUPS DE AVISO
        =======================*/
 
-    #alertOverlay {
+    #alertOverlay,
+    #alertFilaOverlay {
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.35);
@@ -586,7 +588,7 @@
     <div class="confirm-box">
       <p>Confirmar lançamento na base de dados?</p>
       <div class="confirm-buttons">
-        <!-- ORDEM INVERTIDA: AGORA CANCELAR (ESQ) E SIM (DIR) -->
+        <!-- ORDEM: CANCELAR (ESQ) E SIM (DIR) -->
         <button class="btnCancelar" onclick="confirmarEnvio(false)">Cancelar</button>
         <button class="btnConfirmar" onclick="confirmarEnvio(true)">Sim</button>
       </div>
@@ -598,6 +600,14 @@
     <div class="alert-box">
       <p>Este produto já foi verificado.</p>
       <button type="button" onclick="fecharAlertaVerificado()">OK</button>
+    </div>
+  </div>
+
+  <!-- NOVO POPUP "JÁ NA FILA DE LANÇAMENTO" -->
+  <div id="alertFilaOverlay">
+    <div class="alert-box">
+      <p>Produto já na fila de lançamento.</p>
+      <button type="button" onclick="fecharAlertaFila()">OK</button>
     </div>
   </div>
 
@@ -674,7 +684,7 @@
             onkeydown="if(event.key === 'Enter'){buscar();}"
           />
 
-          <!-- CÂMERA À DIREITA (30% MAIOR) -->
+          <!-- CÂMERA À DIREITA (BOTÃO MAIS LARGO) -->
           <button
             type="button"
             class="btnBuscarIcone"
@@ -736,7 +746,7 @@
     let ultimosResultados = [];
     let envioPendente = null;
 
-    // Produtos enviados nesta sessão (para manter amarelo até recarregar)
+    // Produtos enviados nesta sessão (para manter "➜ Pendente" amarelo)
     const enviadosSessao = new Set();
 
     // Câmera / leitor
@@ -748,11 +758,11 @@
 
     /* =========================
        FUNÇÃO PARA GERAR CHAVE ÚNICA DO REGISTRO
+       (EAN + Empresa:Produto)
        ==========================*/
     function gerarChaveRegistro(linha) {
       const ean = String(linha[0] ?? "").trim();
       const empresaProduto = String(linha[3] ?? "").trim();
-      // Combinação suficiente para identificar o item na sessão
       return `${ean}|||${empresaProduto}`;
     }
 
@@ -760,7 +770,6 @@
        NAVEGAR PARA RELATÓRIO DE EXCEÇÃO
        ==========================*/
     function irRelatorioExcecao() {
-      // A nova tela também valida a sessão via localStorage
       window.location.href = "/relatorio-excecao.html";
     }
 
@@ -768,7 +777,6 @@
        CONTROLE DA FILA OFFLINE (LOCALSTORAGE)
        ==========================*/
 
-    // Lê a fila do localStorage
     function carregarFilaOffline() {
       try {
         const raw = localStorage.getItem(FILA_OFFLINE_KEY);
@@ -781,7 +789,6 @@
       }
     }
 
-    // Salva a fila inteira no localStorage
     function salvarFilaOffline(fila) {
       try {
         localStorage.setItem(FILA_OFFLINE_KEY, JSON.stringify(fila || []));
@@ -790,17 +797,15 @@
       }
     }
 
-    // Adiciona um item na fila offline
     function adicionarNaFilaOffline(item) {
       const fila = carregarFilaOffline();
       fila.push({
         ...item,
-        criadoEm: Date.now(), // só metadado para auditoria, se quiser
+        criadoEm: Date.now(),
       });
       salvarFilaOffline(fila);
     }
 
-    // Processa a fila offline assim que houver conexão
     async function processarFilaOffline() {
       if (!navigator.onLine) return;
 
@@ -825,12 +830,10 @@
           const dados = await resposta.json().catch(() => ({}));
           if (!resposta.ok || !dados.sucesso) {
             console.error("Falha ao enviar item da fila offline:", dados);
-            // Mantém o item na fila para tentar de novo depois
             novaFila.push(item);
           }
         } catch (e) {
           console.error("Erro de conexão ao enviar fila offline:", e);
-          // Mantém o item na fila
           novaFila.push(item);
         }
       }
@@ -879,7 +882,7 @@
       // Carrega base principal
       carregarBaseEfetividade();
 
-      // Se já existe fila offline e estiver online, tenta enviar logo na abertura
+      // Se já existe fila offline e estiver online, tenta enviar na abertura
       processarFilaOffline();
     });
 
@@ -977,7 +980,7 @@
       document.getElementById("percentPendentes").textContent =
         percPen.toFixed(1) + "%";
 
-      // Agora exibe TOTAL DE CADA STATUS, não o total geral
+      // Exibe total de cada status
       document.getElementById("totalVerificados").textContent =
         verificados + " itens";
       document.getElementById("totalPendentes").textContent =
@@ -1012,9 +1015,7 @@
 
         status.textContent = `Base carregada com ${dbEfetividade.length} itens da loja.`;
 
-        // Atualiza os percentuais e totais nos dois cards
         atualizarResumoStatus();
-
         finalizarLoading();
       } catch (e) {
         console.error("Erro ao carregar base de dados:", e);
@@ -1147,7 +1148,7 @@
     }
 
     /* =========================
-       POPUP "JÁ VERIFICADO"
+       POPUPS DE AVISO
        ==========================*/
     function mostrarAlertaVerificado() {
       document.getElementById("alertOverlay").style.display = "flex";
@@ -1155,6 +1156,15 @@
 
     function fecharAlertaVerificado() {
       document.getElementById("alertOverlay").style.display = "none";
+    }
+
+    // Novo aviso para produto já marcado como "➜ Pendente" (fila de lançamento)
+    function mostrarAlertaFila() {
+      document.getElementById("alertFilaOverlay").style.display = "flex";
+    }
+
+    function fecharAlertaFila() {
+      document.getElementById("alertFilaOverlay").style.display = "none";
     }
 
     /* =========================
@@ -1170,8 +1180,19 @@
       const linhaBase = ultimosResultados[idx];
 
       const pendenteVerificado = String(linhaBase[2] ?? "").trim().toUpperCase();
+
+      // Se já está marcado como VERIFICADO na base, exibe aviso de "já verificado"
       if (pendenteVerificado === "VERIFICADO") {
         mostrarAlertaVerificado();
+        return;
+      }
+
+      // NOVA REGRA:
+      // Se o item já está na fila/enviadosSessao (status visual "➜ Pendente"),
+      // mostra aviso "Produto já na fila de lançamento" e NÃO deixa reenviar.
+      const chaveRegistro = gerarChaveRegistro(linhaBase);
+      if (enviadosSessao.has(chaveRegistro)) {
+        mostrarAlertaFila();
         return;
       }
 
@@ -1226,7 +1247,6 @@
       envioPendente = null;
       overlay.style.display = "none";
 
-      // Monta o payload padrão da API
       const payload = {
         registroBase: linhaBase,
         loja: lojaLogada,
@@ -1234,18 +1254,16 @@
         observacao,
       };
 
-      // Se NÃO houver conexão, guarda em fila offline e não tenta chamar a API agora
+      // Sem conexão: manda para fila offline e marca como "➜ Pendente"
       if (!navigator.onLine) {
         adicionarNaFilaOffline(payload);
         status.textContent =
           "Sem conexão. Lançamento armazenado e será enviado automaticamente quando a internet voltar.";
 
-        // Vibração curta (opcional) para feedback
         if (navigator.vibrate) {
           navigator.vibrate(60);
         }
 
-        // Visualmente já marca como "pendente enviado" na sessão
         marcarRegistroComoEnviadoNaSessao(idx, linhaBase);
         return;
       }
@@ -1270,15 +1288,11 @@
           dados.message || "Lançamento registrado com sucesso.";
         document.getElementById("observacao").value = "";
 
-        // Vibração curta ao registrar (onde suportado)
         if (navigator.vibrate) {
           navigator.vibrate(100);
         }
 
-        // Marca o registro como "pendente enviado" (amarelo) nesta sessão
         marcarRegistroComoEnviadoNaSessao(idx, linhaBase);
-
-        // Depois de um envio bem-sucedido, tenta processar qualquer fila pendente antiga
         processarFilaOffline();
       } catch (e) {
         console.error("Erro ao enviar lançamento:", e);
@@ -1339,10 +1353,23 @@
           try {
             const codes = await detector.detect(canvas);
             if (codes.length > 0) {
-              const code = codes[0].rawValue;
-              msg.textContent = "Detectado: " + code;
+              const codeRaw = codes[0].rawValue;
+
+              // NORMALIZA CÓDIGO LIDO PELA CÂMERA:
+              // - Se for só dígitos, converte para número e volta para string
+              //   (equivalente a "multiplicar por 1") => remove zeros à esquerda
+              let codeNormalizado = codeRaw;
+              if (/^\d+$/.test(codeRaw)) {
+                const num = parseInt(codeRaw, 10);
+                codeNormalizado = String(num);
+              }
+
+              msg.textContent = "Detectado: " + codeNormalizado;
               beep();
-              document.getElementById("campoBusca").value = code;
+
+              // Preenche o campo de busca com o código normalizado
+              document.getElementById("campoBusca").value = codeNormalizado;
+
               fecharCamera();
               buscar();
               return;
