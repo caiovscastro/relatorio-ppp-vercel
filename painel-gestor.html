@@ -60,7 +60,6 @@
       border-radius: 12px;
       padding: 10px 12px;
 
-      /* RELEVO MAIOR (MAIS DESTAQUE) */
       border: 1px solid #d0d6e2;
       box-shadow:
         0 4px 10px rgba(0, 0, 0, 0.18),
@@ -195,7 +194,6 @@
       border: 2px solid #3c9c46;
       border-radius: 10px;
 
-      /* ALTO RELEVO (já estava configurado) */
       box-shadow:
         0 4px 10px rgba(0, 0, 0, 0.18),
         0 -2px 4px rgba(255, 255, 255, 0.75) inset,
@@ -310,7 +308,7 @@
       word-break: break-word;
     }
 
-    /* ==== ÁREA DO BOTÃO EXCLUIR NO CARTÃO (NOVO) ==== */
+    /* ==== ÁREA DO BOTÃO EXCLUIR NO CARTÃO ==== */
     .cartao-actions {
       display: flex;
       justify-content: flex-end;
@@ -333,7 +331,6 @@
     .btn-excluir:hover {
       background: #d32f2f;
     }
-    /* ============================================== */
 
     /* ==== VALOR TOTAL (Qtd x Unit) AO LADO DO VALOR UNITÁRIO ==== */
     .valor-total-linha {
@@ -426,7 +423,6 @@
       gap: 10px;
     }
 
-    /* BOTÕES DOS MODAIS COM O MESMO TAMANHO (DOWNLOAD E EXCLUSÃO) */
     .btn-modal-sim,
     .btn-modal-cancelar {
       background: #e0e0e0;
@@ -437,7 +433,7 @@
       cursor: pointer;
       font-size: 13px;
       font-weight: 600;
-      flex: 1;              /* MESMO LARGURA PARA SIM E CANCELAR */
+      flex: 1;
       text-align: center;
     }
 
@@ -522,7 +518,6 @@
         <div class="resumo-titulo">Valor total</div>
         <div id="resumoValorTotal" class="resumo-valor">0,00</div>
       </div>
-      <!-- NOVO CARD: OCORRÊNCIAS -->
       <div class="card-resumo">
         <div class="resumo-titulo">Ocorrências</div>
         <div id="resumoOcorrencias" class="resumo-valor">0</div>
@@ -604,7 +599,7 @@
     </div>
   </div>
 
-  <!-- ========= MODAL DE CONFIRMAÇÃO DE EXCLUSÃO (NOVO) ========= -->
+  <!-- ========= MODAL DE CONFIRMAÇÃO DE EXCLUSÃO ========= -->
   <div id="modalExcluir" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar exclusão</div>
@@ -772,7 +767,10 @@
       return isNaN(n) ? 0 : n;
     }
 
-    /* ========= CARREGA BASE INICIAL (CHAMA /api/relatorios) ========= */
+    /* ========= CARREGA BASE INICIAL (CHAMA /api/relatorios) =========
+       IMPORTANTE: para usar o ID de forma plena, a rota /api/relatorios
+       deve retornar um campo como "idRegistro" (lido da coluna P).
+    */
     async function carregarBaseInicial() {
       const statusEl = document.getElementById("status");
 
@@ -788,6 +786,7 @@
           return;
         }
 
+        // Espera-se que cada registro possa trazer, opcionalmente, "idRegistro"
         registrosBase = Array.isArray(dados.registros) ? dados.registros : [];
         aplicarFiltrosLocal();
       } catch (erro) {
@@ -799,23 +798,17 @@
       }
     }
 
-    /* ========= CONTA OCORRÊNCIAS (NOVO CARD) =========
-       Ocorrência = combinação única de:
-       - Documento
-       - Usuário
-       - Loja
-       - Data (apenas data, sem a parte de horário)
-    */
+    /* ========= CONTA OCORRÊNCIAS ========= */
     function contarOcorrencias(registros) {
       const setOcorrencias = new Set();
 
       registros.forEach((r) => {
         const documento = (r.documento || "").trim();
-        if (!documento) return; // se não houver documento, não conta ocorrência
+        if (!documento) return;
 
         const usuario = (r.usuario || "").trim();
         const loja = (r.loja || "").trim();
-        const dataStr = (r.dataHora || "").split(" ")[0] || ""; // só a parte da data (dd/mm/yyyy)
+        const dataStr = (r.dataHora || "").split(" ")[0] || "";
 
         const chave = `${documento}||${usuario}||${loja}||${dataStr}`;
         setOcorrencias.add(chave);
@@ -824,8 +817,19 @@
       return setOcorrencias.size;
     }
 
-    /* ========= COMPARA REGISTROS (FRONT) PARA REMOVER DA BASE LOCAL ========= */
+    /* ========= COMPARA REGISTROS PARA REMOVER DA BASE LOCAL =========
+       NOVO: Se houver idRegistro nos dois registros, usamos apenas o ID.
+       Caso contrário, caímos no comparador antigo (todas as colunas).
+    */
     function registrosIguais(a, b) {
+      const idA = a.idRegistro || a.ID_REGISTRO || a.id;
+      const idB = b.idRegistro || b.ID_REGISTRO || b.id;
+
+      if (idA && idB) {
+        return idA === idB;
+      }
+
+      // Fallback legado: compara todos os campos conhecidos (A:O)
       return (
         (a.dataHora || "") === (b.dataHora || "") &&
         (a.loja || "") === (b.loja || "") &&
@@ -889,7 +893,6 @@
         totalValor += qtd * vUnit;
       });
 
-      // Contagem de ocorrências conforme regra definida
       const qtdOcorrencias = contarOcorrencias(registros);
 
       statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
@@ -902,7 +905,6 @@
       });
       resumoOcorrencias.textContent = qtdOcorrencias.toLocaleString("pt-BR");
 
-      /* ==== MONTA OS CARTÕES, INCLUINDO VALOR TOTAL E BOTÃO EXCLUIR ==== */
       listaEl.innerHTML = registros
         .map((r, index) => {
           const relatorioFormatado = r.relatorio || "-";
@@ -920,7 +922,6 @@
 
           return `
             <div class="cartao">
-              <!-- Linha 1: Data/Hora x Usuário -->
               <div class="cartao-pares cartao-pares-superior">
                 <div class="cartao-pareado">
                   <span class="rotulo">Data/Hora:</span>
@@ -931,7 +932,6 @@
                   <span class="valor">${r.usuario || "-"}</span>
                 </div>
               </div>
-              <!-- Linha 2: Loja x Documento -->
               <div class="cartao-pares cartao-pares-inferior">
                 <div class="cartao-pareado cartao-pareado-loja">
                   <span class="rotulo">Loja:</span>
@@ -979,7 +979,6 @@
                 <div class="obs-titulo">Relatório:</div>
                 <div class="obs-texto">${relatorioFormatado}</div>
               </div>
-              <!-- AÇÕES DO CARTÃO: BOTÃO EXCLUIR (NOVO) -->
               <div class="cartao-actions">
                 <button class="btn-excluir" onclick="abrirModalExcluir(${index})">
                   Excluir
@@ -989,7 +988,6 @@
           `;
         })
         .join("");
-      /* =============================================================== */
     }
 
     /* ========= LIMPAR FILTROS ========= */
@@ -1022,9 +1020,8 @@
       exportarParaXlsx(registrosAtuais);
     }
 
-    /* ========= MODAL DE EXCLUSÃO (NOVO) ========= */
+    /* ========= MODAL DE EXCLUSÃO ========= */
     function abrirModalExcluir(index) {
-      // Guarda o registro selecionado para exclusão
       registroParaExcluir = registrosAtuais[index] || null;
       if (!registroParaExcluir) return;
       document.getElementById("modalExcluir").style.display = "flex";
@@ -1035,7 +1032,7 @@
       document.getElementById("modalExcluir").style.display = "none";
     }
 
-    /* ========= CONFIRMAR EXCLUSÃO (CHAMA API /api/relatorios-excluir) ========= */
+    /* ========= CONFIRMAR EXCLUSÃO (CHAMA /api/relatorios-excluir) ========= */
     async function confirmarExclusaoRegistro() {
       const statusEl = document.getElementById("status");
 
@@ -1049,7 +1046,7 @@
       try {
         statusEl.textContent = "Excluindo registro...";
         const resp = await fetch("/api/relatorios-excluir", {
-          method: "POST", // uso POST para exclusão, conforme combinado nesta rota
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
@@ -1057,20 +1054,18 @@
         const dados = await resp.json().catch(() => ({}));
 
         if (!resp.ok || !dados.sucesso) {
-          statusEl.textContent =
-            dados.message || "Erro ao excluir registro.";
+          statusEl.textContent = dados.message || "Erro ao excluir registro.";
           fecharModalExcluir();
           return;
         }
 
-        // Remove da base em memória (registrosBase e registrosAtuais) para refletir na tela
+        // Remove da base em memória (registrosBase e registrosAtuais) usando o comparador com ID
         registrosBase = registrosBase.filter((reg) => !registrosIguais(reg, registroParaExcluir));
         registrosAtuais = registrosAtuais.filter((reg) => !registrosIguais(reg, registroParaExcluir));
 
         statusEl.textContent = "Registro excluído com sucesso.";
         fecharModalExcluir();
 
-        // Atualiza os cards e a lista com a base já sem o registro
         aplicarFiltrosLocal();
       } catch (erro) {
         console.error("Erro ao excluir registro:", erro);
@@ -1079,25 +1074,25 @@
       }
     }
 
-    /* ==== EXPORTAÇÃO COM COLUNA O = VALOR TOTAL E P = DOCUMENTO ==== */
+    /* ==== EXPORTAÇÃO COM VALOR TOTAL E DOCUMENTO (SEM ID) ==== */
     function exportarParaXlsx(registros) {
       const cabecalho = [
-        "Data/Hora",                    // A
-        "Loja",                         // B
-        "Usuário",                      // C
-        "EAN",                          // D
-        "Cod Consinco",                 // E
-        "Produto",                      // F
-        "Departamento",                 // G
-        "Seção",                        // H
-        "Grupo",                        // I
-        "Subgrupo",                     // J
-        "Categoria",                    // K
-        "Relatório / Observação",       // L
-        "Quantidade",                   // M
-        "Valor unitário",               // N
-        "Valor total (Qtd x Unit)",     // O
-        "Documento",                    // P
+        "Data/Hora",
+        "Loja",
+        "Usuário",
+        "EAN",
+        "Cod Consinco",
+        "Produto",
+        "Departamento",
+        "Seção",
+        "Grupo",
+        "Subgrupo",
+        "Categoria",
+        "Relatório / Observação",
+        "Quantidade",
+        "Valor unitário",
+        "Valor total (Qtd x Unit)",
+        "Documento",
       ];
 
       const linhas = registros.map((r) => {
