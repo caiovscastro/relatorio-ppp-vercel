@@ -6,7 +6,7 @@
 // GOOGLE_PRIVATE_KEY
 // SPREADSHEET_ID
 //
-// Colunas esperadas em RELATORIO (A:O):
+// Colunas esperadas em RELATORIO (A:P):
 // A  DATA/HORA
 // B  LOJAS
 // C  USÚARIOS
@@ -22,6 +22,7 @@
 // M  QUANTIDADE
 // N  VALOR UNITARIO
 // O  DOCUMENTO
+// P  ID  (identificador único do registro – usado para exclusão)
 
 import { google } from 'googleapis';
 
@@ -34,7 +35,7 @@ if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
 }
 
 /**
- * Cria cliente autenticado do Google Sheets.
+ * Cria cliente autenticado do Google Sheets (somente leitura).
  */
 async function getSheetsClient() {
   const auth = new google.auth.JWT({
@@ -49,14 +50,14 @@ async function getSheetsClient() {
 
 /**
  * Converte string da planilha (ex.: "27/11/2025 14:32:10")
- * em objeto Date somente com ano/mes/dia.
+ * em objeto Date somente com ano/mes/dia, para comparação por período.
  */
 function parseDataDaPlanilha(dataHoraStr) {
   if (!dataHoraStr) return null;
 
   try {
     const [parteData] = String(dataHoraStr).split(' ');
-    const [dia, mes, ano] = parteData.split('/');
+    const [dia, mes, ano] = (parteData || '').split('/');
 
     if (!dia || !mes || !ano) return null;
     return new Date(Number(ano), Number(mes) - 1, Number(dia));
@@ -66,12 +67,16 @@ function parseDataDaPlanilha(dataHoraStr) {
 }
 
 export default async function handler(req, res) {
+  // Somente GET para listagem
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ sucesso: false, message: 'Método não permitido.' });
+    return res
+      .status(405)
+      .json({ sucesso: false, message: 'Método não permitido.' });
   }
 
   try {
+    // Filtros opcionais recebidos por query string
     const {
       loja = '',
       usuario = '',
@@ -83,8 +88,9 @@ export default async function handler(req, res) {
 
     const sheets = await getSheetsClient();
 
-    // Busca todos os registros da aba RELATORIO (da linha 2 pra baixo)
-    const range = 'RELATORIO!A2:O';
+    // Busca todos os registros da aba RELATORIO (da linha 2 pra baixo).
+    // ATENÇÃO: agora A2:P para incluir também o ID (coluna P).
+    const range = 'RELATORIO!A2:P';
     const resposta = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
@@ -93,7 +99,7 @@ export default async function handler(req, res) {
 
     const rows = resposta.data.values || [];
 
-    // Mapeia cada linha em um objeto com nomes claros
+    // Mapeia cada linha em um objeto com nomes claros, incluindo o ID.
     const registros = rows.map((row) => {
       const [
         dataHora,
@@ -111,6 +117,7 @@ export default async function handler(req, res) {
         quantidade,
         valorUnitario,
         documentoCol,
+        idCol, // NOVO: coluna P = ID
       ] = row;
 
       return {
@@ -129,20 +136,20 @@ export default async function handler(req, res) {
         quantidade: quantidade || '',
         valorUnitario: valorUnitario || '',
         documento: documentoCol || '',
+        id: idCol || '',           // EXPÕE O ID PARA O FRONT
       };
     });
 
     // Converte datas enviadas pelo front (input type="date" -> yyyy-mm-dd)
-    const iniDate =
-      dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
-    const fimDate =
-      dataFim ? new Date(`${dataFim}T23:59:59`) : null;
+    const iniDate = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
+    const fimDate = dataFim ? new Date(`${dataFim}T23:59:59`) : null;
 
     const lojaFiltro = loja.trim().toLowerCase();
     const usuarioFiltro = usuario.trim().toLowerCase();
     const docFiltro = documento.trim();
     const depFiltro = departamento.trim().toUpperCase();
 
+    // Aplica filtros em memória
     const filtrados = registros.filter((reg) => {
       // Filtro de loja (contém, ignorando maiúsc/minúsc)
       if (lojaFiltro && !reg.loja.toLowerCase().includes(lojaFiltro)) {
