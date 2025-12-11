@@ -1,19 +1,9 @@
 // api/relatorios-excluir.js
 //
-// Exclui um registro da aba RELATORIO com base em TODOS os campos da linha.
-// A ideia é:
-// 1) receber um objeto "registro" no body (mesmo formato da /api/relatorios),
-// 2) ler todas as linhas da aba RELATORIO!A2:O,
-// 3) encontrar a linha que bate EXACTAMENTE com o registro,
-// 4) excluir essa linha via deleteDimension.
-//
-// IMPORTANTE:
-// - Usa as mesmas variáveis de ambiente:
-//   GOOGLE_SERVICE_ACCOUNT_EMAIL
-//   GOOGLE_PRIVATE_KEY
-//   SPREADSHEET_ID
-//
-// - Escopo precisa ser de escrita: 'https://www.googleapis.com/auth/spreadsheets'
+// Exclui um registro da aba RELATORIO de forma segura.
+// NOVO: Prioriza exclusão por ID único salvo na coluna P (ID_REGISTRO).
+// Fallback: se não houver ID no registro recebido, faz a comparação completa A:O
+// exatamente como antes, para manter compatibilidade com registros antigos.
 
 import { google } from "googleapis";
 
@@ -40,8 +30,9 @@ async function getSheetsClientWrite() {
 }
 
 /**
- * Monta um array com os valores da linha na mesma ordem da planilha RELATORIO.
- * A ordem esperada em RELATORIO!A:O é:
+ * Monta um array com os valores da linha na mesma ordem da planilha RELATORIO,
+ * considerando SOMENTE as colunas A:O (sem ID).
+ *
  * A  DATA/HORA
  * B  LOJAS
  * C  USÚARIOS
@@ -80,6 +71,7 @@ function montarLinhaDoRegistro(reg) {
 
 /**
  * Compara duas linhas (arrays) posição a posição.
+ * Aqui usado apenas para A:O (sem ID).
  */
 function linhasIguais(l1, l2) {
   if (!Array.isArray(l1) || !Array.isArray(l2)) return false;
@@ -117,6 +109,14 @@ export default async function handler(req, res) {
       });
     }
 
+    // Tenta extrair o ID do registro do front.
+    // Nome padrão: idRegistro, mas aceitamos variações para robustez.
+    const idRegistro =
+      registro.idRegistro ||
+      registro.ID_REGISTRO ||
+      registro.id ||
+      "";
+
     const sheets = await getSheetsClientWrite();
 
     // 1) Descobre o sheetId da aba RELATORIO
@@ -137,8 +137,9 @@ export default async function handler(req, res) {
 
     const sheetId = abaRelatorio.properties.sheetId;
 
-    // 2) Lê todas as linhas atuais da aba RELATORIO (da linha 2 para baixo)
-    const range = "RELATORIO!A2:O";
+    // 2) Lê todas as linhas atuais da aba RELATORIO (da linha 2 para baixo),
+    //    agora incluindo a coluna P (ID_REGISTRO).
+    const range = "RELATORIO!A2:P";
     const resposta = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
@@ -147,32 +148,51 @@ export default async function handler(req, res) {
 
     const rows = resposta.data.values || [];
 
-    // 3) Monta a linha alvo a partir do registro enviado
-    const linhaAlvo = montarLinhaDoRegistro(registro);
-
-    // 4) Encontra o índice da linha que bate EXACTAMENTE com a linha alvo
+    // 3) Se tivermos ID_REGISTRO, priorizamos exclusão por ID (coluna P).
     let indexEncontrado = -1;
-    for (let i = 0; i < rows.length; i++) {
-      const linhaAtual = rows[i];
-      if (linhasIguais(linhaAtual, linhaAlvo)) {
-        indexEncontrado = i;
-        break;
-      }
-    }
 
-    if (indexEncontrado === -1) {
-      // Não encontrou linha igual — pode ter sido alterada manualmente na planilha
-      return res.status(404).json({
-        sucesso: false,
-        message: "Registro não encontrado na planilha para exclusão.",
-      });
+    if (idRegistro) {
+      for (let i = 0; i < rows.length; i++) {
+        const linhaAtual = rows[i] || [];
+        const idNaLinha = linhaAtual[15] || ""; // P = índice 15 (0-based)
+        if (idNaLinha === idRegistro) {
+          indexEncontrado = i;
+          break;
+        }
+      }
+
+      if (indexEncontrado === -1) {
+        return res.status(404).json({
+          sucesso: false,
+          message: "Registro (ID) não encontrado na planilha para exclusão.",
+        });
+      }
+    } else {
+      // 4) Fallback: não há ID no registro => comparação completa A:O (legado).
+      const linhaAlvo = montarLinhaDoRegistro(registro); // 15 colunas
+
+      for (let i = 0; i < rows.length; i++) {
+        const linhaAtualCompleta = rows[i] || [];
+        const linhaAtualAO = linhaAtualCompleta.slice(0, 15); // A:O
+        if (linhasIguais(linhaAtualAO, linhaAlvo)) {
+          indexEncontrado = i;
+          break;
+        }
+      }
+
+      if (indexEncontrado === -1) {
+        return res.status(404).json({
+          sucesso: false,
+          message: "Registro não encontrado na planilha para exclusão.",
+        });
+      }
     }
 
     /**
      * 5) Calcula o índice da linha na planilha para o deleteDimension:
      *
      *    - rows[0] corresponde à linha 2 da planilha.
-     *    - Em deleteDimension, o índice é 0-based considerando TODAS as linhas.
+     *    - Em deleteDimension, o índice é 0-based considerando TODAS as linhas:
      *      Linha 1 da planilha -> índice 0
      *      Linha 2 da planilha -> índice 1
      *
