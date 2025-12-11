@@ -1,5 +1,6 @@
-// API/relatorio.js
+// api/relatorio.js
 // Grava relatórios na aba RELATORIO do Google Sheets
+// Agora incluindo um ID único em cada linha (coluna P).
 
 import { google } from "googleapis";
 
@@ -11,7 +12,7 @@ const spreadsheetId = process.env.SPREADSHEET_ID;
 // Conserta quebras de linha da chave privada (vem com "\n" e precisa ser newline de verdade)
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
-// Autenticação com Service Account
+// Autenticação com Service Account (escopo de escrita no Sheets)
 const auth = new google.auth.JWT(
   serviceAccountEmail,
   null,
@@ -21,9 +22,23 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: "v4", auth });
 
-// Garante que a aba RELATORIO existe e tem o cabeçalho correto
+// Flag simples pra não ficar recriando cabeçalho em toda requisição
 let headerGarantido = false;
 
+/**
+ * Gera um identificador único para cada registro.
+ * Combina timestamp + random em base36 para evitar colisões.
+ */
+function gerarIdRegistro() {
+  const parteTempo = Date.now().toString(36);
+  const parteRandom = Math.random().toString(36).substring(2, 8);
+  return `${parteTempo}-${parteRandom}`;
+}
+
+/**
+ * Garante que a aba RELATORIO exista e tenha o cabeçalho correto.
+ * Agora com colunas A:P, sendo P = ID_REGISTRO.
+ */
 async function garantirAbaRelatorio() {
   if (headerGarantido) return;
 
@@ -38,7 +53,7 @@ async function garantirAbaRelatorio() {
   );
 
   if (!existeRelatorio) {
-    // Cria a aba RELATORIO
+    // Cria a aba RELATORIO, caso não exista
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {
@@ -53,31 +68,32 @@ async function garantirAbaRelatorio() {
     });
   }
 
-  // Cabeçalho (A:O) na ordem que você pediu
+  // Cabeçalho (A:P)
   const cabecalho = [
     [
-      "DATA/HORA",        // A
-      "LOJAS",            // B
-      "USÚARIOS",         // C
-      "EAN",              // D
-      "COD CONSINCO",     // E
-      "PRODUTO",          // F
-      "DEPARTAMENTO",     // G
-      "SECAO",            // H
-      "GRUPO",            // I
-      "SUBGRUPO",         // J
-      "CATEGORIA",        // K
-      "RELATORIO/OBSERVAÇÃO", // L
-      "QUANTIDADE",       // M
-      "VALOR UNITARIO",   // N
-      "DOCUMENTO",        // O
+      "DATA/HORA",             // A
+      "LOJAS",                 // B
+      "USÚARIOS",              // C
+      "EAN",                   // D
+      "COD CONSINCO",          // E
+      "PRODUTO",               // F
+      "DEPARTAMENTO",          // G
+      "SECAO",                 // H
+      "GRUPO",                 // I
+      "SUBGRUPO",              // J
+      "CATEGORIA",             // K
+      "RELATORIO/OBSERVAÇÃO",  // L
+      "QUANTIDADE",            // M
+      "VALOR UNITARIO",        // N
+      "DOCUMENTO",             // O
+      "ID_REGISTRO",           // P (NOVO)
     ],
   ];
 
-  // Escreve o cabeçalho em A1:O1 (RAW = exatamente o texto)
+  // Escreve o cabeçalho em A1:P1
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: "RELATORIO!A1:O1",
+    range: "RELATORIO!A1:P1",
     valueInputOption: "RAW",
     requestBody: {
       values: cabecalho,
@@ -155,12 +171,10 @@ export default async function handler(req, res) {
     ] = produto;
 
     // DATA/HORA em horário de Brasília, sem vírgula e sem segundos
-    // Formato final: "dd/MM/aaaa HH:mm" (ex.: "03/12/2025 12:17")
-    // Usamos formatação manual para evitar quebras com vírgula ou segundos.
     const agora = new Date();
     const options = { timeZone: "America/Sao_Paulo" };
     const dataBrasilia = new Date(
-      agora.toLocaleString("en-US", options) // converte para string na TZ desejada
+      agora.toLocaleString("en-US", options)
     );
 
     const dia = String(dataBrasilia.getDate()).padStart(2, "0");
@@ -171,29 +185,33 @@ export default async function handler(req, res) {
 
     const dataHora = `${dia}/${mes}/${ano} ${hora}:${minuto}`;
 
-    // Monta a linha exatamente na ordem que você pediu
+    // Gera ID único do registro (coluna P)
+    const idRegistro = gerarIdRegistro();
+
+    // Monta a linha na ordem A:P
     const linha = [
-      dataHora,          // DATA/HORA
-      loja,              // LOJAS
-      usuario,           // USÚARIOS
-      ean,
-      codConsinco,
-      nomeProduto,
-      departamento,
-      secao,
-      grupo,
-      subgrupo,
-      categoria,
-      observacao,
-      quantidade,
-      valorUnitario,
-      numeroDocumento,
+      dataHora,          // A DATA/HORA
+      loja,              // B LOJAS
+      usuario,           // C USÚARIOS
+      ean,               // D
+      codConsinco,       // E
+      nomeProduto,       // F
+      departamento,      // G
+      secao,             // H
+      grupo,             // I
+      subgrupo,          // J
+      categoria,         // K
+      observacao,        // L
+      quantidade,        // M
+      valorUnitario,     // N
+      numeroDocumento,   // O
+      idRegistro,        // P ID_REGISTRO (NOVO)
     ];
 
     // Append na próxima linha disponível
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "RELATORIO!A:A",
+      range: "RELATORIO!A:A", // continua baseando no início da planilha
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: {
@@ -204,6 +222,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       sucesso: true,
       message: "Relatório registrado com sucesso na base de dados.",
+      idRegistro, // devolve o ID, caso queira usar no front futuramente
     });
   } catch (erro) {
     console.error("Erro na API /api/relatorio:", erro);
