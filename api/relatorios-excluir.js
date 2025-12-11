@@ -131,7 +131,7 @@ export default async function handler(req, res) {
     if (!abaRelatorio || !abaRelatorio.properties?.sheetId) {
       return res.status(500).json({
         sucesso: false,
-        message: "Aba 'RELATORIO' não encontrada na planilha.",
+        message: "'RELATORIO' não encontrada.",
       });
     }
 
@@ -204,7 +204,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       sucesso: true,
-      message: "Registro excluído com sucesso da planilha.",
+      message: "Registro excluído com sucesso.",
     });
   } catch (erro) {
     console.error("Erro em /api/relatorios-excluir:", erro);
