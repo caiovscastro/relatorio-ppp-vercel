@@ -1,6 +1,17 @@
-// api/relatorio.js
-// Grava relatórios na aba RELATORIO do Google Sheets
-// Agora incluindo um ID único em cada linha (coluna P).
+// API/relatorio.js
+// Grava relatórios na aba RELATORIO do Google Sheets.
+//
+// Fluxo:
+// - Recebe dados do produto + loja + usuário + observação + quantidade + valor + documento.
+// - Garante que a aba RELATORIO existe e possui cabeçalho em A1:P1.
+// - Gera DATA/HORA em Brasília.
+// - Gera um ID único (coluna P) para o registro.
+// - Insere a linha na próxima linha disponível.
+//
+// Variáveis de ambiente (Vercel):
+// - GOOGLE_SERVICE_ACCOUNT_EMAIL
+// - GOOGLE_PRIVATE_KEY
+// - SPREADSHEET_ID
 
 import { google } from "googleapis";
 
@@ -12,7 +23,7 @@ const spreadsheetId = process.env.SPREADSHEET_ID;
 // Conserta quebras de linha da chave privada (vem com "\n" e precisa ser newline de verdade)
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
-// Autenticação com Service Account (escopo de escrita no Sheets)
+// Autenticação com Service Account (escopo de escrita)
 const auth = new google.auth.JWT(
   serviceAccountEmail,
   null,
@@ -22,22 +33,12 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: "v4", auth });
 
-// Flag simples pra não ficar recriando cabeçalho em toda requisição
+// Controle simples para não recriar cabeçalho a cada requisição
 let headerGarantido = false;
 
 /**
- * Gera um identificador único para cada registro.
- * Combina timestamp + random em base36 para evitar colisões.
- */
-function gerarIdRegistro() {
-  const parteTempo = Date.now().toString(36);
-  const parteRandom = Math.random().toString(36).substring(2, 8);
-  return `${parteTempo}-${parteRandom}`;
-}
-
-/**
- * Garante que a aba RELATORIO exista e tenha o cabeçalho correto.
- * Agora com colunas A:P, sendo P = ID_REGISTRO.
+ * Garante que a aba RELATORIO exista e tenha o cabeçalho correto em A1:P1.
+ * Caso não exista, cria a aba.
  */
 async function garantirAbaRelatorio() {
   if (headerGarantido) return;
@@ -53,7 +54,7 @@ async function garantirAbaRelatorio() {
   );
 
   if (!existeRelatorio) {
-    // Cria a aba RELATORIO, caso não exista
+    // Cria a aba RELATORIO
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {
@@ -68,7 +69,7 @@ async function garantirAbaRelatorio() {
     });
   }
 
-  // Cabeçalho (A:P)
+  // Cabeçalho (A:P) com ID na coluna P
   const cabecalho = [
     [
       "DATA/HORA",             // A
@@ -86,11 +87,11 @@ async function garantirAbaRelatorio() {
       "QUANTIDADE",            // M
       "VALOR UNITARIO",        // N
       "DOCUMENTO",             // O
-      "ID_REGISTRO",           // P (NOVO)
+      "ID",                    // P  (identificador único do registro)
     ],
   ];
 
-  // Escreve o cabeçalho em A1:P1
+  // Escreve o cabeçalho em A1:P1 (RAW = exatamente o texto)
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: "RELATORIO!A1:P1",
@@ -103,6 +104,10 @@ async function garantirAbaRelatorio() {
   headerGarantido = true;
 }
 
+/**
+ * Handler principal da rota /api/relatorio.
+ * Somente POST é permitido.
+ */
 export default async function handler(req, res) {
   // Só aceitamos POST
   if (req.method !== "POST") {
@@ -121,7 +126,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Garante aba + cabeçalho
+    // Garante aba + cabeçalho (A1:P1)
     await garantirAbaRelatorio();
 
     const {
@@ -139,7 +144,7 @@ export default async function handler(req, res) {
       return res.status(400).json({
         sucesso: false,
         message:
-          "Dados de produto inválidos. Esperado array com pelo menos 8 colunas (A:H).",
+          "Dados de produto inválidos. Esperado array com pelo menos 8 colunas (EAN, COD, PRODUTO, DEP, SEÇÃO, GRUPO, SUBGRUPO, CATEGORIA).",
       });
     }
 
@@ -158,7 +163,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Quebra o array de produto nas colunas A:H
+    // Quebra o array de produto nas colunas D:K (EAN até CATEGORIA)
     const [
       ean = "",
       codConsinco = "",
@@ -171,10 +176,11 @@ export default async function handler(req, res) {
     ] = produto;
 
     // DATA/HORA em horário de Brasília, sem vírgula e sem segundos
+    // Formato: "dd/MM/aaaa HH:mm" (ex.: "03/12/2025 12:17")
     const agora = new Date();
     const options = { timeZone: "America/Sao_Paulo" };
     const dataBrasilia = new Date(
-      agora.toLocaleString("en-US", options)
+      agora.toLocaleString("en-US", options) // converte para string na TZ desejada
     );
 
     const dia = String(dataBrasilia.getDate()).padStart(2, "0");
@@ -185,34 +191,40 @@ export default async function handler(req, res) {
 
     const dataHora = `${dia}/${mes}/${ano} ${hora}:${minuto}`;
 
-    // Gera ID único do registro (coluna P)
-    const idRegistro = gerarIdRegistro();
+    // Gera um ID único simples:
+    // - Parte baseada em timestamp
+    // - Parte aleatória em base 36
+    // Isso garante baixa chance de colisão e é legível.
+    const idRegistro =
+      Date.now().toString(36).toUpperCase() +
+      "-" +
+      Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    // Monta a linha na ordem A:P
+    // Monta a linha exatamente na ordem A:P
     const linha = [
-      dataHora,          // A DATA/HORA
-      loja,              // B LOJAS
-      usuario,           // C USÚARIOS
-      ean,               // D
-      codConsinco,       // E
-      nomeProduto,       // F
-      departamento,      // G
-      secao,             // H
-      grupo,             // I
-      subgrupo,          // J
-      categoria,         // K
-      observacao,        // L
-      quantidade,        // M
-      valorUnitario,     // N
-      numeroDocumento,   // O
-      idRegistro,        // P ID_REGISTRO (NOVO)
+      dataHora,        // A  DATA/HORA
+      loja,            // B  LOJAS
+      usuario,         // C  USÚARIOS
+      ean,             // D  EAN
+      codConsinco,     // E  COD CONSINCO
+      nomeProduto,     // F  PRODUTO
+      departamento,    // G  DEPARTAMENTO
+      secao,           // H  SECAO
+      grupo,           // I  GRUPO
+      subgrupo,        // J  SUBGRUPO
+      categoria,       // K  CATEGORIA
+      observacao,      // L  RELATORIO/OBSERVAÇÃO
+      quantidade,      // M  QUANTIDADE
+      valorUnitario,   // N  VALOR UNITARIO
+      numeroDocumento, // O  DOCUMENTO
+      idRegistro,      // P  ID (identificador único)
     ];
 
-    // Append na próxima linha disponível
+    // Append na próxima linha disponível (aba RELATORIO)
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "RELATORIO!A:A", // continua baseando no início da planilha
-      valueInputOption: "USER_ENTERED",
+      range: "RELATORIO!A:A",           // aponta pela coluna A; o append preenche A:P
+      valueInputOption: "USER_ENTERED", // deixa o Sheets interpretar número, data etc.
       insertDataOption: "INSERT_ROWS",
       requestBody: {
         values: [linha],
@@ -222,7 +234,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       sucesso: true,
       message: "Relatório registrado com sucesso na base de dados.",
-      idRegistro, // devolve o ID, caso queira usar no front futuramente
+      id: idRegistro, // opcional: retorna o ID para o front, se quiser usar depois
     });
   } catch (erro) {
     console.error("Erro na API /api/relatorio:", erro);
