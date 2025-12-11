@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PAINEL GERENTE ppp</title>
+  <title>PAINEL GERENTE PPP</title>
 
   <style>
     /* ========= ESTILO GERAL DA PÁGINA ========= */
@@ -44,22 +44,29 @@
       font-size: 22px;
     }
 
-    /* ========= CARDS DE RESUMO (QTD / VALOR) ========= */
+    /* ========= CARDS DE RESUMO (QTD / VALOR / OCORRÊNCIAS) ========= */
     .resumo-cards {
       display: flex;
       flex-wrap: nowrap;
-      gap: 6px;
+      gap: 8px;
       margin: 10px 0 14px;
       justify-content: space-between;
     }
 
     .card-resumo {
-      flex: 1 1 50%;
+      flex: 1 1 33%;
       min-width: 0;
       background: #f9fafc;
-      border-radius: 10px;
-      padding: 8px 10px;
-      box-shadow: none;
+      border-radius: 12px;
+      padding: 10px 12px;
+
+      /* RELEVO MAIOR (MAIS DESTAQUE) */
+      border: 1px solid #d0d6e2;
+      box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.18),
+        0 -2px 4px rgba(255, 255, 255, 0.75) inset,
+        0 2px 4px rgba(0, 0, 0, 0.05) inset;
+
       font-size: 13px;
     }
 
@@ -188,12 +195,11 @@
       border: 2px solid #3c9c46;
       border-radius: 10px;
 
-      /* ==== ALTO RELEVO: sombra externa + realce interno (NOVO) ==== */
+      /* ALTO RELEVO (já estava configurado) */
       box-shadow:
-        0 4px 10px rgba(0, 0, 0, 0.18),       /* sombra projetada para baixo */
-        0 -2px 4px rgba(255, 255, 255, 0.75) inset, /* luz suave em cima */
-        0 2px 4px rgba(0, 0, 0, 0.05) inset;       /* leve sombra interna embaixo */
-      /* ============================================================ */
+        0 4px 10px rgba(0, 0, 0, 0.18),
+        0 -2px 4px rgba(255, 255, 255, 0.75) inset,
+        0 2px 4px rgba(0, 0, 0, 0.05) inset;
 
       padding: 0;
       margin-bottom: 12px;
@@ -287,7 +293,7 @@
     }
 
     .cartao-observacao {
-      padding: 10px 12px 12px;
+      padding: 10px 12px 10px;
       background: #ffffff;
       line-height: 1.45;
       color: #111;
@@ -304,15 +310,39 @@
       word-break: break-word;
     }
 
-    /* ==== VALOR TOTAL (Qtd x Unit) AO LADO DO VALOR UNITÁRIO (NOVO) ==== */
+    /* ==== ÁREA DO BOTÃO EXCLUIR NO CARTÃO (NOVO) ==== */
+    .cartao-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 12px 10px;
+      background: #ffffff;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .btn-excluir {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: none;
+      background: #f44336;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-excluir:hover {
+      background: #d32f2f;
+    }
+    /* ============================================== */
+
+    /* ==== VALOR TOTAL (Qtd x Unit) AO LADO DO VALOR UNITÁRIO ==== */
     .valor-total-linha {
-      margin-left: 18px;               /* espaçamento à direita do unitário */
+      margin-left: 18px;
       font-weight: 700;
-      color: #1b5e20;                  /* verde mais escuro, combina com o tema */
-      text-shadow: 0 0 6px rgba(129, 199, 132, 0.9); /* sombra verde clara */
+      color: #1b5e20;
+      text-shadow: 0 0 6px rgba(129, 199, 132, 0.9);
       white-space: nowrap;
     }
-    /* ================================================================ */
 
     /* ========= RODAPÉ DO PAINEL ========= */
     .rodape {
@@ -357,7 +387,7 @@
       margin-top: 0;
     }
 
-    /* ========= MODAL DE CONFIRMAÇÃO DE DOWNLOAD ========= */
+    /* ========= MODAL DE CONFIRMAÇÃO (DOWNLOAD E EXCLUSÃO) ========= */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -396,17 +426,8 @@
       gap: 10px;
     }
 
-    .btn-modal-sim {
-      background: #4caf50;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 7px 14px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
+    /* BOTÕES DOS MODAIS COM O MESMO TAMANHO (DOWNLOAD E EXCLUSÃO) */
+    .btn-modal-sim,
     .btn-modal-cancelar {
       background: #e0e0e0;
       color: #333;
@@ -416,6 +437,18 @@
       cursor: pointer;
       font-size: 13px;
       font-weight: 600;
+      flex: 1;              /* MESMO LARGURA PARA SIM E CANCELAR */
+      text-align: center;
+    }
+
+    .btn-modal-sim {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .btn-modal-cancelar {
+      background: #e0e0e0;
+      color: #333;
     }
 
     /* ========= OVERLAY DE CARREGAMENTO 0–100% ========= */
@@ -479,15 +512,20 @@
       </div>
     </div>
 
-    <!-- Cards de resumo: Qtd. Itens e Valor total -->
+    <!-- Cards de resumo: Qtd. Itens, Valor total e Ocorrências -->
     <div class="resumo-cards">
       <div class="card-resumo">
-        <div class="resumo-titulo">Qtd. Itens</div>
+        <div class="resumo-titulo">Quantidade</div>
         <div id="resumoQtdTotal" class="resumo-valor">0</div>
       </div>
       <div class="card-resumo">
         <div class="resumo-titulo">Valor total</div>
         <div id="resumoValorTotal" class="resumo-valor">0,00</div>
+      </div>
+      <!-- NOVO CARD: OCORRÊNCIAS -->
+      <div class="card-resumo">
+        <div class="resumo-titulo">Ocorrências</div>
+        <div id="resumoOcorrencias" class="resumo-valor">0</div>
       </div>
     </div>
 
@@ -566,6 +604,20 @@
     </div>
   </div>
 
+  <!-- ========= MODAL DE CONFIRMAÇÃO DE EXCLUSÃO (NOVO) ========= -->
+  <div id="modalExcluir" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-titulo">Confirmar exclusão</div>
+      <div class="modal-texto">
+        Você tem certeza que deseja excluir esse registro?
+      </div>
+      <div class="modal-botoes">
+        <button class="btn-modal-cancelar" onclick="fecharModalExcluir()">Cancelar</button>
+        <button class="btn-modal-sim" onclick="confirmarExclusaoRegistro()">Sim</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ========= OVERLAY DE CARREGAMENTO 0–100% ========= -->
   <div id="loadingOverlay">
     <div class="loading-box">
@@ -589,6 +641,10 @@
     let loadingInterval = null;
     let loadingProgress = 0;
 
+    // Registro atualmente selecionado para exclusão (objeto completo retornado da API)
+    let registroParaExcluir = null;
+
+    /* ========= CONTROLE DO CARREGAMENTO (0–100%) ========= */
     function iniciarProgresso() {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
@@ -628,6 +684,7 @@
       }, 200);
     }
 
+    /* ========= PARSE DE DATA (STRING -> Date) ========= */
     function parseDataDaPlanilha(dataHoraStr) {
       if (!dataHoraStr) return null;
       try {
@@ -641,6 +698,7 @@
       }
     }
 
+    /* ========= FILTRAGEM LOCAL (SEM NOVA CHAMADA À API) ========= */
     function filtrarLocal() {
       const lojaFiltro = document.getElementById("filtroLoja").value.trim().toLowerCase();
       const usuarioFiltro = document.getElementById("filtroUsuario").value.trim().toLowerCase();
@@ -669,6 +727,7 @@
       });
     }
 
+    /* ========= INICIALIZAÇÃO (VALIDA LOGIN DO GESTOR) ========= */
     document.addEventListener("DOMContentLoaded", () => {
       const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
@@ -701,6 +760,7 @@
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
     }
 
+    /* ========= PARSE DE NÚMERO EM FORMATO BR ========= */
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
@@ -712,6 +772,7 @@
       return isNaN(n) ? 0 : n;
     }
 
+    /* ========= CARREGA BASE INICIAL (CHAMA /api/relatorios) ========= */
     async function carregarBaseInicial() {
       const statusEl = document.getElementById("status");
 
@@ -738,12 +799,60 @@
       }
     }
 
+    /* ========= CONTA OCORRÊNCIAS (NOVO CARD) =========
+       Ocorrência = combinação única de:
+       - Documento
+       - Usuário
+       - Loja
+       - Data (apenas data, sem a parte de horário)
+    */
+    function contarOcorrencias(registros) {
+      const setOcorrencias = new Set();
+
+      registros.forEach((r) => {
+        const documento = (r.documento || "").trim();
+        if (!documento) return; // se não houver documento, não conta ocorrência
+
+        const usuario = (r.usuario || "").trim();
+        const loja = (r.loja || "").trim();
+        const dataStr = (r.dataHora || "").split(" ")[0] || ""; // só a parte da data (dd/mm/yyyy)
+
+        const chave = `${documento}||${usuario}||${loja}||${dataStr}`;
+        setOcorrencias.add(chave);
+      });
+
+      return setOcorrencias.size;
+    }
+
+    /* ========= COMPARA REGISTROS (FRONT) PARA REMOVER DA BASE LOCAL ========= */
+    function registrosIguais(a, b) {
+      return (
+        (a.dataHora || "") === (b.dataHora || "") &&
+        (a.loja || "") === (b.loja || "") &&
+        (a.usuario || "") === (b.usuario || "") &&
+        (a.ean || "") === (b.ean || "") &&
+        (a.codConsinco || "") === (b.codConsinco || "") &&
+        (a.produto || "") === (b.produto || "") &&
+        (a.departamento || "") === (b.departamento || "") &&
+        (a.secao || "") === (b.secao || "") &&
+        (a.grupo || "") === (b.grupo || "") &&
+        (a.subgrupo || "") === (b.subgrupo || "") &&
+        (a.categoria || "") === (b.categoria || "") &&
+        (a.relatorio || "") === (b.relatorio || "") &&
+        (a.quantidade || "") === (b.quantidade || "") &&
+        (a.valorUnitario || "") === (b.valorUnitario || "") &&
+        (a.documento || "") === (b.documento || "")
+      );
+    }
+
+    /* ========= APLICA FILTROS LOCALMENTE E MONTA TELA ========= */
     function aplicarFiltrosLocal() {
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
       const resumoQtd = document.getElementById("resumoQtd");
       const resumoQtdTotal = document.getElementById("resumoQtdTotal");
       const resumoValorTotal = document.getElementById("resumoValorTotal");
+      const resumoOcorrencias = document.getElementById("resumoOcorrencias");
 
       if (!registrosBase.length) {
         statusEl.textContent = "Base ainda não carregada ou vazia.";
@@ -751,6 +860,7 @@
         resumoQtd.textContent = "";
         resumoQtdTotal.textContent = "0";
         resumoValorTotal.textContent = "0,00";
+        resumoOcorrencias.textContent = "0";
         return;
       }
 
@@ -763,6 +873,7 @@
         registrosAtuais = [];
         resumoQtdTotal.textContent = "0";
         resumoValorTotal.textContent = "0,00";
+        resumoOcorrencias.textContent = "0";
         return;
       }
 
@@ -778,6 +889,9 @@
         totalValor += qtd * vUnit;
       });
 
+      // Contagem de ocorrências conforme regra definida
+      const qtdOcorrencias = contarOcorrencias(registros);
+
       statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
       resumoQtd.textContent = `Total de registros retornados: ${registros.length}`;
 
@@ -786,13 +900,13 @@
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
+      resumoOcorrencias.textContent = qtdOcorrencias.toLocaleString("pt-BR");
 
-      /* ==== MONTA OS CARTÕES, INCLUINDO O VALOR TOTAL POR LINHA (NOVO) ==== */
+      /* ==== MONTA OS CARTÕES, INCLUINDO VALOR TOTAL E BOTÃO EXCLUIR ==== */
       listaEl.innerHTML = registros
-        .map((r) => {
+        .map((r, index) => {
           const relatorioFormatado = r.relatorio || "-";
 
-          // calcula total da linha apenas se houver qtd e valor unitário preenchidos
           let totalLinhaFormatado = "";
           if (r.quantidade && r.valorUnitario) {
             const qtdNum = parseNumeroBr(r.quantidade);
@@ -862,8 +976,14 @@
               </div>
               <div class="cartao-divisoria"></div>
               <div class="cartao-observacao">
-                <div class="obs-titulo">Observação / Relatório:</div>
+                <div class="obs-titulo">Relatório:</div>
                 <div class="obs-texto">${relatorioFormatado}</div>
+              </div>
+              <!-- AÇÕES DO CARTÃO: BOTÃO EXCLUIR (NOVO) -->
+              <div class="cartao-actions">
+                <button class="btn-excluir" onclick="abrirModalExcluir(${index})">
+                  Excluir
+                </button>
               </div>
             </div>
           `;
@@ -872,6 +992,7 @@
       /* =============================================================== */
     }
 
+    /* ========= LIMPAR FILTROS ========= */
     function limparFiltros() {
       document.getElementById("filtroLoja").value = "";
       document.getElementById("filtroUsuario").value = "";
@@ -883,6 +1004,7 @@
       aplicarFiltrosLocal();
     }
 
+    /* ========= MODAL DE DOWNLOAD ========= */
     function abrirModalDownload() {
       if (!registrosAtuais || !registrosAtuais.length) {
         alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
@@ -900,9 +1022,65 @@
       exportarParaXlsx(registrosAtuais);
     }
 
-    /* ==== EXPORTAÇÃO COM COLUNA O = VALOR TOTAL E P = DOCUMENTO (NOVO) ==== */
+    /* ========= MODAL DE EXCLUSÃO (NOVO) ========= */
+    function abrirModalExcluir(index) {
+      // Guarda o registro selecionado para exclusão
+      registroParaExcluir = registrosAtuais[index] || null;
+      if (!registroParaExcluir) return;
+      document.getElementById("modalExcluir").style.display = "flex";
+    }
+
+    function fecharModalExcluir() {
+      registroParaExcluir = null;
+      document.getElementById("modalExcluir").style.display = "none";
+    }
+
+    /* ========= CONFIRMAR EXCLUSÃO (CHAMA API /api/relatorios-excluir) ========= */
+    async function confirmarExclusaoRegistro() {
+      const statusEl = document.getElementById("status");
+
+      if (!registroParaExcluir) {
+        fecharModalExcluir();
+        return;
+      }
+
+      const payload = { registro: registroParaExcluir };
+
+      try {
+        statusEl.textContent = "Excluindo registro...";
+        const resp = await fetch("/api/relatorios-excluir", {
+          method: "POST", // uso POST para exclusão, conforme combinado nesta rota
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const dados = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || !dados.sucesso) {
+          statusEl.textContent =
+            dados.message || "Erro ao excluir registro.";
+          fecharModalExcluir();
+          return;
+        }
+
+        // Remove da base em memória (registrosBase e registrosAtuais) para refletir na tela
+        registrosBase = registrosBase.filter((reg) => !registrosIguais(reg, registroParaExcluir));
+        registrosAtuais = registrosAtuais.filter((reg) => !registrosIguais(reg, registroParaExcluir));
+
+        statusEl.textContent = "Registro excluído com sucesso.";
+        fecharModalExcluir();
+
+        // Atualiza os cards e a lista com a base já sem o registro
+        aplicarFiltrosLocal();
+      } catch (erro) {
+        console.error("Erro ao excluir registro:", erro);
+        statusEl.textContent = "Erro de conexão ao excluir registro.";
+        fecharModalExcluir();
+      }
+    }
+
+    /* ==== EXPORTAÇÃO COM COLUNA O = VALOR TOTAL E P = DOCUMENTO ==== */
     function exportarParaXlsx(registros) {
-      // A=1 ... O=15, P=16
       const cabecalho = [
         "Data/Hora",                    // A
         "Loja",                         // B
@@ -918,8 +1096,8 @@
         "Relatório / Observação",       // L
         "Quantidade",                   // M
         "Valor unitário",               // N
-        "Valor total (Qtd x Unit)",     // O  ← NOVO
-        "Documento",                    // P  ← continua Documento, só mudou a posição
+        "Valor total (Qtd x Unit)",     // O
+        "Documento",                    // P
       ];
 
       const linhas = registros.map((r) => {
@@ -962,7 +1140,6 @@
       XLSX.utils.book_append_sheet(wb, ws, "Relatorios PPP");
       XLSX.writeFile(wb, "relatorios_ppp.xlsx");
     }
-    /* =================================================================== */
   </script>
 </body>
 </html>
