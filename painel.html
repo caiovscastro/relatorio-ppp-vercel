@@ -237,6 +237,37 @@
       background: #fff;
     }
 
+    /* ===================== NOVO (Documento + botão na mesma linha) ===================== */
+    .doc-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .btn-nova-ocorrencia {
+      white-space: nowrap;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .btn-nova-ocorrencia:hover {
+      background: #3d8f41;
+    }
+
+    /* Campo documento não editável com aparência sutil */
+    .input-readonly {
+      background: #f3f3f3;
+      cursor: not-allowed;
+    }
+    /* ================================================================================ */
+
     #status {
       font-size: 13px;
       margin-top: 4px;
@@ -438,6 +469,18 @@
       background: #e0e0e0;
       color: #333;
     }
+
+    /* ===================== NOVO (Popup "Nova ocorrência") ===================== */
+    #confirmOverlayNovaOcorrencia {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001; /* acima do outro overlay */
+    }
+    /* ======================================================================== */
   </style>
 </head>
 
@@ -469,6 +512,18 @@
       </div>
     </div>
   </div>
+
+  <!-- ===================== NOVO: POPUP CONFIRMAÇÃO "NOVA OCORRÊNCIA" ===================== -->
+  <div id="confirmOverlayNovaOcorrencia">
+    <div class="confirm-box">
+      <p>Você realmente quer lançar uma nova ocorrência?</p>
+      <div class="confirm-buttons">
+        <button class="btnConfirmar" onclick="confirmarNovaOcorrencia(true)">Sim</button>
+        <button class="btnCancelar" onclick="confirmarNovaOcorrencia(false)">Não</button>
+      </div>
+    </div>
+  </div>
+  <!-- ================================================================================ -->
 
   <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
   <div id="appRoot" class="container" style="display: none;">
@@ -556,14 +611,26 @@
 
           <div class="campo-inline">
             <label for="numeroDocumento">Nº de Doc:</label>
-            <input
-              id="numeroDocumento"
-              class="input-inline"
-              type="text"
-              inputmode="numeric"
-              placeholder="Número"
-              oninput="this.value = this.value.replace(/[^0-9]/g, '');"
-            />
+
+            <!-- ===================== NOVO: input readonly + botão "Nova ocorrência" ===================== -->
+            <div class="doc-row">
+              <input
+                id="numeroDocumento"
+                class="input-inline input-readonly"
+                type="text"
+                placeholder="Gerado automaticamente"
+                readonly
+                aria-readonly="true"
+              />
+              <button
+                type="button"
+                class="btn-nova-ocorrencia"
+                onclick="abrirModalNovaOcorrencia()"
+              >
+                Nova ocorrência
+              </button>
+            </div>
+            <!-- ======================================================================================= -->
           </div>
         </div>
 
@@ -624,6 +691,16 @@
       document.getElementById("lojaSpan").textContent    = lojaLogada;
 
       document.getElementById("appRoot").style.display = "block";
+
+      /* ===================== NOVO: gera Nº de Doc automaticamente no login =====================
+         Formato solicitado:
+           U4gs131225181337
+           - U4  => loja (ULT 04 -> U4)
+           - gs  => primeira e última letra do usuário (gabriela.alves -> g + s)
+           - 131225 => data ddMMyy
+           - 181337 => hora HHmmss
+      ========================================================================================== */
+      setarNumeroDocumentoGerado();
 
       carregarBase();
     });
@@ -817,7 +894,10 @@
       const obs = document.getElementById("observacao").value.trim();
       const qtd = document.getElementById("quantidade").value.trim();
       const valor = document.getElementById("valorUnitario").value.trim();
+
+      /* ===================== NOVO: doc vem automático e não editável ===================== */
       const doc = document.getElementById("numeroDocumento").value.trim();
+      /* ================================================================================ */
 
       if (!obs) {
         status.textContent =
@@ -836,7 +916,7 @@
       }
 
       if (!doc) {
-        status.textContent = "Preencha o Nº de Documento antes de enviar.";
+        status.textContent = "Nº de Documento não foi gerado. Clique em 'Nova ocorrência'.";
         return;
       }
 
@@ -918,6 +998,11 @@
         document.getElementById("observacao").value = "";
         document.getElementById("quantidade").value = "";
         document.getElementById("valorUnitario").value = "";
+
+        /* ===================== OPCIONAL (não solicitado): manter o mesmo doc após envio =====================
+           Você não pediu para trocar automaticamente depois do envio, então NÃO troquei.
+           Se quiser que após enviar ele gere um novo doc automaticamente, eu ajusto.
+        ================================================================================================ */
       } catch (erro) {
         console.error("Erro ao enviar relatório:", erro);
         status.textContent =
@@ -1019,6 +1104,109 @@
         console.warn("Não foi possível limpar a sessão:", e);
       }
     }
+
+    /* =========================================================================================
+       ===================== NOVO: GERAÇÃO DO NÚMERO DE DOCUMENTO =====================
+
+       Regras:
+       - Prefixo loja:
+         * "ULT 04 - CEI SUL" -> "U4"
+         * "BIG 01 - 106 NORTE" -> "B1" (se você usar BIG nesse painel)
+         Caso não bata no padrão, usa primeira letra da loja + "0".
+
+       - Prefixo usuário:
+         * primeira letra + última letra do usuário (apenas alfanumérico)
+         * "gabriela.alves" -> "gs"
+
+       - Data/hora:
+         * ddMMyy + HHmmss no fuso America/Sao_Paulo
+    ========================================================================================= */
+
+    // Converte data/hora para o fuso de São Paulo de forma estável (sem depender do relógio do navegador “em UTC”)
+    function nowSaoPaulo() {
+      const agora = new Date();
+      // Converte para string no fuso desejado e reinterpreta como Date local
+      // (é a técnica mais compatível para browser puro, sem libs)
+      const dataSP = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+      return dataSP;
+    }
+
+    // Extrai "U4" de "ULT 04 - CEI SUL" e "B1" de "BIG 01 - ..."
+    function gerarPrefixoLoja(lojaStr) {
+      const loja = String(lojaStr || "").trim().toUpperCase();
+
+      // Padrão ULT NN
+      let m = loja.match(/^ULT\s+(\d{1,2})\b/);
+      if (m && m[1]) {
+        const n = String(parseInt(m[1], 10)); // remove zero à esquerda
+        return "U" + n;
+      }
+
+      // Padrão BIG NN (caso você use Big Box aqui também)
+      m = loja.match(/^BIG\s+(\d{1,2})\b/);
+      if (m && m[1]) {
+        const n = String(parseInt(m[1], 10));
+        return "B" + n;
+      }
+
+      // Fallback (não esperado): primeira letra da loja + "0"
+      const primeira = loja ? loja[0] : "X";
+      return primeira + "0";
+    }
+
+    // "gabriela.alves" -> "gs" (primeira e última letra alfanumérica)
+    function gerarPrefixoUsuario(usuarioStr) {
+      const u = String(usuarioStr || "").trim().toLowerCase();
+      const apenas = u.replace(/[^a-z0-9]/g, ""); // remove pontos, espaços etc.
+      if (!apenas) return "xx";
+      const first = apenas[0] || "x";
+      const last = apenas[apenas.length - 1] || "x";
+      return (first + last);
+    }
+
+    function pad2(n) { return String(n).padStart(2, "0"); }
+
+    function gerarNumeroDocumento() {
+      const dt = nowSaoPaulo();
+
+      const dd = pad2(dt.getDate());
+      const mm = pad2(dt.getMonth() + 1);
+      const yy = String(dt.getFullYear()).slice(-2);
+
+      const HH = pad2(dt.getHours());
+      const MI = pad2(dt.getMinutes());
+      const SS = pad2(dt.getSeconds());
+
+      const prefixLoja = gerarPrefixoLoja(lojaLogada);
+      const prefixUser = gerarPrefixoUsuario(usuarioLogado);
+
+      // Ex: U4 + gs + 131225 + 181337
+      return `${prefixLoja}${prefixUser}${dd}${mm}${yy}${HH}${MI}${SS}`;
+    }
+
+    // Seta o valor no input (sempre pelo JS, já que é readonly)
+    function setarNumeroDocumentoGerado() {
+      const el = document.getElementById("numeroDocumento");
+      if (!el) return;
+      el.value = gerarNumeroDocumento();
+    }
+
+    // Abre modal "Nova ocorrência"
+    function abrirModalNovaOcorrencia() {
+      document.getElementById("confirmOverlayNovaOcorrencia").style.display = "flex";
+    }
+
+    // Confirma/nega gerar novo documento
+    function confirmarNovaOcorrencia(confirmado) {
+      const overlay = document.getElementById("confirmOverlayNovaOcorrencia");
+      overlay.style.display = "none";
+
+      if (!confirmado) return;
+
+      // Gera novo documento com data/hora do clique
+      setarNumeroDocumentoGerado();
+    }
+    /* ===================== FIM DO BLOCO NOVO ===================== */
   </script>
 </body>
 </html>
