@@ -586,7 +586,7 @@
         <!-- Quantidade | Valor Unitário | Nº Documento -->
         <div class="linha-infos">
           <div class="campo-inline">
-            <label for="quantidade">Quantidade:</label>
+            <label for="quantidade">Qtd:</label>
             <input
               id="quantidade"
               class="input-inline"
@@ -610,7 +610,7 @@
           </div>
 
           <div class="campo-inline">
-            <label for="numeroDocumento">Nº de Doc:</label>
+            <label for="numeroDocumento">Doc:</label>
 
             <!-- ===================== NOVO: input readonly + botão "Nova ocorrência" ===================== -->
             <div class="doc-row">
@@ -653,560 +653,538 @@
     </div>
   </div>
 
-  <script>
-    let dbProdutos = [];
-    let baseCarregada = false;
-    let lojaLogada = null;
-    let usuarioLogado = null;
-    let ultimosResultados = [];
-    let envioPendente = null;
+<script>
+  let dbProdutos = [];
+  let baseCarregada = false;
+  let lojaLogada = null;
+  let usuarioLogado = null;
+  let ultimosResultados = [];
+  let envioPendente = null;
 
-    let percentual = 0;
-    let timerPercent = null;
+  let percentual = 0;
+  let timerPercent = null;
 
-    let streamAtual = null;
-    let lendo = false;
+  let streamAtual = null;
+  let lendo = false;
 
-    document.addEventListener("DOMContentLoaded", () => {
-      let sessao = null;
+  /* ===================== NOVO: Chave para persistir o documento =====================
+     - localStorage: sobrevive a recarregamento, fechar/abrir navegador etc.
+     - Se você preferir que expire ao fechar a aba, troque localStorage por sessionStorage.
+  ================================================================================ */
+  const STORAGE_DOC_ATUAL = "PPP_DOC_ATUAL";
 
-      try {
-        const raw = localStorage.getItem("pppSession");
-        if (raw) {
-          sessao = JSON.parse(raw);
-        }
-      } catch (e) {
-        console.error("Erro ao ler sessão do localStorage:", e);
+  document.addEventListener("DOMContentLoaded", () => {
+    let sessao = null;
+
+    try {
+      const raw = localStorage.getItem("pppSession");
+      if (raw) {
+        sessao = JSON.parse(raw);
       }
-
-      if (!sessao || !sessao.usuario || !sessao.loja) {
-        document.getElementById("erroAcesso").style.display = "flex";
-        return;
-      }
-
-      usuarioLogado = sessao.usuario;
-      lojaLogada    = sessao.loja;
-
-      document.getElementById("usuarioSpan").textContent = usuarioLogado;
-      document.getElementById("lojaSpan").textContent    = lojaLogada;
-
-      document.getElementById("appRoot").style.display = "block";
-
-      /* ===================== NOVO: gera Nº de Doc automaticamente no login =====================
-         Formato solicitado:
-           U4gs131225181337
-           - U4  => loja (ULT 04 -> U4)
-           - gs  => primeira e última letra do usuário (gabriela.alves -> g + s)
-           - 131225 => data ddMMyy
-           - 181337 => hora HHmmss
-      ========================================================================================== */
-      setarNumeroDocumentoGerado();
-
-      carregarBase();
-    });
-
-    function iniciarLoadingPercentual() {
-      const overlay = document.getElementById("overlayCarregando");
-      const txt = document.getElementById("percentualCarregando");
-
-      overlay.style.display = "flex";
-      percentual = 0;
-      txt.textContent = "0%";
-
-      if (timerPercent) clearInterval(timerPercent);
-
-      timerPercent = setInterval(() => {
-        if (percentual < 95) {
-          percentual += 5;
-          txt.textContent = percentual + "%";
-        }
-      }, 120);
+    } catch (e) {
+      console.error("Erro ao ler sessão do localStorage:", e);
     }
 
-    function finalizarLoadingPercentual() {
-      const txt = document.getElementById("percentualCarregando");
-      const overlay = document.getElementById("overlayCarregando");
-
-      if (timerPercent) clearInterval(timerPercent);
-
-      percentual = 100;
-      txt.textContent = "100%";
-
-      setTimeout(() => {
-        overlay.style.display = "none";
-      }, 300);
+    if (!sessao || !sessao.usuario || !sessao.loja) {
+      document.getElementById("erroAcesso").style.display = "flex";
+      return;
     }
 
-    function mascaraValorUnitario(campo) {
-      let v = campo.value.replace(/\D/g, "");
+    usuarioLogado = sessao.usuario;
+    lojaLogada    = sessao.loja;
 
-      if (!v) {
-        campo.value = "";
-        return;
+    document.getElementById("usuarioSpan").textContent = usuarioLogado;
+    document.getElementById("lojaSpan").textContent    = lojaLogada;
+
+    document.getElementById("appRoot").style.display = "block";
+
+    /* ===================== ALTERADO: Documento NÃO muda ao recarregar =====================
+       Regra:
+       - Se já existe documento salvo, usa o mesmo.
+       - Se não existe, gera 1 vez e salva.
+       - Só troca pelo botão "Nova ocorrência".
+    ====================================================================================== */
+    carregarOuCriarDocumentoPersistente();
+
+    carregarBase();
+  });
+
+  function iniciarLoadingPercentual() {
+    const overlay = document.getElementById("overlayCarregando");
+    const txt = document.getElementById("percentualCarregando");
+
+    overlay.style.display = "flex";
+    percentual = 0;
+    txt.textContent = "0%";
+
+    if (timerPercent) clearInterval(timerPercent);
+
+    timerPercent = setInterval(() => {
+      if (percentual < 95) {
+        percentual += 5;
+        txt.textContent = percentual + "%";
       }
+    }, 120);
+  }
 
-      v = v.replace(/^0+/, "");
-      if (!v) v = "0";
+  function finalizarLoadingPercentual() {
+    const txt = document.getElementById("percentualCarregando");
+    const overlay = document.getElementById("overlayCarregando");
 
-      while (v.length < 3) {
-        v = "0" + v;
-      }
+    if (timerPercent) clearInterval(timerPercent);
 
-      const inteiro = v.slice(0, -2);
-      const centavos = v.slice(-2);
-      const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    percentual = 100;
+    txt.textContent = "100%";
 
-      campo.value = inteiroFormatado + "," + centavos;
-    }
-
-    async function carregarBase() {
-      const status = document.getElementById("status");
-
-      iniciarLoadingPercentual();
-
-      try {
-        status.textContent = "Carregando base de produtos...";
-
-        const resp = await fetch("/api/produtos");
-        const dados = await resp.json();
-
-        if (!resp.ok || !dados.sucesso || !Array.isArray(dados.produtos)) {
-          console.error("Resposta inesperada da API /api/produtos:", dados);
-          throw new Error(dados.message || "Falha ao carregar produtos.");
-        }
-
-        dbProdutos = dados.produtos;
-        baseCarregada = true;
-
-        finalizarLoadingPercentual();
-
-        status.textContent = `Base carregada com ${dbProdutos.length} produtos.`;
-      } catch (err) {
-        console.error("Erro ao carregar base:", err);
-        baseCarregada = false;
-        finalizarLoadingPercentual();
-        status.textContent = "Erro ao carregar base de produtos.";
-      }
-    }
-
-    function buscar() {
-      const campo      = document.getElementById("campoBusca");
-      const termoBruto = campo.value.trim();
-      const status     = document.getElementById("status");
-
-      try {
-        if (!termoBruto) {
-          status.textContent = "Digite ou leia um código para buscar.";
-          return;
-        }
-
-        if (!baseCarregada) {
-          status.textContent = "Aguarde a base terminar de carregar.";
-          return;
-        }
-
-        const termo = termoBruto.toLowerCase();
-
-        const resultados = dbProdutos.filter((linha) => {
-          const ean      = String(linha[0] ?? "").toLowerCase();
-          const consinco = String(linha[1] ?? "").toLowerCase();
-          const produto  = String(linha[2] ?? "").toLowerCase();
-
-          return (
-            ean === termo ||
-            consinco === termo ||
-            produto.includes(termo)
-          );
-        });
-
-        mostrarResultados(resultados);
-
-        status.textContent = `${resultados.length} produto(s) encontrado(s).`;
-      } catch (err) {
-        console.error("Erro na função buscar:", err);
-        status.textContent = "Erro ao realizar a busca.";
-      }
-    }
-
-    function mostrarResultados(lista) {
-      const container = document.getElementById("resultado");
-
-      ultimosResultados = Array.isArray(lista) ? lista : [];
-
-      if (!ultimosResultados.length) {
-        container.innerHTML =
-          '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum resultado encontrado.</p>';
-        return;
-      }
-
-      const html = ultimosResultados
-        .map((linha, idx) => `
-          <div class="cartao" onclick="enviarRelatorio(${idx})">
-            <div class="cartao-linha cartao-linha-produto">
-              <span class="cartao-linha-label">Produto:</span>
-              <span class="cartao-linha-valor">${linha[2] ?? ""}</span>
-            </div>
-            <div class="cartao-linha">
-              <span class="cartao-linha-label">EAN:</span>
-              <span class="cartao-linha-valor">${linha[0] ?? ""}</span>
-            </div>
-            <div class="cartao-linha">
-              <span class="cartao-linha-label">Cód Consinco:</span>
-              <span class="cartao-linha-valor">${linha[1] ?? ""}</span>
-            </div>
-            <div class="cartao-linha">
-              <span class="cartao-linha-label">Departamento:</span>
-              <span class="cartao-linha-valor">${linha[3] ?? ""}</span>
-            </div>
-            <div class="cartao-linha">
-              <span class="cartao-linha-label">Seção:</span>
-              <span class="cartao-linha-valor">${linha[4] ?? ""}</span>
-            </div>
-            <div class="cartao-linha">
-              <span class="cartao-linha-label">Grupo:</span>
-              <span class="cartao-linha-valor">${linha[5] ?? ""}</span>
-            </div>
-            <div class="cartao-linha">
-              <span class="cartao-linha-label">Subgrupo:</span>
-              <span class="cartao-linha-valor">${linha[6] ?? ""}</span>
-            </div>
-            <div class="cartao-linha">
-              <span class="cartao-linha-label">Categoria:</span>
-              <span class="cartao-linha-valor">${linha[7] ?? ""}</span>
-            </div>
-          </div>
-        `)
-        .join("");
-
-      container.innerHTML = html;
-    }
-
-    function enviarRelatorio(idx) {
-      const status = document.getElementById("status");
-
-      if (!ultimosResultados || !ultimosResultados[idx]) {
-        status.textContent =
-          "Não foi possível identificar o produto selecionado.";
-        return;
-      }
-
-      const linhaProduto = ultimosResultados[idx];
-      const obs = document.getElementById("observacao").value.trim();
-      const qtd = document.getElementById("quantidade").value.trim();
-      const valor = document.getElementById("valorUnitario").value.trim();
-
-      /* ===================== NOVO: doc vem automático e não editável ===================== */
-      const doc = document.getElementById("numeroDocumento").value.trim();
-      /* ================================================================================ */
-
-      if (!obs) {
-        status.textContent =
-          "Preencha o relatório antes de enviar.";
-        return;
-      }
-
-      if (!qtd) {
-        status.textContent = "Preencha a quantidade antes de enviar.";
-        return;
-      }
-
-      if (!valor) {
-        status.textContent = "Preencha o valor unitário antes de enviar.";
-        return;
-      }
-
-      if (!doc) {
-        status.textContent = "Nº de Documento não foi gerado. Clique em 'Nova ocorrência'.";
-        return;
-      }
-
-      if (!lojaLogada || !usuarioLogado) {
-        status.textContent = "Sessão inválida. Faça login novamente.";
-        return;
-      }
-
-      if (navigator.vibrate) {
-        navigator.vibrate(80);
-      }
-
-      envioPendente = {
-        linhaProduto,
-        observacao: obs,
-        quantidade: qtd,
-        valorUnitario: valor,
-        numeroDocumento: doc,
-      };
-
-      document.getElementById("confirmOverlay").style.display = "flex";
-    }
-
-    async function confirmarEnvio(confirmado) {
-      const overlay = document.getElementById("confirmOverlay");
-      const status = document.getElementById("status");
-
-      if (!confirmado) {
-        overlay.style.display = "none";
-        envioPendente = null;
-        status.textContent = "Envio cancelado.";
-        return;
-      }
-
-      if (!envioPendente) {
-        overlay.style.display = "none";
-        return;
-      }
-
-      const {
-        linhaProduto,
-        observacao,
-        quantidade,
-        valorUnitario,
-        numeroDocumento,
-      } = envioPendente;
-
-      envioPendente = null;
+    setTimeout(() => {
       overlay.style.display = "none";
+    }, 300);
+  }
 
-      status.textContent = "Enviando relatório...";
+  function mascaraValorUnitario(campo) {
+    let v = campo.value.replace(/\D/g, "");
 
-      try {
-        const resposta = await fetch("/api/relatorio", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            produto: linhaProduto,
-            loja: lojaLogada,
-            usuario: usuarioLogado,
-            observacao,
-            quantidade,
-            valorUnitario,
-            numeroDocumento,
-          }),
-        });
-
-        const dados = await resposta.json().catch(() => ({}));
-
-        if (!resposta.ok || !dados.sucesso) {
-          status.textContent =
-            dados.message || "Erro ao registrar relatório.";
-          return;
-        }
-
-        status.textContent =
-          dados.message || "Relatório registrado com sucesso.";
-
-        document.getElementById("observacao").value = "";
-        document.getElementById("quantidade").value = "";
-        document.getElementById("valorUnitario").value = "";
-
-        /* ===================== OPCIONAL (não solicitado): manter o mesmo doc após envio =====================
-           Você não pediu para trocar automaticamente depois do envio, então NÃO troquei.
-           Se quiser que após enviar ele gere um novo doc automaticamente, eu ajusto.
-        ================================================================================================ */
-      } catch (erro) {
-        console.error("Erro ao enviar relatório:", erro);
-        status.textContent =
-          "Erro de conexão ao enviar relatório.";
-      }
+    if (!v) {
+      campo.value = "";
+      return;
     }
 
-    function abrirCamera() {
-      const area = document.getElementById("cameraArea");
-      const msg = document.getElementById("msgCamera");
-      const video = document.getElementById("video");
+    v = v.replace(/^0+/, "");
+    if (!v) v = "0";
 
-      area.style.display = "block";
-      msg.textContent = "Abrindo câmera...";
+    while (v.length < 3) {
+      v = "0" + v;
+    }
 
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        msg.textContent =
-          "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
+    const inteiro = v.slice(0, -2);
+    const centavos = v.slice(-2);
+    const inteiroFormatado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    campo.value = inteiroFormatado + "," + centavos;
+  }
+
+  async function carregarBase() {
+    const status = document.getElementById("status");
+
+    iniciarLoadingPercentual();
+
+    try {
+      status.textContent = "Carregando base de produtos...";
+
+      const resp = await fetch("/api/produtos");
+      const dados = await resp.json();
+
+      if (!resp.ok || !dados.sucesso || !Array.isArray(dados.produtos)) {
+        console.error("Resposta inesperada da API /api/produtos:", dados);
+        throw new Error(dados.message || "Falha ao carregar produtos.");
+      }
+
+      dbProdutos = dados.produtos;
+      baseCarregada = true;
+
+      finalizarLoadingPercentual();
+
+      status.textContent = `Base carregada com ${dbProdutos.length} produtos.`;
+    } catch (err) {
+      console.error("Erro ao carregar base:", err);
+      baseCarregada = false;
+      finalizarLoadingPercentual();
+      status.textContent = "Erro ao carregar base de produtos.";
+    }
+  }
+
+  function buscar() {
+    const campo      = document.getElementById("campoBusca");
+    const termoBruto = campo.value.trim();
+    const status     = document.getElementById("status");
+
+    try {
+      if (!termoBruto) {
+        status.textContent = "Digite ou leia um código para buscar.";
         return;
       }
 
-      navigator.mediaDevices
-        .getUserMedia({ video: { facingMode: "environment" } })
-        .then((stream) => {
-          streamAtual = stream;
-          video.srcObject = stream;
-          video.play();
-          msg.textContent = "Aponte para o código de barras...";
-          iniciarLeitura(video, msg);
-        })
-        .catch((err) => {
-          msg.textContent = "Erro ao acessar câmera: " + err.message;
-        });
-    }
-
-    async function iniciarLeitura(video, msg) {
-      if (!("BarcodeDetector" in window)) {
-        msg.textContent =
-          "Leitura automática não suportada neste navegador. Digite o código manualmente.";
+      if (!baseCarregada) {
+        status.textContent = "Aguarde a base terminar de carregar.";
         return;
       }
 
-      const detector = new BarcodeDetector({
-        formats: ["ean_13", "ean_8", "code_128"],
+      const termo = termoBruto.toLowerCase();
+
+      const resultados = dbProdutos.filter((linha) => {
+        const ean      = String(linha[0] ?? "").toLowerCase();
+        const consinco = String(linha[1] ?? "").toLowerCase();
+        const produto  = String(linha[2] ?? "").toLowerCase();
+
+        return (
+          ean === termo ||
+          consinco === termo ||
+          produto.includes(termo)
+        );
       });
 
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
+      mostrarResultados(resultados);
 
-      lendo = true;
+      status.textContent = `${resultados.length} produto(s) encontrado(s).`;
+    } catch (err) {
+      console.error("Erro na função buscar:", err);
+      status.textContent = "Erro ao realizar a busca.";
+    }
+  }
 
-      async function scan() {
-        if (!lendo) return;
+  function mostrarResultados(lista) {
+    const container = document.getElementById("resultado");
 
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ultimosResultados = Array.isArray(lista) ? lista : [];
 
-          try {
-            const codes = await detector.detect(canvas);
-
-            if (codes.length > 0) {
-              const code = codes[0].rawValue;
-              msg.textContent = "Detectado: " + code;
-
-              document.getElementById("campoBusca").value = code;
-
-              fecharCamera();
-              buscar();
-              return;
-            }
-          } catch (e) {
-            // Silencia erros do detector
-          }
-        }
-
-        requestAnimationFrame(scan);
-      }
-
-      scan();
+    if (!ultimosResultados.length) {
+      container.innerHTML =
+        '<p style="font-size: 14px; text-align:center; margin-top: 12px;">Nenhum resultado encontrado.</p>';
+      return;
     }
 
-    function fecharCamera() {
-      lendo = false;
+    const html = ultimosResultados
+      .map((linha, idx) => `
+        <div class="cartao" onclick="enviarRelatorio(${idx})">
+          <div class="cartao-linha cartao-linha-produto">
+            <span class="cartao-linha-label">Produto:</span>
+            <span class="cartao-linha-valor">${linha[2] ?? ""}</span>
+          </div>
+          <div class="cartao-linha">
+            <span class="cartao-linha-label">EAN:</span>
+            <span class="cartao-linha-valor">${linha[0] ?? ""}</span>
+          </div>
+          <div class="cartao-linha">
+            <span class="cartao-linha-label">Cód Consinco:</span>
+            <span class="cartao-linha-valor">${linha[1] ?? ""}</span>
+          </div>
+          <div class="cartao-linha">
+            <span class="cartao-linha-label">Departamento:</span>
+            <span class="cartao-linha-valor">${linha[3] ?? ""}</span>
+          </div>
+          <div class="cartao-linha">
+            <span class="cartao-linha-label">Seção:</span>
+            <span class="cartao-linha-valor">${linha[4] ?? ""}</span>
+          </div>
+          <div class="cartao-linha">
+            <span class="cartao-linha-label">Grupo:</span>
+            <span class="cartao-linha-valor">${linha[5] ?? ""}</span>
+          </div>
+          <div class="cartao-linha">
+            <span class="cartao-linha-label">Subgrupo:</span>
+            <span class="cartao-linha-valor">${linha[6] ?? ""}</span>
+          </div>
+          <div class="cartao-linha">
+            <span class="cartao-linha-label">Categoria:</span>
+            <span class="cartao-linha-valor">${linha[7] ?? ""}</span>
+          </div>
+        </div>
+      `)
+      .join("");
 
-      if (streamAtual) {
-        streamAtual.getTracks().forEach((t) => t.stop());
-      }
+    container.innerHTML = html;
+  }
 
-      document.getElementById("video").srcObject = null;
-      document.getElementById("cameraArea").style.display = "none";
+  function enviarRelatorio(idx) {
+    const status = document.getElementById("status");
+
+    if (!ultimosResultados || !ultimosResultados[idx]) {
+      status.textContent = "Não foi possível identificar o produto selecionado.";
+      return;
     }
 
-    function limparSessao() {
-      try {
-        localStorage.removeItem("pppSession");
-      } catch (e) {
-        console.warn("Não foi possível limpar a sessão:", e);
-      }
+    const linhaProduto = ultimosResultados[idx];
+    const obs = document.getElementById("observacao").value.trim();
+    const qtd = document.getElementById("quantidade").value.trim();
+    const valor = document.getElementById("valorUnitario").value.trim();
+
+    // Documento vem persistido
+    const doc = document.getElementById("numeroDocumento").value.trim();
+
+    if (!obs) { status.textContent = "Preencha o relatório antes de enviar."; return; }
+    if (!qtd) { status.textContent = "Preencha a quantidade antes de enviar."; return; }
+    if (!valor) { status.textContent = "Preencha o valor unitário antes de enviar."; return; }
+
+    if (!doc) {
+      status.textContent = "Nº de Documento não foi gerado. Clique em 'Nova ocorrência'.";
+      return;
     }
 
-    /* =========================================================================================
-       ===================== NOVO: GERAÇÃO DO NÚMERO DE DOCUMENTO =====================
-
-       Regras:
-       - Prefixo loja:
-         * "ULT 04 - CEI SUL" -> "U4"
-         * "BIG 01 - 106 NORTE" -> "B1" (se você usar BIG nesse painel)
-         Caso não bata no padrão, usa primeira letra da loja + "0".
-
-       - Prefixo usuário:
-         * primeira letra + última letra do usuário (apenas alfanumérico)
-         * "gabriela.alves" -> "gs"
-
-       - Data/hora:
-         * ddMMyy + HHmmss no fuso America/Sao_Paulo
-    ========================================================================================= */
-
-    // Converte data/hora para o fuso de São Paulo de forma estável (sem depender do relógio do navegador “em UTC”)
-    function nowSaoPaulo() {
-      const agora = new Date();
-      // Converte para string no fuso desejado e reinterpreta como Date local
-      // (é a técnica mais compatível para browser puro, sem libs)
-      const dataSP = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-      return dataSP;
+    if (!lojaLogada || !usuarioLogado) {
+      status.textContent = "Sessão inválida. Faça login novamente.";
+      return;
     }
 
-    // Extrai "U4" de "ULT 04 - CEI SUL" e "B1" de "BIG 01 - ..."
-    function gerarPrefixoLoja(lojaStr) {
-      const loja = String(lojaStr || "").trim().toUpperCase();
+    if (navigator.vibrate) navigator.vibrate(80);
 
-      // Padrão ULT NN
-      let m = loja.match(/^ULT\s+(\d{1,2})\b/);
-      if (m && m[1]) {
-        const n = String(parseInt(m[1], 10)); // remove zero à esquerda
-        return "U" + n;
-      }
+    envioPendente = {
+      linhaProduto,
+      observacao: obs,
+      quantidade: qtd,
+      valorUnitario: valor,
+      numeroDocumento: doc,
+    };
 
-      // Padrão BIG NN (caso você use Big Box aqui também)
-      m = loja.match(/^BIG\s+(\d{1,2})\b/);
-      if (m && m[1]) {
-        const n = String(parseInt(m[1], 10));
-        return "B" + n;
-      }
+    document.getElementById("confirmOverlay").style.display = "flex";
+  }
 
-      // Fallback (não esperado): primeira letra da loja + "0"
-      const primeira = loja ? loja[0] : "X";
-      return primeira + "0";
-    }
+  async function confirmarEnvio(confirmado) {
+    const overlay = document.getElementById("confirmOverlay");
+    const status = document.getElementById("status");
 
-    // "gabriela.alves" -> "gs" (primeira e última letra alfanumérica)
-    function gerarPrefixoUsuario(usuarioStr) {
-      const u = String(usuarioStr || "").trim().toLowerCase();
-      const apenas = u.replace(/[^a-z0-9]/g, ""); // remove pontos, espaços etc.
-      if (!apenas) return "xx";
-      const first = apenas[0] || "x";
-      const last = apenas[apenas.length - 1] || "x";
-      return (first + last);
-    }
-
-    function pad2(n) { return String(n).padStart(2, "0"); }
-
-    function gerarNumeroDocumento() {
-      const dt = nowSaoPaulo();
-
-      const dd = pad2(dt.getDate());
-      const mm = pad2(dt.getMonth() + 1);
-      const yy = String(dt.getFullYear()).slice(-2);
-
-      const HH = pad2(dt.getHours());
-      const MI = pad2(dt.getMinutes());
-      const SS = pad2(dt.getSeconds());
-
-      const prefixLoja = gerarPrefixoLoja(lojaLogada);
-      const prefixUser = gerarPrefixoUsuario(usuarioLogado);
-
-      // Ex: U4 + gs + 131225 + 181337
-      return `${prefixLoja}${prefixUser}${dd}${mm}${yy}${HH}${MI}${SS}`;
-    }
-
-    // Seta o valor no input (sempre pelo JS, já que é readonly)
-    function setarNumeroDocumentoGerado() {
-      const el = document.getElementById("numeroDocumento");
-      if (!el) return;
-      el.value = gerarNumeroDocumento();
-    }
-
-    // Abre modal "Nova ocorrência"
-    function abrirModalNovaOcorrencia() {
-      document.getElementById("confirmOverlayNovaOcorrencia").style.display = "flex";
-    }
-
-    // Confirma/nega gerar novo documento
-    function confirmarNovaOcorrencia(confirmado) {
-      const overlay = document.getElementById("confirmOverlayNovaOcorrencia");
+    if (!confirmado) {
       overlay.style.display = "none";
-
-      if (!confirmado) return;
-
-      // Gera novo documento com data/hora do clique
-      setarNumeroDocumentoGerado();
+      envioPendente = null;
+      status.textContent = "Envio cancelado.";
+      return;
     }
+
+    if (!envioPendente) {
+      overlay.style.display = "none";
+      return;
+    }
+
+    const { linhaProduto, observacao, quantidade, valorUnitario, numeroDocumento } = envioPendente;
+
+    envioPendente = null;
+    overlay.style.display = "none";
+
+    status.textContent = "Enviando relatório...";
+
+    try {
+      const resposta = await fetch("/api/relatorio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          produto: linhaProduto,
+          loja: lojaLogada,
+          usuario: usuarioLogado,
+          observacao,
+          quantidade,
+          valorUnitario,
+          numeroDocumento,
+        }),
+      });
+
+      const dados = await resposta.json().catch(() => ({}));
+
+      if (!resposta.ok || !dados.sucesso) {
+        status.textContent = dados.message || "Erro ao registrar relatório.";
+        return;
+      }
+
+      status.textContent = dados.message || "Relatório registrado com sucesso.";
+
+      document.getElementById("observacao").value = "";
+      document.getElementById("quantidade").value = "";
+      document.getElementById("valorUnitario").value = "";
+    } catch (erro) {
+      console.error("Erro ao enviar relatório:", erro);
+      status.textContent = "Erro de conexão ao enviar relatório.";
+    }
+  }
+
+  function abrirCamera() {
+    const area = document.getElementById("cameraArea");
+    const msg = document.getElementById("msgCamera");
+    const video = document.getElementById("video");
+
+    area.style.display = "block";
+    msg.textContent = "Abrindo câmera...";
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      msg.textContent = "Este dispositivo ou navegador não permite acesso à câmera neste contexto.";
+      return;
+    }
+
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: "environment" } })
+      .then((stream) => {
+        streamAtual = stream;
+        video.srcObject = stream;
+        video.play();
+        msg.textContent = "Aponte para o código de barras...";
+        iniciarLeitura(video, msg);
+      })
+      .catch((err) => {
+        msg.textContent = "Erro ao acessar câmera: " + err.message;
+      });
+  }
+
+  async function iniciarLeitura(video, msg) {
+    if (!("BarcodeDetector" in window)) {
+      msg.textContent = "Leitura automática não suportada neste navegador. Digite o código manualmente.";
+      return;
+    }
+
+    const detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "code_128"] });
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    lendo = true;
+
+    async function scan() {
+      if (!lendo) return;
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        try {
+          const codes = await detector.detect(canvas);
+          if (codes.length > 0) {
+            const code = codes[0].rawValue;
+            msg.textContent = "Detectado: " + code;
+            document.getElementById("campoBusca").value = code;
+            fecharCamera();
+            buscar();
+            return;
+          }
+        } catch (e) {}
+      }
+
+      requestAnimationFrame(scan);
+    }
+
+    scan();
+  }
+
+  function fecharCamera() {
+    lendo = false;
+
+    if (streamAtual) {
+      streamAtual.getTracks().forEach((t) => t.stop());
+    }
+
+    document.getElementById("video").srcObject = null;
+    document.getElementById("cameraArea").style.display = "none";
+  }
+
+  function limparSessao() {
+    try {
+      localStorage.removeItem("pppSession");
+
+      /* ===================== NOVO: ao sair, opcionalmente limpar doc persistido =====================
+         Se você quer que ao sair o doc "morra" e no próximo login gere outro, mantenha isso.
+         Se preferir manter mesmo após sair, remova as 2 linhas abaixo.
+      ============================================================================================== */
+      localStorage.removeItem(STORAGE_DOC_ATUAL);
+    } catch (e) {
+      console.warn("Não foi possível limpar a sessão:", e);
+    }
+  }
+
+  /* ===================== NOVO: POPUP "NOVA OCORRÊNCIA" ===================== */
+  function abrirModalNovaOcorrencia() {
+    document.getElementById("confirmOverlayNovaOcorrencia").style.display = "flex";
+  }
+
+  function confirmarNovaOcorrencia(confirmado) {
+    const overlay = document.getElementById("confirmOverlayNovaOcorrencia");
+    overlay.style.display = "none";
+
+    if (!confirmado) return;
+
+    // Gera novo documento e salva — ÚNICO ponto onde ele muda
+    const novo = gerarNumeroDocumento();
+    salvarDocumentoAtual(novo);
+    setarDocumentoNoInput(novo);
+  }
+
+  /* ===================== NOVO: Persistência do documento ===================== */
+  function salvarDocumentoAtual(doc) {
+    try {
+      localStorage.setItem(STORAGE_DOC_ATUAL, String(doc || ""));
+    } catch (e) {
+      // Se localStorage falhar, ainda assim setamos no input para não bloquear operação
+      console.warn("Falha ao salvar documento no localStorage:", e);
+    }
+  }
+
+  function lerDocumentoAtual() {
+    try {
+      return (localStorage.getItem(STORAGE_DOC_ATUAL) || "").trim();
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function setarDocumentoNoInput(doc) {
+    const el = document.getElementById("numeroDocumento");
+    if (!el) return;
+    el.value = String(doc || "");
+  }
+
+  function carregarOuCriarDocumentoPersistente() {
+    const existente = lerDocumentoAtual();
+
+    if (existente) {
+      // Já havia uma ocorrência em andamento: NÃO muda o documento
+      setarDocumentoNoInput(existente);
+      return;
+    }
+
+    // Primeira vez: gera e salva
+    const novo = gerarNumeroDocumento();
+    salvarDocumentoAtual(novo);
+    setarDocumentoNoInput(novo);
+  }
+
+  /* ===================== GERAÇÃO DO NÚMERO DE DOCUMENTO (mesmo padrão que você aprovou) ===================== */
+  function nowSaoPaulo() {
+    const agora = new Date();
+    const dataSP = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    return dataSP;
+  }
+
+  function gerarPrefixoLoja(lojaStr) {
+    const loja = String(lojaStr || "").trim().toUpperCase();
+
+    let m = loja.match(/^ULT\s+(\d{1,2})\b/);
+    if (m && m[1]) {
+      const n = String(parseInt(m[1], 10));
+      return "U" + n;
+    }
+
+    m = loja.match(/^BIG\s+(\d{1,2})\b/);
+    if (m && m[1]) {
+      const n = String(parseInt(m[1], 10));
+      return "B" + n;
+    }
+
+    const primeira = loja ? loja[0] : "X";
+    return primeira + "0";
+  }
+
+  function gerarPrefixoUsuario(usuarioStr) {
+    const u = String(usuarioStr || "").trim().toLowerCase();
+    const apenas = u.replace(/[^a-z0-9]/g, "");
+    if (!apenas) return "xx";
+    const first = apenas[0] || "x";
+    const last = apenas[apenas.length - 1] || "x";
+    return (first + last);
+  }
+
+  function pad2(n) { return String(n).padStart(2, "0"); }
+
+  function gerarNumeroDocumento() {
+    const dt = nowSaoPaulo();
+
+    const dd = pad2(dt.getDate());
+    const mm = pad2(dt.getMonth() + 1);
+    const yy = String(dt.getFullYear()).slice(-2);
+
+    const HH = pad2(dt.getHours());
+    const MI = pad2(dt.getMinutes());
+    const SS = pad2(dt.getSeconds());
+
+    const prefixLoja = gerarPrefixoLoja(lojaLogada);
+    const prefixUser = gerarPrefixoUsuario(usuarioLogado);
+
+    return `${prefixLoja}${prefixUser}${dd}${mm}${yy}${HH}${MI}${SS}`;
+  }
+</script>
     /* ===================== FIM DO BLOCO NOVO ===================== */
-  </script>
+
 </body>
 </html>
