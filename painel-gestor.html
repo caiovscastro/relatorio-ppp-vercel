@@ -1075,66 +1075,82 @@
     }
 
     /* ==== EXPORTAÇÃO COM VALOR TOTAL E DOCUMENTO (SEM ID) ==== */
-    function exportarParaXlsx(registros) {
-      const cabecalho = [
-        "Data/Hora",
-        "Loja",
-        "Usuário",
-        "EAN",
-        "Cod Consinco",
-        "Produto",
-        "Departamento",
-        "Seção",
-        "Grupo",
-        "Subgrupo",
-        "Categoria",
-        "Relatório / Observação",
-        "Quantidade",
-        "Valor unitário",
-        "Valor total (Qtd x Unit)",
-        "Documento",
-      ];
+/* ==== EXPORTAÇÃO (NÚMEROS REAIS NO XLSX) ==== */
+function exportarParaXlsx(registros) {
+  const cabecalho = [
+    "Data/Hora",
+    "Loja",
+    "Usuário",
+    "EAN",
+    "Cod Consinco",
+    "Produto",
+    "Departamento",
+    "Seção",
+    "Grupo",
+    "Subgrupo",
+    "Categoria",
+    "Relatório / Observação",
+    "Quantidade",
+    "Valor unitário",
+    "Valor total (Qtd x Unit)",
+    "Documento",
+  ];
 
-      const linhas = registros.map((r) => {
-        let totalLinhaFormatado = "";
-        if (r.quantidade && r.valorUnitario) {
-          const qtdNum = parseNumeroBr(r.quantidade);
-          const vUnitNum = parseNumeroBr(r.valorUnitario);
-          const totalNum = qtdNum * vUnitNum;
-          totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
-        }
+  // Monta linhas garantindo que:
+  // - Quantidade = number
+  // - Valor unitário = number
+  // - Valor total = number
+  // Isso permite formatação no Excel (moeda, número, etc.)
+  const linhas = registros.map((r) => {
+    const qtdNum = parseNumeroBr(r.quantidade);      // number
+    const vUnitNum = parseNumeroBr(r.valorUnitario); // number
+    const totalNum = qtdNum * vUnitNum;              // number
 
-        return [
-          r.dataHora || "",
-          r.loja || "",
-          r.usuario || "",
-          r.ean || "",
-          r.codConsinco || "",
-          r.produto || "",
-          r.departamento || "",
-          r.secao || "",
-          r.grupo || "",
-          r.subgrupo || "",
-          r.categoria || "",
-          r.relatorio || "",
-          r.quantidade || "",
-          r.valorUnitario || "",
-          totalLinhaFormatado || "",
-          r.documento || "",
-        ];
-      });
+    return [
+      r.dataHora || "",
+      r.loja || "",
+      r.usuario || "",
+      r.ean || "",
+      r.codConsinco || "",
+      r.produto || "",
+      r.departamento || "",
+      r.secao || "",
+      r.grupo || "",
+      r.subgrupo || "",
+      r.categoria || "",
+      r.relatorio || "",
+      qtdNum,                 // <-- NÚMERO (não texto)
+      vUnitNum,               // <-- NÚMERO (não texto)
+      totalNum || 0,          // <-- NÚMERO (não texto)
+      r.documento || "",
+    ];
+  });
 
-      const dados = [cabecalho, ...linhas];
+  const dados = [cabecalho, ...linhas];
 
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(dados);
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(dados);
 
-      XLSX.utils.book_append_sheet(wb, ws, "Relatorios PPP");
-      XLSX.writeFile(wb, "relatorios_ppp.xlsx");
-    }
+  // (Opcional, mas recomendado) define formato numérico nas colunas:
+  // M = Quantidade (13ª), N = Valor Unitário (14ª), O = Valor Total (15ª)
+  // Isso já faz o Excel abrir com cara de número/moeda.
+  // Não altera nada além da exportação.
+  const range = XLSX.utils.decode_range(ws["!ref"]);
+
+  for (let R = 1; R <= range.e.r; R++) { // começa em 1 para pular o cabeçalho
+    const cellQtd  = ws[XLSX.utils.encode_cell({ r: R, c: 12 })]; // M
+    const cellUnit = ws[XLSX.utils.encode_cell({ r: R, c: 13 })]; // N
+    const cellTot  = ws[XLSX.utils.encode_cell({ r: R, c: 14 })]; // O
+
+    if (cellQtd && typeof cellQtd.v === "number")  cellQtd.z  = "#,##0";
+    if (cellUnit && typeof cellUnit.v === "number") cellUnit.z = '"R$" #,##0.00';
+    if (cellTot && typeof cellTot.v === "number")  cellTot.z  = '"R$" #,##0.00';
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, "Relatorios PPP");
+  XLSX.writeFile(wb, "relatorios_ppp.xlsx");
+}
+
   </script>
 </body>
 </html>
