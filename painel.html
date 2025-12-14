@@ -237,7 +237,7 @@
       background: #fff;
     }
 
-    /* ===================== NOVO (Documento + botão na mesma linha) ===================== */
+    /* ===================== Documento + botão (usado no HTML abaixo) ===================== */
     .doc-row {
       display: flex;
       gap: 8px;
@@ -481,6 +481,28 @@
       z-index: 10001; /* acima do outro overlay */
     }
     /* ======================================================================== */
+
+    /* ===================== AJUSTE RESPONSIVO (para não estourar no celular) ===================== */
+    @media (max-width: 600px) {
+      .linha-infos {
+        flex-direction: column;
+      }
+
+      .campo-inline {
+        width: 100%;
+      }
+
+      /* No mobile, o botão vai para baixo do campo (como você pediu) */
+      .doc-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-nova-ocorrencia {
+        width: 100%;
+      }
+    }
+    /* ======================================================================== */
   </style>
 </head>
 
@@ -612,7 +634,7 @@
           <div class="campo-inline">
             <label for="numeroDocumento">Doc:</label>
 
-            <!-- ===================== NOVO: input readonly + botão "Nova ocorrência" ===================== -->
+            <!-- Input readonly + botão (mesmo layout que você pediu: no mobile o botão fica abaixo) -->
             <div class="doc-row">
               <input
                 id="numeroDocumento"
@@ -630,7 +652,6 @@
                 Nova ocorrência
               </button>
             </div>
-            <!-- ======================================================================================= -->
           </div>
         </div>
 
@@ -698,12 +719,12 @@
 
     document.getElementById("appRoot").style.display = "block";
 
-    /* ===================== ALTERADO: Documento NÃO muda ao recarregar =====================
+    /* ===================== Documento NÃO muda ao recarregar =====================
        Regra:
        - Se já existe documento salvo, usa o mesmo.
        - Se não existe, gera 1 vez e salva.
        - Só troca pelo botão "Nova ocorrência".
-    ====================================================================================== */
+    ================================================================================= */
     carregarOuCriarDocumentoPersistente();
 
     carregarBase();
@@ -1066,7 +1087,7 @@
 
       /* ===================== NOVO: ao sair, opcionalmente limpar doc persistido =====================
          Se você quer que ao sair o doc "morra" e no próximo login gere outro, mantenha isso.
-         Se preferir manter mesmo após sair, remova as 2 linhas abaixo.
+         Se preferir manter mesmo após sair, remova a linha abaixo.
       ============================================================================================== */
       localStorage.removeItem(STORAGE_DOC_ATUAL);
     } catch (e) {
@@ -1074,7 +1095,7 @@
     }
   }
 
-  /* ===================== NOVO: POPUP "NOVA OCORRÊNCIA" ===================== */
+  /* ===================== POPUP "NOVA OCORRÊNCIA" ===================== */
   function abrirModalNovaOcorrencia() {
     document.getElementById("confirmOverlayNovaOcorrencia").style.display = "flex";
   }
@@ -1091,7 +1112,7 @@
     setarDocumentoNoInput(novo);
   }
 
-  /* ===================== NOVO: Persistência do documento ===================== */
+  /* ===================== Persistência do documento ===================== */
   function salvarDocumentoAtual(doc) {
     try {
       localStorage.setItem(STORAGE_DOC_ATUAL, String(doc || ""));
