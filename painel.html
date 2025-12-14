@@ -220,6 +220,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
 
     .campo-inline label {
@@ -237,7 +238,7 @@
       background: #fff;
     }
 
-    /* ===================== Documento + botão (usado no HTML abaixo) ===================== */
+    /* ===================== Documento + botão ===================== */
     .doc-row {
       display: flex;
       gap: 8px;
@@ -266,7 +267,6 @@
       background: #f3f3f3;
       cursor: not-allowed;
     }
-    /* ================================================================================ */
 
     #status {
       font-size: 13px;
@@ -480,26 +480,43 @@
       justify-content: center;
       z-index: 10001; /* acima do outro overlay */
     }
-    /* ======================================================================== */
 
-    /* ===================== AJUSTE RESPONSIVO (para não estourar no celular) ===================== */
+    /* ===================== AJUSTE RESPONSIVO (SÓ O QUE VOCÊ PEDIU) =====================
+       Mobile:
+       - Linha 1: Qtd + Valor (na mesma linha)
+       - Linha 2: Doc + Botão (na mesma linha, ou se apertar, pode quebrar só entre eles via doc-row)
+    ======================================================================== */
     @media (max-width: 600px) {
+      /* mantém flex, não deixa tudo vertical */
       .linha-infos {
-        flex-direction: column;
+        flex-wrap: wrap;
       }
 
-      .campo-inline {
-        width: 100%;
+      /* Qtd e Valor ocupam metade da linha cada */
+      .linha-infos .campo-inline:nth-child(1),
+      .linha-infos .campo-inline:nth-child(2) {
+        flex: 0 0 calc(50% - 5px);
       }
 
-      /* No mobile, o botão vai para baixo do campo (como você pediu) */
+      /* Doc ocupa a linha inteira (segunda linha) */
+      .linha-infos .campo-inline:nth-child(3) {
+        flex: 0 0 100%;
+      }
+
+      /* dentro do Doc, input + botão continuam em linha (se precisar quebrar, ajuste aqui) */
       .doc-row {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      /* garante que o input do doc encolha e o botão não estoure */
+      .doc-row input {
+        min-width: 0;
+        flex: 1;
       }
 
       .btn-nova-ocorrencia {
-        width: 100%;
+        flex: 0 0 auto;
       }
     }
     /* ======================================================================== */
@@ -605,7 +622,7 @@
           placeholder="Digite aqui a observação..."
         ></textarea>
 
-        <!-- Quantidade | Valor Unitário | Nº Documento -->
+        <!-- Quantidade | Valor Unitário | Doc + Botão -->
         <div class="linha-infos">
           <div class="campo-inline">
             <label for="quantidade">Qtd:</label>
@@ -634,7 +651,6 @@
           <div class="campo-inline">
             <label for="numeroDocumento">Doc:</label>
 
-            <!-- Input readonly + botão (mesmo layout que você pediu: no mobile o botão fica abaixo) -->
             <div class="doc-row">
               <input
                 id="numeroDocumento"
@@ -688,10 +704,6 @@
   let streamAtual = null;
   let lendo = false;
 
-  /* ===================== NOVO: Chave para persistir o documento =====================
-     - localStorage: sobrevive a recarregamento, fechar/abrir navegador etc.
-     - Se você preferir que expire ao fechar a aba, troque localStorage por sessionStorage.
-  ================================================================================ */
   const STORAGE_DOC_ATUAL = "PPP_DOC_ATUAL";
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -719,14 +731,7 @@
 
     document.getElementById("appRoot").style.display = "block";
 
-    /* ===================== Documento NÃO muda ao recarregar =====================
-       Regra:
-       - Se já existe documento salvo, usa o mesmo.
-       - Se não existe, gera 1 vez e salva.
-       - Só troca pelo botão "Nova ocorrência".
-    ================================================================================= */
     carregarOuCriarDocumentoPersistente();
-
     carregarBase();
   });
 
@@ -918,8 +923,6 @@
     const obs = document.getElementById("observacao").value.trim();
     const qtd = document.getElementById("quantidade").value.trim();
     const valor = document.getElementById("valorUnitario").value.trim();
-
-    // Documento vem persistido
     const doc = document.getElementById("numeroDocumento").value.trim();
 
     if (!obs) { status.textContent = "Preencha o relatório antes de enviar."; return; }
@@ -1084,18 +1087,12 @@
   function limparSessao() {
     try {
       localStorage.removeItem("pppSession");
-
-      /* ===================== NOVO: ao sair, opcionalmente limpar doc persistido =====================
-         Se você quer que ao sair o doc "morra" e no próximo login gere outro, mantenha isso.
-         Se preferir manter mesmo após sair, remova a linha abaixo.
-      ============================================================================================== */
       localStorage.removeItem(STORAGE_DOC_ATUAL);
     } catch (e) {
       console.warn("Não foi possível limpar a sessão:", e);
     }
   }
 
-  /* ===================== POPUP "NOVA OCORRÊNCIA" ===================== */
   function abrirModalNovaOcorrencia() {
     document.getElementById("confirmOverlayNovaOcorrencia").style.display = "flex";
   }
@@ -1106,18 +1103,15 @@
 
     if (!confirmado) return;
 
-    // Gera novo documento e salva — ÚNICO ponto onde ele muda
     const novo = gerarNumeroDocumento();
     salvarDocumentoAtual(novo);
     setarDocumentoNoInput(novo);
   }
 
-  /* ===================== Persistência do documento ===================== */
   function salvarDocumentoAtual(doc) {
     try {
       localStorage.setItem(STORAGE_DOC_ATUAL, String(doc || ""));
     } catch (e) {
-      // Se localStorage falhar, ainda assim setamos no input para não bloquear operação
       console.warn("Falha ao salvar documento no localStorage:", e);
     }
   }
@@ -1140,18 +1134,15 @@
     const existente = lerDocumentoAtual();
 
     if (existente) {
-      // Já havia uma ocorrência em andamento: NÃO muda o documento
       setarDocumentoNoInput(existente);
       return;
     }
 
-    // Primeira vez: gera e salva
     const novo = gerarNumeroDocumento();
     salvarDocumentoAtual(novo);
     setarDocumentoNoInput(novo);
   }
 
-  /* ===================== GERAÇÃO DO NÚMERO DE DOCUMENTO (mesmo padrão que você aprovou) ===================== */
   function nowSaoPaulo() {
     const agora = new Date();
     const dataSP = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
