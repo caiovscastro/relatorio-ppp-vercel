@@ -223,9 +223,9 @@
     */
     .cartao-pareado {
       display: grid;
-      grid-template-columns: 38% 62%;
+      grid-template-columns: 35% 60%;
       align-items: center;
-      padding: 8px 10px;
+      padding: 5px 7px;
       border-right: 1px solid #c7c7c7;
 
       /* Gap controlável via variável (editável individualmente por classe) */
@@ -240,8 +240,8 @@
 
     /* Ajustes individuais solicitados (você pode mexer aqui sem afetar os outros) */
     .pareado-usuario { --gap-pareado: 1px; }  /* Usuário mais perto do título */
-    .pareado-loja    { --gap-pareado: -2px; }  /* Loja mais perto do título */
-    .pareado-doc     { --gap-pareado: -4px; --doc-margin-left: 2px; } /* Doc mais perto do título */
+    .pareado-loja    { --gap-pareado: 1px; }  /* Loja mais perto do título */
+    .pareado-doc     { --gap-pareado: 0px; --doc-margin-left: 0px; } /* Doc mais perto do título */
 
     .cartao-pareado:nth-child(2n) {
       border-right: none;
@@ -279,7 +279,7 @@
 
     /* Distância específica do valor do Documento (controlável individualmente via --doc-margin-left) */
     .valor-documento {
-      margin-left: var(--doc-margin-left, 4px);
+      margin-left: var(--doc-margin-left, 1px);
       display: inline-block;
     }
 
