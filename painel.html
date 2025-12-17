@@ -75,8 +75,8 @@
       font-size: 16px;
     }
 
+    /* ======== BOTÕES ======== */
     .btn-voltar {
-      margin-top: 10px;
       display: inline-block;
       padding: 8px 14px;
       background: #0066ff;
@@ -85,6 +85,10 @@
       text-decoration: none;
       font-size: 14px;
       font-weight: 600;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      user-select: none;
     }
 
     .btn-voltar:hover {
@@ -186,35 +190,19 @@
       justify-content: center;
     }
 
-    .obs-label {
-      font-weight: 600;
-      margin-top: 8px;
-      margin-bottom: 4px;
-    }
-
-    .obs-textarea {
-      width: 100%;
-      box-sizing: border-box;
-      border-radius: 8px;
-      border: 1px solid #c3c3c3;
-      padding: 10px 12px;
-      font-size: 14px;
-      resize: vertical;
-      min-height: 80px;
-      background: #fff;
-    }
-
+    /* ======== LINHA DOS 3 CAMPOS (Qtd, Valor, Doc) ========
+       Pedido: SEMPRE na mesma linha, inclusive celular, e mesmo tamanho. */
     .linha-infos {
       width: 100%;
       display: flex;
       gap: 10px;
       margin-top: 10px;
       margin-bottom: 8px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap; /* força sempre na mesma linha */
     }
 
     .campo-inline {
-      flex: 1;
+      flex: 1 1 0;  /* mesma largura para os 3 */
       display: flex;
       flex-direction: column;
       min-width: 0;
@@ -235,15 +223,27 @@
       background: #fff;
     }
 
-    /* ===================== Documento + botão ===================== */
-    .doc-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      width: 100%;
+    /* Campo documento não editável com aparência sutil */
+    .input-readonly {
+      background: #f3f3f3;
+      cursor: not-allowed;
     }
 
-    /* Botão que antes era "Nova ocorrência" e agora será "Finalizar ocorrência" */
+    /* ======== LINHA DOS BOTÕES (Finalizar e Sair) ========
+       Pedido: na linha abaixo, ambos na mesma linha. */
+    .linha-botoes {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .linha-botoes .btn-voltar,
+    .linha-botoes .btn-nova-ocorrencia {
+      flex: 1 1 0;
+    }
+
+    /* Botão "Finalizar ocorrência" */
     .btn-nova-ocorrencia {
       white-space: nowrap;
       border: none;
@@ -262,11 +262,6 @@
 
     .btn-nova-ocorrencia:disabled {
       opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .input-readonly {
-      background: #f3f3f3;
       cursor: not-allowed;
     }
 
@@ -334,7 +329,7 @@
       font-weight: 700;
     }
 
-    /* ======== NOVO: quando produto já foi guardado na ocorrência, o nome fica verde ======== */
+    /* Quando produto já foi guardado na ocorrência, o nome fica verde */
     .produto-guardado {
       color: #1b5e20 !important;
       font-weight: 800;
@@ -445,16 +440,18 @@
       display: flex;
       gap: 10px;
       justify-content: center;
+      flex-wrap: wrap; /* permite 3 botões sem quebrar feio */
     }
 
     .btnConfirmar,
     .btnCancelar {
-      flex: 1;
+      flex: 1 1 0;
       padding: 8px 6px;
       border-radius: 8px;
       border: none;
       font-size: 14px;
       cursor: pointer;
+      min-width: 120px;
     }
 
     .btnConfirmar {
@@ -467,7 +464,30 @@
       color: #333;
     }
 
-    /* ======== NOVO: botão "Iniciar ocorrência" (visível só após base carregar) ======== */
+    /* Popup de finalização: textarea */
+    .finalizar-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #c3c3c3;
+      padding: 10px 12px;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 90px;
+      background: #fff;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    .finalizar-erro {
+      font-size: 12px;
+      color: #c00000;
+      margin: 6px 0 10px;
+      display: none;
+      text-align: left;
+    }
+
+    /* Botão "Iniciar ocorrência" */
     .btn-iniciar-ocorrencia {
       width: 100%;
       border: none;
@@ -485,35 +505,18 @@
       background: #0050cc;
     }
 
-    /* ======== CONTROLE DE VISIBILIDADE (ocultar todo o restante quando não há ocorrência ativa) ======== */
+    /* Controle de visibilidade */
     .hidden {
       display: none !important;
     }
 
-    /* ===================== RESPONSIVO (mantido como estava) ===================== */
+    /* RESPONSIVO:
+       - Mantém 3 campos na mesma linha (pedido), então não usamos aquele "quebra em 2 linhas" antigo.
+       - Apenas reduz gap e fonte se necessário.
+    */
     @media (max-width: 600px) {
-      .linha-infos { flex-wrap: wrap; }
-
-      .linha-infos .campo-inline:nth-child(1),
-      .linha-infos .campo-inline:nth-child(2) {
-        flex: 0 0 calc(50% - 5px);
-      }
-
-      .linha-infos .campo-inline:nth-child(3) {
-        flex: 0 0 100%;
-      }
-
-      .doc-row {
-        flex-direction: row;
-        align-items: center;
-      }
-
-      .doc-row input {
-        min-width: 0;
-        flex: 1;
-      }
-
-      .btn-nova-ocorrencia { flex: 0 0 auto; }
+      .linha-infos { gap: 8px; }
+      .input-inline { font-size: 13px; }
     }
   </style>
 </head>
@@ -568,6 +571,44 @@
     </div>
   </div>
 
+  <!-- POPUP: Sair (primeira confirmação) -->
+  <div id="overlaySairConfirm" class="overlay-popup" style="z-index:10003;">
+    <div class="confirm-box">
+      <p>Deseja mesmo fechar o aplicativo</p>
+      <div class="confirm-buttons">
+        <button class="btnConfirmar" onclick="confirmarSair(true)">Sim</button>
+        <button class="btnCancelar" onclick="confirmarSair(false)">Não</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: Sair com ocorrência pendente -->
+  <div id="overlaySairPendente" class="overlay-popup" style="z-index:10004;">
+    <div class="confirm-box">
+      <p>Ocorrência pendente de finalização</p>
+      <div class="confirm-buttons">
+        <button class="btnCancelar" onclick="acaoSairPendente('continuar')">Continuar registros</button>
+        <button class="btnConfirmar" onclick="acaoSairPendente('finalizar')">Finalizar ocorrência</button>
+        <button class="btnCancelar" onclick="acaoSairPendente('descartar')" style="background:#ffdddd;color:#900;">
+          Descartar ocorrência
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: Finalizar ocorrência (Relatório obrigatório + confirmar envio) -->
+  <div id="overlayFinalizar" class="overlay-popup" style="z-index:10005;">
+    <div class="confirm-box">
+      <textarea id="finalizarRelatorio" class="finalizar-textarea" placeholder="Relatório (obrigatório)"></textarea>
+      <div id="finalizarErro" class="finalizar-erro">Preencha o relatório para finalizar.</div>
+      <p>Deseja msm Enviar a ocorrência?</p>
+      <div class="confirm-buttons">
+        <button class="btnConfirmar" onclick="confirmarFinalizarOcorrencia(true)">Sim</button>
+        <button class="btnCancelar" onclick="confirmarFinalizarOcorrencia(false)">Não</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
   <div id="appRoot" class="container" style="display: none;">
     <div class="cabecalho">
@@ -582,7 +623,7 @@
     </div>
 
     <div class="conteudo">
-      <!-- ======== NOVO: botão inicial (aparece após base carregar) ======== -->
+      <!-- Botão inicial -->
       <div id="blocoIniciar" class="bloco">
         <button id="btnIniciarOcorrencia" class="btn-iniciar-ocorrencia" type="button" onclick="iniciarOcorrencia()">
           Iniciar ocorrência
@@ -590,18 +631,13 @@
         <div id="statusIniciar" style="text-align:center; font-size:13px; margin-top:10px; color:#333;"></div>
       </div>
 
-      <!-- ======== BLOCO PRINCIPAL (fica oculto até iniciar ocorrência) ======== -->
+      <!-- BLOCO PRINCIPAL (fica oculto até iniciar ocorrência) -->
       <div id="blocoOperacao" class="bloco hidden">
         <h3>Campo de pesquisa</h3>
 
         <!-- Campo de busca -->
         <div class="search-container">
-          <button
-            type="button"
-            class="btnBarcodeLeft"
-            onclick="abrirCamera()"
-            aria-label="Ler código de barras com a câmera"
-          >
+          <button type="button" class="btnBarcodeLeft" onclick="abrirCamera()" aria-label="Ler código de barras com a câmera">
             <span class="icon-barcode-small"></span>
           </button>
 
@@ -612,12 +648,7 @@
             onkeydown="if(event.key === 'Enter'){buscar();}"
           />
 
-          <button
-            type="button"
-            class="btnBuscarIcone"
-            onclick="buscar()"
-            aria-label="Buscar produto"
-          >
+          <button type="button" class="btnBuscarIcone" onclick="buscar()" aria-label="Buscar produto">
             <svg width="22" height="22" viewBox="0 0 24 24"
                  fill="none" stroke="#444" stroke-width="2.2"
                  stroke-linecap="round" stroke-linejoin="round">
@@ -627,15 +658,9 @@
           </button>
         </div>
 
-        <!-- Relatório / Observação -->
-        <div class="obs-label">Relatório / Observação:</div>
-        <textarea
-          id="observacao"
-          class="obs-textarea"
-          placeholder="Digite aqui a observação..."
-        ></textarea>
+        <!-- ======== REMOVIDO: Relatório/Observação (pedido #5) ======== -->
 
-        <!-- Quantidade | Valor Unitário | Doc + Botão -->
+        <!-- Qtd | Valor Unitário | Doc (sempre na mesma linha) -->
         <div class="linha-infos">
           <div class="campo-inline">
             <label for="quantidade">Qtd:</label>
@@ -663,28 +688,26 @@
 
           <div class="campo-inline">
             <label for="numeroDocumento">Doc:</label>
-
-            <div class="doc-row">
-              <input
-                id="numeroDocumento"
-                class="input-inline input-readonly"
-                type="text"
-                placeholder="Gerado automaticamente"
-                readonly
-                aria-readonly="true"
-              />
-              <!-- AGORA: Finalizar ocorrência -->
-              <button
-                id="btnFinalizar"
-                type="button"
-                class="btn-nova-ocorrencia"
-                onclick="finalizarOcorrencia()"
-                disabled
-              >
-                Finalizar ocorrência
-              </button>
-            </div>
+            <input
+              id="numeroDocumento"
+              class="input-inline input-readonly"
+              type="text"
+              placeholder="Gerado automaticamente"
+              readonly
+              aria-readonly="true"
+            />
           </div>
+        </div>
+
+        <!-- Linha de botões (pedido #1): Sair + Finalizar na mesma linha -->
+        <div class="linha-botoes">
+          <button id="btnFinalizar" type="button" class="btn-nova-ocorrencia" onclick="finalizarOcorrencia()" disabled>
+            Finalizar ocorrência
+          </button>
+
+          <button type="button" class="btn-voltar" onclick="solicitarSair()">
+            Sair
+          </button>
         </div>
 
         <div id="status"></div>
@@ -700,18 +723,16 @@
 
       <!-- Resultados da busca (fica oculto até iniciar ocorrência) -->
       <div id="resultado" class="hidden"></div>
-
-      <!-- Botão para sair -->
-      <a href="/index.html" class="btn-voltar" onclick="limparSessao()">Sair</a>
     </div>
   </div>
 
 <script>
   /* =====================================================================================
-     NOVA LÓGICA DE "OCORRÊNCIA":
-     - Usuário inicia ocorrência => gera Documento e abre a UI
+     LÓGICA DE "OCORRÊNCIA":
+     - Iniciar ocorrência => gera Documento e abre UI
      - Clique em produto => acumula em memória/localStorage (não envia imediatamente)
-     - Finalizar => envia lote (todos de uma vez) para /api/relatorio e reseta
+     - Finalizar => pede Relatório obrigatório => confirma => envia lote
+       Observação vai SOMENTE no último item (coluna L) (pedido #4)
      ===================================================================================== */
 
   let dbProdutos = [];
@@ -731,13 +752,13 @@
 
   /* ========= CHAVES DO localStorage (persistência de ocorrência em caso de reload) ========= */
   const STORAGE_OCORRENCIA_ATIVA = "PPP_OCORRENCIA_ATIVA";     // "1" ou ""
-  const STORAGE_DOC_ATUAL        = "PPP_DOC_ATUAL";            // documento atual
+  const STORAGE_DOC_ATUAL        = "PPP_DOC_ATUAL";            // documento atual (completo)
   const STORAGE_ITENS_OCORRENCIA = "PPP_ITENS_OCORRENCIA";     // JSON array de itens
 
   /* ========= ESTADO EM MEMÓRIA (espelha o localStorage) ========= */
   let ocorrenciaAtiva = false;
-  let docAtual = "";
-  let itensOcorrencia = []; // cada item: { produto:[], observacao:"", quantidade:"", valorUnitario:"", numeroDocumento:"", loja:"", usuario:"" }
+  let docAtual = "";                // doc completo (para envio)
+  let itensOcorrencia = [];         // cada item: { produto:[], quantidade:"", valorUnitario:"", numeroDocumento:"", loja:"", usuario:"" }
 
   document.addEventListener("DOMContentLoaded", () => {
     let sessao = null;
@@ -773,7 +794,6 @@
     const resultado = document.getElementById("resultado");
 
     if (!baseCarregada) {
-      // Enquanto base não carrega, mantém botão iniciar desabilitado informando status
       document.getElementById("btnIniciarOcorrencia").disabled = true;
       document.getElementById("statusIniciar").textContent = "Carregando base de produtos...";
       blocoIniciar.classList.remove("hidden");
@@ -786,24 +806,21 @@
     document.getElementById("statusIniciar").textContent = "Base carregada. Inicie uma ocorrência para registrar itens.";
 
     if (ocorrenciaAtiva) {
-      // Mostra operação e resultados; esconde botão iniciar
       blocoIniciar.classList.add("hidden");
       blocoOperacao.classList.remove("hidden");
       resultado.classList.remove("hidden");
     } else {
-      // Esconde tudo e deixa só iniciar
       blocoIniciar.classList.remove("hidden");
       blocoOperacao.classList.add("hidden");
       resultado.classList.add("hidden");
-      // Limpa resultados na tela por segurança visual
       document.getElementById("resultado").innerHTML = "";
       ultimosResultados = [];
     }
 
-    // Atualiza doc no input
+    // Atualiza Doc (mostra apenas últimos 6 no input, pedido #2)
     setarDocumentoNoInput(docAtual);
 
-    // Atualiza estado do botão finalizar
+    // Atualiza botão finalizar
     atualizarBotaoFinalizar();
   }
 
@@ -851,6 +868,18 @@
     docAtual = "";
     itensOcorrencia = [];
     salvarEstadoOcorrencia();
+  }
+
+  function descartarOcorrencia() {
+    // Remove a ocorrência (inclusive persistência), conforme pedido #3 (Descartar)
+    try {
+      localStorage.removeItem(STORAGE_OCORRENCIA_ATIVA);
+      localStorage.removeItem(STORAGE_DOC_ATUAL);
+      localStorage.removeItem(STORAGE_ITENS_OCORRENCIA);
+    } catch (e) {}
+    ocorrenciaAtiva = false;
+    docAtual = "";
+    itensOcorrencia = [];
   }
 
   /* ===================== Loading overlay base ===================== */
@@ -948,14 +977,13 @@
     }
   }
 
-  /* ===================== Popup ocorrência pendente ===================== */
+  /* ===================== Popup ocorrência pendente (ao abrir) ===================== */
   function resolverOcorrenciaPendente(acao) {
     document.getElementById("overlayOcorrenciaPendente").style.display = "none";
 
     if (acao === "continuar") {
-      // Mantém como está e abre tela
       if (!ocorrenciaAtiva) {
-        // Se por algum motivo só tem itens mas não tem doc, cria doc agora
+        // Se tiver itens mas doc não estiver marcado como ativo, força o modo ativo
         docAtual = docAtual || gerarNumeroDocumento();
         ocorrenciaAtiva = true;
         salvarEstadoOcorrencia();
@@ -965,37 +993,36 @@
     }
 
     if (acao === "finalizar") {
-      // Tenta finalizar (se não tiver itens, apenas encerra e reseta)
       if (!itensOcorrencia.length) {
         limparEstadoOcorrencia();
         aplicarModoTela();
         return;
       }
-      finalizarOcorrencia();
+      finalizarOcorrencia(); // abre popup de finalização
     }
   }
 
-  /* ===================== Iniciar / Finalizar ocorrência ===================== */
+  /* ===================== Iniciar ocorrência ===================== */
   function iniciarOcorrencia() {
     const status = document.getElementById("status");
     if (!baseCarregada) return;
 
-    // Cria documento SOMENTE aqui (conforme sua regra)
+    // Documento é gerado SOMENTE aqui
     docAtual = gerarNumeroDocumento();
     ocorrenciaAtiva = true;
 
-    // Reseta lista de itens para nova ocorrência
+    // Nova ocorrência => zera itens
     itensOcorrencia = [];
     salvarEstadoOcorrencia();
 
-    // Ajusta UI
     setarDocumentoNoInput(docAtual);
     atualizarBotaoFinalizar();
     if (status) status.textContent = "Ocorrência iniciada. Pesquise e selecione produtos para registrar.";
     aplicarModoTela();
   }
 
-  async function finalizarOcorrencia() {
+  /* ===================== Finalizar ocorrência (novo fluxo com popup e relatório obrigatório) ===================== */
+  function finalizarOcorrencia() {
     const status = document.getElementById("status");
 
     if (!ocorrenciaAtiva) {
@@ -1004,19 +1031,52 @@
     }
 
     if (!itensOcorrencia.length) {
-      // Regra: só finaliza clicável se tiver itens, mas por segurança tratamos aqui também
       if (status) status.textContent = "Não há itens guardados para lançar.";
       atualizarBotaoFinalizar();
       return;
     }
 
-    // Monta payload de LOTE para a API /api/relatorio
-    // Cada item terá MESMO documento e ID diferente (ID é gerado no servidor)
-    const lote = itensOcorrencia.map((item) => ({
+    // Abre popup com textarea obrigatório + confirmar envio (pedido #4)
+    abrirPopupFinalizar();
+  }
+
+  function abrirPopupFinalizar() {
+    document.getElementById("finalizarRelatorio").value = "";
+    document.getElementById("finalizarErro").style.display = "none";
+    document.getElementById("overlayFinalizar").style.display = "flex";
+  }
+
+  function confirmarFinalizarOcorrencia(confirmado) {
+    const overlay = document.getElementById("overlayFinalizar");
+    const erroEl = document.getElementById("finalizarErro");
+
+    if (!confirmado) {
+      overlay.style.display = "none";
+      return;
+    }
+
+    const rel = document.getElementById("finalizarRelatorio").value.trim();
+    if (!rel) {
+      erroEl.style.display = "block";
+      return;
+    }
+
+    erroEl.style.display = "none";
+    overlay.style.display = "none";
+
+    // Envia lote com observação SOMENTE no último item (coluna L)
+    enviarLoteFinalizacao(rel);
+  }
+
+  async function enviarLoteFinalizacao(relatorioTexto) {
+    const status = document.getElementById("status");
+
+    // Monta lote: todos com observacao "", e o ÚLTIMO com observacao = relatorioTexto
+    const lote = itensOcorrencia.map((item, idx) => ({
       produto: item.produto,
       loja: item.loja,
       usuario: item.usuario,
-      observacao: item.observacao,
+      observacao: (idx === itensOcorrencia.length - 1) ? relatorioTexto : "",
       quantidade: item.quantidade,
       valorUnitario: item.valorUnitario,
       numeroDocumento: item.numeroDocumento,
@@ -1038,10 +1098,9 @@
         return;
       }
 
-      // Sucesso: limpa campos, encerra ocorrência e volta para modo "Iniciar ocorrência"
       if (status) status.textContent = dados.message || "Ocorrência finalizada com sucesso.";
 
-      document.getElementById("observacao").value = "";
+      // Limpa campos
       document.getElementById("quantidade").value = "";
       document.getElementById("valorUnitario").value = "";
       document.getElementById("campoBusca").value = "";
@@ -1100,8 +1159,6 @@
   }
 
   function chaveProduto(linhaProduto) {
-    // Chave estável para bloquear duplicidade dentro da ocorrência.
-    // Usa EAN + COD (quando existir); se um faltar, ainda funciona.
     const ean = String(linhaProduto?.[0] ?? "").trim();
     const cod = String(linhaProduto?.[1] ?? "").trim();
     return (ean + "||" + cod).toLowerCase();
@@ -1122,7 +1179,6 @@
       return;
     }
 
-    // Re-renderiza já aplicando "verde" para produtos guardados
     const html = ultimosResultados
       .map((linha, idx) => {
         const guardado = produtoJaNaOcorrencia(linha);
@@ -1192,13 +1248,11 @@
       return;
     }
 
-    // Valida campos obrigatórios
-    const obs = document.getElementById("observacao").value.trim();
+    // Valida campos obrigatórios (pedido #5 removeu observação do fluxo)
     const qtd = document.getElementById("quantidade").value.trim();
     const valor = document.getElementById("valorUnitario").value.trim();
 
-    if (!obs) { if (status) status.textContent = "Preencha o relatório antes de adicionar."; return; }
-    if (!qtd) { if (status) status.textContent = "Preencha a quantidade antes de adicionar."; return; }
+    if (!qtd)   { if (status) status.textContent = "Preencha a quantidade antes de adicionar."; return; }
     if (!valor) { if (status) status.textContent = "Preencha o valor unitário antes de adicionar."; return; }
 
     if (!docAtual) {
@@ -1212,7 +1266,6 @@
     // Guarda pendente e abre confirmação
     produtoPendente = {
       produto: linhaProduto,
-      observacao: obs,
       quantidade: qtd,
       valorUnitario: valor,
       numeroDocumento: docAtual,
@@ -1237,23 +1290,22 @@
 
     if (!produtoPendente) return;
 
-    // Adiciona ao lote (memória)
+    // Adiciona ao lote
     itensOcorrencia.push(produtoPendente);
     produtoPendente = null;
 
     // Persiste
     salvarEstadoOcorrencia();
 
-    // Atualiza UI: habilita finalizar e deixa produto verde no resultado
+    // Atualiza UI
     atualizarBotaoFinalizar();
     if (status) status.textContent = `Item adicionado na ocorrência. Total de itens: ${itensOcorrencia.length}.`;
 
-    // Limpa campos (mantém regra original após “enviar/registrar”, só que agora é “guardar”)
-    document.getElementById("observacao").value = "";
+    // Limpa campos (mantém sua lógica de limpeza após registrar)
     document.getElementById("quantidade").value = "";
     document.getElementById("valorUnitario").value = "";
 
-    // Re-renderiza resultados para aplicar “verde” ao produto recém guardado
+    // Re-renderiza resultados para aplicar “verde”
     mostrarResultados(ultimosResultados);
   }
 
@@ -1261,11 +1313,17 @@
     document.getElementById("overlayProdutoDuplicado").style.display = "none";
   }
 
-  /* ===================== Documento (agora gerado somente ao Iniciar ocorrência) ===================== */
+  /* ===================== Documento (mostra apenas últimos 6, mas mantém completo em docAtual) ===================== */
+  function ultimos6(doc) {
+    const s = String(doc || "");
+    return s.length <= 6 ? s : s.slice(-6);
+  }
+
   function setarDocumentoNoInput(doc) {
     const el = document.getElementById("numeroDocumento");
     if (!el) return;
-    el.value = String(doc || "");
+    // Pedido #2: mostrar apenas os 6 últimos dígitos
+    el.value = ultimos6(doc);
   }
 
   function nowSaoPaulo() {
@@ -1398,24 +1456,65 @@
     document.getElementById("cameraArea").style.display = "none";
   }
 
+  /* ===================== Sair (novo fluxo com popups) ===================== */
+  function solicitarSair() {
+    // Abre popup 1 (pedido #3)
+    document.getElementById("overlaySairConfirm").style.display = "flex";
+  }
+
+  function confirmarSair(confirmado) {
+    document.getElementById("overlaySairConfirm").style.display = "none";
+    if (!confirmado) return;
+
+    const temPendente = ocorrenciaAtiva || (Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0);
+
+    if (temPendente) {
+      // Popup 2 (pedido #3)
+      document.getElementById("overlaySairPendente").style.display = "flex";
+      return;
+    }
+
+    // Sem pendência => sai direto
+    sairDoApp();
+  }
+
+  function acaoSairPendente(acao) {
+    document.getElementById("overlaySairPendente").style.display = "none";
+
+    if (acao === "continuar") {
+      // Volta para o app sem sair
+      aplicarModoTela();
+      return;
+    }
+
+    if (acao === "finalizar") {
+      // Abre fluxo de finalização (pedido #3)
+      finalizarOcorrencia();
+      return;
+    }
+
+    if (acao === "descartar") {
+      // Descarta ocorrência e sai (pedido #3)
+      descartarOcorrencia();
+      sairDoApp();
+    }
+  }
+
+  function sairDoApp() {
+    limparSessao();
+    window.location.href = "/index.html";
+  }
+
   /* ===================== Logout / sessão ===================== */
   function limparSessao() {
     try {
       localStorage.removeItem("pppSession");
-
-      // IMPORTANTE: não apagamos ocorrência automaticamente ao sair,
-      // porque você pediu persistência caso recarregue antes de finalizar.
-      // Se quiser apagar também, basta limpar as 3 chaves abaixo.
-      // localStorage.removeItem(STORAGE_OCORRENCIA_ATIVA);
-      // localStorage.removeItem(STORAGE_DOC_ATUAL);
-      // localStorage.removeItem(STORAGE_ITENS_OCORRENCIA);
+      // IMPORTANTE: ocorrência só é apagada quando o usuário escolhe "Descartar ocorrência"
+      // (conforme sua regra). Caso contrário, permanece.
     } catch (e) {
       console.warn("Não foi possível limpar a sessão:", e);
     }
   }
-
-  /* ===================== Inicial: aplica modo tela assim que base estiver pronta ===================== */
-  // Em carregarBase() já chamamos aplicarModoTela() ao final
 </script>
 </body>
 </html>
