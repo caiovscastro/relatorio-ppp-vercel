@@ -122,8 +122,8 @@ function validarRegistroBasico(reg) {
     return "Dados de produto inválidos. Esperado array com pelo menos 8 colunas (EAN, COD, PRODUTO, DEP, SEÇÃO, GRUPO, SUBGRUPO, CATEGORIA).";
   }
   if (!loja || !usuario) return "Loja e usuário são obrigatórios.";
-  if (!observacao || !quantidade || !valorUnitario || !numeroDocumento) {
-    return "Observação, quantidade, valor unitário e número de documento são obrigatórios.";
+  if (!quantidade || !valorUnitario || !numeroDocumento) {
+    return "Quantidade, valor unitário e número de documento são obrigatórios.";
   }
   return null;
 }
