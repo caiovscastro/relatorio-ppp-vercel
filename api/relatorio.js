@@ -22,8 +22,10 @@ const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
+// Conserta quebras de linha da chave privada (vem com "\n" e precisa ser newline de verdade)
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
+// Autenticação com Service Account (escopo de escrita)
 const auth = new google.auth.JWT(
   serviceAccountEmail,
   null,
@@ -33,13 +35,19 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: "v4", auth });
 
+// Controle simples para não recriar cabeçalho a cada requisição
 let headerGarantido = false;
 
+/**
+ * Garante que a aba RELATORIO exista e tenha o cabeçalho correto em A1:P1.
+ * Caso não exista, cria a aba.
+ */
 async function garantirAbaRelatorio() {
   if (headerGarantido) return;
 
   const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
   const sheetsList = spreadsheet.data.sheets || [];
+
   const existeRelatorio = sheetsList.some(
     (s) => s.properties && s.properties.title === "RELATORIO"
   );
@@ -48,13 +56,12 @@ async function garantirAbaRelatorio() {
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: {
-        requests: [
-          { addSheet: { properties: { title: "RELATORIO" } } },
-        ],
+        requests: [{ addSheet: { properties: { title: "RELATORIO" } } }],
       },
     });
   }
 
+  // Cabeçalho (A:P) com ID na coluna P
   const cabecalho = [[
     "DATA/HORA",             // A
     "LOJAS",                 // B
@@ -84,6 +91,10 @@ async function garantirAbaRelatorio() {
   headerGarantido = true;
 }
 
+/**
+ * Gera DATA/HORA no fuso de São Paulo, sem segundos.
+ * Formato: "dd/MM/aaaa HH:mm"
+ */
 function dataHoraSaoPauloSemSegundos() {
   const agora = new Date();
   const options = { timeZone: "America/Sao_Paulo" };
@@ -107,33 +118,48 @@ function gerarIdRegistro() {
   );
 }
 
+/**
+ * Validação mínima por registro.
+ *
+ * IMPORTANTE (conforme sua solicitação):
+ * - Observação (reg.observacao) NÃO é mais obrigatória.
+ */
 function validarRegistroBasico(reg) {
   const {
     produto,
     loja,
     usuario,
-    observacao,
     quantidade,
     valorUnitario,
     numeroDocumento,
   } = reg || {};
 
+  // Produto precisa ser um array com pelo menos 8 colunas (EAN..CATEGORIA)
   if (!Array.isArray(produto) || produto.length < 8) {
     return "Dados de produto inválidos. Esperado array com pelo menos 8 colunas (EAN, COD, PRODUTO, DEP, SEÇÃO, GRUPO, SUBGRUPO, CATEGORIA).";
   }
+
+  // Loja e usuário permanecem obrigatórios (identificação do registro)
   if (!loja || !usuario) return "Loja e usuário são obrigatórios.";
+
+  // Mantém obrigatoriedade de quantidade, valor unitário e documento (como seu fluxo exige)
   if (!quantidade || !valorUnitario || !numeroDocumento) {
     return "Quantidade, valor unitário e número de documento são obrigatórios.";
   }
+
   return null;
 }
 
+/**
+ * Monta a linha exatamente na ordem A:P para inserir na planilha.
+ * Observação vai para a coluna L. Se vier vazia, será gravada vazia (permitido).
+ */
 function montarLinhaPlanilha(reg, dataHora, idRegistro) {
   const {
     produto,
     loja,
     usuario,
-    observacao,
+    observacao,      // pode ser vazio / undefined
     quantidade,
     valorUnitario,
     numeroDocumento,
@@ -151,32 +177,34 @@ function montarLinhaPlanilha(reg, dataHora, idRegistro) {
   ] = produto;
 
   return [
-    dataHora,        // A
-    loja,            // B
-    usuario,         // C
-    ean,             // D
-    codConsinco,     // E
-    nomeProduto,     // F
-    departamento,    // G
-    secao,           // H
-    grupo,           // I
-    subgrupo,        // J
-    categoria,       // K
-    observacao,      // L
-    quantidade,      // M
-    valorUnitario,   // N
-    numeroDocumento, // O
-    idRegistro,      // P
+    dataHora,                // A
+    loja,                    // B
+    usuario,                 // C
+    ean,                     // D
+    codConsinco,             // E
+    nomeProduto,             // F
+    departamento,            // G
+    secao,                   // H
+    grupo,                   // I
+    subgrupo,                // J
+    categoria,               // K
+    observacao || "",        // L  (NÃO obrigatório)
+    quantidade,              // M
+    valorUnitario,           // N
+    numeroDocumento,         // O
+    idRegistro,              // P
   ];
 }
 
 export default async function handler(req, res) {
+  // Só aceitamos POST
   if (req.method !== "POST") {
     return res
       .status(405)
       .json({ sucesso: false, message: "Método não permitido. Use POST." });
   }
 
+  // Confere se as variáveis da Vercel estão presentes
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
       sucesso: false,
@@ -186,9 +214,10 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Garante aba + cabeçalho
     await garantirAbaRelatorio();
 
-    // NOVO: detecta se é lote ou envio unitário
+    // Detecta se é lote ou envio unitário
     const body = req.body || {};
     const lote = Array.isArray(body.lote) ? body.lote : null;
 
@@ -227,9 +256,7 @@ export default async function handler(req, res) {
       range: "RELATORIO!A:A",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
-      requestBody: {
-        values: linhas,
-      },
+      requestBody: { values: linhas },
     });
 
     return res.status(200).json({
