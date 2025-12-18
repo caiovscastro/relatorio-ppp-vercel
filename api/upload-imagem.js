@@ -2,21 +2,20 @@
 // Faz upload de uma imagem (opcional da ocorrência) para uma pasta do Google Drive
 // e retorna um link direto da imagem.
 //
+// Correções aplicadas (mínimas e objetivas):
+// 1) Suporte explícito a Shared Drives (supportsAllDrives) no create/get/permissions.
+// 2) Validação do folderId: confirma que é uma PASTA (mimeType folder).
+// 3) Retorna "prova" (parents/driveId) para diagnosticar onde o arquivo foi parar.
+//
 // Variáveis de ambiente (Vercel) — alinhado com o que está na sua Vercel:
 // - E-MAIL DA CONTA DE SERVIÇO DO GOOGLE   (ou GOOGLE_SERVICE_ACCOUNT_EMAIL)
 // - CHAVE_PRIVADA_DO_GOOGLE                (ou GOOGLE_PRIVATE_KEY)
 // - ID_DA_PASTA_PPP_DA_UNIDADE             (ID da pasta imagens_ppp)
-//
-// Links úteis (docs oficiais):
-// - Vercel env vars: https://vercel.com/docs/projects/environment-variables
-// - Drive files.create: https://developers.google.com/drive/api/reference/rest/v3/files/create
-// - supportsAllDrives: https://developers.google.com/drive/api/guides/shareddrives
-// - Drive permissions.create: https://developers.google.com/drive/api/reference/rest/v3/permissions/create
 
 import { google } from "googleapis";
 import { Readable } from "stream";
 
-// Helper para ler ENV mesmo quando o nome tiver hífen/espaço/acentos
+// Helper robusto para ler ENV com diferentes nomes
 function env(...names) {
   for (const n of names) {
     const v = process.env[n];
@@ -29,12 +28,14 @@ const serviceAccountEmail = env(
   "GOOGLE_SERVICE_ACCOUNT_EMAIL",
   "E-MAIL DA CONTA DE SERVIÇO DO GOOGLE",
   "E-MAIL_DA_CONTA_DE_SERVIÇO_DO_GOOGLE",
-  "E-MAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE"
+  "E-MAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE",
+  "EMAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE" // variações saneadas (caso Vercel normalize)
 );
 
 const privateKeyRaw = env(
   "GOOGLE_PRIVATE_KEY",
-  "CHAVE_PRIVADA_DO_GOOGLE"
+  "CHAVE_PRIVADA_DO_GOOGLE",
+  "CHAVE_PRIVADA_DO_GOOGLE".toUpperCase()
 );
 
 // ✅ Sua Vercel está assim:
@@ -44,7 +45,7 @@ const driveFolderId = env(
 );
 
 // Conserta quebras de linha da chave privada (vem com "\n" e precisa virar newline real)
-const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
+const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : "";
 
 // Auth da Service Account com escopo do Drive
 const auth = new google.auth.JWT(serviceAccountEmail, null, privateKey, [
@@ -81,6 +82,30 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 1) Valida se o folderId é realmente uma pasta acessível pela service account
+    //    supportsAllDrives: essencial se a pasta estiver em Drive Compartilhado.
+    const folderMeta = await drive.files.get({
+      fileId: driveFolderId,
+      fields: "id,name,mimeType,driveId,trashed",
+      supportsAllDrives: true,
+    });
+
+    const mime = folderMeta?.data?.mimeType || "";
+    if (mime !== "application/vnd.google-apps.folder") {
+      return res.status(400).json({
+        sucesso: false,
+        message:
+          "O ID informado em ID_DA_PASTA_PPP_DA_UNIDADE não é uma pasta (folder). Verifique se você copiou o ID da pasta correta.",
+        debug: {
+          driveFolderId,
+          mimeTypeRecebido: mime,
+          nameRecebido: folderMeta?.data?.name || "",
+          driveId: folderMeta?.data?.driveId || null,
+          trashed: !!folderMeta?.data?.trashed,
+        },
+      });
+    }
+
     const body = req.body || {};
     const base64 = String(body.base64 || "").trim();
     const mimeType = String(body.mimeType || "image/jpeg").trim();
@@ -109,46 +134,14 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ 1) Valida se a pasta existe e se a service account consegue ENXERGAR a pasta
-    // Isso dá um erro bem mais claro quando a pasta não foi compartilhada com a service account
-    let folderInfo = null;
-    try {
-      const folderResp = await drive.files.get({
-        fileId: driveFolderId,
-        fields: "id, name, mimeType, driveId",
-        supportsAllDrives: true,
-      });
-      folderInfo = folderResp?.data || null;
-
-      // Pasta deve ser folder
-      if (folderInfo?.mimeType !== "application/vnd.google-apps.folder") {
-        return res.status(500).json({
-          sucesso: false,
-          message: "O ID_DA_PASTA_PPP_DA_UNIDADE não parece ser uma pasta do Drive.",
-          debug: { folderInfo },
-        });
-      }
-    } catch (e) {
-      return res.status(500).json({
-        sucesso: false,
-        message:
-          "A service account não conseguiu acessar a pasta. Verifique se a pasta foi compartilhada com o e-mail da service account (permissão de Editor) e se é Shared Drive.",
-        detalhe: e?.message,
-        debug: {
-          driveFolderId,
-          serviceAccountEmail,
-        },
-      });
-    }
-
     // Nome final no Drive (organiza por DOC quando existir)
     const ts = Date.now();
     const nomeDrive = sanitizeName(
       doc ? `${doc}_${ts}.jpg` : `PPP_${loja}_${usuario}_${ts}.jpg`
     );
 
-    // ✅ 2) Upload no Drive para a pasta informada
-    // supportsAllDrives: true => necessário para Shared Drives
+    // 2) Upload no Drive para a pasta informada
+    //    supportsAllDrives: essencial se a pasta estiver em Shared Drive
     const createResp = await drive.files.create({
       supportsAllDrives: true,
       requestBody: {
@@ -160,12 +153,10 @@ export default async function handler(req, res) {
         mimeType,
         body: Readable.from(buffer),
       },
-      fields: "id, webViewLink",
+      fields: "id,name,parents,driveId,webViewLink",
     });
 
     const fileId = createResp?.data?.id;
-    const webViewLink = createResp?.data?.webViewLink || "";
-
     if (!fileId) {
       return res.status(500).json({
         sucesso: false,
@@ -173,30 +164,23 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ 3) Permissão pública de leitura (para link direto funcionar)
-    // supportsAllDrives: true => necessário para Shared Drives
-    try {
-      await drive.permissions.create({
-        fileId,
-        supportsAllDrives: true,
-        requestBody: { type: "anyone", role: "reader" },
-      });
-    } catch (e) {
-      // Se falhar a permissão pública, ainda devolvemos o webViewLink para diagnóstico.
-      // Mas a URL direta pode não funcionar para outros usuários.
-      return res.status(200).json({
-        sucesso: true,
-        message:
-          "Imagem enviada, mas falhou ao definir permissão pública. Verifique políticas do Drive/Shared Drive.",
-        fileId,
-        imageUrl: "", // não garantimos link direto sem permissão
-        webViewLink,
-        folderId: driveFolderId,
-        nomeDrive,
-        folderInfo,
-        avisoPermissao: e?.message,
-      });
-    }
+    // 3) Permissão pública de leitura (para link direto funcionar)
+    await drive.permissions.create({
+      fileId,
+      supportsAllDrives: true,
+      requestBody: { type: "anyone", role: "reader" },
+    });
+
+    // 4) Busca metadados finais para “prova” (onde está, parents, driveId)
+    const finalMeta = await drive.files.get({
+      fileId,
+      fields: "id,name,parents,driveId,webViewLink",
+      supportsAllDrives: true,
+    });
+
+    const webViewLink = finalMeta?.data?.webViewLink || createResp?.data?.webViewLink || "";
+    const parents = finalMeta?.data?.parents || createResp?.data?.parents || [];
+    const driveId = finalMeta?.data?.driveId || createResp?.data?.driveId || null;
 
     // Link direto para visualização
     const directViewUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
@@ -207,16 +191,20 @@ export default async function handler(req, res) {
       fileId,
       imageUrl: directViewUrl,
       webViewLink,
+      parents,
+      driveId,
       folderId: driveFolderId,
+      folderName: folderMeta?.data?.name || "",
       nomeDrive,
-      folderInfo,
+      filename,
+      tamanhoBytes: buffer.length,
     });
   } catch (erro) {
     console.error("Erro na API /api/upload-imagem:", erro);
     return res.status(500).json({
       sucesso: false,
       message: "Erro ao enviar imagem para o Drive.",
-      detalhe: erro?.message,
+      detalhe: erro?.message || String(erro),
     });
   }
 }
