@@ -4,9 +4,11 @@
 // NOVO:
 // - Agora aceita envio em LOTE: { lote: [ { ...registro }, ... ] }
 // - Mantém compatibilidade com envio unitário antigo.
+// - (SOLICITADO) Suporta imagem opcional: grava a URL na coluna Q (IMAGEM_URL),
+//   normalmente enviada apenas no último item do lote.
 //
 // Fluxo:
-// - Garante que a aba RELATORIO existe e possui cabeçalho em A1:P1.
+// - Garante que a aba RELATORIO existe e possui cabeçalho em A1:Q1.
 // - Gera DATA/HORA em São Paulo.
 // - Gera um ID único (coluna P) para CADA registro.
 // - Insere as linhas na próxima linha disponível (append).
@@ -39,7 +41,7 @@ const sheets = google.sheets({ version: "v4", auth });
 let headerGarantido = false;
 
 /**
- * Garante que a aba RELATORIO exista e tenha o cabeçalho correto em A1:P1.
+ * Garante que a aba RELATORIO exista e tenha o cabeçalho correto em A1:Q1.
  * Caso não exista, cria a aba.
  */
 async function garantirAbaRelatorio() {
@@ -61,7 +63,9 @@ async function garantirAbaRelatorio() {
     });
   }
 
-  // Cabeçalho (A:P) com ID na coluna P
+  // Cabeçalho (A:Q)
+  // Observação: ID permanece na coluna P (como estava).
+  // A coluna Q é a URL da imagem (opcional).
   const cabecalho = [[
     "DATA/HORA",             // A
     "LOJAS",                 // B
@@ -79,11 +83,12 @@ async function garantirAbaRelatorio() {
     "VALOR UNITARIO",        // N
     "DOCUMENTO",             // O
     "ID",                    // P
+    "IMAGEM_URL",            // Q (SOLICITADO)
   ]];
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: "RELATORIO!A1:P1",
+    range: "RELATORIO!A1:Q1",
     valueInputOption: "RAW",
     requestBody: { values: cabecalho },
   });
@@ -121,8 +126,9 @@ function gerarIdRegistro() {
 /**
  * Validação mínima por registro.
  *
- * IMPORTANTE (conforme sua solicitação):
+ * IMPORTANTE (conforme sua solicitação anterior):
  * - Observação (reg.observacao) NÃO é mais obrigatória.
+ * - Imagem (reg.imagemUrl) é opcional.
  */
 function validarRegistroBasico(reg) {
   const {
@@ -151,8 +157,9 @@ function validarRegistroBasico(reg) {
 }
 
 /**
- * Monta a linha exatamente na ordem A:P para inserir na planilha.
+ * Monta a linha exatamente na ordem A:Q para inserir na planilha.
  * Observação vai para a coluna L. Se vier vazia, será gravada vazia (permitido).
+ * Imagem vai na coluna Q. Se vier vazia, grava vazio (permitido).
  */
 function montarLinhaPlanilha(reg, dataHora, idRegistro) {
   const {
@@ -160,6 +167,7 @@ function montarLinhaPlanilha(reg, dataHora, idRegistro) {
     loja,
     usuario,
     observacao,      // pode ser vazio / undefined
+    imagemUrl,       // NOVO: opcional
     quantidade,
     valorUnitario,
     numeroDocumento,
@@ -193,6 +201,7 @@ function montarLinhaPlanilha(reg, dataHora, idRegistro) {
     valorUnitario,           // N
     numeroDocumento,         // O
     idRegistro,              // P
+    imagemUrl || "",         // Q  (OPCIONAL)
   ];
 }
 
@@ -250,7 +259,7 @@ export default async function handler(req, res) {
       return montarLinhaPlanilha(reg, dataHora, idRegistro);
     });
 
-    // Append em lote (1 chamada, várias linhas)
+    // Append em lote (1 chamada, várias linhas) :contentReference[oaicite:12]{index=12}
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: "RELATORIO!A:A",
