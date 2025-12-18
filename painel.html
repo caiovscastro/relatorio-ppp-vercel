@@ -120,7 +120,6 @@
     }
 
     /* ======== BUSCA E CAMPOS ======== */
-
     .search-container {
       width: 100%;
       position: relative;
@@ -190,19 +189,18 @@
       justify-content: center;
     }
 
-    /* ======== LINHA DOS 3 CAMPOS (Qtd, Valor, Doc) ========
-       Pedido: SEMPRE na mesma linha, inclusive celular, e mesmo tamanho. */
+    /* ======== LINHA DOS 3 CAMPOS (Qtd, Valor, Doc) ======== */
     .linha-infos {
       width: 100%;
       display: flex;
       gap: 10px;
       margin-top: 10px;
       margin-bottom: 8px;
-      flex-wrap: nowrap; /* força sempre na mesma linha */
+      flex-wrap: nowrap;
     }
 
     .campo-inline {
-      flex: 1 1 0;  /* mesma largura para os 3 */
+      flex: 1 1 0;
       display: flex;
       flex-direction: column;
       min-width: 0;
@@ -223,14 +221,12 @@
       background: #fff;
     }
 
-    /* Campo documento não editável com aparência sutil */
     .input-readonly {
       background: #f3f3f3;
       cursor: not-allowed;
     }
 
-    /* ======== LINHA DOS BOTÕES (Finalizar e Sair) ========
-       Pedido: na linha abaixo, ambos na mesma linha. */
+    /* ======== LINHA DOS BOTÕES ======== */
     .linha-botoes {
       width: 100%;
       display: flex;
@@ -243,7 +239,6 @@
       flex: 1 1 0;
     }
 
-    /* Botão "Finalizar ocorrência" */
     .btn-nova-ocorrencia {
       white-space: nowrap;
       border: none;
@@ -273,7 +268,6 @@
     }
 
     /* ======== RESULTADOS EM CARTÕES ======== */
-
     #resultado {
       margin-top: 8px;
     }
@@ -329,7 +323,6 @@
       font-weight: 700;
     }
 
-    /* Quando produto já foi guardado na ocorrência, o nome fica verde */
     .produto-guardado {
       color: #1b5e20 !important;
       font-weight: 800;
@@ -341,7 +334,6 @@
     }
 
     /* ======== CÂMERA ======== */
-
     #cameraArea {
       margin-top: 12px;
       display: none;
@@ -370,7 +362,6 @@
     }
 
     /* ======== OVERLAY DE CARREGAMENTO ======== */
-
     #overlayCarregando {
       position: fixed;
       inset: 0;
@@ -409,8 +400,7 @@
       color: #0066ff;
     }
 
-    /* ======== POPUPS (reuso do mesmo estilo) ======== */
-
+    /* ======== POPUPS ======== */
     .overlay-popup {
       position: fixed;
       inset: 0;
@@ -440,7 +430,7 @@
       display: flex;
       gap: 10px;
       justify-content: center;
-      flex-wrap: wrap; /* permite 3 botões sem quebrar feio */
+      flex-wrap: wrap;
     }
 
     .btnConfirmar,
@@ -464,7 +454,6 @@
       color: #333;
     }
 
-    /* Popup de finalização: textarea */
     .finalizar-textarea {
       width: 100%;
       box-sizing: border-box;
@@ -487,7 +476,6 @@
       text-align: left;
     }
 
-    /* === NOVO (solicitado): input de foto opcional no popup de finalização === */
     .finalizar-foto {
       width: 100%;
       box-sizing: border-box;
@@ -508,7 +496,13 @@
       line-height: 1.35;
     }
 
-    /* Botão "Iniciar ocorrência" */
+    /* ✅ NOVO: status específico da foto no popup (mínimo necessário) */
+    .finalizar-foto .foto-status {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #333;
+    }
+
     .btn-iniciar-ocorrencia {
       width: 100%;
       border: none;
@@ -526,15 +520,10 @@
       background: #0050cc;
     }
 
-    /* Controle de visibilidade */
     .hidden {
       display: none !important;
     }
 
-    /* RESPONSIVO:
-       - Mantém 3 campos na mesma linha (pedido), então não usamos aquele "quebra em 2 linhas" antigo.
-       - Apenas reduz gap e fonte se necessário.
-    */
     @media (max-width: 600px) {
       .linha-infos { gap: 8px; }
       .input-inline { font-size: 13px; }
@@ -543,7 +532,6 @@
 </head>
 
 <body>
-  <!-- TELA DE ERRO QUANDO NÃO VIER USUÁRIO/LOJA -->
   <div id="erroAcesso" class="tela-erro" style="display: none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
@@ -553,14 +541,12 @@
     </div>
   </div>
 
-  <!-- OVERLAY DE CARREGAMENTO DA BASE (0→100%) -->
   <div id="overlayCarregando">
     <div class="loader"></div>
     <div class="texto-carregando">Carregando base de produtos...</div>
     <div id="percentualCarregando">0%</div>
   </div>
 
-  <!-- POPUP: "Produto já está na ocorrência" (OK) -->
   <div id="overlayProdutoDuplicado" class="overlay-popup">
     <div class="confirm-box">
       <p>Este produto já está na ocorrência.</p>
@@ -570,7 +556,6 @@
     </div>
   </div>
 
-  <!-- POPUP: "Adicionar este produto na ocorrência?" -->
   <div id="confirmOverlayAdicionar" class="overlay-popup">
     <div class="confirm-box">
       <p>Deseja adicionar este produto na ocorrência atual?</p>
@@ -581,7 +566,6 @@
     </div>
   </div>
 
-  <!-- POPUP: ocorrência pendente ao abrir -->
   <div id="overlayOcorrenciaPendente" class="overlay-popup" style="z-index:10002;">
     <div class="confirm-box">
       <p>Ocorrência ainda não finalizada, deseja finalizar ou continuar registrando?</p>
@@ -592,7 +576,6 @@
     </div>
   </div>
 
-  <!-- POPUP: Sair (primeira confirmação) -->
   <div id="overlaySairConfirm" class="overlay-popup" style="z-index:10003;">
     <div class="confirm-box">
       <p>Deseja mesmo fechar o aplicativo</p>
@@ -603,7 +586,6 @@
     </div>
   </div>
 
-  <!-- POPUP: Sair com ocorrência pendente -->
   <div id="overlaySairPendente" class="overlay-popup" style="z-index:10004;">
     <div class="confirm-box">
       <p>Ocorrência pendente de finalização</p>
@@ -617,21 +599,19 @@
     </div>
   </div>
 
-  <!-- POPUP: Finalizar ocorrência (Relatório obrigatório + confirmar envio) -->
   <div id="overlayFinalizar" class="overlay-popup" style="z-index:10005;">
     <div class="confirm-box">
       <textarea id="finalizarRelatorio" class="finalizar-textarea" placeholder="Relatório (obrigatório)"></textarea>
 
-      <!-- NOVO (solicitado): Foto opcional -->
       <div class="finalizar-foto">
         <label for="fotoOcorrencia" style="font-weight:700; display:block; margin-bottom:6px;">
           Foto (opcional):
         </label>
-        <!-- capture="environment" tende a abrir câmera traseira em mobile quando suportado :contentReference[oaicite:5]{index=5} -->
         <input id="fotoOcorrencia" type="file" accept="image/*" capture="environment" />
-        <small>
-          (É possivel enviar apenas uma imagem por ocorrência).
-        </small>
+        <small>(É possivel enviar apenas uma imagem por ocorrência).</small>
+
+        <!-- ✅ NOVO (mínimo necessário): feedback de upload -->
+        <div id="fotoStatus" class="foto-status"></div>
       </div>
 
       <div id="finalizarErro" class="finalizar-erro">Preencha o relatório para finalizar.</div>
@@ -643,7 +623,6 @@
     </div>
   </div>
 
-  <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
   <div id="appRoot" class="container" style="display: none;">
     <div class="cabecalho">
       <div>
@@ -657,7 +636,6 @@
     </div>
 
     <div class="conteudo">
-      <!-- Botão inicial -->
       <div id="blocoIniciar" class="bloco">
         <button id="btnIniciarOcorrencia" class="btn-iniciar-ocorrencia" type="button" onclick="iniciarOcorrencia()">
           Iniciar ocorrência
@@ -665,11 +643,9 @@
         <div id="statusIniciar" style="text-align:center; font-size:13px; margin-top:10px; color:#333;"></div>
       </div>
 
-      <!-- BLOCO PRINCIPAL (fica oculto até iniciar ocorrência) -->
       <div id="blocoOperacao" class="bloco hidden">
         <h3>Campo de pesquisa</h3>
 
-        <!-- Campo de busca -->
         <div class="search-container">
           <button type="button" class="btnBarcodeLeft" onclick="abrirCamera()" aria-label="Ler código de barras com a câmera">
             <span class="icon-barcode-small"></span>
@@ -692,9 +668,6 @@
           </button>
         </div>
 
-        <!-- ======== REMOVIDO: Relatório/Observação (pedido #5) ======== -->
-
-        <!-- Qtd | Valor Unitário | Doc (sempre na mesma linha) -->
         <div class="linha-infos">
           <div class="campo-inline">
             <label for="quantidade">Qtd:</label>
@@ -733,7 +706,6 @@
           </div>
         </div>
 
-        <!-- Linha de botões (pedido #1): Sair + Finalizar na mesma linha -->
         <div class="linha-botoes">
           <button id="btnFinalizar" type="button" class="btn-nova-ocorrencia" onclick="finalizarOcorrencia()" disabled>
             Finalizar ocorrência
@@ -746,7 +718,6 @@
 
         <div id="status"></div>
 
-        <!-- Área da câmera -->
         <div id="cameraArea">
           <p style="font-size: 13px;">Aponte para o código de barras:</p>
           <video id="video" autoplay playsinline></video>
@@ -755,18 +726,13 @@
         </div>
       </div>
 
-      <!-- Resultados da busca (fica oculto até iniciar ocorrência) -->
       <div id="resultado" class="hidden"></div>
     </div>
   </div>
 
 <script>
   /* =====================================================================================
-     LÓGICA DE "OCORRÊNCIA":
-     - Iniciar ocorrência => gera Documento e abre UI
-     - Clique em produto => acumula em memória/localStorage (não envia imediatamente)
-     - Finalizar => pede Relatório obrigatório => confirma => envia lote
-       Observação vai SOMENTE no último item (coluna L) (pedido #4)
+     LÓGICA DE "OCORRÊNCIA"
      ===================================================================================== */
 
   let dbProdutos = [];
@@ -775,7 +741,6 @@
   let usuarioLogado = null;
   let ultimosResultados = [];
 
-  // Produto selecionado (pendente de confirmação de adicionar)
   let produtoPendente = null;
 
   let percentual = 0;
@@ -784,15 +749,22 @@
   let streamAtual = null;
   let lendo = false;
 
-  /* ========= CHAVES DO localStorage (persistência de ocorrência em caso de reload) ========= */
-  const STORAGE_OCORRENCIA_ATIVA = "PPP_OCORRENCIA_ATIVA";     // "1" ou ""
-  const STORAGE_DOC_ATUAL        = "PPP_DOC_ATUAL";            // documento atual (completo)
-  const STORAGE_ITENS_OCORRENCIA = "PPP_ITENS_OCORRENCIA";     // JSON array de itens
+  /* ========= CHAVES DO localStorage ========= */
+  const STORAGE_OCORRENCIA_ATIVA = "PPP_OCORRENCIA_ATIVA";
+  const STORAGE_DOC_ATUAL        = "PPP_DOC_ATUAL";
+  const STORAGE_ITENS_OCORRENCIA = "PPP_ITENS_OCORRENCIA";
 
-  /* ========= ESTADO EM MEMÓRIA (espelha o localStorage) ========= */
+  /* ✅ NOVO (mínimo necessário):
+     Guarda a URL da imagem (quando enviada) para garantir:
+     - 1 imagem por ocorrência
+     - persistência em caso de reload antes de finalizar
+  */
+  const STORAGE_IMG_URL          = "PPP_IMG_URL";
+
+  /* ========= ESTADO EM MEMÓRIA ========= */
   let ocorrenciaAtiva = false;
-  let docAtual = "";                // doc completo (para envio)
-  let itensOcorrencia = [];         // cada item: { produto:[], quantidade:"", valorUnitario:"", numeroDocumento:"", loja:"", usuario:"" }
+  let docAtual = "";
+  let itensOcorrencia = [];
 
   document.addEventListener("DOMContentLoaded", () => {
     let sessao = null;
@@ -817,11 +789,10 @@
 
     document.getElementById("appRoot").style.display = "block";
 
-    // Carrega base primeiro. Ao finalizar, mostramos apenas "Iniciar ocorrência".
     carregarBase();
   });
 
-  /* ===================== UI helpers (mostrar/ocultar conforme ocorrência) ===================== */
+  /* ===================== UI helpers ===================== */
   function aplicarModoTela() {
     const blocoIniciar = document.getElementById("blocoIniciar");
     const blocoOperacao = document.getElementById("blocoOperacao");
@@ -851,10 +822,7 @@
       ultimosResultados = [];
     }
 
-    // Atualiza Doc (mostra apenas últimos 6 no input, pedido #2)
     setarDocumentoNoInput(docAtual);
-
-    // Atualiza botão finalizar
     atualizarBotaoFinalizar();
   }
 
@@ -871,6 +839,10 @@
       localStorage.setItem(STORAGE_OCORRENCIA_ATIVA, ocorrenciaAtiva ? "1" : "");
       localStorage.setItem(STORAGE_DOC_ATUAL, String(docAtual || ""));
       localStorage.setItem(STORAGE_ITENS_OCORRENCIA, JSON.stringify(itensOcorrencia || []));
+
+      // ✅ mantém o link da imagem (se já tiver sido enviado)
+      const imgUrl = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
+      if (imgUrl) localStorage.setItem(STORAGE_IMG_URL, imgUrl);
     } catch (e) {
       console.warn("Falha ao persistir ocorrência:", e);
     }
@@ -887,7 +859,7 @@
         try { itens = JSON.parse(itensRaw) || []; } catch(e) { itens = []; }
       }
 
-      ocorrenciaAtiva = ativa && !!doc; // só considera ativa se tiver doc
+      ocorrenciaAtiva = ativa && !!doc;
       docAtual = doc || "";
       itensOcorrencia = Array.isArray(itens) ? itens : [];
     } catch (e) {
@@ -901,15 +873,19 @@
     ocorrenciaAtiva = false;
     docAtual = "";
     itensOcorrencia = [];
+
+    // ✅ limpa também a imagem associada à ocorrência
+    try { localStorage.removeItem(STORAGE_IMG_URL); } catch (e) {}
+
     salvarEstadoOcorrencia();
   }
 
   function descartarOcorrencia() {
-    // Remove a ocorrência (inclusive persistência), conforme pedido #3 (Descartar)
     try {
       localStorage.removeItem(STORAGE_OCORRENCIA_ATIVA);
       localStorage.removeItem(STORAGE_DOC_ATUAL);
       localStorage.removeItem(STORAGE_ITENS_OCORRENCIA);
+      localStorage.removeItem(STORAGE_IMG_URL); // ✅ também remove imagem
     } catch (e) {}
     ocorrenciaAtiva = false;
     docAtual = "";
@@ -992,11 +968,10 @@
 
       finalizarLoadingPercentual();
 
-      // Ao terminar de carregar, recupera eventual ocorrência pendente
       carregarEstadoOcorrencia();
 
-      // ===== ALTERAÇÃO SOLICITADA =====
-      // Popup de ocorrência pendente só deve aparecer se já houver item guardado.
+      // ✅ ALTERAÇÃO SOLICITADA:
+      // Popup de ocorrência pendente só aparece se já houver item guardado (NÃO apenas "ocorrência ativa")
       const temItensGuardados = Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0;
       if (temItensGuardados) {
         document.getElementById("overlayOcorrenciaPendente").style.display = "flex";
@@ -1012,13 +987,12 @@
     }
   }
 
-  /* ===================== Popup ocorrência pendente (ao abrir) ===================== */
+  /* ===================== Popup ocorrência pendente ===================== */
   function resolverOcorrenciaPendente(acao) {
     document.getElementById("overlayOcorrenciaPendente").style.display = "none";
 
     if (acao === "continuar") {
       if (!ocorrenciaAtiva) {
-        // Se tiver itens mas doc não estiver marcado como ativo, força o modo ativo
         docAtual = docAtual || gerarNumeroDocumento();
         ocorrenciaAtiva = true;
         salvarEstadoOcorrencia();
@@ -1033,7 +1007,7 @@
         aplicarModoTela();
         return;
       }
-      finalizarOcorrencia(); // abre popup de finalização
+      finalizarOcorrencia();
     }
   }
 
@@ -1042,12 +1016,13 @@
     const status = document.getElementById("status");
     if (!baseCarregada) return;
 
-    // Documento é gerado SOMENTE aqui
     docAtual = gerarNumeroDocumento();
     ocorrenciaAtiva = true;
 
-    // Nova ocorrência => zera itens
+    // Nova ocorrência: zera itens e zera link de imagem (garante 1 por ocorrência)
     itensOcorrencia = [];
+    try { localStorage.removeItem(STORAGE_IMG_URL); } catch (e) {}
+
     salvarEstadoOcorrencia();
 
     setarDocumentoNoInput(docAtual);
@@ -1056,7 +1031,7 @@
     aplicarModoTela();
   }
 
-  /* ===================== Finalizar ocorrência (novo fluxo com popup e relatório obrigatório) ===================== */
+  /* ===================== Finalizar ocorrência ===================== */
   function finalizarOcorrencia() {
     const status = document.getElementById("status");
 
@@ -1071,22 +1046,37 @@
       return;
     }
 
-    // Abre popup com textarea obrigatório + confirmar envio (pedido #4)
     abrirPopupFinalizar();
   }
 
   function abrirPopupFinalizar() {
     document.getElementById("finalizarRelatorio").value = "";
     document.getElementById("finalizarErro").style.display = "none";
-    // Mantém a foto opcional (se o usuário já selecionou antes e reabriu, você pode decidir limpar ou manter)
-    // Aqui mantive como está (sem forçar limpar), por ser opcional.
+
+    // ✅ feedback da foto no popup
+    const fotoStatus = document.getElementById("fotoStatus");
+    if (fotoStatus) fotoStatus.textContent = "";
+
+    // ✅ 1 imagem por ocorrência:
+    // se já existe URL salva, bloqueia novo upload e informa
+    const urlJaEnviada = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
+    const inputFoto = document.getElementById("fotoOcorrencia");
+    if (inputFoto) {
+      inputFoto.value = "";           // limpa seleção atual
+      inputFoto.disabled = !!urlJaEnviada; // trava se já anexou uma imagem nesta ocorrência
+    }
+    if (urlJaEnviada && fotoStatus) {
+      fotoStatus.textContent = "Uma imagem já foi anexada nesta ocorrência.";
+    }
+
     document.getElementById("overlayFinalizar").style.display = "flex";
   }
 
-  // ===== ALTERAÇÃO SOLICITADA: agora é async, pois pode subir foto antes de enviar lote =====
+  // ✅ Agora é async: pode subir foto antes de enviar lote
   async function confirmarFinalizarOcorrencia(confirmado) {
     const overlay = document.getElementById("overlayFinalizar");
     const erroEl = document.getElementById("finalizarErro");
+    const status = document.getElementById("status");
 
     if (!confirmado) {
       overlay.style.display = "none";
@@ -1101,39 +1091,41 @@
 
     erroEl.style.display = "none";
 
-    // Fecha popup antes de processar upload (evita usuário clicar repetidamente)
+    // Fecha popup antes de processar (evita clique repetido)
     overlay.style.display = "none";
 
-    // Se tiver foto selecionada, envia primeiro e obtém o link (opcional)
-    let imagemUrl = "";
+    // ✅ FOTO opcional:
+    // - se usuário escolheu arquivo e ainda não existe imagem enviada, sobe a imagem e pega o link
+    // - se falhar, continua finalização SEM imagem (foto é opcional)
+    let imagemUrl = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
+
     try {
       const file = document.getElementById("fotoOcorrencia")?.files?.[0] || null;
-      if (file) {
-        const status = document.getElementById("status");
-        if (status) status.textContent = "Enviando foto (opcional)...";
 
+      if (file && !imagemUrl) {
+        if (status) status.textContent = "Enviando foto (opcional)...";
         imagemUrl = await enviarFotoParaDriveRetornarUrl(file);
+        // salva para garantir 1 imagem por ocorrência, inclusive em reload
+        localStorage.setItem(STORAGE_IMG_URL, imagemUrl);
       }
     } catch (e) {
       console.error("Falha ao enviar foto:", e);
-      // Foto é opcional: se falhar, a ocorrência continua finalizando sem imagem.
-      // Se você quiser bloquear a finalização caso a foto falhe, aqui seria o ponto.
+      // Foto é opcional: segue sem imagem
     }
 
-    // Envia lote com observação SOMENTE no último item (coluna L)
-    // e imagemUrl SOMENTE no último item (coluna Q)
+    // Envia lote (observação e imagemUrl apenas no último item)
     enviarLoteFinalizacao(rel, imagemUrl);
   }
 
   /**
-   * Faz compressão da foto no CLIENTE (canvas) para evitar estourar o limite de 4.5MB na Vercel. :contentReference[oaicite:6]{index=6}
-   * Retorna objeto com { base64, mimeType, filename }.
+   * Compressão no CLIENTE para evitar estourar limite de payload.
+   * Retorna { base64, mimeType, filename }.
    */
   function comprimirImagemParaBase64(file, opts = {}) {
     const {
       maxWidth = 1280,
       maxHeight = 1280,
-      quality = 0.78, // bom equilíbrio (tamanho x legibilidade)
+      quality = 0.78,
       outputMime = "image/jpeg",
     } = opts;
 
@@ -1146,7 +1138,6 @@
         img.onload = () => {
           let { width, height } = img;
 
-          // Mantém proporção e limita dimensões
           const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
           width = Math.round(width * ratio);
           height = Math.round(height * ratio);
@@ -1159,7 +1150,6 @@
           ctx.drawImage(img, 0, 0, width, height);
 
           const dataUrl = canvas.toDataURL(outputMime, quality);
-          // dataUrl = "data:image/jpeg;base64,...."
           const base64 = dataUrl.split(",")[1] || "";
 
           const safeName = (file.name || "foto.jpg").replace(/[^\w.\-]+/g, "_");
@@ -1172,14 +1162,15 @@
   }
 
   /**
-   * Sobe a foto para o Drive via endpoint /api/upload-imagem e retorna a URL gravável no Sheets.
-   * Observação: foto é opcional; este método lança erro caso o endpoint rejeite, e o caller decide.
+   * Sobe a foto via /api/upload-imagem e retorna a URL.
+   * Mostra feedback em "fotoStatus" (no popup) e também no "status" (principal).
    */
   async function enviarFotoParaDriveRetornarUrl(file) {
-    // 1) comprime localmente
+    const fotoStatus = document.getElementById("fotoStatus");
+    if (fotoStatus) fotoStatus.textContent = "Enviando foto para o Drive...";
+
     const { base64, mimeType, filename } = await comprimirImagemParaBase64(file);
 
-    // 2) chama API
     const payload = {
       base64,
       mimeType,
@@ -1196,18 +1187,24 @@
     });
 
     const dados = await resp.json().catch(() => ({}));
+
+    // ✅ Mostra o retorno no console para depuração (JSON)
+    // Abra F12 > Console e você verá exatamente a resposta do upload.
+    console.log("[PPP] Resposta /api/upload-imagem:", dados);
+
     if (!resp.ok || !dados.sucesso || !dados.imageUrl) {
-      throw new Error(dados.message || "Falha ao enviar imagem.");
+      const msg = dados.message || "Falha ao enviar imagem.";
+      if (fotoStatus) fotoStatus.textContent = msg;
+      throw new Error(msg);
     }
 
+    if (fotoStatus) fotoStatus.textContent = "Foto anexada com sucesso.";
     return String(dados.imageUrl || "");
   }
 
   async function enviarLoteFinalizacao(relatorioTexto, imagemUrl) {
     const status = document.getElementById("status");
 
-    // Monta lote: todos com observacao "", e o ÚLTIMO com observacao = relatorioTexto
-    // e imagemUrl SOMENTE no último item
     const lote = itensOcorrencia.map((item, idx) => ({
       produto: item.produto,
       loja: item.loja,
@@ -1237,13 +1234,20 @@
 
       if (status) status.textContent = dados.message || "Ocorrência finalizada com sucesso.";
 
-      // Limpa campos
       document.getElementById("quantidade").value = "";
       document.getElementById("valorUnitario").value = "";
       document.getElementById("campoBusca").value = "";
 
-      // Limpa foto do popup (opcional)
-      try { document.getElementById("fotoOcorrencia").value = ""; } catch (e) {}
+      // limpa seleção de foto e libera input para próxima ocorrência
+      try {
+        const inputFoto = document.getElementById("fotoOcorrencia");
+        if (inputFoto) {
+          inputFoto.value = "";
+          inputFoto.disabled = false;
+        }
+        const fotoStatus = document.getElementById("fotoStatus");
+        if (fotoStatus) fotoStatus.textContent = "";
+      } catch (e) {}
 
       limparEstadoOcorrencia();
       aplicarModoTela();
@@ -1366,7 +1370,7 @@
     container.innerHTML = html;
   }
 
-  /* ===================== Seleção de produto (acumula na ocorrência) ===================== */
+  /* ===================== Seleção de produto ===================== */
   function selecionarProduto(idx) {
     const status = document.getElementById("status");
 
@@ -1382,13 +1386,11 @@
 
     const linhaProduto = ultimosResultados[idx];
 
-    // Regra: não permitir duplicidade
     if (produtoJaNaOcorrencia(linhaProduto)) {
       document.getElementById("overlayProdutoDuplicado").style.display = "flex";
       return;
     }
 
-    // Valida campos obrigatórios (pedido #5 removeu observação do fluxo)
     const qtd = document.getElementById("quantidade").value.trim();
     const valor = document.getElementById("valorUnitario").value.trim();
 
@@ -1400,10 +1402,8 @@
       return;
     }
 
-    // Vibração (mantida)
     if (navigator.vibrate) navigator.vibrate(80);
 
-    // Guarda pendente e abre confirmação
     produtoPendente = {
       produto: linhaProduto,
       quantidade: qtd,
@@ -1430,22 +1430,17 @@
 
     if (!produtoPendente) return;
 
-    // Adiciona ao lote
     itensOcorrencia.push(produtoPendente);
     produtoPendente = null;
 
-    // Persiste
     salvarEstadoOcorrencia();
 
-    // Atualiza UI
     atualizarBotaoFinalizar();
     if (status) status.textContent = `Item adicionado na ocorrência. Total de itens: ${itensOcorrencia.length}.`;
 
-    // Limpa campos (mantém sua lógica de limpeza após registrar)
     document.getElementById("quantidade").value = "";
     document.getElementById("valorUnitario").value = "";
 
-    // Re-renderiza resultados para aplicar “verde”
     mostrarResultados(ultimosResultados);
   }
 
@@ -1453,7 +1448,7 @@
     document.getElementById("overlayProdutoDuplicado").style.display = "none";
   }
 
-  /* ===================== Documento (mostra apenas últimos 6, mas mantém completo em docAtual) ===================== */
+  /* ===================== Documento ===================== */
   function ultimos6(doc) {
     const s = String(doc || "");
     return s.length <= 6 ? s : s.slice(-6);
@@ -1462,7 +1457,6 @@
   function setarDocumentoNoInput(doc) {
     const el = document.getElementById("numeroDocumento");
     if (!el) return;
-    // Pedido #2: mostrar apenas os 6 últimos dígitos
     el.value = ultimos6(doc);
   }
 
@@ -1519,7 +1513,7 @@
     return `${prefixLoja}${prefixUser}${dd}${mm}${yy}${HH}${MI}${SS}`;
   }
 
-  /* ===================== Câmera (mantido) ===================== */
+  /* ===================== Câmera ===================== */
   function abrirCamera() {
     const area = document.getElementById("cameraArea");
     const msg = document.getElementById("msgCamera");
@@ -1596,9 +1590,8 @@
     document.getElementById("cameraArea").style.display = "none";
   }
 
-  /* ===================== Sair (novo fluxo com popups) ===================== */
+  /* ===================== Sair ===================== */
   function solicitarSair() {
-    // Abre popup 1 (pedido #3)
     document.getElementById("overlaySairConfirm").style.display = "flex";
   }
 
@@ -1606,15 +1599,15 @@
     document.getElementById("overlaySairConfirm").style.display = "none";
     if (!confirmado) return;
 
-    const temPendente = ocorrenciaAtiva || (Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0);
+    // ✅ ALTERAÇÃO SOLICITADA (coerente com seu pedido):
+    // Popup de pendência ao sair só aparece se já houver item guardado.
+    const temPendente = Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0;
 
     if (temPendente) {
-      // Popup 2 (pedido #3)
       document.getElementById("overlaySairPendente").style.display = "flex";
       return;
     }
 
-    // Sem pendência => sai direto
     sairDoApp();
   }
 
@@ -1622,19 +1615,16 @@
     document.getElementById("overlaySairPendente").style.display = "none";
 
     if (acao === "continuar") {
-      // Volta para o app sem sair
       aplicarModoTela();
       return;
     }
 
     if (acao === "finalizar") {
-      // Abre fluxo de finalização (pedido #3)
       finalizarOcorrencia();
       return;
     }
 
     if (acao === "descartar") {
-      // Descarta ocorrência e sai (pedido #3)
       descartarOcorrencia();
       sairDoApp();
     }
@@ -1649,8 +1639,6 @@
   function limparSessao() {
     try {
       localStorage.removeItem("pppSession");
-      // IMPORTANTE: ocorrência só é apagada quando o usuário escolhe "Descartar ocorrência"
-      // (conforme sua regra). Caso contrário, permanece.
     } catch (e) {
       console.warn("Não foi possível limpar a sessão:", e);
     }
