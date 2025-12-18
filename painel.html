@@ -487,6 +487,27 @@
       text-align: left;
     }
 
+    /* === NOVO (solicitado): input de foto opcional no popup de finalização === */
+    .finalizar-foto {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #c3c3c3;
+      padding: 10px 12px;
+      font-size: 13px;
+      background: #fff;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    .finalizar-foto small {
+      display: block;
+      margin-top: 6px;
+      color: #555;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
     /* Botão "Iniciar ocorrência" */
     .btn-iniciar-ocorrencia {
       width: 100%;
@@ -600,6 +621,20 @@
   <div id="overlayFinalizar" class="overlay-popup" style="z-index:10005;">
     <div class="confirm-box">
       <textarea id="finalizarRelatorio" class="finalizar-textarea" placeholder="Relatório (obrigatório)"></textarea>
+
+      <!-- NOVO (solicitado): Foto opcional -->
+      <div class="finalizar-foto">
+        <label for="fotoOcorrencia" style="font-weight:700; display:block; margin-bottom:6px;">
+          Foto (opcional):
+        </label>
+        <!-- capture="environment" tende a abrir câmera traseira em mobile quando suportado :contentReference[oaicite:5]{index=5} -->
+        <input id="fotoOcorrencia" type="file" accept="image/*" capture="environment" />
+        <small>
+          Se você anexar uma foto, ela será enviada para o Drive e o link será gravado na coluna Q do relatório
+          (somente na última linha do lote).
+        </small>
+      </div>
+
       <div id="finalizarErro" class="finalizar-erro">Preencha o relatório para finalizar.</div>
       <p>Deseja msm Enviar a ocorrência?</p>
       <div class="confirm-buttons">
@@ -961,9 +996,10 @@
       // Ao terminar de carregar, recupera eventual ocorrência pendente
       carregarEstadoOcorrencia();
 
-      // Se houver ocorrência ativa e/ou itens salvos, exibe popup de decisão
-      const temPendente = ocorrenciaAtiva || (Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0);
-      if (temPendente) {
+      // ===== ALTERAÇÃO SOLICITADA =====
+      // Popup de ocorrência pendente só deve aparecer se já houver item guardado.
+      const temItensGuardados = Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0;
+      if (temItensGuardados) {
         document.getElementById("overlayOcorrenciaPendente").style.display = "flex";
       }
 
@@ -1043,10 +1079,13 @@
   function abrirPopupFinalizar() {
     document.getElementById("finalizarRelatorio").value = "";
     document.getElementById("finalizarErro").style.display = "none";
+    // Mantém a foto opcional (se o usuário já selecionou antes e reabriu, você pode decidir limpar ou manter)
+    // Aqui mantive como está (sem forçar limpar), por ser opcional.
     document.getElementById("overlayFinalizar").style.display = "flex";
   }
 
-  function confirmarFinalizarOcorrencia(confirmado) {
+  // ===== ALTERAÇÃO SOLICITADA: agora é async, pois pode subir foto antes de enviar lote =====
+  async function confirmarFinalizarOcorrencia(confirmado) {
     const overlay = document.getElementById("overlayFinalizar");
     const erroEl = document.getElementById("finalizarErro");
 
@@ -1062,21 +1101,120 @@
     }
 
     erroEl.style.display = "none";
+
+    // Fecha popup antes de processar upload (evita usuário clicar repetidamente)
     overlay.style.display = "none";
 
+    // Se tiver foto selecionada, envia primeiro e obtém o link (opcional)
+    let imagemUrl = "";
+    try {
+      const file = document.getElementById("fotoOcorrencia")?.files?.[0] || null;
+      if (file) {
+        const status = document.getElementById("status");
+        if (status) status.textContent = "Enviando foto (opcional) para o Drive...";
+
+        imagemUrl = await enviarFotoParaDriveRetornarUrl(file);
+      }
+    } catch (e) {
+      console.error("Falha ao enviar foto:", e);
+      // Foto é opcional: se falhar, a ocorrência continua finalizando sem imagem.
+      // Se você quiser bloquear a finalização caso a foto falhe, aqui seria o ponto.
+    }
+
     // Envia lote com observação SOMENTE no último item (coluna L)
-    enviarLoteFinalizacao(rel);
+    // e imagemUrl SOMENTE no último item (coluna Q)
+    enviarLoteFinalizacao(rel, imagemUrl);
   }
 
-  async function enviarLoteFinalizacao(relatorioTexto) {
+  /**
+   * Faz compressão da foto no CLIENTE (canvas) para evitar estourar o limite de 4.5MB na Vercel. :contentReference[oaicite:6]{index=6}
+   * Retorna objeto com { base64, mimeType, filename }.
+   */
+  function comprimirImagemParaBase64(file, opts = {}) {
+    const {
+      maxWidth = 1280,
+      maxHeight = 1280,
+      quality = 0.78, // bom equilíbrio (tamanho x legibilidade)
+      outputMime = "image/jpeg",
+    } = opts;
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Falha ao ler arquivo da foto."));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error("Falha ao carregar imagem para compressão."));
+        img.onload = () => {
+          let { width, height } = img;
+
+          // Mantém proporção e limita dimensões
+          const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL(outputMime, quality);
+          // dataUrl = "data:image/jpeg;base64,...."
+          const base64 = dataUrl.split(",")[1] || "";
+
+          const safeName = (file.name || "foto.jpg").replace(/[^\w.\-]+/g, "_");
+          resolve({ base64, mimeType: outputMime, filename: safeName });
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /**
+   * Sobe a foto para o Drive via endpoint /api/upload-imagem e retorna a URL gravável no Sheets.
+   * Observação: foto é opcional; este método lança erro caso o endpoint rejeite, e o caller decide.
+   */
+  async function enviarFotoParaDriveRetornarUrl(file) {
+    // 1) comprime localmente
+    const { base64, mimeType, filename } = await comprimirImagemParaBase64(file);
+
+    // 2) chama API
+    const payload = {
+      base64,
+      mimeType,
+      filename,
+      doc: docAtual || "",
+      loja: lojaLogada || "",
+      usuario: usuarioLogado || "",
+    };
+
+    const resp = await fetch("/api/upload-imagem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const dados = await resp.json().catch(() => ({}));
+    if (!resp.ok || !dados.sucesso || !dados.imageUrl) {
+      throw new Error(dados.message || "Falha ao enviar imagem.");
+    }
+
+    return String(dados.imageUrl || "");
+  }
+
+  async function enviarLoteFinalizacao(relatorioTexto, imagemUrl) {
     const status = document.getElementById("status");
 
     // Monta lote: todos com observacao "", e o ÚLTIMO com observacao = relatorioTexto
+    // e imagemUrl SOMENTE no último item
     const lote = itensOcorrencia.map((item, idx) => ({
       produto: item.produto,
       loja: item.loja,
       usuario: item.usuario,
       observacao: (idx === itensOcorrencia.length - 1) ? relatorioTexto : "",
+      imagemUrl: (idx === itensOcorrencia.length - 1) ? (imagemUrl || "") : "",
       quantidade: item.quantidade,
       valorUnitario: item.valorUnitario,
       numeroDocumento: item.numeroDocumento,
@@ -1104,6 +1242,9 @@
       document.getElementById("quantidade").value = "";
       document.getElementById("valorUnitario").value = "";
       document.getElementById("campoBusca").value = "";
+
+      // Limpa foto do popup (opcional)
+      try { document.getElementById("fotoOcorrencia").value = ""; } catch (e) {}
 
       limparEstadoOcorrencia();
       aplicarModoTela();
