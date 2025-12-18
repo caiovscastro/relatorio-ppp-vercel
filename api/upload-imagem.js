@@ -6,7 +6,12 @@
 // - E-MAIL DA CONTA DE SERVIÇO DO GOOGLE   (ou GOOGLE_SERVICE_ACCOUNT_EMAIL)
 // - CHAVE_PRIVADA_DO_GOOGLE                (ou GOOGLE_PRIVATE_KEY)
 // - ID_DA_PASTA_PPP_DA_UNIDADE             (ID da pasta imagens_ppp)
-// - E-MAIL_DO_PROPRIETÁRIO_DO_MOTORISTA    (opcional: só se quiser usar futuramente)
+//
+// Links úteis (docs oficiais):
+// - Vercel env vars: https://vercel.com/docs/projects/environment-variables
+// - Drive files.create: https://developers.google.com/drive/api/reference/rest/v3/files/create
+// - supportsAllDrives: https://developers.google.com/drive/api/guides/shareddrives
+// - Drive permissions.create: https://developers.google.com/drive/api/reference/rest/v3/permissions/create
 
 import { google } from "googleapis";
 import { Readable } from "stream";
@@ -104,14 +109,48 @@ export default async function handler(req, res) {
       });
     }
 
+    // ✅ 1) Valida se a pasta existe e se a service account consegue ENXERGAR a pasta
+    // Isso dá um erro bem mais claro quando a pasta não foi compartilhada com a service account
+    let folderInfo = null;
+    try {
+      const folderResp = await drive.files.get({
+        fileId: driveFolderId,
+        fields: "id, name, mimeType, driveId",
+        supportsAllDrives: true,
+      });
+      folderInfo = folderResp?.data || null;
+
+      // Pasta deve ser folder
+      if (folderInfo?.mimeType !== "application/vnd.google-apps.folder") {
+        return res.status(500).json({
+          sucesso: false,
+          message: "O ID_DA_PASTA_PPP_DA_UNIDADE não parece ser uma pasta do Drive.",
+          debug: { folderInfo },
+        });
+      }
+    } catch (e) {
+      return res.status(500).json({
+        sucesso: false,
+        message:
+          "A service account não conseguiu acessar a pasta. Verifique se a pasta foi compartilhada com o e-mail da service account (permissão de Editor) e se é Shared Drive.",
+        detalhe: e?.message,
+        debug: {
+          driveFolderId,
+          serviceAccountEmail,
+        },
+      });
+    }
+
     // Nome final no Drive (organiza por DOC quando existir)
     const ts = Date.now();
     const nomeDrive = sanitizeName(
       doc ? `${doc}_${ts}.jpg` : `PPP_${loja}_${usuario}_${ts}.jpg`
     );
 
-    // Upload no Drive para a pasta informada
+    // ✅ 2) Upload no Drive para a pasta informada
+    // supportsAllDrives: true => necessário para Shared Drives
     const createResp = await drive.files.create({
+      supportsAllDrives: true,
       requestBody: {
         name: nomeDrive,
         parents: [driveFolderId],
@@ -134,11 +173,30 @@ export default async function handler(req, res) {
       });
     }
 
-    // Permissão pública de leitura (link direto funcionar)
-    await drive.permissions.create({
-      fileId,
-      requestBody: { type: "anyone", role: "reader" },
-    });
+    // ✅ 3) Permissão pública de leitura (para link direto funcionar)
+    // supportsAllDrives: true => necessário para Shared Drives
+    try {
+      await drive.permissions.create({
+        fileId,
+        supportsAllDrives: true,
+        requestBody: { type: "anyone", role: "reader" },
+      });
+    } catch (e) {
+      // Se falhar a permissão pública, ainda devolvemos o webViewLink para diagnóstico.
+      // Mas a URL direta pode não funcionar para outros usuários.
+      return res.status(200).json({
+        sucesso: true,
+        message:
+          "Imagem enviada, mas falhou ao definir permissão pública. Verifique políticas do Drive/Shared Drive.",
+        fileId,
+        imageUrl: "", // não garantimos link direto sem permissão
+        webViewLink,
+        folderId: driveFolderId,
+        nomeDrive,
+        folderInfo,
+        avisoPermissao: e?.message,
+      });
+    }
 
     // Link direto para visualização
     const directViewUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
@@ -151,13 +209,14 @@ export default async function handler(req, res) {
       webViewLink,
       folderId: driveFolderId,
       nomeDrive,
+      folderInfo,
     });
   } catch (erro) {
     console.error("Erro na API /api/upload-imagem:", erro);
     return res.status(500).json({
       sucesso: false,
       message: "Erro ao enviar imagem para o Drive.",
-      detalhe: erro.message,
+      detalhe: erro?.message,
     });
   }
 }
