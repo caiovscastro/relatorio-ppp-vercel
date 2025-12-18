@@ -496,11 +496,12 @@
       line-height: 1.35;
     }
 
-    /* ✅ NOVO: status específico da foto no popup (mínimo necessário) */
+    /* status da foto no popup */
     .finalizar-foto .foto-status {
       margin-top: 6px;
       font-size: 12px;
       color: #333;
+      word-break: break-word;
     }
 
     .btn-iniciar-ocorrencia {
@@ -610,7 +611,7 @@
         <input id="fotoOcorrencia" type="file" accept="image/*" capture="environment" />
         <small>(É possivel enviar apenas uma imagem por ocorrência).</small>
 
-        <!-- ✅ NOVO (mínimo necessário): feedback de upload -->
+        <!-- feedback do upload -->
         <div id="fotoStatus" class="foto-status"></div>
       </div>
 
@@ -754,10 +755,10 @@
   const STORAGE_DOC_ATUAL        = "PPP_DOC_ATUAL";
   const STORAGE_ITENS_OCORRENCIA = "PPP_ITENS_OCORRENCIA";
 
-  /* ✅ NOVO (mínimo necessário):
-     Guarda a URL da imagem (quando enviada) para garantir:
-     - 1 imagem por ocorrência
-     - persistência em caso de reload antes de finalizar
+  /* ========= NOVO (mínimo necessário) =========
+     Link da imagem anexada nesta ocorrência.
+     - garante 1 imagem por ocorrência
+     - mantém persistência se recarregar antes de finalizar
   */
   const STORAGE_IMG_URL          = "PPP_IMG_URL";
 
@@ -839,10 +840,7 @@
       localStorage.setItem(STORAGE_OCORRENCIA_ATIVA, ocorrenciaAtiva ? "1" : "");
       localStorage.setItem(STORAGE_DOC_ATUAL, String(docAtual || ""));
       localStorage.setItem(STORAGE_ITENS_OCORRENCIA, JSON.stringify(itensOcorrencia || []));
-
-      // ✅ mantém o link da imagem (se já tiver sido enviado)
-      const imgUrl = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
-      if (imgUrl) localStorage.setItem(STORAGE_IMG_URL, imgUrl);
+      // A imagem (PPP_IMG_URL) é gravada diretamente quando enviada.
     } catch (e) {
       console.warn("Falha ao persistir ocorrência:", e);
     }
@@ -874,7 +872,7 @@
     docAtual = "";
     itensOcorrencia = [];
 
-    // ✅ limpa também a imagem associada à ocorrência
+    // limpa também imagem da ocorrência
     try { localStorage.removeItem(STORAGE_IMG_URL); } catch (e) {}
 
     salvarEstadoOcorrencia();
@@ -885,7 +883,7 @@
       localStorage.removeItem(STORAGE_OCORRENCIA_ATIVA);
       localStorage.removeItem(STORAGE_DOC_ATUAL);
       localStorage.removeItem(STORAGE_ITENS_OCORRENCIA);
-      localStorage.removeItem(STORAGE_IMG_URL); // ✅ também remove imagem
+      localStorage.removeItem(STORAGE_IMG_URL);
     } catch (e) {}
     ocorrenciaAtiva = false;
     docAtual = "";
@@ -970,8 +968,7 @@
 
       carregarEstadoOcorrencia();
 
-      // ✅ ALTERAÇÃO SOLICITADA:
-      // Popup de ocorrência pendente só aparece se já houver item guardado (NÃO apenas "ocorrência ativa")
+      // Popup só se houver itens guardados
       const temItensGuardados = Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0;
       if (temItensGuardados) {
         document.getElementById("overlayOcorrenciaPendente").style.display = "flex";
@@ -1019,7 +1016,7 @@
     docAtual = gerarNumeroDocumento();
     ocorrenciaAtiva = true;
 
-    // Nova ocorrência: zera itens e zera link de imagem (garante 1 por ocorrência)
+    // Nova ocorrência: zera itens e zera imagem anexada
     itensOcorrencia = [];
     try { localStorage.removeItem(STORAGE_IMG_URL); } catch (e) {}
 
@@ -1053,18 +1050,19 @@
     document.getElementById("finalizarRelatorio").value = "";
     document.getElementById("finalizarErro").style.display = "none";
 
-    // ✅ feedback da foto no popup
+    // feedback da foto no popup
     const fotoStatus = document.getElementById("fotoStatus");
     if (fotoStatus) fotoStatus.textContent = "";
 
-    // ✅ 1 imagem por ocorrência:
-    // se já existe URL salva, bloqueia novo upload e informa
+    // 1 imagem por ocorrência: se já tem URL, bloqueia novo arquivo
     const urlJaEnviada = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
     const inputFoto = document.getElementById("fotoOcorrencia");
+
     if (inputFoto) {
-      inputFoto.value = "";           // limpa seleção atual
-      inputFoto.disabled = !!urlJaEnviada; // trava se já anexou uma imagem nesta ocorrência
+      inputFoto.value = "";
+      inputFoto.disabled = !!urlJaEnviada;
     }
+
     if (urlJaEnviada && fotoStatus) {
       fotoStatus.textContent = "Uma imagem já foi anexada nesta ocorrência.";
     }
@@ -1072,7 +1070,7 @@
     document.getElementById("overlayFinalizar").style.display = "flex";
   }
 
-  // ✅ Agora é async: pode subir foto antes de enviar lote
+  // async: pode subir foto antes do lote
   async function confirmarFinalizarOcorrencia(confirmado) {
     const overlay = document.getElementById("overlayFinalizar");
     const erroEl = document.getElementById("finalizarErro");
@@ -1090,13 +1088,8 @@
     }
 
     erroEl.style.display = "none";
-
-    // Fecha popup antes de processar (evita clique repetido)
     overlay.style.display = "none";
 
-    // ✅ FOTO opcional:
-    // - se usuário escolheu arquivo e ainda não existe imagem enviada, sobe a imagem e pega o link
-    // - se falhar, continua finalização SEM imagem (foto é opcional)
     let imagemUrl = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
 
     try {
@@ -1105,7 +1098,6 @@
       if (file && !imagemUrl) {
         if (status) status.textContent = "Enviando foto (opcional)...";
         imagemUrl = await enviarFotoParaDriveRetornarUrl(file);
-        // salva para garantir 1 imagem por ocorrência, inclusive em reload
         localStorage.setItem(STORAGE_IMG_URL, imagemUrl);
       }
     } catch (e) {
@@ -1113,14 +1105,11 @@
       // Foto é opcional: segue sem imagem
     }
 
-    // Envia lote (observação e imagemUrl apenas no último item)
     enviarLoteFinalizacao(rel, imagemUrl);
   }
 
-  /**
-   * Compressão no CLIENTE para evitar estourar limite de payload.
-   * Retorna { base64, mimeType, filename }.
-   */
+  /* ===================== Upload de imagem ===================== */
+
   function comprimirImagemParaBase64(file, opts = {}) {
     const {
       maxWidth = 1280,
@@ -1161,12 +1150,10 @@
     });
   }
 
-  /**
-   * Sobe a foto via /api/upload-imagem e retorna a URL.
-   * Mostra feedback em "fotoStatus" (no popup) e também no "status" (principal).
-   */
   async function enviarFotoParaDriveRetornarUrl(file) {
     const fotoStatus = document.getElementById("fotoStatus");
+    const status = document.getElementById("status");
+
     if (fotoStatus) fotoStatus.textContent = "Enviando foto para o Drive...";
 
     const { base64, mimeType, filename } = await comprimirImagemParaBase64(file);
@@ -1188,17 +1175,31 @@
 
     const dados = await resp.json().catch(() => ({}));
 
-    // ✅ Mostra o retorno no console para depuração (JSON)
-    // Abra F12 > Console e você verá exatamente a resposta do upload.
-    console.log("[PPP] Resposta /api/upload-imagem:", dados);
+    // JSON completo no console (F12) — você não precisa “me mandar”
+    console.log("[PPP] Resposta /api/upload-imagem:", { httpOk: resp.ok, dados });
 
     if (!resp.ok || !dados.sucesso || !dados.imageUrl) {
       const msg = dados.message || "Falha ao enviar imagem.";
       if (fotoStatus) fotoStatus.textContent = msg;
+      if (status) status.textContent = msg;
       throw new Error(msg);
     }
 
-    if (fotoStatus) fotoStatus.textContent = "Foto anexada com sucesso.";
+    // Feedback visível
+    if (fotoStatus) {
+      const fileId = dados.fileId ? ` (ID: ${dados.fileId})` : "";
+      fotoStatus.textContent = "Foto anexada com sucesso." + fileId;
+    }
+
+    // Se vier link do Drive, mostra no status principal
+    if (status) {
+      const webViewLink = dados.webViewLink || "";
+      const fileId = dados.fileId || "";
+      status.innerHTML =
+        `Foto enviada. ID: <b>${fileId}</b>` +
+        (webViewLink ? ` — <a href="${webViewLink}" target="_blank" rel="noopener">Abrir no Drive</a>` : "");
+    }
+
     return String(dados.imageUrl || "");
   }
 
@@ -1238,7 +1239,7 @@
       document.getElementById("valorUnitario").value = "";
       document.getElementById("campoBusca").value = "";
 
-      // limpa seleção de foto e libera input para próxima ocorrência
+      // limpa foto UI para próxima ocorrência
       try {
         const inputFoto = document.getElementById("fotoOcorrencia");
         if (inputFoto) {
@@ -1599,8 +1600,7 @@
     document.getElementById("overlaySairConfirm").style.display = "none";
     if (!confirmado) return;
 
-    // ✅ ALTERAÇÃO SOLICITADA (coerente com seu pedido):
-    // Popup de pendência ao sair só aparece se já houver item guardado.
+    // Pendência ao sair só se houver itens guardados
     const temPendente = Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0;
 
     if (temPendente) {
