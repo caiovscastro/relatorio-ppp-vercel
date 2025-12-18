@@ -630,8 +630,8 @@
         <!-- capture="environment" tende a abrir câmera traseira em mobile quando suportado :contentReference[oaicite:5]{index=5} -->
         <input id="fotoOcorrencia" type="file" accept="image/*" capture="environment" />
         <small>
-          Se você anexar uma foto, ela será enviada para o Drive e o link será gravado na coluna Q do relatório
-          (somente na última linha do lote).
+          Se você anexar uma foto, ela será enviada para a base de dados e visivel apenas para os gerentes ppp.
+          (É possivel enviar apenas uma imagem por ocorrência).
         </small>
       </div>
 
@@ -1111,7 +1111,7 @@
       const file = document.getElementById("fotoOcorrencia")?.files?.[0] || null;
       if (file) {
         const status = document.getElementById("status");
-        if (status) status.textContent = "Enviando foto (opcional) para o Drive...";
+        if (status) status.textContent = "Enviando foto (opcional)...";
 
         imagemUrl = await enviarFotoParaDriveRetornarUrl(file);
       }
