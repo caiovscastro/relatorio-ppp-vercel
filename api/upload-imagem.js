@@ -135,23 +135,45 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body || {};
-    const base64 = String(body.base64 || "").trim();
-    const mimeType = String(body.mimeType || "image/jpeg").trim();
+    const base64Input = String(body.base64 || "").trim();
+    const mimeTypeBody = String(body.mimeType || "").trim();
     const filename = sanitizeName(body.filename || "foto.jpg");
 
     const doc = String(body.doc || "").trim();
     const loja = String(body.loja || "").trim();
     const usuario = String(body.usuario || "").trim();
 
-    if (!base64) {
+    if (!base64Input) {
       return res.status(400).json({
         sucesso: false,
         message: "Nenhuma imagem enviada (base64 vazio).",
       });
     }
 
+    // Aceita tanto o base64 puro quanto data URLs (ex.: data:image/jpeg;base64,...)
+    // e remove espaços/quebras de linha que alguns navegadores adicionam no payload.
+    const prefixMatch = base64Input.match(/^data:([^;,]+);base64,/i);
+    const mimeTypeFromDataUrl = prefixMatch?.[1]?.trim() || "";
+
+    // Se o MIME não veio no corpo, tenta extrair do prefixo da data URL; fallback padrão
+    const mimeType = mimeTypeBody || mimeTypeFromDataUrl || "image/jpeg";
+
+    const rawBase64 = base64Input.includes(",")
+      ? base64Input.substring(base64Input.indexOf(",") + 1)
+      : base64Input;
+
+    // Remove quebras de linha e espaços que alguns navegadores inserem
+    const base64 = rawBase64.replace(/\s+/g, "");
+
     // base64 -> Buffer
     const buffer = Buffer.from(base64, "base64");
+
+    if (!buffer.length) {
+      return res.status(400).json({
+        sucesso: false,
+        message: "Imagem inválida. Verifique o arquivo selecionado.",
+      });
+    }
 
     // Guard-rail: evita request grande demais
     if (buffer.length > 4_000_000) {
@@ -164,8 +186,16 @@ export default async function handler(req, res) {
 
     // Nome final no Drive (organiza por DOC quando existir)
     const ts = Date.now();
+    const ext = (() => {
+      const mt = mimeType.toLowerCase();
+      if (mt.includes("png")) return "png";
+      if (mt.includes("gif")) return "gif";
+      if (mt.includes("webp")) return "webp";
+      return "jpg";
+    })();
+
     const nomeDrive = sanitizeName(
-      doc ? `${doc}_${ts}.jpg` : `PPP_${loja}_${usuario}_${ts}.jpg`
+      doc ? `${doc}_${ts}.${ext}` : `PPP_${loja}_${usuario}_${ts}.${ext}`
     );
 
     // 1) Cria arquivo no Drive

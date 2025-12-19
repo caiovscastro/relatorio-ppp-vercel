@@ -259,7 +259,7 @@ export default async function handler(req, res) {
       return montarLinhaPlanilha(reg, dataHora, idRegistro);
     });
 
-    // Append em lote (1 chamada, várias linhas) :contentReference[oaicite:12]{index=12}
+    // Append em lote (1 chamada, várias linhas)
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: "RELATORIO!A:A",
