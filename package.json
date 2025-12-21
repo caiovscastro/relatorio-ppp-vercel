@@ -2,8 +2,11 @@
   "name": "relatorio-ppp-vercel",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "googleapis": "^133.0.0",
-    "firebase-admin": "^12.6.0"
+    "firebase-admin": "^13.6.0"
   }
 }
