@@ -156,7 +156,10 @@ export default async function handler(req, res) {
     const mimeTypeFromDataUrl = prefixMatch?.[1]?.trim() || "";
 
     // Se o MIME não veio no corpo, tenta extrair do prefixo da data URL; fallback padrão
-    const mimeType = mimeTypeBody || mimeTypeFromDataUrl || "image/jpeg";
+    const rawMimeType = mimeTypeBody || mimeTypeFromDataUrl || "image/jpeg";
+    const mimeType = rawMimeType.toLowerCase().startsWith("image/")
+      ? rawMimeType
+      : "image/jpeg";
 
     const rawBase64 = base64Input.includes(",")
       ? base64Input.substring(base64Input.indexOf(",") + 1)
