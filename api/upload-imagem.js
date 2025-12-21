@@ -1,26 +1,26 @@
 // api/upload-imagem.js
-// Faz upload de uma imagem (opcional da ocorrência) para uma pasta do Google Drive
-// e retorna um link direto da imagem.
-//
-// OBJETIVO DESTA VERSÃO:
-// - Manter seu fluxo atual intacto (frontend já chama /api/upload-imagem).
-// - Resolver o caso "sucesso:true mas não aparece na pasta":
-//   1) habilita Shared Drives (supportsAllDrives)
-//   2) valida se o arquivo ficou com parent correto
-//   3) se não ficou, MOVE o arquivo para a pasta (files.update addParents/removeParents)
+// Upload de imagem para o Firebase Storage (em vez de Google Drive)
+// e retorno de uma URL de download.
+// Mantém o mesmo endpoint e formato de resposta que seu frontend já consome.
 //
 // Variáveis de ambiente (Vercel):
-// - GOOGLE_SERVICE_ACCOUNT_EMAIL (recomendado)
-// - GOOGLE_PRIVATE_KEY           (recomendado)
-// - ID_DA_PASTA_PPP_DA_UNIDADE   (ID da pasta imagens_ppp)
+// - GOOGLE_SERVICE_ACCOUNT_EMAIL   (já existe no seu projeto)
+// - GOOGLE_PRIVATE_KEY             (já existe no seu projeto)
+// - FIREBASE_PROJECT_ID            (NOVO) ex: ppp-storage
+// - FIREBASE_STORAGE_BUCKET        (NOVO) ex: ppp-storage.firebasestorage.app
 //
 // Observação importante:
-// Se sua pasta estiver em "Drive Compartilhado", a Service Account precisa ter acesso adequado.
-// Em muitos cenários, "compartilhar só a pasta" não é tão robusto quanto adicionar a SA como membro
-// do Shared Drive (com permissão de Conteúdo/Manager).
+// - Upload feito no backend (Admin SDK) NÃO depende das Storage Rules.
+// - Para o download, geramos "download token" (URL com token).
+//
+// Referências:
+// - Firebase Admin SDK (Storage): https://firebase.google.com/docs/admin/setup
+// - Cloud Storage Node.js: https://cloud.google.com/storage/docs/reference/libraries
+// - Download URLs / tokens: https://firebase.google.com/docs/storage/web/download-files
 
-import { google } from "googleapis";
-import { Readable } from "stream";
+import admin from "firebase-admin";
+import { Buffer } from "buffer";
+import crypto from "crypto";
 
 // Helper para ler ENV com múltiplos nomes possíveis
 function env(...names) {
@@ -38,76 +38,40 @@ const serviceAccountEmail = env(
   "E-MAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE"
 );
 
-const privateKeyRaw = env(
-  "GOOGLE_PRIVATE_KEY",
-  "CHAVE_PRIVADA_DO_GOOGLE"
-);
+const privateKeyRaw = env("GOOGLE_PRIVATE_KEY", "CHAVE_PRIVADA_DO_GOOGLE");
+const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : "";
 
-const driveFolderId = env(
-  "ID_DA_PASTA_PPP_DA_UNIDADE",
-  "DRIVE_PPP_FOLDER_ID"
-);
+const firebaseProjectId = env("FIREBASE_PROJECT_ID");
+const firebaseStorageBucket = env("FIREBASE_STORAGE_BUCKET");
 
-// Conserta \n da private key (Vercel geralmente armazena como string com "\n")
-const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
+// Inicializa Admin apenas 1 vez (importante em serverless)
+function getAdminApp() {
+  if (admin.apps.length) return admin.app();
 
-// Auth da Service Account
-const auth = new google.auth.JWT(serviceAccountEmail, null, privateKey, [
-  "https://www.googleapis.com/auth/drive",
-]);
+  if (!serviceAccountEmail || !privateKey || !firebaseProjectId) {
+    throw new Error(
+      "Configuração Firebase/Admin incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e FIREBASE_PROJECT_ID."
+    );
+  }
 
-const drive = google.drive({ version: "v3", auth });
+  return admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: firebaseProjectId,
+      clientEmail: serviceAccountEmail,
+      privateKey,
+    }),
+    storageBucket: firebaseStorageBucket || undefined,
+  });
+}
 
 function sanitizeName(name) {
   return String(name || "foto.jpg").replace(/[^\w.\-]+/g, "_");
 }
 
-// Pequeno helper para montar um direct view link
-function driveDirectViewUrl(fileId) {
-  return `https://drive.google.com/uc?export=view&id=${fileId}`;
-}
-
-// Garante que o arquivo está dentro da pasta desejada.
-// Se não estiver, move usando addParents/removeParents.
-// (Isso é a diferença crítica versus “apenas criar”)
-async function ensureInFolder({ fileId, folderId }) {
-  // Lê parents atuais
-  const getResp = await drive.files.get({
-    fileId,
-    fields: "id, parents, driveId, webViewLink",
-    supportsAllDrives: true,
-  });
-
-  const parents = getResp?.data?.parents || [];
-  const jaEstaNaPasta = Array.isArray(parents) && parents.includes(folderId);
-
-  if (jaEstaNaPasta) {
-    return {
-      moved: false,
-      parents,
-      driveId: getResp?.data?.driveId || null,
-      webViewLink: getResp?.data?.webViewLink || "",
-    };
-  }
-
-  // Se não estiver, move: adiciona a pasta e remove pais antigos
-  // (Se não remover, o arquivo pode ficar em múltiplos lugares dependendo do contexto)
-  const removeParents = Array.isArray(parents) && parents.length ? parents.join(",") : "";
-
-  const updateResp = await drive.files.update({
-    fileId,
-    addParents: folderId,
-    removeParents,
-    fields: "id, parents, driveId, webViewLink",
-    supportsAllDrives: true,
-  });
-
-  return {
-    moved: true,
-    parents: updateResp?.data?.parents || [],
-    driveId: updateResp?.data?.driveId || null,
-    webViewLink: updateResp?.data?.webViewLink || "",
-  };
+// Monta a URL de download com token (padrão Firebase Storage)
+function buildFirebaseDownloadUrl(bucket, filePath, token) {
+  const encodedPath = encodeURIComponent(filePath);
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media&token=${token}`;
 }
 
 export default async function handler(req, res) {
@@ -118,22 +82,35 @@ export default async function handler(req, res) {
     });
   }
 
-  // Valida variáveis
-  if (!serviceAccountEmail || !privateKey || !driveFolderId) {
+  // Valida ENV
+  if (!serviceAccountEmail || !privateKey || !firebaseProjectId) {
     return res.status(500).json({
       sucesso: false,
       message:
-        "Configuração da API incompleta. Verifique Service Account, chave privada e ID_DA_PASTA_PPP_DA_UNIDADE.",
+        "Configuração da API incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e FIREBASE_PROJECT_ID.",
       debug: {
         temServiceAccountEmail: !!serviceAccountEmail,
         temPrivateKey: !!privateKey,
-        temDriveFolderId: !!driveFolderId,
-        driveFolderIdLido: driveFolderId || null,
+        temFirebaseProjectId: !!firebaseProjectId,
+        temFirebaseStorageBucket: !!firebaseStorageBucket,
       },
     });
   }
 
+  // Se não definir FIREBASE_STORAGE_BUCKET, o Admin tenta usar o bucket padrão do app.
+  // Mas eu recomendo definir explicitamente (fica previsível).
+  if (!firebaseStorageBucket) {
+    return res.status(500).json({
+      sucesso: false,
+      message:
+        "FIREBASE_STORAGE_BUCKET não configurado. Ex.: ppp-storage.firebasestorage.app",
+    });
+  }
+
   try {
+    const app = getAdminApp();
+    const bucket = admin.storage(app).bucket(firebaseStorageBucket);
+
     const body = req.body || {};
     const base64Input = String(body.base64 || "").trim();
     const mimeTypeBody = String(body.mimeType || "").trim();
@@ -150,12 +127,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // Aceita tanto o base64 puro quanto data URLs (ex.: data:image/jpeg;base64,...)
-    // e remove espaços/quebras de linha que alguns navegadores adicionam no payload.
+    // Aceita base64 puro ou data URL
     const prefixMatch = base64Input.match(/^data:([^;,]+);base64,/i);
     const mimeTypeFromDataUrl = prefixMatch?.[1]?.trim() || "";
-
-    // Se o MIME não veio no corpo, tenta extrair do prefixo da data URL; fallback padrão
     const rawMimeType = mimeTypeBody || mimeTypeFromDataUrl || "image/jpeg";
     const mimeType = rawMimeType.toLowerCase().startsWith("image/")
       ? rawMimeType
@@ -165,10 +139,7 @@ export default async function handler(req, res) {
       ? base64Input.substring(base64Input.indexOf(",") + 1)
       : base64Input;
 
-    // Remove quebras de linha e espaços que alguns navegadores inserem
     const base64 = rawBase64.replace(/\s+/g, "");
-
-    // base64 -> Buffer
     const buffer = Buffer.from(base64, "base64");
 
     if (!buffer.length) {
@@ -178,7 +149,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Guard-rail: evita request grande demais
+    // Guard-rail
     if (buffer.length > 4_000_000) {
       return res.status(413).json({
         sucesso: false,
@@ -187,8 +158,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // Nome final no Drive (organiza por DOC quando existir)
+    // Define caminho no bucket (organizado por loja/doc)
     const ts = Date.now();
+    const safeLoja = sanitizeName(loja || "SEM_LOJA");
+    const safeUser = sanitizeName(usuario || "SEM_USUARIO");
+
     const ext = (() => {
       const mt = mimeType.toLowerCase();
       if (mt.includes("png")) return "png";
@@ -197,71 +171,56 @@ export default async function handler(req, res) {
       return "jpg";
     })();
 
-    const nomeDrive = sanitizeName(
-      doc ? `${doc}_${ts}.${ext}` : `PPP_${loja}_${usuario}_${ts}.${ext}`
+    const baseName = doc
+      ? `${sanitizeName(doc)}_${ts}.${ext}`
+      : `PPP_${safeLoja}_${safeUser}_${ts}.${ext}`;
+
+    const filePath = `relatorios/${safeLoja}/${baseName}`;
+
+    // Gera token de download (padrão do Firebase)
+    const downloadToken =
+      (crypto.randomUUID && crypto.randomUUID()) ||
+      `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+    const file = bucket.file(filePath);
+
+    await file.save(buffer, {
+      resumable: false,
+      contentType: mimeType,
+      metadata: {
+        contentType: mimeType,
+        // Importante: token usado na URL de download
+        metadata: {
+          firebaseStorageDownloadTokens: downloadToken,
+        },
+      },
+    });
+
+    const imageUrl = buildFirebaseDownloadUrl(
+      firebaseStorageBucket,
+      filePath,
+      downloadToken
     );
-
-    // 1) Cria arquivo no Drive
-    // supportsAllDrives: essencial se pasta estiver em Drive Compartilhado
-    const createResp = await drive.files.create({
-      requestBody: {
-        name: nomeDrive,
-        parents: [driveFolderId],
-        mimeType, // ok mesmo se nome terminar em .jpg
-      },
-      media: {
-        mimeType,
-        body: Readable.from(buffer),
-      },
-      fields: "id, webViewLink, parents, driveId",
-      supportsAllDrives: true,
-    });
-
-    const fileId = createResp?.data?.id;
-    if (!fileId) {
-      return res.status(500).json({
-        sucesso: false,
-        message: "Falha ao criar arquivo no Drive (sem fileId).",
-      });
-    }
-
-    // 2) Garante que realmente caiu na pasta desejada (e move se necessário)
-    const ensured = await ensureInFolder({
-      fileId,
-      folderId: driveFolderId,
-    });
-
-    // 3) Permissão pública de leitura (para link direto funcionar)
-    await drive.permissions.create({
-      fileId,
-      requestBody: { type: "anyone", role: "reader" },
-      supportsAllDrives: true,
-    });
-
-    // Link direto para visualização
-    const directViewUrl = driveDirectViewUrl(fileId);
 
     return res.status(200).json({
       sucesso: true,
-      message: ensured.moved
-        ? "Imagem enviada com sucesso (arquivo foi movido para a pasta configurada)."
-        : "Imagem enviada com sucesso.",
-      fileId,
-      imageUrl: directViewUrl,
-      webViewLink: ensured.webViewLink || createResp?.data?.webViewLink || "",
-      folderId: driveFolderId,
-      nomeDrive,
+      message: "Imagem enviada com sucesso (Firebase Storage).",
+      // Mantém nomes que seu frontend já tenta ler
+      fileId: filePath, // (antes era ID do Drive; aqui é o caminho no bucket)
+      imageUrl,         // URL final para gravar na coluna Q
+      webViewLink: "",  // não se aplica ao Storage
       debug: {
-        parentsDepois: ensured.parents || [],
-        driveId: ensured.driveId,
-        movedToFolder: ensured.moved,
+        bucket: firebaseStorageBucket,
+        path: filePath,
+        contentType: mimeType,
+        size: buffer.length,
       },
     });
   } catch (erro) {
-    console.error("Erro na API /api/upload-imagem:", erro);
+    console.error("Erro na API /api/upload-imagem (Firebase):", erro);
     return res.status(500).json({
       sucesso: false,
-      message: "Erro ao enviar imagem para o Drive.",
+      message: "Erro ao enviar imagem para o Firebase Storage.",
       detalhe: erro?.message || String(erro),
     });
   }
