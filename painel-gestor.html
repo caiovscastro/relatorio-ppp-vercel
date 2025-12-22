@@ -203,6 +203,9 @@
       margin-bottom: 12px;
       font-size: 12px;
       overflow: hidden;
+
+      /* NOVO: deixa claro que é clicável para preencher filtros */
+      cursor: pointer;
     }
 
     .cartao-pares {
@@ -213,24 +216,14 @@
 
     /* =========================
        LAYOUT (PARES TOPO/BASE)
-       =========================
-       Ajuste fino de distâncias entre "título" (rotulo) e "valor".
-       - Base (padrão): --gap-pareado: 6px
-       - Você pode customizar INDIVIDUALMENTE por bloco:
-         .pareado-usuario { --gap-pareado: 2px; }
-         .pareado-loja    { --gap-pareado: 1px; }
-         .pareado-doc     { --gap-pareado: 2px; --doc-margin-left: 2px; }
-    */
+       ========================= */
     .cartao-pareado {
       display: grid;
       grid-template-columns: 38% 62%;
       align-items: center;
       padding: 5px 7px;
       border-right: 1px solid #c7c7c7;
-
-      /* Gap controlável via variável (editável individualmente por classe) */
       gap: var(--gap-pareado, 6px);
-
       min-width: 0;
     }
 
@@ -238,10 +231,18 @@
       grid-template-columns: 30% 70%;
     }
 
-    /* Ajustes individuais solicitados (você pode mexer aqui sem afetar os outros) */
-    .pareado-usuario { --gap-pareado: 1px; }  /* Usuário mais perto do título */
-    .pareado-loja    { --gap-pareado: 1px; }  /* Loja mais perto do título */
-    .pareado-doc     { --gap-pareado: 1px; --doc-margin-left: 1px; } /* Doc mais perto do título */
+    /* Ajustes individuais */
+    .pareado-usuario { --gap-pareado: 1px; }
+    .pareado-loja    { --gap-pareado: 1px; }
+
+    /*
+      PEDIDO #3:
+      - "Aproxime o valor do doc de seu titulo em 30% mais próximo"
+        => reduzimos gap para 0 (mais próximo que 1px).
+      - "e a valor de seu titulo 15% mais próximo"
+        => reduzimos padding-left do bloco Doc em ~15% (10px -> 9px) no bloco inferior.
+    */
+    .pareado-doc     { --gap-pareado: 0px; --doc-margin-left: 0px; }
 
     .cartao-pareado:nth-child(2n) {
       border-right: none;
@@ -258,6 +259,11 @@
 
     .cartao-pares-inferior .cartao-pareado {
       padding: 4px 10px;
+    }
+
+    /* NOVO: ajuste fino só no par Doc (padding 15% menor) */
+    .cartao-pares-inferior .pareado-doc {
+      padding-left: 9px;
     }
 
     .rotulo {
@@ -277,7 +283,6 @@
       line-height: 1.1;
     }
 
-    /* Distância específica do valor do Documento (controlável individualmente via --doc-margin-left) */
     .valor-documento {
       margin-left: var(--doc-margin-left, 2px);
       display: inline-block;
@@ -289,6 +294,7 @@
       padding: 4px 10px;
       border-bottom: 1px solid #d6d6d6;
       gap: 4px;
+      cursor: default; /* para não “confundir” clique no cartão */
     }
 
     .cartao-linha:last-of-type {
@@ -313,6 +319,7 @@
       background: #ffffff;
       line-height: 1.45;
       color: #111;
+      cursor: default;
     }
 
     .cartao-observacao .obs-titulo {
@@ -326,16 +333,16 @@
       word-break: break-word;
     }
 
-    /* ==== ÁREA DOS BOTÕES (EDITAR/EXCLUIR) NO CARTÃO ====
-       Pedido: "Excluir está colado na linha acima" -> aumentamos o padding-top.
-    */
+    /* ==== ÁREA DOS BOTÕES (EDITAR/EXCLUIR) NO CARTÃO ==== */
     .cartao-actions {
       display: flex;
       justify-content: flex-end;
-      gap: 8px;               /* espaço entre Editar e Excluir */
-      padding: 10px 12px 10px;/* <-- descola da linha acima */
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px 10px;
       background: #ffffff;
       border-top: 1px solid #e0e0e0;
+      cursor: default;
     }
 
     .btn-excluir {
@@ -353,7 +360,6 @@
       background: #d32f2f;
     }
 
-    /* Botão Editar ao lado do Excluir */
     .btn-editar {
       padding: 5px 10px;
       border-radius: 6px;
@@ -369,7 +375,6 @@
       background: #e68900;
     }
 
-    /* ==== VALOR TOTAL (Qtd x Unit) AO LADO DO VALOR UNITÁRIO ==== */
     .valor-total-linha {
       margin-left: 18px;
       font-weight: 700;
@@ -421,7 +426,7 @@
       margin-top: 0;
     }
 
-    /* ========= MODAL DE CONFIRMAÇÃO (DOWNLOAD E EXCLUSÃO) ========= */
+    /* ========= MODAIS ========= */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -525,9 +530,7 @@
       font-weight: 600;
     }
 
-    /* ========= MODAL DE EDIÇÃO (NOVO) ========= */
-
-    /* Conteúdo do modal de formulário de edição (mantém o mesmo padrão visual dos modais atuais) */
+    /* ========= MODAL DE EDIÇÃO ========= */
     .modal-form {
       text-align: left;
       margin-top: 10px;
@@ -563,7 +566,6 @@
       white-space: pre-wrap;
     }
 
-    /* Botão "Salvar" destacado e "Descartar" neutro */
     .btn-modal-salvar {
       background: #0066ff;
       color: #fff;
@@ -573,8 +575,39 @@
       background: #e0e0e0;
       color: #333;
     }
+
+    /* ========= NOVO: Miniatura + link Abrir imagem ========= */
+    .imagem-mini-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 6px; /* fica "ao lado" do Editar, sem colar */
+    }
+
+    .imagem-mini {
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      border: 1px solid #d0d0d0;
+      object-fit: cover;
+      display: inline-block;
+      background: #f2f2f2;
+      cursor: pointer;
+    }
+
+    .link-abrir-imagem {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0066ff;
+      text-decoration: underline;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
   </style>
 </head>
+
 <body>
   <!-- ========= TELA DE ERRO SE ACESSAR SEM LOGIN DO GESTOR ========= -->
   <div id="erroAcesso" class="tela-erro" style="display:none;">
@@ -675,9 +708,7 @@
   <div id="modalDownload" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar download</div>
-      <div class="modal-texto">
-        Você deseja mesmo fazer o download do arquivo?
-      </div>
+      <div class="modal-texto">Você deseja mesmo fazer o download do arquivo?</div>
       <div class="modal-botoes">
         <button class="btn-modal-cancelar" onclick="fecharModalDownload()">Cancelar</button>
         <button class="btn-modal-sim" onclick="confirmarDownload()">Sim</button>
@@ -689,9 +720,7 @@
   <div id="modalExcluir" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar exclusão</div>
-      <div class="modal-texto">
-        Você tem certeza que deseja excluir esse registro?
-      </div>
+      <div class="modal-texto">Você tem certeza que deseja excluir esse registro?</div>
       <div class="modal-botoes">
         <button class="btn-modal-cancelar" onclick="fecharModalExcluir()">Cancelar</button>
         <button class="btn-modal-sim" onclick="confirmarExclusaoRegistro()">Sim</button>
@@ -699,13 +728,11 @@
     </div>
   </div>
 
-  <!-- ========= MODAL DE CONFIRMAÇÃO DE EDIÇÃO (NOVO) ========= -->
+  <!-- ========= MODAL DE CONFIRMAÇÃO DE EDIÇÃO ========= -->
   <div id="modalEditarConfirm" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar edição</div>
-      <div class="modal-texto">
-        Deseja mesmo editar esse registro?
-      </div>
+      <div class="modal-texto">Deseja mesmo editar esse registro?</div>
       <div class="modal-botoes">
         <button class="btn-modal-cancelar" onclick="fecharModalEditarConfirm()">Não</button>
         <button class="btn-modal-sim" onclick="confirmarEditarConfirm()">Sim</button>
@@ -713,17 +740,11 @@
     </div>
   </div>
 
-  <!-- ========= MODAL FORMULÁRIO DE EDIÇÃO (NOVO) ========= -->
+  <!-- ========= MODAL FORMULÁRIO DE EDIÇÃO ========= -->
   <div id="modalEditarForm" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar registro</div>
 
-      <!--
-        FORMULÁRIO: você pediu para editar SOMENTE:
-        - Quantidade
-        - Valor unitário
-        - Relatório / Observação
-      -->
       <div class="modal-form">
         <div class="form-group">
           <label for="editQuantidade">Quantidade</label>
@@ -771,10 +792,7 @@
     let loadingInterval = null;
     let loadingProgress = 0;
 
-    // Registro atualmente selecionado para exclusão (objeto completo retornado da API)
     let registroParaExcluir = null;
-
-    // ========= NOVO: registro atualmente selecionado para edição =========
     let registroParaEditar = null;
 
     /* ========= CONTROLE DO CARREGAMENTO (0–100%) ========= */
@@ -831,7 +849,7 @@
       }
     }
 
-    /* ========= FILTRAGEM LOCAL (SEM NOVA CHAMADA À API) ========= */
+    /* ========= FILTRAGEM LOCAL ========= */
     function filtrarLocal() {
       const lojaFiltro = document.getElementById("filtroLoja").value.trim().toLowerCase();
       const usuarioFiltro = document.getElementById("filtroUsuario").value.trim().toLowerCase();
@@ -860,7 +878,7 @@
       });
     }
 
-    /* ========= INICIALIZAÇÃO (VALIDA LOGIN DO GESTOR) ========= */
+    /* ========= INICIALIZAÇÃO ========= */
     document.addEventListener("DOMContentLoaded", () => {
       const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
@@ -893,7 +911,7 @@
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
     }
 
-    /* ========= PARSE DE NÚMERO EM FORMATO BR ========= */
+    /* ========= PARSE DE NÚMERO BR ========= */
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
@@ -905,10 +923,6 @@
       return isNaN(n) ? 0 : n;
     }
 
-    /* ========= CARREGA BASE INICIAL (CHAMA /api/relatorios) =========
-       IMPORTANTE: para usar o ID de forma plena, a rota /api/relatorios
-       deve retornar um campo como "idRegistro" (lido da coluna P).
-    */
     async function carregarBaseInicial() {
       const statusEl = document.getElementById("status");
 
@@ -924,7 +938,6 @@
           return;
         }
 
-        // Espera-se que cada registro possa trazer, opcionalmente, "idRegistro"
         registrosBase = Array.isArray(dados.registros) ? dados.registros : [];
         aplicarFiltrosLocal();
       } catch (erro) {
@@ -936,7 +949,6 @@
       }
     }
 
-    /* ========= CONTA OCORRÊNCIAS ========= */
     function contarOcorrencias(registros) {
       const setOcorrencias = new Set();
 
@@ -955,19 +967,12 @@
       return setOcorrencias.size;
     }
 
-    /* ========= COMPARA REGISTROS PARA REMOVER/ATUALIZAR NA BASE LOCAL =========
-       NOVO: Se houver idRegistro nos dois registros, usamos apenas o ID.
-       Caso contrário, caímos no comparador antigo (todas as colunas).
-    */
     function registrosIguais(a, b) {
       const idA = a.idRegistro || a.ID_REGISTRO || a.id;
       const idB = b.idRegistro || b.ID_REGISTRO || b.id;
 
-      if (idA && idB) {
-        return idA === idB;
-      }
+      if (idA && idB) return idA === idB;
 
-      // Fallback legado: compara todos os campos conhecidos (A:O)
       return (
         (a.dataHora || "") === (b.dataHora || "") &&
         (a.loja || "") === (b.loja || "") &&
@@ -987,7 +992,25 @@
       );
     }
 
-    /* ========= APLICA FILTROS LOCALMENTE E MONTA TELA ========= */
+    /* ========= NOVO: ao clicar no cartão, preencher filtros ========= */
+    function preencherFiltrosPorRegistro(index) {
+      const r = registrosAtuais[index];
+      if (!r) return;
+
+      document.getElementById("filtroLoja").value = (r.loja || "").toString();
+      document.getElementById("filtroUsuario").value = (r.usuario || "").toString();
+      document.getElementById("filtroDocumento").value = (r.documento || "").toString();
+
+      // pedido: preencher e depois você clica em "Aplicar filtros"
+      // então NÃO chamamos aplicarFiltrosLocal() aqui.
+    }
+
+    /* ========= NOVO: abrir imagem em nova guia ========= */
+    function abrirImagemEmNovaGuia(url) {
+      if (!url) return;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
     function aplicarFiltrosLocal() {
       const statusEl = document.getElementById("status");
       const listaEl = document.getElementById("listaCartoes");
@@ -1058,8 +1081,10 @@
             });
           }
 
+          const imageUrl = (r.imageUrl || r.imagemUrl || r.urlImagem || "").toString().trim();
+
           return `
-            <div class="cartao">
+            <div class="cartao" onclick="preencherFiltrosPorRegistro(${index})">
               <div class="cartao-pares cartao-pares-superior">
                 <div class="cartao-pareado">
                   <span class="rotulo">Data/Hora:</span>
@@ -1080,6 +1105,7 @@
                   <span class="valor valor-documento">${r.documento || "-"}</span>
                 </div>
               </div>
+
               <div class="cartao-separador"></div>
               <div class="cartao-linha">
                 <span class="rotulo">EAN</span>
@@ -1089,13 +1115,6 @@
                 <span class="rotulo">Produto</span>
                 <span class="valor">${r.produto || "-"}</span>
               </div>
-
-              <!--
-                PEDIDO #4:
-                - "Departamento e seu valor pode ficar oculto na lista"
-                - MAS: filtro e importação continuam (não mexemos em filtrarLocal nem na base)
-                Portanto: removemos apenas a renderização do bloco Departamento aqui.
-              -->
 
               <div class="cartao-linha">
                 <span class="rotulo">Seção</span>
@@ -1116,16 +1135,38 @@
                   }
                 </span>
               </div>
+
               <div class="cartao-divisoria"></div>
               <div class="cartao-observacao">
                 <div class="obs-titulo">Relatório:</div>
                 <div class="obs-texto">${relatorioFormatado}</div>
               </div>
+
               <div class="cartao-actions">
-                <button class="btn-editar" onclick="abrirModalEditar(${index})">
+                ${
+                  imageUrl
+                    ? `
+                      <span class="imagem-mini-wrap">
+                        <img
+                          class="imagem-mini"
+                          src="${imageUrl}"
+                          alt="Miniatura"
+                          onclick="event.stopPropagation(); abrirImagemEmNovaGuia('${imageUrl}')"
+                        />
+                        <button
+                          class="link-abrir-imagem"
+                          onclick="event.stopPropagation(); abrirImagemEmNovaGuia('${imageUrl}')"
+                          type="button"
+                        >Abrir imagem</button>
+                      </span>
+                    `
+                    : ``
+                }
+
+                <button class="btn-editar" onclick="event.stopPropagation(); abrirModalEditar(${index})">
                   Editar
                 </button>
-                <button class="btn-excluir" onclick="abrirModalExcluir(${index})">
+                <button class="btn-excluir" onclick="event.stopPropagation(); abrirModalExcluir(${index})">
                   Excluir
                 </button>
               </div>
@@ -1135,7 +1176,6 @@
         .join("");
     }
 
-    /* ========= LIMPAR FILTROS ========= */
     function limparFiltros() {
       document.getElementById("filtroLoja").value = "";
       document.getElementById("filtroUsuario").value = "";
@@ -1143,11 +1183,9 @@
       document.getElementById("filtroDepartamento").value = "";
       document.getElementById("dataInicio").value = "";
       document.getElementById("dataFim").value = "";
-
       aplicarFiltrosLocal();
     }
 
-    /* ========= MODAL DE DOWNLOAD ========= */
     function abrirModalDownload() {
       if (!registrosAtuais || !registrosAtuais.length) {
         alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
@@ -1165,7 +1203,6 @@
       exportarParaXlsx(registrosAtuais);
     }
 
-    /* ========= MODAL DE EXCLUSÃO ========= */
     function abrirModalExcluir(index) {
       registroParaExcluir = registrosAtuais[index] || null;
       if (!registroParaExcluir) return;
@@ -1177,7 +1214,6 @@
       document.getElementById("modalExcluir").style.display = "none";
     }
 
-    /* ========= CONFIRMAR EXCLUSÃO (CHAMA /api/relatorios-excluir) ========= */
     async function confirmarExclusaoRegistro() {
       const statusEl = document.getElementById("status");
 
@@ -1204,13 +1240,11 @@
           return;
         }
 
-        // Remove da base em memória (registrosBase e registrosAtuais) usando o comparador com ID
         registrosBase = registrosBase.filter((reg) => !registrosIguais(reg, registroParaExcluir));
         registrosAtuais = registrosAtuais.filter((reg) => !registrosIguais(reg, registroParaExcluir));
 
         statusEl.textContent = "Registro excluído com sucesso.";
         fecharModalExcluir();
-
         aplicarFiltrosLocal();
       } catch (erro) {
         console.error("Erro ao excluir registro:", erro);
@@ -1219,39 +1253,20 @@
       }
     }
 
-    /* =========================
-       ========= EDIÇÃO (NOVO) =========
-       =========================
-       Fluxo solicitado:
-       1) Clicar em Editar -> abrir modal de confirmação "Deseja mesmo editar esse registro?"
-       2) Se SIM -> abrir modal com campos para editar:
-          - Quantidade
-          - Valor unitário
-          - Relatório
-          e botões Salvar / Descartar
-       3) Salvar -> persistir na MESMA linha do ID, via servidor
-    */
-
-    // Abre confirmação de edição e guarda o registro selecionado
     function abrirModalEditar(index) {
       registroParaEditar = registrosAtuais[index] || null;
       if (!registroParaEditar) return;
-
       document.getElementById("modalEditarConfirm").style.display = "flex";
     }
 
     function fecharModalEditarConfirm() {
       document.getElementById("modalEditarConfirm").style.display = "none";
-      // NÃO limpamos registroParaEditar aqui para permitir o "Sim" abrir o form
     }
 
-    // Confirmação "Sim" -> abre modal do formulário já com valores atuais
     function confirmarEditarConfirm() {
       fecharModalEditarConfirm();
-
       if (!registroParaEditar) return;
 
-      // Preenche inputs com valores atuais (mantendo exatamente o que já existe no registro)
       document.getElementById("editQuantidade").value = (registroParaEditar.quantidade || "").toString();
       document.getElementById("editValorUnitario").value = (registroParaEditar.valorUnitario || "").toString();
       document.getElementById("editRelatorio").value = (registroParaEditar.relatorio || "").toString();
@@ -1261,11 +1276,9 @@
 
     function fecharModalEditarForm() {
       document.getElementById("modalEditarForm").style.display = "none";
-      // Ao descartar, limpamos a seleção (não deixa "vazamento" de estado)
       registroParaEditar = null;
     }
 
-    // Salva no servidor e atualiza na base local a mesma linha (via ID quando existir)
     async function salvarEdicaoRegistro() {
       const statusEl = document.getElementById("status");
 
@@ -1274,15 +1287,10 @@
         return;
       }
 
-      // Coleta valores editados
       const novaQtd = document.getElementById("editQuantidade").value.trim();
       const novoValorUnit = document.getElementById("editValorUnitario").value.trim();
       const novoRelatorio = document.getElementById("editRelatorio").value;
 
-      // Monta payload: enviamos registro original + campos alteráveis
-      // Observação:
-      // - Para "salvar exatamente na linha do id", sua API precisa usar idRegistro (ou equivalente).
-      // - Se idRegistro não vier, você ainda consegue salvar via comparador legado (mais arriscado).
       const payload = {
         registroOriginal: registroParaEditar,
         edicoes: {
@@ -1295,11 +1303,6 @@
       try {
         statusEl.textContent = "Salvando edição...";
 
-        // Endpoint proposto:
-        // - Você precisa ter no backend um /api/relatorios-editar que:
-        //   1) localiza pela chave idRegistro (coluna P) e
-        //   2) atualiza SOMENTE as colunas de Quantidade, Valor Unitário e Relatório
-        // Se o seu backend ainda não tem, eu implemento quando você mandar o código da API.
         const resp = await fetch("/api/relatorios-editar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1313,7 +1316,6 @@
           return;
         }
 
-        // Atualiza em memória: substitui o registro correspondente (por ID se existir)
         const registroAtualizado = {
           ...registroParaEditar,
           quantidade: novaQtd,
@@ -1321,19 +1323,11 @@
           relatorio: novoRelatorio
         };
 
-        // Atualiza registrosBase
-        registrosBase = registrosBase.map((reg) => {
-          return registrosIguais(reg, registroParaEditar) ? registroAtualizado : reg;
-        });
-
-        // Atualiza registrosAtuais
-        registrosAtuais = registrosAtuais.map((reg) => {
-          return registrosIguais(reg, registroParaEditar) ? registroAtualizado : reg;
-        });
+        registrosBase = registrosBase.map((reg) => (registrosIguais(reg, registroParaEditar) ? registroAtualizado : reg));
+        registrosAtuais = registrosAtuais.map((reg) => (registrosIguais(reg, registroParaEditar) ? registroAtualizado : reg));
 
         statusEl.textContent = dados.message || "Registro editado com sucesso.";
 
-        // Fecha modal e re-renderiza para refletir mudanças (inclusive totais)
         fecharModalEditarForm();
         aplicarFiltrosLocal();
       } catch (erro) {
@@ -1342,8 +1336,6 @@
       }
     }
 
-    /* ==== EXPORTAÇÃO COM VALOR TOTAL E DOCUMENTO (SEM ID) ==== */
-    /* ==== EXPORTAÇÃO (NÚMEROS REAIS NO XLSX) ==== */
     function exportarParaXlsx(registros) {
       const cabecalho = [
         "Data/Hora",
@@ -1364,15 +1356,10 @@
         "Documento",
       ];
 
-      // Monta linhas garantindo que:
-      // - Quantidade = number
-      // - Valor unitário = number
-      // - Valor total = number
-      // Isso permite formatação no Excel (moeda, número, etc.)
       const linhas = registros.map((r) => {
-        const qtdNum = parseNumeroBr(r.quantidade);      // number
-        const vUnitNum = parseNumeroBr(r.valorUnitario); // number
-        const totalNum = qtdNum * vUnitNum;              // number
+        const qtdNum = parseNumeroBr(r.quantidade);
+        const vUnitNum = parseNumeroBr(r.valorUnitario);
+        const totalNum = qtdNum * vUnitNum;
 
         return [
           r.dataHora || "",
@@ -1387,9 +1374,9 @@
           r.subgrupo || "",
           r.categoria || "",
           r.relatorio || "",
-          qtdNum,                 // <-- NÚMERO (não texto)
-          vUnitNum,               // <-- NÚMERO (não texto)
-          totalNum || 0,          // <-- NÚMERO (não texto)
+          qtdNum,
+          vUnitNum,
+          totalNum || 0,
           r.documento || "",
         ];
       });
@@ -1399,16 +1386,11 @@
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(dados);
 
-      // (Opcional, mas recomendado) define formato numérico nas colunas:
-      // M = Quantidade (13ª), N = Valor Unitário (14ª), O = Valor Total (15ª)
-      // Isso já faz o Excel abrir com cara de número/moeda.
-      // Não altera nada além da exportação.
       const range = XLSX.utils.decode_range(ws["!ref"]);
-
-      for (let R = 1; R <= range.e.r; R++) { // começa em 1 para pular o cabeçalho
-        const cellQtd  = ws[XLSX.utils.encode_cell({ r: R, c: 12 })]; // M
-        const cellUnit = ws[XLSX.utils.encode_cell({ r: R, c: 13 })]; // N
-        const cellTot  = ws[XLSX.utils.encode_cell({ r: R, c: 14 })]; // O
+      for (let R = 1; R <= range.e.r; R++) {
+        const cellQtd  = ws[XLSX.utils.encode_cell({ r: R, c: 12 })];
+        const cellUnit = ws[XLSX.utils.encode_cell({ r: R, c: 13 })];
+        const cellTot  = ws[XLSX.utils.encode_cell({ r: R, c: 14 })];
 
         if (cellQtd && typeof cellQtd.v === "number")  cellQtd.z  = "#,##0";
         if (cellUnit && typeof cellUnit.v === "number") cellUnit.z = '"R$" #,##0.00';
