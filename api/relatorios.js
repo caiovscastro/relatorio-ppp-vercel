@@ -1,12 +1,12 @@
 // API/relatorios.js
 // Lista os registros da aba RELATORIO com filtros opcionais.
-// Usa as mesmas variáveis de ambiente já configuradas na Vercel:
 //
+// Variáveis de ambiente (Vercel):
 // GOOGLE_SERVICE_ACCOUNT_EMAIL
 // GOOGLE_PRIVATE_KEY
 // SPREADSHEET_ID
 //
-// Colunas esperadas em RELATORIO (A:P):
+// Colunas esperadas em RELATORIO (A:Q):
 // A  DATA/HORA
 // B  LOJAS
 // C  USÚARIOS
@@ -22,16 +22,17 @@
 // M  QUANTIDADE
 // N  VALOR UNITARIO
 // O  DOCUMENTO
-// P  ID  (identificador único do registro – usado para exclusão)
+// P  ID  (identificador único do registro – usado para exclusão/edição)
+// Q  IMAGEM_URL (link da imagem - Firebase Storage)
 
-import { google } from 'googleapis';
+import { google } from "googleapis";
 
 const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
 if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
-  console.error('Variáveis de ambiente do Google não configuradas corretamente.');
+  console.error("Variáveis de ambiente do Google não configuradas corretamente.");
 }
 
 /**
@@ -41,24 +42,21 @@ async function getSheetsClient() {
   const auth = new google.auth.JWT({
     email: serviceAccountEmail,
     key: privateKey,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
 
-  const sheets = google.sheets({ version: 'v4', auth });
-  return sheets;
+  return google.sheets({ version: "v4", auth });
 }
 
 /**
- * Converte string da planilha (ex.: "27/11/2025 14:32:10")
- * em objeto Date somente com ano/mes/dia, para comparação por período.
+ * Converte "27/11/2025 14:32:10" -> Date(ano/mes/dia)
  */
 function parseDataDaPlanilha(dataHoraStr) {
   if (!dataHoraStr) return null;
 
   try {
-    const [parteData] = String(dataHoraStr).split(' ');
-    const [dia, mes, ano] = (parteData || '').split('/');
-
+    const [parteData] = String(dataHoraStr).split(" ");
+    const [dia, mes, ano] = (parteData || "").split("/");
     if (!dia || !mes || !ano) return null;
     return new Date(Number(ano), Number(mes) - 1, Number(dia));
   } catch (e) {
@@ -67,80 +65,80 @@ function parseDataDaPlanilha(dataHoraStr) {
 }
 
 export default async function handler(req, res) {
-  // Somente GET para listagem
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', 'GET');
-    return res
-      .status(405)
-      .json({ sucesso: false, message: 'Método não permitido.' });
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    return res.status(405).json({ sucesso: false, message: "Método não permitido." });
   }
 
   try {
-    // Filtros opcionais recebidos por query string
     const {
-      loja = '',
-      usuario = '',
-      documento = '',
-      departamento = '',
-      dataInicio = '',
-      dataFim = '',
+      loja = "",
+      usuario = "",
+      documento = "",
+      departamento = "",
+      dataInicio = "",
+      dataFim = "",
     } = req.query;
 
     const sheets = await getSheetsClient();
 
-    // Busca todos os registros da aba RELATORIO (da linha 2 pra baixo).
-    // ATENÇÃO: agora A2:P para incluir também o ID (coluna P).
-    const range = 'RELATORIO!A2:P';
+    // ✅ CORRIGIDO: agora inclui a coluna Q (imagem)
+    const range = "RELATORIO!A2:Q";
     const resposta = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
-      valueRenderOption: 'FORMATTED_VALUE',
+      valueRenderOption: "FORMATTED_VALUE",
     });
 
     const rows = resposta.data.values || [];
 
-    // Mapeia cada linha em um objeto com nomes claros, incluindo o ID.
     const registros = rows.map((row) => {
       const [
-        dataHora,
-        lojaCol,
-        usuarioCol,
-        ean,
-        codConsinco,
-        produto,
-        departamentoCol,
-        secao,
-        grupo,
-        subgrupo,
-        categoria,
-        relatorioObs,
-        quantidade,
-        valorUnitario,
-        documentoCol,
-        idCol, // NOVO: coluna P = ID
+        dataHora,          // A
+        lojaCol,           // B
+        usuarioCol,        // C
+        ean,               // D
+        codConsinco,       // E
+        produto,           // F
+        departamentoCol,   // G
+        secao,             // H
+        grupo,             // I
+        subgrupo,          // J
+        categoria,         // K
+        relatorioObs,      // L
+        quantidade,        // M
+        valorUnitario,     // N
+        documentoCol,      // O
+        idCol,             // P
+        imagemUrlCol,      // Q  ✅ NOVO
       ] = row;
 
       return {
-        dataHora: dataHora || '',
-        loja: lojaCol || '',
-        usuario: usuarioCol || '',
-        ean: ean || '',
-        codConsinco: codConsinco || '',
-        produto: produto || '',
-        departamento: departamentoCol || '',
-        secao: secao || '',
-        grupo: grupo || '',
-        subgrupo: subgrupo || '',
-        categoria: categoria || '',
-        relatorio: relatorioObs || '',
-        quantidade: quantidade || '',
-        valorUnitario: valorUnitario || '',
-        documento: documentoCol || '',
-        id: idCol || '',           // EXPÕE O ID PARA O FRONT
+        dataHora: dataHora || "",
+        loja: lojaCol || "",
+        usuario: usuarioCol || "",
+        ean: ean || "",
+        codConsinco: codConsinco || "",
+        produto: produto || "",
+        departamento: departamentoCol || "",
+        secao: secao || "",
+        grupo: grupo || "",
+        subgrupo: subgrupo || "",
+        categoria: categoria || "",
+        relatorio: relatorioObs || "",
+        quantidade: quantidade || "",
+        valorUnitario: valorUnitario || "",
+        documento: documentoCol || "",
+
+        // ✅ mantenho compatibilidade com seu front (ele aceita id também)
+        id: idCol || "",
+        idRegistro: idCol || "",
+
+        // ✅ campo que o painel-gestor.html deve usar pra miniatura/botão
+        imageUrl: imagemUrlCol || "",
       };
     });
 
-    // Converte datas enviadas pelo front (input type="date" -> yyyy-mm-dd)
     const iniDate = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
     const fimDate = dataFim ? new Date(`${dataFim}T23:59:59`) : null;
 
@@ -149,33 +147,15 @@ export default async function handler(req, res) {
     const docFiltro = documento.trim();
     const depFiltro = departamento.trim().toUpperCase();
 
-    // Aplica filtros em memória
     const filtrados = registros.filter((reg) => {
-      // Filtro de loja (contém, ignorando maiúsc/minúsc)
-      if (lojaFiltro && !reg.loja.toLowerCase().includes(lojaFiltro)) {
-        return false;
-      }
+      if (lojaFiltro && !reg.loja.toLowerCase().includes(lojaFiltro)) return false;
+      if (usuarioFiltro && !reg.usuario.toLowerCase().includes(usuarioFiltro)) return false;
+      if (docFiltro && reg.documento !== docFiltro) return false;
+      if (depFiltro && reg.departamento.toUpperCase() !== depFiltro) return false;
 
-      // Filtro de usuário (contém, ignorando maiúsc/minúsc)
-      if (usuarioFiltro && !reg.usuario.toLowerCase().includes(usuarioFiltro)) {
-        return false;
-      }
-
-      // Filtro de documento (comparação exata)
-      if (docFiltro && reg.documento !== docFiltro) {
-        return false;
-      }
-
-      // Filtro de departamento (ex.: MERCEARIA, PERECIVEIS, etc.)
-      if (depFiltro && reg.departamento.toUpperCase() !== depFiltro) {
-        return false;
-      }
-
-      // Filtro de período (data da coluna A entre dataInicio e dataFim)
       if (iniDate || fimDate) {
         const dataReg = parseDataDaPlanilha(reg.dataHora);
         if (!dataReg) return false;
-
         if (iniDate && dataReg < iniDate) return false;
         if (fimDate && dataReg > fimDate) return false;
       }
@@ -189,10 +169,10 @@ export default async function handler(req, res) {
       registros: filtrados,
     });
   } catch (erro) {
-    console.error('Erro em /api/relatorios:', erro);
+    console.error("Erro em /api/relatorios:", erro);
     return res.status(500).json({
       sucesso: false,
-      message: 'Erro interno ao listar relatórios.',
+      message: "Erro interno ao listar relatórios.",
       detalhe: erro.message || String(erro),
     });
   }
