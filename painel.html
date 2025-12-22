@@ -529,6 +529,51 @@
       .linha-infos { gap: 8px; }
       .input-inline { font-size: 13px; }
     }
+
+    /* =====================================================================================
+       ALTERAÇÃO SOLICITADA (ÚNICA):
+       Trocar o texto do botão do input file (que é do navegador e não dá pra renomear)
+       por um botão visual com o texto: "Abrir câmera📸"
+       - Mantém o mesmo id="fotoOcorrencia" (JS continua funcionando igual)
+       - Não altera a lógica, apenas a apresentação
+       ===================================================================================== */
+
+    /* Esconde o input nativo para não aparecer "Escolher arquivo" */
+    .input-file-hidden {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    /* Botão visual com o texto "Abrir câmera📸" */
+    .btn-abrir-camera {
+      display: inline-block;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #0066ff;
+      color: #fff;
+      user-select: none;
+    }
+
+    .btn-abrir-camera:hover {
+      background: #0050cc;
+    }
+
+    /* Quando o input estiver disabled, o botão visual também fica desabilitado */
+    #fotoOcorrencia:disabled + .btn-abrir-camera {
+      opacity: 0.55;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
   </style>
 </head>
 
@@ -608,7 +653,15 @@
         <label for="fotoOcorrencia" style="font-weight:700; display:block; margin-bottom:6px;">
           Foto (opcional):
         </label>
-        <input id="fotoOcorrencia" type="file" accept="image/*" capture="environment" />
+
+        <!-- =================================================================================
+             ALTERAÇÃO SOLICITADA (ÚNICA):
+             Mantém id="fotoOcorrencia" (JS continua igual),
+             mas troca o "Escolher arquivo" por um botão visual "Abrir câmera📸".
+             ================================================================================= -->
+        <input id="fotoOcorrencia" class="input-file-hidden" type="file" accept="image/*" capture="environment" />
+        <label for="fotoOcorrencia" class="btn-abrir-camera">Abrir câmera📸</label>
+
         <small>É possivel enviar apenas uma imagem por ocorrência.</small>
 
         <!-- feedback do upload -->
