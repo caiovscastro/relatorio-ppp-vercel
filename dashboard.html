@@ -64,23 +64,20 @@
       color: #111;
     }
 
-    /* ====== GRID (responsivo) ======
-       PEDIDO #6:
-       - Deixar o cartão de Top 5 lojas um pouco mais largo
-       Implementação: aumentar a coluna do meio (Top 5) mais que antes.
+    /* ====== GRID (responsivo)
+       - Mantém Top 5 no meio mais largo (como já estava)
     */
     .grid{
       display: grid;
-      grid-template-columns: 1fr 1.45fr 1fr; /* antes: 1fr 1.25fr 1fr */
+      grid-template-columns: 1fr 1.45fr 1fr;
       gap: 12px;
     }
 
     /* ============================
-       PEDIDO #5:
-       - cartões com cinza claro no fundo
+       Tiles
        ============================ */
     .tile{
-      background: #f6f6f6;           /* cinza claro “semelhante ao print” */
+      background: #f6f6f6;
       border: 1px solid #e5e5e5;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
@@ -98,8 +95,7 @@
     }
 
     /* ============================
-       PEDIDO #5:
-       - Número do total ainda maior
+       Total de ocorrências
        ============================ */
     .big-number{
       height: calc(100% - 28px);
@@ -111,7 +107,7 @@
     }
 
     .big-number .n{
-      font-size: 92px; /* antes: 72px | PEDIDO #5 */
+      font-size: 92px;
       font-weight: 900;
       line-height: 1;
       color: #111;
@@ -132,11 +128,16 @@
 
     /* ============================
        Card “Ocorrências por Bandeira”
-       PEDIDOS:
-       - split com divisor vertical (mantido)
-       - PEDIDO #4: logos abaixo do número (como no exemplo)
-       - PEDIDO #1: logos “como HTML” (img no markup, sem JS/DataURI)
+       PEDIDOS (ajustes):
+       #3 - remover BIG/ULT e remover “ocorrências” abaixo do logo
+       #4 - centralizar o título no meio da linha
        ============================ */
+
+    /* PEDIDO #4: título centralizado */
+    .tile.bandeira-tile h3{
+      text-align: center;
+    }
+
     .bandeira-split{
       height: calc(100% - 28px);
       display: grid;
@@ -158,16 +159,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
       min-height: 120px;
-    }
-
-    .bandeira-sigla{
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.6px;
-      color: #333;
-      text-transform: uppercase;
     }
 
     .bandeira-num{
@@ -177,19 +170,30 @@
       line-height: 1;
     }
 
-    /* PEDIDO #4: logo abaixo do número, mesmo tamanho para ambos */
+    /* Logos: mesmo tamanho para ambos */
     .bandeira-logo{
-      width: 120px;
-      height: 42px;
+      width: 140px;
+      height: 46px;
       object-fit: contain;
       display: block;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
     }
 
-    .bandeira-label{
-      font-size: 12px;
-      font-weight: 800;
-      color: #555;
+    /* ============================
+       Linha inferior (Departamento + Pizza/Rosca)
+       PEDIDO #5:
+       - criar um novo gráfico (rosca/pizza) ao lado do dept, na direita
+       - mesmo tamanho do card "Ocorrências por bandeira"
+       Implementação:
+       - cria uma subgrid 2 colunas:
+         esquerda: Departamento (mais largo)
+         direita: Percentual por bandeira (mesma largura do card da direita do topo = 1fr)
+       ============================ */
+    .bottom-grid{
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1.45fr 1fr; /* direita = “mesmo tamanho” (1fr) */
+      gap: 12px;
     }
 
     .status{
@@ -219,16 +223,17 @@
       color: #c00000;
     }
 
-    /* ====== Responsivo: mantém legível em telas pequenas ====== */
+    /* ====== Responsivo ====== */
     @media (max-width: 980px){
       .grid{ grid-template-columns: 1fr 1fr; }
+      .bottom-grid{ grid-template-columns: 1fr; }
     }
     @media (max-width: 640px){
       .grid{ grid-template-columns: 1fr; }
       .big-number .n{ font-size: 82px; }
       .canvas-wrap{ height: 240px; }
       .bandeira-num{ font-size: 40px; }
-      .bandeira-logo{ width: 112px; height: 40px; }
+      .bandeira-logo{ width: 132px; height: 44px; }
     }
   </style>
 </head>
@@ -263,7 +268,7 @@
         </div>
       </div>
 
-      <!-- Top 5 lojas (continua no meio e agora mais largo pela grid) -->
+      <!-- Top 5 lojas -->
       <div class="tile">
         <h3>Top 5 lojas</h3>
         <div class="canvas-wrap">
@@ -272,55 +277,58 @@
       </div>
 
       <!-- Ocorrências por bandeira -->
-      <div class="tile">
+      <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
         <div class="bandeira-split" aria-label="Ocorrências por bandeira (BIG e ULT)">
+          <!-- PEDIDO #3: remove BIG/ULT (não exibe mais sigla) -->
           <div class="bandeira-col">
-            <div class="bandeira-sigla">BIG</div>
-
             <div class="bandeira-num" id="bandeiraBIG">0</div>
 
-            <!-- =========================================================
-                 PEDIDO #1:
-                 - Logo como HTML (img direto no markup)
-                 IMPORTANTE:
-                 - Mantenha esses arquivos na MESMA PASTA deste HTML
-                 - Nome do arquivo com espaço precisa estar URL-encodado
-                 ========================================================= -->
+            <!-- PEDIDO #1: logos via link direto -->
             <img
               class="bandeira-logo"
-              src="./logo%20big%20box.png"
+              src="https://i.ibb.co/SD0LFdbL/LOGO-BIG-ULTRA-20240823-102136-0000.png"
               alt="Big Box"
             />
 
-            <div class="bandeira-label">ocorrências</div>
+            <!-- PEDIDO #3: remove texto “ocorrências” abaixo do logo (não existe mais) -->
           </div>
 
           <div class="bandeira-divider" aria-hidden="true"></div>
 
           <div class="bandeira-col">
-            <div class="bandeira-sigla">ULT</div>
-
             <div class="bandeira-num" id="bandeiraULT">0</div>
 
-            <!-- PEDIDO #1 + #4: logo abaixo do número -->
             <img
               class="bandeira-logo"
-              src="./logo-ultrabox.png"
+              src="https://i.ibb.co/270L2q5v/C-pia-de-C-pia-de-Filipeta-TV-2011-20231119-152254-0000.png"
               alt="Ultrabox"
             />
-
-            <div class="bandeira-label">ocorrências</div>
           </div>
         </div>
       </div>
 
-      <!-- Ocorrências por departamento -->
-      <div class="tile" style="grid-column: 1 / -1;">
-        <h3>Ocorrências por departamento</h3>
-        <div class="canvas-wrap" style="height: 260px;">
-          <canvas id="chartDept"></canvas>
+      <!-- =========================================================
+           LINHA INFERIOR (2 cards lado a lado):
+           - Esquerda: Ocorrências por departamento
+           - Direita: NOVO gráfico de rosca (percentual por bandeira)
+           ========================================================= -->
+      <div class="bottom-grid">
+        <!-- Ocorrências por departamento -->
+        <div class="tile">
+          <h3>Ocorrências por departamento</h3>
+          <div class="canvas-wrap" style="height: 260px;">
+            <canvas id="chartDept"></canvas>
+          </div>
+        </div>
+
+        <!-- PEDIDO #5: gráfico de rosca/pizza (percentual por bandeira) -->
+        <div class="tile">
+          <h3>Percentual por bandeira</h3>
+          <div class="canvas-wrap" style="height: 260px;">
+            <canvas id="chartPctBandeira"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -337,6 +345,7 @@
 
     let chartTopLojas = null;
     let chartDept = null;
+    let chartPctBandeira = null; // PEDIDO #5
 
     /* ====== Gate de acesso (só abre via botão) ====== */
     function validarAcesso() {
@@ -481,8 +490,14 @@
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
+        /* ===========================================================
+           Render charts
+           =========================================================== */
         renderTopLojas(topLabels, topValues);
         renderDept(deptLabels, deptValues);
+
+        /* PEDIDO #5: novo gráfico percentual por bandeira */
+        renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
         subInfo.textContent =
           `Base: ${registros.length.toLocaleString("pt-BR")} produtos | ` +
@@ -501,7 +516,7 @@
        PEDIDOS:
        - remover linhas de grade (mantido)
        - BIG roxo
-       - PEDIDO #3: verde do ULT um pouco mais claro
+       - PEDIDO #2: verde das barras mais claro
        =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
@@ -529,8 +544,8 @@
         }
       };
 
-      const corBIG = "#6A1B9A";  // roxo (BIG)
-      const corULT = "#2E7D32";  // verde mais claro (ULT) | PEDIDO #3
+      const corBIG = "#6A1B9A";   // roxo (BIG) - mantido
+      const corULT = "#43A047";   // verde mais claro (ULT) | PEDIDO #2
 
       const bgColors = labels.map((lbl) => {
         const s = String(lbl || "").toUpperCase().trim();
@@ -557,15 +572,8 @@
             tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
           },
           scales: {
-            x: {
-              ticks: { maxRotation: 0, minRotation: 0, autoSkip: false },
-              grid: { display: false }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { precision: 0 },
-              grid: { display: false }
-            }
+            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } }
           }
         },
         plugins: [valueOnTopPlugin]
@@ -574,10 +582,9 @@
 
     /* ===========================================================
        OCORRÊNCIAS POR DEPARTAMENTO
-       PEDIDOS:
        - remover linhas de grade (mantido)
        - rótulos visíveis (mantido)
-       - PEDIDO #2: barras em roxo claro como no exemplo
+       - barras roxo claro (mantido)
        =========================================================== */
     function renderDept(labels, values) {
       const ctx = document.getElementById("chartDept");
@@ -614,7 +621,7 @@
           datasets: [{
             label: "Ocorrências por departamento",
             data: values,
-            backgroundColor: "#A98AE8" /* roxo claro | PEDIDO #2 */
+            backgroundColor: "#A98AE8"
           }]
         },
         options: {
@@ -631,6 +638,76 @@
           }
         },
         plugins: [valueAtEndPlugin]
+      });
+    }
+
+    /* ===========================================================
+       PEDIDO #5:
+       NOVO GRÁFICO (rosca) - Percentual por bandeira
+       - rótulos visíveis com percentual
+       - baseado no total (BIG + ULT)
+       =========================================================== */
+    function renderPctBandeira(qtdBIG, qtdULT) {
+      const ctx = document.getElementById("chartPctBandeira");
+      if (chartPctBandeira) chartPctBandeira.destroy();
+
+      const total = (qtdBIG || 0) + (qtdULT || 0);
+
+      // Plugin simples para escrever percentual dentro de cada fatia
+      const pctLabelPlugin = {
+        id: "pctLabelPlugin",
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data) return;
+
+          ctx.save();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.font = "bold 13px Arial";
+          ctx.fillStyle = "#111";
+
+          meta.data.forEach((arc, i) => {
+            const val = chart.data.datasets[0].data[i] || 0;
+            const pct = total > 0 ? (val * 100 / total) : 0;
+            const label = `${pct.toFixed(1)}%`;
+
+            // posição central de cada arco (Chart.js expõe tooltipPosition)
+            const pos = arc.tooltipPosition();
+            ctx.fillText(label, pos.x, pos.y);
+          });
+
+          ctx.restore();
+        }
+      };
+
+      chartPctBandeira = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["BIG", "ULT"], // rótulos do gráfico (não mexe no card)
+          datasets: [{
+            data: [qtdBIG || 0, qtdULT || 0],
+            backgroundColor: ["#6A1B9A", "#43A047"] // roxo BIG / verde ULT (mais claro)
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "62%",
+          plugins: {
+            legend: { display: true, position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const v = ctx.raw || 0;
+                  const pct = total > 0 ? (v * 100 / total) : 0;
+                  return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
+                }
+              }
+            }
+          }
+        },
+        plugins: [pctLabelPlugin]
       });
     }
   </script>
