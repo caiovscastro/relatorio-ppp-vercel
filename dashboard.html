@@ -19,7 +19,17 @@
       margin: 16px auto 30px;
     }
 
+    /* =========================================================
+       PEDIDO #3 (AGORA):
+       - Ajuste da largura do card do topo (topbar) para seguir
+         a mesma largura da soma dos cards abaixo (grid).
+       - E o card de status (status) também.
+       Implementação: width:100% + box-sizing
+       ========================================================= */
     .topbar{
+      width: 100%;
+      box-sizing: border-box;
+
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -148,6 +158,18 @@
       text-align: center;
     }
 
+    /* =========================================================
+       NOVO (PEDIDO ATUAL):
+       - Valor em R$ no card de Ocorrências e no card por bandeira
+       ========================================================= */
+    .big-number .valor{
+      font-weight: 900;
+      color: #111;
+      font-size: 16px;
+      text-align: center;
+      margin-top: 2px;
+    }
+
     .canvas-wrap{
       position: relative;
       height: 210px;
@@ -165,13 +187,12 @@
     }
 
     /* =========================================================
-       PEDIDO #4 (AGORA): Deixe o gráfico de pizza MAIOR.
-       - Aumentamos a altura/altura mínima do container do gráfico.
+       Pizza maior (já estava)
        ========================================================= */
     .ocorrencias-pie{
       position: relative;
-      height: 240px;      /* antes 180px */
-      min-height: 240px;  /* antes 180px */
+      height: 240px;
+      min-height: 240px;
     }
 
     /* ============================
@@ -202,7 +223,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       min-height: 120px;
     }
 
@@ -213,6 +234,14 @@
       line-height: 1;
     }
 
+    /* NOVO (PEDIDO ATUAL): valor abaixo do número por bandeira */
+    .bandeira-valor{
+      font-size: 14px;
+      font-weight: 900;
+      color: #111;
+      line-height: 1.1;
+    }
+
     .bandeira-logo{
       width: 140px;
       height: 46px;
@@ -221,7 +250,14 @@
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
     }
 
+    /* =========================================================
+       PEDIDO #3 (AGORA):
+       - Status com mesma largura do grid/topbar
+       ========================================================= */
     .status{
+      width: 100%;
+      box-sizing: border-box;
+
       margin-top: 10px;
       font-size: 13px;
       color: #333;
@@ -268,25 +304,21 @@
 
       /* Pizza maior no celular também */
       .ocorrencias-pie{
-        height: 280px;     /* antes 200px */
-        min-height: 280px; /* antes 200px */
+        height: 280px;
+        min-height: 280px;
       }
 
-      /* =========================================================
-         PEDIDO #2 (AGORA):
-         - No celular, deixe os 3 controles (Atualizar, filtro, Voltar)
-           abaixo, como últimos itens do cartão (topbar).
-         ========================================================= */
+      /* No celular, botões/controles ficam por último (já estava) */
       .topbar{
         flex-direction: column;
         align-items: stretch;
       }
 
       .topbar > div:last-child{
-        order: 2;                 /* força ir para baixo */
+        order: 2;
         margin-top: 8px;
         width: 100%;
-        justify-content: flex-end; /* mantém alinhado à direita no mobile */
+        justify-content: flex-end;
         flex-wrap: wrap;
       }
 
@@ -344,6 +376,12 @@
           <div class="big-number" style="height:auto;">
             <div class="n" id="totalOcorrencias">0</div>
             <div class="label">registradas</div>
+
+            <!-- =========================================================
+                 NOVO (PEDIDO ATUAL):
+                 - Valor total (R$) das ocorrências (segue o filtro)
+                 ========================================================= -->
+            <div class="valor" id="totalValorOcorrencias">R$ 0,00</div>
           </div>
 
           <div class="ocorrencias-pie">
@@ -352,13 +390,16 @@
         </div>
       </div>
 
-      <!-- 2) Ocorrências por bandeira -->
+      <!-- 2) Ocorrências por bandeira (mantém sem filtro) -->
       <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
         <div class="bandeira-split" aria-label="Ocorrências por bandeira (BIG e ULT)">
           <div class="bandeira-col">
             <div class="bandeira-num" id="bandeiraBIG">0</div>
+
+            <!-- NOVO (PEDIDO ATUAL): Valor em R$ do BIG (sem filtro) -->
+            <div class="bandeira-valor" id="valorBIG">R$ 0,00</div>
 
             <img
               class="bandeira-logo"
@@ -372,6 +413,9 @@
           <div class="bandeira-col">
             <div class="bandeira-num" id="bandeiraULT">0</div>
 
+            <!-- NOVO (PEDIDO ATUAL): Valor em R$ do ULT (sem filtro) -->
+            <div class="bandeira-valor" id="valorULT">R$ 0,00</div>
+
             <img
               class="bandeira-logo"
               src="https://i.ibb.co/270L2q5v/C-pia-de-C-pia-de-Filipeta-TV-2011-20231119-152254-0000.png"
@@ -381,7 +425,7 @@
         </div>
       </div>
 
-      <!-- 3) Percentual por bandeira -->
+      <!-- 3) Percentual por bandeira (mantém sem filtro) -->
       <div class="tile">
         <h3>Percentual por bandeira</h3>
         <div class="canvas-wrap" style="height: 210px;">
@@ -504,6 +548,9 @@
       return s.length > 20 ? (s.slice(0, 20) + "…") : s;
     }
 
+    /* =========================================================
+       UTIL: parse número BR (ex: "1.234,56") -> 1234.56
+       ========================================================= */
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
@@ -512,6 +559,15 @@
       s = s.replace(/\./g, "").replace(",", ".");
       const n = Number(s);
       return isNaN(n) ? 0 : n;
+    }
+
+    /* =========================================================
+       NOVO (PEDIDO ATUAL):
+       - Formatação BRL "R$"
+       ========================================================= */
+    function formatarBRL(n) {
+      const v = Number(n) || 0;
+      return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
     async function carregar() {
@@ -535,7 +591,9 @@
 
         /* =========================================================
            FILTRO: Todos | BIG | ULT
-           PEDIDO #1 (AGORA): Aplique o filtro também em "Ocorrências"
+           - Ocorrências (card) segue filtro
+           - Pizza (gravidade) segue filtro (pedido anterior)
+           - Bandeira + Percentual por bandeira mantêm sem filtro
            ========================================================= */
         const filtro = (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
 
@@ -544,46 +602,46 @@
           : registros.slice();
 
         /* =========================================================
-           (A) OCORRÊNCIAS (AGORA COM FILTRO)
+           (A) OCORRÊNCIAS (COM FILTRO) + NOVO VALOR (R$)
+           - conta ocorrências únicas
+           - soma valor por ocorrência única (quantidade * valorUnitario)
            ========================================================= */
         const setOccFiltradoTotal = new Set();
+        const valorPorOcorrenciaFiltrada = new Map(); // k -> valor acumulado
+
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
-          if (k) setOccFiltradoTotal.add(k);
+          if (!k) continue;
+
+          setOccFiltradoTotal.add(k);
+
+          const qtd = parseNumeroBr(r.quantidade);
+          const vUnit = parseNumeroBr(r.valorUnitario);
+          const totalLinha = qtd * vUnit;
+
+          valorPorOcorrenciaFiltrada.set(
+            k,
+            (valorPorOcorrenciaFiltrada.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
+          );
         }
+
         const totalOcFiltradoTotal = setOccFiltradoTotal.size;
         document.getElementById("totalOcorrencias").textContent = String(totalOcFiltradoTotal);
 
+        /* NOVO (PEDIDO ATUAL): total em R$ (somando valores das ocorrências únicas filtradas) */
+        let somaValorOcorrenciasFiltradas = 0;
+        for (const v of valorPorOcorrenciaFiltrada.values()) somaValorOcorrenciasFiltradas += (Number(v) || 0);
+        document.getElementById("totalValorOcorrencias").textContent = formatarBRL(somaValorOcorrenciasFiltradas);
+
         /* =========================================================
-           (B) Ocorrências por bandeira (MANTÉM sem filtro)
-           (pedido anterior: exceção)
+           (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + NOVO VALOR (R$)
+           - conta ocorrências únicas por bandeira
+           - soma valor por ocorrência única por bandeira
            ========================================================= */
         const occPorBandeira = { BIG: 0, ULT: 0 };
-        const setOccLocal = new Set();
+        const valorPorBandeira = { BIG: 0, ULT: 0 };
 
-        for (const r of registros) {
-          const k = chaveOcorrencia(r);
-          if (!k || setOccLocal.has(k)) continue;
-
-          setOccLocal.add(k);
-
-          const loja = (r.loja || "").trim() || "SEM LOJA";
-          const band = bandeiraPorLoja(loja);
-
-          if (band) occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
-        }
-
-        document.getElementById("bandeiraBIG").textContent = String(occPorBandeira.BIG || 0);
-        document.getElementById("bandeiraULT").textContent = String(occPorBandeira.ULT || 0);
-
-        /* Percentual por bandeira (MANTÉM sem filtro) */
-        renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
-
-        /* =========================================================
-           Gravidade (MANTÉM sem filtro, conforme exceção anterior)
-           PEDIDO #4 (AGORA): pizza maior já foi no CSS (ocorrencias-pie)
-           ========================================================= */
-        const valorPorOcorrencia = new Map();
+        const valorPorOcorrenciaAll = new Map(); // k -> valor total (base completa)
         for (const r of registros) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
@@ -592,11 +650,43 @@
           const vUnit = parseNumeroBr(r.valorUnitario);
           const totalLinha = qtd * vUnit;
 
-          valorPorOcorrencia.set(k, (valorPorOcorrencia.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha));
+          valorPorOcorrenciaAll.set(
+            k,
+            (valorPorOcorrenciaAll.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
+          );
         }
 
+        const setOccAll = new Set();
+        for (const r of registros) {
+          const k = chaveOcorrencia(r);
+          if (!k || setOccAll.has(k)) continue;
+          setOccAll.add(k);
+
+          const loja = (r.loja || "").trim() || "SEM LOJA";
+          const band = bandeiraPorLoja(loja);
+
+          if (band) {
+            occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
+            valorPorBandeira[band] = (valorPorBandeira[band] || 0) + (valorPorOcorrenciaAll.get(k) || 0);
+          }
+        }
+
+        document.getElementById("bandeiraBIG").textContent = String(occPorBandeira.BIG || 0);
+        document.getElementById("bandeiraULT").textContent = String(occPorBandeira.ULT || 0);
+
+        /* NOVO (PEDIDO ATUAL): valores em R$ por bandeira (sem filtro) */
+        document.getElementById("valorBIG").textContent = formatarBRL(valorPorBandeira.BIG || 0);
+        document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeira.ULT || 0);
+
+        /* Percentual por bandeira (SEM FILTRO) */
+        renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
+
+        /* =========================================================
+           (C) GRAVIDADE (COM FILTRO)  ✅
+           - usa os valores das ocorrências únicas filtradas
+           ========================================================= */
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
-        for (const [, v] of valorPorOcorrencia.entries()) {
+        for (const v of valorPorOcorrenciaFiltrada.values()) {
           if (v >= 500) qtdGrave++;
           else if (v < 100) qtdLeve++;
           else qtdMedia++;
@@ -604,11 +694,11 @@
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
         /* =========================================================
-           (C) Itens que seguem o filtro:
+           (D) ITENS QUE SEGUEM FILTRO:
            - Top 5 lojas
            - Ocorrências por departamento
            - Top 15 produtos
-           - SubInfo (texto sem “Base (filtro)” e sem “| Filtro: X”)
+           - SubInfo
            ========================================================= */
 
         /* Top 5 lojas (por ocorrência única) - COM FILTRO */
@@ -676,11 +766,7 @@
         renderDept(deptLabels, deptValues);
         renderTopProdutos(prodLabels, prodValues);
 
-        /* =========================================================
-           PEDIDO #3 (AGORA):
-           - Remover "Base (filtro):" e "| Filtro: BIG/ULT"
-           - Mantemos apenas: "<n> registros | <n> ocorrências"
-           ========================================================= */
+        /* SubInfo (sem texto de filtro) */
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
           `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
@@ -695,13 +781,12 @@
 
     /* ===========================================================
        TOP 5 LOJAS
-       PEDIDO #5 (AGORA):
-       - Quando filtro BIG, primeiras barras “estouram” e some o rótulo.
-       Correções aplicadas sem mudar o layout:
-       - limita largura mínima das barras: barThickness/maxBarThickness
-       - reduz o tamanho da fonte do tick e permite quebra/limite por autoSkip
-       - aumenta o padding inferior dos ticks
-       - garante que labels não “cortem” com overflow oculto do canvas
+       PEDIDO #2 (anterior):
+       - Corrige “corte”/sumiço do valor/rótulo nas primeiras barras
+         quando BIG domina (escala sem headroom).
+       Implementação:
+       - Define suggestedMax (max * 1.2) no eixo Y
+       - Assim sobra espaço para o rótulo acima da barra
        =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
@@ -739,6 +824,9 @@
         return "#777";
       });
 
+      const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
+      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
+
       chartTopLojas = new Chart(ctx, {
         type: "bar",
         data: {
@@ -746,37 +834,21 @@
           datasets: [{
             label: "Ocorrências",
             data: values,
-            backgroundColor: bgColors,
-
-            /* PEDIDO #5: controla a “largura” das barras para evitar estourar */
-            maxBarThickness: 42,
-            barThickness: "flex"
+            backgroundColor: bgColors
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: { bottom: 10 } /* ajuda a não cortar label/elementos */
-          },
           plugins: {
             legend: { display: false },
             tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
           },
           scales: {
-            x: {
-              grid: { display: false },
-              ticks: {
-                /* PEDIDO #5: evita sumir rótulo; deixa mais compacto */
-                autoSkip: true,
-                maxRotation: 0,
-                minRotation: 0,
-                font: { size: 11 },
-                padding: 6
-              }
-            },
+            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false } },
             y: {
               beginAtZero: true,
+              suggestedMax: suggestedMax,
               ticks: { precision: 0 },
               grid: { display: false }
             }
@@ -845,7 +917,7 @@
     }
 
     /* ===========================================================
-       PERCENTUAL POR BANDEIRA (mantido)
+       PERCENTUAL POR BANDEIRA (mantido – SEM FILTRO)
        =========================================================== */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
@@ -971,7 +1043,7 @@
     }
 
     /* ===========================================================
-       PIZZA - Gravidade
+       PIZZA - Gravidade (segue filtro)
        =========================================================== */
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
