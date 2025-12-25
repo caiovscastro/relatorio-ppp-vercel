@@ -65,8 +65,7 @@
     }
 
     /* =========================================================
-       PEDIDO #2 (NOVO):
-       - Lista suspensa ao lado do botão Atualizar: Todos | BIG | ULT
+       Lista suspensa ao lado do botão Atualizar: Todos | BIG | ULT
        ========================================================= */
     .select-filter{
       border: 1px solid #d6d6d6;
@@ -81,9 +80,7 @@
     }
 
     /* =========================================================
-       (reorganização já existente):
-       - Linha de cima: 3 cartões do mesmo tamanho
-       - Linha de baixo: 2 cartões do mesmo tamanho
+       Grid principal
        ========================================================= */
     .grid{
       display: grid;
@@ -98,11 +95,6 @@
       gap: 12px;
     }
 
-    /* =========================================================
-       PEDIDO #1 (NOVO):
-       - Um NOVO gráfico abaixo de Top 5 lojas e Ocorrências por departamento
-         (Top 15 produtos por número de registros)
-       ========================================================= */
     .row3{
       grid-column: 1 / -1;
       display: block;
@@ -130,7 +122,7 @@
     }
 
     /* ============================
-       Total de ocorrências
+       Ocorrências (número grande)
        ============================ */
     .big-number{
       height: calc(100% - 28px);
@@ -162,12 +154,7 @@
     }
 
     /* =========================================================
-       PEDIDO #3 (NOVO):
-       - Gráfico de pizza (percentual de gravidade) ao lado do card de Ocorrências
-       Implementação:
-       - Dentro do MESMO tile de Ocorrências, divide em 2 colunas:
-         esquerda: número grande
-         direita: pizza gravidade
+       Ocorrências: split (número + pizza)
        ========================================================= */
     .ocorrencias-split{
       height: calc(100% - 28px);
@@ -176,10 +163,15 @@
       gap: 10px;
       align-items: center;
     }
+
+    /* =========================================================
+       PEDIDO #4 (AGORA): Deixe o gráfico de pizza MAIOR.
+       - Aumentamos a altura/altura mínima do container do gráfico.
+       ========================================================= */
     .ocorrencias-pie{
       position: relative;
-      height: 180px;
-      min-height: 180px;
+      height: 240px;      /* antes 180px */
+      min-height: 240px;  /* antes 180px */
     }
 
     /* ============================
@@ -261,6 +253,7 @@
       .grid{ grid-template-columns: 1fr 1fr; }
       .row2{ grid-template-columns: 1fr; }
     }
+
     @media (max-width: 640px){
       .grid{ grid-template-columns: 1fr; }
       .big-number .n{ font-size: 82px; }
@@ -272,8 +265,39 @@
       .ocorrencias-split{
         grid-template-columns: 1fr;
       }
+
+      /* Pizza maior no celular também */
       .ocorrencias-pie{
-        height: 200px;
+        height: 280px;     /* antes 200px */
+        min-height: 280px; /* antes 200px */
+      }
+
+      /* =========================================================
+         PEDIDO #2 (AGORA):
+         - No celular, deixe os 3 controles (Atualizar, filtro, Voltar)
+           abaixo, como últimos itens do cartão (topbar).
+         ========================================================= */
+      .topbar{
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .topbar > div:last-child{
+        order: 2;                 /* força ir para baixo */
+        margin-top: 8px;
+        width: 100%;
+        justify-content: flex-end; /* mantém alinhado à direita no mobile */
+        flex-wrap: wrap;
+      }
+
+      .topbar > div:first-child{
+        order: 1;
+        width: 100%;
+      }
+
+      .topbar > div:last-child .btn,
+      .topbar > div:last-child .select-filter{
+        flex: 1 1 auto;
       }
     }
   </style>
@@ -295,10 +319,6 @@
       </div>
 
       <div style="display:flex; gap:8px; align-items:center;">
-        <!-- =========================================================
-             PEDIDO #2 (NOVO):
-             - Dropdown ao lado do botão Atualizar
-             ========================================================= -->
         <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
 
         <select id="filtroBandeira" class="select-filter" onchange="carregar()">
@@ -316,11 +336,10 @@
            LINHA DE CIMA (3 cartões iguais)
            ========================================================= -->
 
-      <!-- 1) Total de ocorrências + Pizza Gravidade (PEDIDO #3) -->
+      <!-- 1) Ocorrências + Pizza Gravidade -->
       <div class="tile">
         <h3>Ocorrências</h3>
 
-        <!-- PEDIDO #3: pizza ao lado do número -->
         <div class="ocorrencias-split">
           <div class="big-number" style="height:auto;">
             <div class="n" id="totalOcorrencias">0</div>
@@ -333,7 +352,7 @@
         </div>
       </div>
 
-      <!-- 2) Ocorrências por bandeira (NÃO sofre filtro - exceção do PEDIDO #2) -->
+      <!-- 2) Ocorrências por bandeira -->
       <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
@@ -362,7 +381,7 @@
         </div>
       </div>
 
-      <!-- 3) Percentual por bandeira (NÃO sofre filtro - exceção do PEDIDO #2) -->
+      <!-- 3) Percentual por bandeira -->
       <div class="tile">
         <h3>Percentual por bandeira</h3>
         <div class="canvas-wrap" style="height: 210px;">
@@ -372,10 +391,8 @@
 
       <!-- =========================================================
            LINHA DE BAIXO (2 cartões iguais)
-           - ESTES DEVEM SEGUIR O FILTRO BIG/ULT (PEDIDO #2)
            ========================================================= -->
       <div class="row2">
-        <!-- Top 5 lojas -->
         <div class="tile">
           <h3>Top 5 lojas</h3>
           <div class="canvas-wrap">
@@ -383,7 +400,6 @@
           </div>
         </div>
 
-        <!-- Ocorrências por departamento -->
         <div class="tile">
           <h3>Ocorrências por departamento</h3>
           <div class="canvas-wrap" style="height: 260px;">
@@ -393,11 +409,7 @@
       </div>
 
       <!-- =========================================================
-           PEDIDO #1 (NOVO):
-           - Novo gráfico abaixo dos dois gráficos (Top5 + Dept)
-           - Top 15 produtos por número de REGISTROS
-           - Nome abreviado com no máximo 20 caracteres
-           - ESTE DEVE SEGUIR O FILTRO BIG/ULT (PEDIDO #2)
+           Top 15 produtos
            ========================================================= -->
       <div class="row3">
         <div class="tile" style="min-height: 240px;">
@@ -422,11 +434,7 @@
     let chartTopLojas = null;
     let chartDept = null;
     let chartPctBandeira = null;
-
-    /* PEDIDO #1 (NOVO): chart Top 15 produtos */
     let chartTopProdutos = null;
-
-    /* PEDIDO #3 (NOVO): chart pizza de gravidade */
     let chartGravidade = null;
 
     /* ====== Gate de acesso (só abre via botão) ====== */
@@ -490,19 +498,12 @@
       return s.length > 10 ? (s.slice(0, 10) + "…") : s;
     }
 
-    /* =========================================================
-       PEDIDO #1 (NOVO): abrevia produto com no máximo 20 caracteres
-       ========================================================= */
     function abreviarProduto(nome) {
       const s = String(nome || "").trim();
       if (!s) return "N/I";
       return s.length > 20 ? (s.slice(0, 20) + "…") : s;
     }
 
-    /* =========================================================
-       (UTIL): parse de número BR para cálculo de valores
-       - usado no PEDIDO #3 (gravidade)
-       ========================================================= */
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
@@ -533,35 +534,33 @@
         const registros = dados.registros;
 
         /* =========================================================
-           PEDIDO #2 (NOVO):
-           - filtro Todos | BIG | ULT
-           - EXCEÇÃO: cards Ocorrências, Ocorrências por bandeira e Percentual por bandeira NÃO sofrem filtro
-           - Todo o restante segue o filtro
+           FILTRO: Todos | BIG | ULT
+           PEDIDO #1 (AGORA): Aplique o filtro também em "Ocorrências"
            ========================================================= */
         const filtro = (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
 
         const registrosFiltrados = (filtro === "BIG" || filtro === "ULT")
           ? registros.filter(r => bandeiraPorLoja(r.loja) === filtro)
-          : registros.slice(); // TODOS
+          : registros.slice();
 
         /* =========================================================
-           (A) CARDS EXCEÇÃO (SEM FILTRO) - sempre calculados com "registros"
+           (A) OCORRÊNCIAS (AGORA COM FILTRO)
            ========================================================= */
-
-        /* 1) TOTAL de ocorrências (únicas) - SEM FILTRO */
-        const setOcc = new Set();
-        for (const r of registros) {
+        const setOccFiltradoTotal = new Set();
+        for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
-          if (k) setOcc.add(k);
+          if (k) setOccFiltradoTotal.add(k);
         }
-        const totalOc = setOcc.size;
-        document.getElementById("totalOcorrencias").textContent = String(totalOc);
+        const totalOcFiltradoTotal = setOccFiltradoTotal.size;
+        document.getElementById("totalOcorrencias").textContent = String(totalOcFiltradoTotal);
 
-        /* 2) Ocorrências por bandeira - SEM FILTRO */
+        /* =========================================================
+           (B) Ocorrências por bandeira (MANTÉM sem filtro)
+           (pedido anterior: exceção)
+           ========================================================= */
         const occPorBandeira = { BIG: 0, ULT: 0 };
-        const occPorLojaAll = new Map(); // usado apenas para contagem geral (não exibida em charts, mas mantém lógica clara)
-
         const setOccLocal = new Set();
+
         for (const r of registros) {
           const k = chaveOcorrencia(r);
           if (!k || setOccLocal.has(k)) continue;
@@ -572,26 +571,19 @@
           const band = bandeiraPorLoja(loja);
 
           if (band) occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
-          occPorLojaAll.set(loja, (occPorLojaAll.get(loja) || 0) + 1);
         }
 
         document.getElementById("bandeiraBIG").textContent = String(occPorBandeira.BIG || 0);
         document.getElementById("bandeiraULT").textContent = String(occPorBandeira.ULT || 0);
 
-        /* 3) Percentual por bandeira - SEM FILTRO */
+        /* Percentual por bandeira (MANTÉM sem filtro) */
         renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
         /* =========================================================
-           PEDIDO #3 (NOVO) - Pizza de gravidade (SEM FILTRO)
-           Regra:
-             - Grave: valor >= 500
-             - Leve:  valor < 100
-             - Média: caso contrário
-           Percentual calculado em relação ao TOTAL de ocorrências (únicas).
-           Observação:
-             - “valor da ocorrência” = soma de (quantidade * valorUnitario) de todos os registros daquela ocorrência.
+           Gravidade (MANTÉM sem filtro, conforme exceção anterior)
+           PEDIDO #4 (AGORA): pizza maior já foi no CSS (ocorrencias-pie)
            ========================================================= */
-        const valorPorOcorrencia = new Map(); // chaveOcorrencia -> valorTotalSomado
+        const valorPorOcorrencia = new Map();
         for (const r of registros) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
@@ -609,15 +601,14 @@
           else if (v < 100) qtdLeve++;
           else qtdMedia++;
         }
-
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
         /* =========================================================
-           (B) ITENS QUE DEVEM SEGUIR FILTRO (BIG/ULT/TODOS)
+           (C) Itens que seguem o filtro:
            - Top 5 lojas
            - Ocorrências por departamento
-           - Top 15 produtos (nº de registros)
-           - Status/subtítulo (informativo) seguem o filtro
+           - Top 15 produtos
+           - SubInfo (texto sem “Base (filtro)” e sem “| Filtro: X”)
            ========================================================= */
 
         /* Top 5 lojas (por ocorrência única) - COM FILTRO */
@@ -642,7 +633,7 @@
         const topValues = top.map(([,qtd]) => qtd);
 
         /* Ocorrências por departamento (por ocorrência, não por linha) - COM FILTRO */
-        const deptPorOcorrencia = new Map(); // chaveOcorrencia -> Set(dept)
+        const deptPorOcorrencia = new Map();
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
@@ -652,7 +643,7 @@
           deptPorOcorrencia.get(k).add(dep);
         }
 
-        const occPorDept = new Map(); // dept -> qtdOcorrenciasQueTEM esse dept
+        const occPorDept = new Map();
         for (const [, setDeps] of deptPorOcorrencia.entries()) {
           for (const dep of setDeps.values()) {
             occPorDept.set(dep, (occPorDept.get(dep) || 0) + 1);
@@ -666,11 +657,8 @@
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
-        /* =========================================================
-           PEDIDO #1 (NOVO) - Top 15 produtos por nº de registros - COM FILTRO
-           - “registro” = cada linha do array de registros
-           ========================================================= */
-        const registrosPorProduto = new Map(); // produto -> qtdLinhas
+        /* Top 15 produtos por nº de registros - COM FILTRO */
+        const registrosPorProduto = new Map();
         for (const r of registrosFiltrados) {
           const prod = (r.produto || "N/I").toString().trim() || "N/I";
           registrosPorProduto.set(prod, (registrosPorProduto.get(prod) || 0) + 1);
@@ -683,19 +671,19 @@
         const prodLabels = topProd.map(([p]) => abreviarProduto(p));
         const prodValues = topProd.map(([,q]) => q);
 
-        /* Render charts (com filtro onde aplicável) */
+        /* Render charts */
         renderTopLojas(topLabels, topValues);
         renderDept(deptLabels, deptValues);
         renderTopProdutos(prodLabels, prodValues);
 
-        /* Sub-info e status (seguem filtro) */
-        const totalOcFiltrado = setOccFiltrado.size;
-        const tagFiltro = (filtro === "BIG" || filtro === "ULT") ? ` | Filtro: ${filtro}` : "";
-
+        /* =========================================================
+           PEDIDO #3 (AGORA):
+           - Remover "Base (filtro):" e "| Filtro: BIG/ULT"
+           - Mantemos apenas: "<n> registros | <n> ocorrências"
+           ========================================================= */
         subInfo.textContent =
-          `Base (filtro): ${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
-          `${totalOcFiltrado.toLocaleString("pt-BR")} ocorrências` +
-          tagFiltro;
+          `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
+          `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
 
         status.textContent = "Dashboard atualizado com sucesso.";
       } catch (e) {
@@ -706,7 +694,14 @@
     }
 
     /* ===========================================================
-       TOP 5 LOJAS (mantido)
+       TOP 5 LOJAS
+       PEDIDO #5 (AGORA):
+       - Quando filtro BIG, primeiras barras “estouram” e some o rótulo.
+       Correções aplicadas sem mudar o layout:
+       - limita largura mínima das barras: barThickness/maxBarThickness
+       - reduz o tamanho da fonte do tick e permite quebra/limite por autoSkip
+       - aumenta o padding inferior dos ticks
+       - garante que labels não “cortem” com overflow oculto do canvas
        =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
@@ -751,19 +746,40 @@
           datasets: [{
             label: "Ocorrências",
             data: values,
-            backgroundColor: bgColors
+            backgroundColor: bgColors,
+
+            /* PEDIDO #5: controla a “largura” das barras para evitar estourar */
+            maxBarThickness: 42,
+            barThickness: "flex"
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: { bottom: 10 } /* ajuda a não cortar label/elementos */
+          },
           plugins: {
             legend: { display: false },
             tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
           },
           scales: {
-            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false } },
-            y: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } }
+            x: {
+              grid: { display: false },
+              ticks: {
+                /* PEDIDO #5: evita sumir rótulo; deixa mais compacto */
+                autoSkip: true,
+                maxRotation: 0,
+                minRotation: 0,
+                font: { size: 11 },
+                padding: 6
+              }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 },
+              grid: { display: false }
+            }
           }
         },
         plugins: [valueOnTopPlugin]
@@ -829,8 +845,7 @@
     }
 
     /* ===========================================================
-       PERCENTUAL POR BANDEIRA
-       (mantido - BIG com a mesma cor do dept)
+       PERCENTUAL POR BANDEIRA (mantido)
        =========================================================== */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
@@ -871,8 +886,8 @@
           datasets: [{
             data: [qtdBIG || 0, qtdULT || 0],
             backgroundColor: [
-              "#A98AE8", /* BIG */
-              "#43A047"  /* ULT */
+              "#A98AE8",
+              "#43A047"
             ]
           }]
         },
@@ -898,8 +913,7 @@
     }
 
     /* ===========================================================
-       PEDIDO #1 (NOVO):
-       TOP 15 PRODUTOS (por nº de registros) - gráfico de barras horizontal
+       TOP 15 PRODUTOS (mantido)
        =========================================================== */
     function renderTopProdutos(labels, values) {
       const ctx = document.getElementById("chartTopProdutos");
@@ -957,11 +971,7 @@
     }
 
     /* ===========================================================
-       PEDIDO #3 (NOVO):
-       PIZZA / DOUGHNUT - Gravidade (Leve / Média / Grave) em % do total de ocorrências
-       - Grave: >= 500
-       - Leve:  < 100
-       - Média: caso contrário
+       PIZZA - Gravidade
        =========================================================== */
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
@@ -997,13 +1007,13 @@
       chartGravidade = new Chart(ctx, {
         type: "pie",
         data: {
-          labels: ["Leve (< 100)", "Média", "Grave (>= 500)"],
+          labels: ["Leve", "Média", "Grave"],
           datasets: [{
             data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
             backgroundColor: [
-              "#9E9E9E", /* Leve */
-              "#A98AE8", /* Média */
-              "#F44336"  /* Grave */
+              "#9E9E9E",
+              "#A98AE8",
+              "#F44336"
             ]
           }]
         },
