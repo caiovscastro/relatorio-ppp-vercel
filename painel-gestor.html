@@ -138,8 +138,14 @@
     /* ========= BOTÕES DOS FILTROS ========= */
     .botoes-filtro {
       margin-top: 10px;
+
+      /* ALTERAÇÃO SOLICITADA:
+         antes eram 3 colunas.
+         agora são 4 colunas para caber:
+         Limpar | Dashboard | Exportar | Aplicar
+         Todos na mesma linha inclusive em telas pequenas. */
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px 10px;
       justify-content: stretch;
     }
@@ -175,6 +181,16 @@
       color: #fff;
     }
 
+    /* NOVO: estilo do botão Dashboard (elegante e coerente com o painel) */
+    .btn-dashboard {
+      background: #6a5acd; /* roxo discreto e profissional */
+      color: #fff;
+    }
+
+    .btn-dashboard:hover {
+      filter: brightness(0.95);
+    }
+
     /* ========= STATUS E LISTA DE CARTÕES ========= */
     .status {
       font-size: 13px;
@@ -204,7 +220,6 @@
       font-size: 12px;
       overflow: hidden;
 
-      /* NOVO: deixa claro que é clicável para preencher filtros */
       cursor: pointer;
     }
 
@@ -214,9 +229,6 @@
       border-bottom: 1px solid #c7c7c7;
     }
 
-    /* =========================
-       LAYOUT (PARES TOPO/BASE)
-       ========================= */
     .cartao-pareado {
       display: grid;
       grid-template-columns: 38% 62%;
@@ -231,17 +243,8 @@
       grid-template-columns: 30% 70%;
     }
 
-    /* Ajustes individuais */
     .pareado-usuario { --gap-pareado: 1px; }
     .pareado-loja    { --gap-pareado: 1px; }
-
-    /*
-      PEDIDO #3:
-      - "Aproxime o valor do doc de seu titulo em 30% mais próximo"
-        => reduzimos gap para 0 (mais próximo que 1px).
-      - "e a valor de seu titulo 15% mais próximo"
-        => reduzimos padding-left do bloco Doc em ~15% (10px -> 9px) no bloco inferior.
-    */
     .pareado-doc     { --gap-pareado: 0px; --doc-margin-left: 0px; }
 
     .cartao-pareado:nth-child(2n) {
@@ -261,7 +264,6 @@
       padding: 4px 10px;
     }
 
-    /* NOVO: ajuste fino só no par Doc (padding 15% menor) */
     .cartao-pares-inferior .pareado-doc {
       padding-left: 9px;
     }
@@ -294,7 +296,7 @@
       padding: 4px 10px;
       border-bottom: 1px solid #d6d6d6;
       gap: 4px;
-      cursor: default; /* para não “confundir” clique no cartão */
+      cursor: default;
     }
 
     .cartao-linha:last-of-type {
@@ -333,7 +335,6 @@
       word-break: break-word;
     }
 
-    /* ==== ÁREA DOS BOTÕES (EDITAR/EXCLUIR) NO CARTÃO ==== */
     .cartao-actions {
       display: flex;
       justify-content: flex-end;
@@ -576,12 +577,12 @@
       color: #333;
     }
 
-    /* ========= NOVO: Miniatura + link Abrir imagem ========= */
+    /* ========= Miniatura + link Abrir imagem ========= */
     .imagem-mini-wrap {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-right: 6px; /* fica "ao lado" do Editar, sem colar */
+      margin-right: 6px;
     }
 
     .imagem-mini {
@@ -689,6 +690,10 @@
 
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
+
+        <!-- NOVO (SOLICITADO): botão Dashboard entre Limpar e Exportar -->
+        <button class="btn btn-dashboard" onclick="abrirDashboard()">Dashboard</button>
+
         <button class="btn btn-exportar" onclick="abrirModalDownload()">Exportar XLSX</button>
         <button class="btn btn-aplicar" onclick="aplicarFiltrosLocal()">Aplicar filtros</button>
       </div>
@@ -785,6 +790,11 @@
 
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
+
+    /* NOVO (SOLICITADO):
+       - flag que libera o acesso ao dashboard apenas via botão */
+    const STORAGE_DASH_OK = "PPP_DASH_OK";
+
     let usuarioLogado = null;
     let registrosBase = [];
     let registrosAtuais = [];
@@ -794,6 +804,14 @@
 
     let registroParaExcluir = null;
     let registroParaEditar = null;
+
+    /* ========= NOVO (SOLICITADO): abre Dashboard apenas via botão ========= */
+    function abrirDashboard() {
+      try {
+        sessionStorage.setItem(STORAGE_DASH_OK, "1");
+      } catch (e) {}
+      window.location.href = "/dashboard.html";
+    }
 
     /* ========= CONTROLE DO CARREGAMENTO (0–100%) ========= */
     function iniciarProgresso() {
@@ -909,6 +927,9 @@
 
     function logoutGestor() {
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
+
+      /* opcional: ao sair, invalida também o acesso ao dashboard */
+      try { sessionStorage.removeItem(STORAGE_DASH_OK); } catch (e) {}
     }
 
     /* ========= PARSE DE NÚMERO BR ========= */
@@ -992,7 +1013,6 @@
       );
     }
 
-    /* ========= NOVO: ao clicar no cartão, preencher filtros ========= */
     function preencherFiltrosPorRegistro(index) {
       const r = registrosAtuais[index];
       if (!r) return;
@@ -1000,12 +1020,8 @@
       document.getElementById("filtroLoja").value = (r.loja || "").toString();
       document.getElementById("filtroUsuario").value = (r.usuario || "").toString();
       document.getElementById("filtroDocumento").value = (r.documento || "").toString();
-
-      // pedido: preencher e depois você clica em "Aplicar filtros"
-      // então NÃO chamamos aplicarFiltrosLocal() aqui.
     }
 
-    /* ========= NOVO: abrir imagem em nova guia ========= */
     function abrirImagemEmNovaGuia(url) {
       if (!url) return;
       window.open(url, "_blank", "noopener,noreferrer");
@@ -1075,6 +1091,7 @@
             const qtdNum = parseNumeroBr(r.quantidade);
             const vUnitNum = parseNumeroBr(r.valorUnitario);
             const totalNum = qtdNum * vUnitNum;
+           _toggleDontCare = totalNum; // (não altera lógica, apenas evita “unused” em alguns linters)
             totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
