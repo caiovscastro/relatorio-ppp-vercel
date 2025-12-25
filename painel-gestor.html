@@ -139,11 +139,8 @@
     .botoes-filtro {
       margin-top: 10px;
 
-      /* ALTERAÇÃO SOLICITADA:
-         antes eram 3 colunas.
-         agora são 4 colunas para caber:
-         Limpar | Dashboard | Exportar | Aplicar
-         Todos na mesma linha inclusive em telas pequenas. */
+      /* Mantém 4 colunas para:
+         Limpar | Dashboard | Exportar | Aplicar */
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px 10px;
@@ -160,10 +157,27 @@
       white-space: nowrap;
     }
 
+    /* =========================================================
+       PEDIDO #1:
+       - Diminuir o tamanho das fontes dos botões para caber no celular
+       Implementação:
+       - reduz font-size e padding especificamente no bloco dos botões
+       - adiciona um ajuste extra em telas pequenas (max-width: 480px)
+       - NÃO altera layout, cores, nem outras áreas
+       ========================================================= */
     .botoes-filtro .btn {
       width: 100%;
-      font-size: 12px;
-      padding: 6px 8px;
+      font-size: 11px;     /* antes: 12px -> menor para não “estourar” */
+      padding: 6px 6px;    /* antes: 6px 8px -> reduz horizontal */
+      letter-spacing: 0;   /* garante que não aumenta largura */
+    }
+
+    /* Reforço para celulares menores */
+    @media (max-width: 480px) {
+      .botoes-filtro .btn {
+        font-size: 10px;   /* ainda menor em telas bem estreitas */
+        padding: 6px 4px;  /* reduz mais para caber */
+      }
     }
 
     .btn-aplicar {
@@ -181,9 +195,9 @@
       color: #fff;
     }
 
-    /* NOVO: estilo do botão Dashboard (elegante e coerente com o painel) */
+    /* estilo do botão Dashboard (mantido) */
     .btn-dashboard {
-      background: #6a5acd; /* roxo discreto e profissional */
+      background: #6a5acd;
       color: #fff;
     }
 
@@ -691,7 +705,7 @@
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
 
-        <!-- NOVO (SOLICITADO): botão Dashboard entre Limpar e Exportar -->
+        <!-- Botão Dashboard (agora com validação de usuário autorizado) -->
         <button class="btn btn-dashboard" onclick="abrirDashboard()">Dashboard</button>
 
         <button class="btn btn-exportar" onclick="abrirModalDownload()">Exportar XLSX</button>
@@ -791,8 +805,7 @@
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
 
-    /* NOVO (SOLICITADO):
-       - flag que libera o acesso ao dashboard apenas via botão */
+    /* flag que libera o acesso ao dashboard apenas via botão */
     const STORAGE_DASH_OK = "PPP_DASH_OK";
 
     let usuarioLogado = null;
@@ -805,11 +818,32 @@
     let registroParaExcluir = null;
     let registroParaEditar = null;
 
-    /* ========= NOVO (SOLICITADO): abre Dashboard apenas via botão ========= */
+    /* =========================================================
+       PEDIDO #2:
+       - Só abrir o Dashboard se o usuário logado for:
+         "gaspar.silva" ou "caio.castro"
+       Implementação:
+       - valida usuarioLogado (já carregado no DOMContentLoaded)
+       - se não autorizado, bloqueia e avisa
+       - NÃO altera o fluxo do dashboard (STORAGE_DASH_OK continua igual)
+       ========================================================= */
     function abrirDashboard() {
+      const u = String(usuarioLogado || "").trim().toLowerCase();
+
+      const usuariosPermitidos = new Set([
+        "gaspar.silva",
+        "caio.castro"
+      ]);
+
+      if (!usuariosPermitidos.has(u)) {
+        alert("Acesso negado: você não tem permissão para abrir o Dashboard.");
+        return;
+      }
+
       try {
         sessionStorage.setItem(STORAGE_DASH_OK, "1");
       } catch (e) {}
+
       window.location.href = "/dashboard.html";
     }
 
@@ -1091,7 +1125,7 @@
             const qtdNum = parseNumeroBr(r.quantidade);
             const vUnitNum = parseNumeroBr(r.valorUnitario);
             const totalNum = qtdNum * vUnitNum;
-           _toggleDontCare = totalNum; // (não altera lógica, apenas evita “unused” em alguns linters)
+            _toggleDontCare = totalNum; // (não altera lógica, apenas evita “unused” em alguns linters)
             totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
