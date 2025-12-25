@@ -64,12 +64,26 @@
       color: #111;
     }
 
-    /* ====== GRID (responsivo)
-       - Mantém Top 5 no meio mais largo (como já estava)
-    */
+    /* =========================================================
+       PEDIDO #3 (reorganização):
+       - Linha de cima: 3 cartões do mesmo tamanho
+         1) Ocorrências
+         2) Ocorrências por bandeira
+         3) Percentual por bandeira
+       - Linha de baixo: 2 cartões do mesmo tamanho
+         1) Top 5 lojas
+         2) Ocorrências por departamento
+       ========================================================= */
     .grid{
       display: grid;
-      grid-template-columns: 1fr 1.45fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr; /* 3 cartões iguais na parte de cima */
+      gap: 12px;
+    }
+
+    .row2{
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* 2 cartões iguais na parte de baixo */
       gap: 12px;
     }
 
@@ -128,12 +142,8 @@
 
     /* ============================
        Card “Ocorrências por Bandeira”
-       PEDIDOS (ajustes):
-       #3 - remover BIG/ULT e remover “ocorrências” abaixo do logo
-       #4 - centralizar o título no meio da linha
+       (mantido do jeito que já estava)
        ============================ */
-
-    /* PEDIDO #4: título centralizado */
     .tile.bandeira-tile h3{
       text-align: center;
     }
@@ -170,30 +180,17 @@
       line-height: 1;
     }
 
-    /* Logos: mesmo tamanho para ambos */
+    /* =========================================================
+       PEDIDO #2:
+       - ambos os logos do mesmo tamanho na visualização
+       Observação: o tamanho VISUAL é garantido pelo mesmo width/height.
+       ========================================================= */
     .bandeira-logo{
       width: 140px;
       height: 46px;
       object-fit: contain;
       display: block;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
-    }
-
-    /* ============================
-       Linha inferior (Departamento + Pizza/Rosca)
-       PEDIDO #5:
-       - criar um novo gráfico (rosca/pizza) ao lado do dept, na direita
-       - mesmo tamanho do card "Ocorrências por bandeira"
-       Implementação:
-       - cria uma subgrid 2 colunas:
-         esquerda: Departamento (mais largo)
-         direita: Percentual por bandeira (mesma largura do card da direita do topo = 1fr)
-       ============================ */
-    .bottom-grid{
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: 1.45fr 1fr; /* direita = “mesmo tamanho” (1fr) */
-      gap: 12px;
     }
 
     .status{
@@ -226,7 +223,7 @@
     /* ====== Responsivo ====== */
     @media (max-width: 980px){
       .grid{ grid-template-columns: 1fr 1fr; }
-      .bottom-grid{ grid-template-columns: 1fr; }
+      .row2{ grid-template-columns: 1fr; }
     }
     @media (max-width: 640px){
       .grid{ grid-template-columns: 1fr; }
@@ -259,7 +256,11 @@
     </div>
 
     <div class="grid">
-      <!-- Total de ocorrências -->
+      <!-- =========================================================
+           LINHA DE CIMA (3 cartões iguais)
+           ========================================================= -->
+
+      <!-- 1) Total de ocorrências -->
       <div class="tile">
         <h3>Ocorrências</h3>
         <div class="big-number">
@@ -268,31 +269,23 @@
         </div>
       </div>
 
-      <!-- Top 5 lojas -->
-      <div class="tile">
-        <h3>Top 5 lojas</h3>
-        <div class="canvas-wrap">
-          <canvas id="chartTopLojas"></canvas>
-        </div>
-      </div>
-
-      <!-- Ocorrências por bandeira -->
+      <!-- 2) Ocorrências por bandeira -->
       <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
         <div class="bandeira-split" aria-label="Ocorrências por bandeira (BIG e ULT)">
-          <!-- PEDIDO #3: remove BIG/ULT (não exibe mais sigla) -->
           <div class="bandeira-col">
             <div class="bandeira-num" id="bandeiraBIG">0</div>
 
-            <!-- PEDIDO #1: logos via link direto -->
+            <!-- =========================================================
+                 PEDIDO #1:
+                 - Substituir link do logo BIG
+                 ========================================================= -->
             <img
               class="bandeira-logo"
-              src="https://i.ibb.co/SD0LFdbL/LOGO-BIG-ULTRA-20240823-102136-0000.png"
+              src="https://i.ibb.co/Kz5DZ8nP/1001316505.png"
               alt="Big Box"
             />
-
-            <!-- PEDIDO #3: remove texto “ocorrências” abaixo do logo (não existe mais) -->
           </div>
 
           <div class="bandeira-divider" aria-hidden="true"></div>
@@ -309,25 +302,33 @@
         </div>
       </div>
 
+      <!-- 3) Percentual por bandeira (AGORA NA PARTE DE CIMA) -->
+      <div class="tile">
+        <h3>Percentual por bandeira</h3>
+        <div class="canvas-wrap" style="height: 210px;">
+          <canvas id="chartPctBandeira"></canvas>
+        </div>
+      </div>
+
       <!-- =========================================================
-           LINHA INFERIOR (2 cards lado a lado):
-           - Esquerda: Ocorrências por departamento
-           - Direita: NOVO gráfico de rosca (percentual por bandeira)
+           LINHA DE BAIXO (2 cartões iguais)
+           - 1º: Top 5 lojas
+           - 2º: Ocorrências por departamento
            ========================================================= -->
-      <div class="bottom-grid">
-        <!-- Ocorrências por departamento -->
+      <div class="row2">
+        <!-- Top 5 lojas (AGORA EMBAIXO, PRIMEIRO) -->
+        <div class="tile">
+          <h3>Top 5 lojas</h3>
+          <div class="canvas-wrap">
+            <canvas id="chartTopLojas"></canvas>
+          </div>
+        </div>
+
+        <!-- Ocorrências por departamento (AGORA EMBAIXO, SEGUNDO) -->
         <div class="tile">
           <h3>Ocorrências por departamento</h3>
           <div class="canvas-wrap" style="height: 260px;">
             <canvas id="chartDept"></canvas>
-          </div>
-        </div>
-
-        <!-- PEDIDO #5: gráfico de rosca/pizza (percentual por bandeira) -->
-        <div class="tile">
-          <h3>Percentual por bandeira</h3>
-          <div class="canvas-wrap" style="height: 260px;">
-            <canvas id="chartPctBandeira"></canvas>
           </div>
         </div>
       </div>
@@ -345,7 +346,7 @@
 
     let chartTopLojas = null;
     let chartDept = null;
-    let chartPctBandeira = null; // PEDIDO #5
+    let chartPctBandeira = null;
 
     /* ====== Gate de acesso (só abre via botão) ====== */
     function validarAcesso() {
@@ -490,13 +491,11 @@
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
-        /* ===========================================================
-           Render charts
-           =========================================================== */
+        /* Render charts */
         renderTopLojas(topLabels, topValues);
         renderDept(deptLabels, deptValues);
 
-        /* PEDIDO #5: novo gráfico percentual por bandeira */
+        /* PEDIDO #4: BIG no gráfico de percentual com a MESMA cor do dept */
         renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
         subInfo.textContent =
@@ -512,11 +511,7 @@
     }
 
     /* ===========================================================
-       TOP 5 LOJAS
-       PEDIDOS:
-       - remover linhas de grade (mantido)
-       - BIG roxo
-       - PEDIDO #2: verde das barras mais claro
+       TOP 5 LOJAS (mantido)
        =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
@@ -544,8 +539,8 @@
         }
       };
 
-      const corBIG = "#6A1B9A";   // roxo (BIG) - mantido
-      const corULT = "#43A047";   // verde mais claro (ULT) | PEDIDO #2
+      const corBIG = "#6A1B9A";
+      const corULT = "#43A047";
 
       const bgColors = labels.map((lbl) => {
         const s = String(lbl || "").toUpperCase().trim();
@@ -581,10 +576,7 @@
     }
 
     /* ===========================================================
-       OCORRÊNCIAS POR DEPARTAMENTO
-       - remover linhas de grade (mantido)
-       - rótulos visíveis (mantido)
-       - barras roxo claro (mantido)
+       OCORRÊNCIAS POR DEPARTAMENTO (mantido)
        =========================================================== */
     function renderDept(labels, values) {
       const ctx = document.getElementById("chartDept");
@@ -642,10 +634,9 @@
     }
 
     /* ===========================================================
-       PEDIDO #5:
-       NOVO GRÁFICO (rosca) - Percentual por bandeira
-       - rótulos visíveis com percentual
-       - baseado no total (BIG + ULT)
+       PERCENTUAL POR BANDEIRA
+       PEDIDO #4:
+       - cor de BIG = MESMA cor das barras do dept (#A98AE8)
        =========================================================== */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
@@ -653,7 +644,6 @@
 
       const total = (qtdBIG || 0) + (qtdULT || 0);
 
-      // Plugin simples para escrever percentual dentro de cada fatia
       const pctLabelPlugin = {
         id: "pctLabelPlugin",
         afterDatasetsDraw(chart) {
@@ -672,7 +662,6 @@
             const pct = total > 0 ? (val * 100 / total) : 0;
             const label = `${pct.toFixed(1)}%`;
 
-            // posição central de cada arco (Chart.js expõe tooltipPosition)
             const pos = arc.tooltipPosition();
             ctx.fillText(label, pos.x, pos.y);
           });
@@ -684,10 +673,13 @@
       chartPctBandeira = new Chart(ctx, {
         type: "doughnut",
         data: {
-          labels: ["BIG", "ULT"], // rótulos do gráfico (não mexe no card)
+          labels: ["BIG", "ULT"],
           datasets: [{
             data: [qtdBIG || 0, qtdULT || 0],
-            backgroundColor: ["#6A1B9A", "#43A047"] // roxo BIG / verde ULT (mais claro)
+            backgroundColor: [
+              "#A98AE8", /* BIG = mesma cor do dept | PEDIDO #4 */
+              "#43A047"  /* ULT = verde mais claro já usado */
+            ]
           }]
         },
         options: {
