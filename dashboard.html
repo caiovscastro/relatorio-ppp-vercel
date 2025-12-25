@@ -65,14 +65,13 @@
     }
 
     /* ====== GRID (responsivo) ======
-       PEDIDO #1:
-       - manter 3 cartões na linha
-       - deixar o Top 5 um pouco mais largo que os outros nessa mesma linha
-       Implementação: coluna do meio mais larga (1.25fr)
+       PEDIDO #6:
+       - Deixar o cartão de Top 5 lojas um pouco mais largo
+       Implementação: aumentar a coluna do meio (Top 5) mais que antes.
     */
     .grid{
       display: grid;
-      grid-template-columns: 1fr 1.25fr 1fr; /* Top 5 fica no meio e mais largo */
+      grid-template-columns: 1fr 1.45fr 1fr; /* antes: 1fr 1.25fr 1fr */
       gap: 12px;
     }
 
@@ -99,9 +98,8 @@
     }
 
     /* ============================
-       PEDIDO #6:
-       - número maior e centralizado
-       - "registradas" abaixo do número
+       PEDIDO #5:
+       - Número do total ainda maior
        ============================ */
     .big-number{
       height: calc(100% - 28px);
@@ -113,7 +111,7 @@
     }
 
     .big-number .n{
-      font-size: 72px; /* maior que antes */
+      font-size: 92px; /* antes: 72px | PEDIDO #5 */
       font-weight: 900;
       line-height: 1;
       color: #111;
@@ -133,10 +131,11 @@
     }
 
     /* ============================
-       PEDIDO #4 (card split) + PEDIDO #4 (logos):
-       - cartão único “Ocorrências por Bandeira”
-       - dividido por linha vertical
-       - adicionar logo ao lado do número de cada bandeira (mesmo tamanho)
+       Card “Ocorrências por Bandeira”
+       PEDIDOS:
+       - split com divisor vertical (mantido)
+       - PEDIDO #4: logos abaixo do número (como no exemplo)
+       - PEDIDO #1: logos “como HTML” (img no markup, sem JS/DataURI)
        ============================ */
     .bandeira-split{
       height: calc(100% - 28px);
@@ -159,7 +158,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       min-height: 120px;
     }
 
@@ -171,27 +170,20 @@
       text-transform: uppercase;
     }
 
-    /* Linha do número com logo ao lado */
-    .bandeira-row{
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .bandeira-logo{
-      width: 48px;    /* mesmo tamanho para os dois */
-      height: 48px;   /* mesmo tamanho para os dois */
-      object-fit: contain;
-      display: block;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
-    }
-
     .bandeira-num{
-      font-size: 40px;
+      font-size: 44px;
       font-weight: 900;
       color: #111;
       line-height: 1;
+    }
+
+    /* PEDIDO #4: logo abaixo do número, mesmo tamanho para ambos */
+    .bandeira-logo{
+      width: 120px;
+      height: 42px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
     }
 
     .bandeira-label{
@@ -233,10 +225,10 @@
     }
     @media (max-width: 640px){
       .grid{ grid-template-columns: 1fr; }
-      .big-number .n{ font-size: 64px; }
+      .big-number .n{ font-size: 82px; }
       .canvas-wrap{ height: 240px; }
-      .bandeira-num{ font-size: 36px; }
-      .bandeira-logo{ width: 44px; height: 44px; }
+      .bandeira-num{ font-size: 40px; }
+      .bandeira-logo{ width: 112px; height: 40px; }
     }
   </style>
 </head>
@@ -265,19 +257,13 @@
       <!-- Total de ocorrências -->
       <div class="tile">
         <h3>Ocorrências</h3>
-        <!-- PEDIDO #6: número centralizado e label abaixo -->
         <div class="big-number">
           <div class="n" id="totalOcorrencias">0</div>
           <div class="label">registradas</div>
         </div>
       </div>
 
-      <!-- =========================================================
-           PEDIDO #1:
-           - Trocar posição do cartão Top 5 com o cartão Ocorrências por bandeira
-           - Top 5 fica no meio (coluna mais larga pelo CSS da grid)
-           ========================================================= -->
-      <!-- Top 5 lojas (AGORA NA POSIÇÃO DO MEIO) -->
+      <!-- Top 5 lojas (continua no meio e agora mais largo pela grid) -->
       <div class="tile">
         <h3>Top 5 lojas</h3>
         <div class="canvas-wrap">
@@ -285,7 +271,7 @@
         </div>
       </div>
 
-      <!-- Ocorrências por bandeira (AGORA NA TERCEIRA POSIÇÃO) -->
+      <!-- Ocorrências por bandeira -->
       <div class="tile">
         <h3>Ocorrências por bandeira</h3>
 
@@ -293,11 +279,20 @@
           <div class="bandeira-col">
             <div class="bandeira-sigla">BIG</div>
 
-            <!-- PEDIDO #4: logo ao lado do número (mesmo tamanho) -->
-            <div class="bandeira-row">
-              <img id="logoBIG" class="bandeira-logo" alt="Big Box" />
-              <div class="bandeira-num" id="bandeiraBIG">0</div>
-            </div>
+            <div class="bandeira-num" id="bandeiraBIG">0</div>
+
+            <!-- =========================================================
+                 PEDIDO #1:
+                 - Logo como HTML (img direto no markup)
+                 IMPORTANTE:
+                 - Mantenha esses arquivos na MESMA PASTA deste HTML
+                 - Nome do arquivo com espaço precisa estar URL-encodado
+                 ========================================================= -->
+            <img
+              class="bandeira-logo"
+              src="./logo%20big%20box.png"
+              alt="Big Box"
+            />
 
             <div class="bandeira-label">ocorrências</div>
           </div>
@@ -307,11 +302,14 @@
           <div class="bandeira-col">
             <div class="bandeira-sigla">ULT</div>
 
-            <!-- PEDIDO #4: logo ao lado do número (mesmo tamanho) -->
-            <div class="bandeira-row">
-              <img id="logoULT" class="bandeira-logo" alt="Ultrabox" />
-              <div class="bandeira-num" id="bandeiraULT">0</div>
-            </div>
+            <div class="bandeira-num" id="bandeiraULT">0</div>
+
+            <!-- PEDIDO #1 + #4: logo abaixo do número -->
+            <img
+              class="bandeira-logo"
+              src="./logo-ultrabox.png"
+              alt="Ultrabox"
+            />
 
             <div class="bandeira-label">ocorrências</div>
           </div>
@@ -330,7 +328,7 @@
     <div class="status" id="status">Aguardando...</div>
   </div>
 
-  <!-- Chart.js (somente leitura/visual) -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <script>
@@ -339,17 +337,6 @@
 
     let chartTopLojas = null;
     let chartDept = null;
-
-    /* =========================================================
-       PEDIDO #4:
-       - Logos anexos (BIG e ULT) embutidos como Data URI
-       - Mantém o HTML “autossuficiente” (não depende de arquivo no servidor)
-       OBS: As imagens foram reduzidas para uso em UI (mesmo tamanho visual).
-       ========================================================= */
-    const LOGO_BIG_DATA_URI =
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAR8AAABACAYAAABc3w5KAAAACXBIWXMAAAsSAAALEgHS3X78AAAgAElEQVR4nO2de3BU1bnHP9+Z2Z1sQpYQJgQSCgkQGQnW2E7K0m4qk0S9l3q4xJ0m1rYbS5Xo1e7tq3m9w7l3c5Y5k2d3c1m7b3m7b2m2sVZqFQKqg0RgoQkQK2qQkJQkQpYwGQGQmH3v+eN3yQv3M2m9m+9z7vH0b6kqz7z3n3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7z3nO+7wG9v3v7mQAAABJRU5ErkJggg==";
-    const LOGO_ULT_DATA_URI =
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANoAAABACAYAAAB8wqHkAAAACXBIWXMAAAsSAAALEgHS3X78AAADdUlEQVR4nO2dy27bMBCGv8vKQbUoS6mQm0b1gqB0q4b0j8rQxZl0q2w0p0xGzq7mB1Qy0t7kqQn+R6y2lJkWmZ8w7n2k3s8mVJr2m5q0xwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgYpQGf9m6oFQx0u0Zs9Gk3pFQxv3mO5tKxv0b5g7w0g7gq8B2m7n5yq5t5b5c9C4b2v4mC2eG9xkqg6qk8G7v1xjYk9w5r0t9Q2d3d2z2oY8C3GQk4d1yqk7b2wqU7b4o0m5oYkq6Jk8FfF1bYv9S5j8VnVtqkY2o0WmJfXWk0+7aQ2vCqQq5qkq6g8GgQf3Jk2v1uQ5v1yqkq2m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkq7m8bq9Qm7n2qkqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4C/4B0r4pQnQpHn0AAAAASUVORK5CYII=";
 
     /* ====== Gate de acesso (só abre via botão) ====== */
     function validarAcesso() {
@@ -366,10 +353,6 @@
       }
     }
 
-    /* ============================
-       PEDIDO #1:
-       - voltar para /painel-gestor.html
-       ============================ */
     function voltar() {
       window.location.href = "/painel-gestor.html";
     }
@@ -379,10 +362,6 @@
         document.getElementById("telaErro").style.display = "block";
         return;
       }
-
-      // Seta os logos (mesmo tamanho visual via CSS .bandeira-logo)
-      document.getElementById("logoBIG").src = LOGO_BIG_DATA_URI;
-      document.getElementById("logoULT").src = LOGO_ULT_DATA_URI;
 
       document.getElementById("app").style.display = "block";
       carregar();
@@ -405,27 +384,18 @@
       const prefix = s.slice(0, 3);
       if (prefix === "BIG") return "BIG";
       if (prefix === "ULT") return "ULT";
-      // Mantém o comportamento do seu código: não contabiliza OUTROS
       return "";
     }
 
-    /* ============================
-       PEDIDO #3 (abreviação já existente):
-       - "ULT 01", "BIG 01"
-       ============================ */
     function abreviarLojaParaTop5(lojaStr) {
       const s = String(lojaStr || "").trim().toUpperCase();
 
-      // Ex.: "ULT 01 - PLANALTINA" -> "ULT 01"
-      //      "BIG 02 - 402 NORTE"  -> "BIG 02"
       const m = s.match(/^(ULT|BIG)\s*(\d{1,2})\b/);
       if (m) {
         const sigla = m[1];
         const num = String(parseInt(m[2], 10)).padStart(2, "0");
         return `${sigla} ${num}`;
       }
-
-      // fallback curto (não deve ocorrer para suas lojas)
       return s.length > 10 ? (s.slice(0, 10) + "…") : s;
     }
 
@@ -448,9 +418,7 @@
 
         const registros = dados.registros;
 
-        /* ===========================================================
-           1) TOTAL de ocorrências (únicas)
-           =========================================================== */
+        /* 1) TOTAL de ocorrências (únicas) */
         const setOcc = new Set();
         for (const r of registros) {
           const k = chaveOcorrencia(r);
@@ -459,10 +427,7 @@
         const totalOc = setOcc.size;
         document.getElementById("totalOcorrencias").textContent = String(totalOc);
 
-        /* ===========================================================
-           2) Ocorrências por bandeira (contando ocorrência única)
-              + Top lojas (ocorrência única por loja)
-           =========================================================== */
+        /* 2) Ocorrências por bandeira + por loja */
         const occPorBandeira = { BIG: 0, ULT: 0 };
         const occPorLoja = new Map();
 
@@ -476,22 +441,14 @@
           const loja = (r.loja || "").trim() || "SEM LOJA";
           const band = bandeiraPorLoja(loja);
 
-          if (band) {
-            occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
-          }
-
+          if (band) occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
           occPorLoja.set(loja, (occPorLoja.get(loja) || 0) + 1);
         }
 
-        /* ===========================================================
-           Atualiza os números no cartão “split”
-           =========================================================== */
         document.getElementById("bandeiraBIG").textContent = String(occPorBandeira.BIG || 0);
         document.getElementById("bandeiraULT").textContent = String(occPorBandeira.ULT || 0);
 
-        /* ===========================================================
-           3) Top 5 lojas (abreviado)
-           =========================================================== */
+        /* 3) Top 5 lojas */
         const top = Array.from(occPorLoja.entries())
           .sort((a,b) => b[1] - a[1])
           .slice(0, 5);
@@ -499,23 +456,18 @@
         const topLabels = top.map(([loja]) => abreviarLojaParaTop5(loja));
         const topValues = top.map(([,qtd]) => qtd);
 
-        /* ===========================================================
-           4) Ocorrências por departamento
-              - contar em quantas OCORRÊNCIAS o departamento aparece
-              - e NÃO em quantos REGISTROS (linhas)
-           =========================================================== */
+        /* 4) Ocorrências por departamento (por ocorrência, não por linha) */
         const deptPorOcorrencia = new Map(); // chaveOcorrencia -> Set(dept)
         for (const r of registros) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
 
           const dep = (r.departamento || "N/I").toString().trim().toUpperCase() || "N/I";
-
           if (!deptPorOcorrencia.has(k)) deptPorOcorrencia.set(k, new Set());
           deptPorOcorrencia.get(k).add(dep);
         }
 
-        const occPorDept = new Map(); // dept -> qtdOcorrenciasQueTemEsseDept
+        const occPorDept = new Map(); // dept -> qtdOcorrenciasQueTEM esse dept
         for (const [, setDeps] of deptPorOcorrencia.entries()) {
           for (const dep of setDeps.values()) {
             occPorDept.set(dep, (occPorDept.get(dep) || 0) + 1);
@@ -524,20 +476,17 @@
 
         const deptOrdenado = Array.from(occPorDept.entries())
           .sort((a,b) => b[1] - a[1])
-          .slice(0, 12); // mantém legível
+          .slice(0, 12);
 
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
-        /* ===========================================================
-           Render charts
-           =========================================================== */
         renderTopLojas(topLabels, topValues);
         renderDept(deptLabels, deptValues);
 
         subInfo.textContent =
-          `Base: ${registros.length.toLocaleString("pt-BR")} registro(s) | ` +
-          `${totalOc.toLocaleString("pt-BR")} ocorrência(s) única(s)`;
+          `Base: ${registros.length.toLocaleString("pt-BR")} produtos | ` +
+          `${totalOc.toLocaleString("pt-BR")} ocorrências`;
 
         status.textContent = "Dashboard atualizado com sucesso.";
       } catch (e) {
@@ -550,15 +499,14 @@
     /* ===========================================================
        TOP 5 LOJAS
        PEDIDOS:
-       #2 - Remover linhas de grade
-       #3 - BIG barra roxa; ULT barra verde escuro
+       - remover linhas de grade (mantido)
+       - BIG roxo
+       - PEDIDO #3: verde do ULT um pouco mais claro
        =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
-
       if (chartTopLojas) chartTopLojas.destroy();
 
-      // Plugin simples para escrever o valor no topo de cada barra (já existia)
       const valueOnTopPlugin = {
         id: "valueOnTopPlugin",
         afterDatasetsDraw(chart) {
@@ -581,15 +529,14 @@
         }
       };
 
-      // PEDIDO #3: cores por bandeira (BIG roxo / ULT verde escuro)
       const corBIG = "#6A1B9A";  // roxo (BIG)
-      const corULT = "#1B5E20";  // verde escuro (ULT)
+      const corULT = "#2E7D32";  // verde mais claro (ULT) | PEDIDO #3
 
       const bgColors = labels.map((lbl) => {
         const s = String(lbl || "").toUpperCase().trim();
         if (s.startsWith("BIG")) return corBIG;
         if (s.startsWith("ULT")) return corULT;
-        return "#777"; // fallback (não deve acontecer)
+        return "#777";
       });
 
       chartTopLojas = new Chart(ctx, {
@@ -607,26 +554,16 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (item) => `Ocorrências: ${item.raw}`
-              }
-            }
+            tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
           },
           scales: {
             x: {
-              ticks: {
-                maxRotation: 0,
-                minRotation: 0,
-                autoSkip: false
-              },
-              // PEDIDO #2: remover linhas de grade
+              ticks: { maxRotation: 0, minRotation: 0, autoSkip: false },
               grid: { display: false }
             },
             y: {
               beginAtZero: true,
               ticks: { precision: 0 },
-              // PEDIDO #2: remover linhas de grade
               grid: { display: false }
             }
           }
@@ -638,15 +575,14 @@
     /* ===========================================================
        OCORRÊNCIAS POR DEPARTAMENTO
        PEDIDOS:
-       #2 - Remover linhas de grade
-       #2 - Colocar rótulo visível no gráfico (mostrar valor em cada barra)
+       - remover linhas de grade (mantido)
+       - rótulos visíveis (mantido)
+       - PEDIDO #2: barras em roxo claro como no exemplo
        =========================================================== */
     function renderDept(labels, values) {
       const ctx = document.getElementById("chartDept");
-
       if (chartDept) chartDept.destroy();
 
-      // PEDIDO #2: plugin para desenhar valor ao final de cada barra (horizontal)
       const valueAtEndPlugin = {
         id: "valueAtEndPlugin",
         afterDatasetsDraw(chart) {
@@ -662,11 +598,8 @@
 
           meta.data.forEach((bar, i) => {
             const val = chart.data.datasets[0].data[i];
-
-            // Em bar horizontal, bar.x é o “fim” da barra
             const x = Math.min(bar.x + 6, chartArea.right - 6);
             const y = bar.y;
-
             ctx.fillText(String(val), x, y);
           });
 
@@ -680,7 +613,8 @@
           labels,
           datasets: [{
             label: "Ocorrências por departamento",
-            data: values
+            data: values,
+            backgroundColor: "#A98AE8" /* roxo claro | PEDIDO #2 */
           }]
         },
         options: {
@@ -689,24 +623,11 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (item) => `Ocorrências: ${item.raw}`
-              }
-            }
+            tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
           },
           scales: {
-            x: {
-              beginAtZero: true,
-              ticks: { precision: 0 },
-              // PEDIDO #2: remover linhas de grade
-              grid: { display: false }
-            },
-            y: {
-              ticks: { autoSkip: false },
-              // PEDIDO #2: remover linhas de grade
-              grid: { display: false }
-            }
+            x: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } },
+            y: { ticks: { autoSkip: false }, grid: { display: false } }
           }
         },
         plugins: [valueAtEndPlugin]
