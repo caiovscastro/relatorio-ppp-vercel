@@ -269,7 +269,7 @@
       const prefix = s.slice(0, 3);
       if (prefix === "BIG") return "BIG";
       if (prefix === "ULT") return "ULT";
-      return "OUTROS";
+      /*return "OUTROS";*/
     }
 
     async function carregar() {
@@ -363,7 +363,7 @@
 
     function renderBandeira(occPorBandeira) {
       const ctx = document.getElementById("chartBandeira");
-      const labels = ["BIG", "ULT", "OUTROS"];
+      const labels = ["BIG", "ULT"];
       const values = labels.map(l => Number(occPorBandeira[l] || 0));
 
       if (chartBandeira) chartBandeira.destroy();
