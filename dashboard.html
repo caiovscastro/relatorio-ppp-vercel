@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DASHBOARD – Relatório de Ocorrências</title>
+
+  <style>
+    /* ====== Visual “semelhante ao print”: tiles claras em um fundo cinza suave ====== */
+    body{
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #111;
+    }
+
+    .wrap{
+      width: min(1100px, 92vw);
+      margin: 16px auto 30px;
+    }
+
+    .topbar{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+      margin-bottom: 14px;
+    }
+
+    .title{
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle{
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #555;
+    }
+
+    .btn{
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .btn-back{
+      background: #0066ff;
+      color: #fff;
+    }
+
+    .btn-refresh{
+      background: #e9e9e9;
+      color: #111;
+    }
+
+    /* ====== GRID (responsivo) ====== */
+    .grid{
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .tile{
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      padding: 12px 14px;
+      min-height: 180px;
+    }
+
+    .tile h3{
+      margin: 0 0 10px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #111;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .big-number{
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      height: calc(100% - 28px);
+    }
+
+    .big-number .n{
+      font-size: 64px;
+      font-weight: 900;
+      line-height: 1;
+      color: #111;
+    }
+
+    .big-number .label{
+      margin-left: 10px;
+      font-weight: 800;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .canvas-wrap{
+      position: relative;
+      height: 210px;
+    }
+
+    .status{
+      margin-top: 10px;
+      font-size: 13px;
+      color: #333;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    /* ====== Acesso inválido ====== */
+    .tela-erro{
+      width: min(520px, 92vw);
+      margin: 60px auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 22px 18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    .tela-erro h1{
+      margin: 0 0 8px;
+      color: #c00000;
+    }
+
+    /* ====== Responsivo: mantém legível em telas pequenas ====== */
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px){
+      .grid{ grid-template-columns: 1fr; }
+      .big-number .n{ font-size: 56px; }
+      .canvas-wrap{ height: 240px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="telaErro" class="tela-erro" style="display:none;">
+    <h1>Acesso inválido</h1>
+    <p>Este dashboard só pode ser aberto pelo botão <b>Dashboard</b> dentro do Painel do Gestor.</p>
+    <p>Volte para a tela do Gestor e tente novamente.</p>
+    <button class="btn btn-back" onclick="voltar()">Voltar</button>
+  </div>
+
+  <div id="app" class="wrap" style="display:none;">
+    <div class="topbar">
+      <div>
+        <h1 class="title">RELATÓRIO DE OCORRÊNCIAS</h1>
+        <p class="subtitle" id="subInfo">Carregando dados...</p>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
+        <button class="btn btn-back" onclick="voltar()">Voltar</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Total de ocorrências -->
+      <div class="tile">
+        <h3>Ocorrências</h3>
+        <div class="big-number">
+          <div class="n" id="totalOcorrencias">0</div>
+          <div class="label">registradas</div>
+        </div>
+      </div>
+
+      <!-- Ocorrências por bandeira -->
+      <div class="tile">
+        <h3>Ocorrências por bandeira</h3>
+        <div class="canvas-wrap">
+          <canvas id="chartBandeira"></canvas>
+        </div>
+      </div>
+
+      <!-- Top 5 lojas -->
+      <div class="tile">
+        <h3>Top 5 lojas</h3>
+        <div class="canvas-wrap">
+          <canvas id="chartTopLojas"></canvas>
+        </div>
+      </div>
+
+      <!-- Ocorrências por departamento -->
+      <div class="tile" style="grid-column: 1 / -1;">
+        <h3>Ocorrências por departamento</h3>
+        <div class="canvas-wrap" style="height: 260px;">
+          <canvas id="chartDept"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="status">Aguardando...</div>
+  </div>
+
+  <!-- Chart.js (somente leitura/visual) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script>
+    const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
+    const STORAGE_DASH_OK = "PPP_DASH_OK";
+
+    let chartBandeira = null;
+    let chartTopLojas = null;
+    let chartDept = null;
+
+    /* ====== Gate de acesso (só abre via botão) ====== */
+    function validarAcesso() {
+      const dashOk = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim() === "1";
+      const sessaoGestor = sessionStorage.getItem(STORAGE_KEY_GESTOR);
+
+      if (!dashOk || !sessaoGestor) return false;
+
+      try {
+        const obj = JSON.parse(sessaoGestor);
+        return !!(obj && obj.usuario);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function voltar() {
+      window.location.href = "/gestor.html"; // ajuste se o seu arquivo tiver outro nome/rota
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!validarAcesso()) {
+        document.getElementById("telaErro").style.display = "block";
+        return;
+      }
+
+      document.getElementById("app").style.display = "block";
+      carregar();
+    });
+
+    /* ====== Mesma lógica do gerente: “ocorrência única” ====== */
+    function chaveOcorrencia(r) {
+      const documento = (r.documento || "").trim();
+      if (!documento) return "";
+
+      const usuario = (r.usuario || "").trim();
+      const loja = (r.loja || "").trim();
+      const dataStr = (r.dataHora || "").split(" ")[0] || "";
+
+      return `${documento}||${usuario}||${loja}||${dataStr}`;
+    }
+
+    function bandeiraPorLoja(lojaStr) {
+      const s = String(lojaStr || "").trim().toUpperCase();
+      const prefix = s.slice(0, 3);
+      if (prefix === "BIG") return "BIG";
+      if (prefix === "ULT") return "ULT";
+      return "OUTROS";
+    }
+
+    async function carregar() {
+      const status = document.getElementById("status");
+      const subInfo = document.getElementById("subInfo");
+
+      try {
+        status.textContent = "Carregando relatórios do Google Planilhas...";
+        subInfo.textContent = "Carregando dados...";
+
+        const resp = await fetch("/api/relatorios");
+        const dados = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
+          status.textContent = (dados && dados.message) ? dados.message : "Falha ao carregar dados do dashboard.";
+          subInfo.textContent = "Erro ao carregar.";
+          return;
+        }
+
+        const registros = dados.registros;
+
+        // Total de ocorrências (únicas)
+        const setOcc = new Set();
+        for (const r of registros) {
+          const k = chaveOcorrencia(r);
+          if (k) setOcc.add(k);
+        }
+        const totalOc = setOcc.size;
+        document.getElementById("totalOcorrencias").textContent = String(totalOc);
+
+        // Ocorrências por bandeira (contando ocorrência única, não registros)
+        const occPorBandeira = { BIG: 0, ULT: 0, OUTROS: 0 };
+        const occPorLoja = new Map();
+
+        // Para top lojas: vamos contar ocorrência única por loja
+        // Para bandeira: contar ocorrência única por bandeira
+        const setOccLocal = new Set();
+        for (const r of registros) {
+          const k = chaveOcorrencia(r);
+          if (!k || setOccLocal.has(k)) continue;
+
+          setOccLocal.add(k);
+
+          const loja = (r.loja || "").trim() || "SEM LOJA";
+          const band = bandeiraPorLoja(loja);
+
+          occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
+          occPorLoja.set(loja, (occPorLoja.get(loja) || 0) + 1);
+        }
+
+        // Top 5 lojas
+        const top = Array.from(occPorLoja.entries())
+          .sort((a,b) => b[1] - a[1])
+          .slice(0, 5);
+
+        const topLabels = top.map(([loja]) => loja);
+        const topValues = top.map(([,qtd]) => qtd);
+
+        // Ocorrências por departamento
+        // Observação: aqui é por “registro” (linha) para ficar consistente com o que você tem hoje.
+        // Se você quiser contar por “ocorrência única” por dept, eu ajusto depois.
+        const porDept = new Map();
+        for (const r of registros) {
+          const dep = (r.departamento || "N/I").toString().trim().toUpperCase() || "N/I";
+          porDept.set(dep, (porDept.get(dep) || 0) + 1);
+        }
+
+        const deptOrdenado = Array.from(porDept.entries())
+          .sort((a,b) => b[1] - a[1])
+          .slice(0, 12); // 12 para ficar legível (sem poluir)
+
+        const deptLabels = deptOrdenado.map(([d]) => d);
+        const deptValues = deptOrdenado.map(([,q]) => q);
+
+        // Render charts
+        renderBandeira(occPorBandeira);
+        renderTopLojas(topLabels, topValues);
+        renderDept(deptLabels, deptValues);
+
+        subInfo.textContent =
+          `Base: ${registros.length.toLocaleString("pt-BR")} registro(s) | ` +
+          `${totalOc.toLocaleString("pt-BR")} ocorrência(s) única(s)`;
+
+        status.textContent = "Dashboard atualizado com sucesso.";
+      } catch (e) {
+        console.error("Erro no dashboard:", e);
+        status.textContent = "Erro de conexão ao montar o dashboard.";
+        subInfo.textContent = "Erro ao carregar.";
+      }
+    }
+
+    function renderBandeira(occPorBandeira) {
+      const ctx = document.getElementById("chartBandeira");
+      const labels = ["BIG", "ULT", "OUTROS"];
+      const values = labels.map(l => Number(occPorBandeira[l] || 0));
+
+      if (chartBandeira) chartBandeira.destroy();
+      chartBandeira = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{
+            data: values
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label: (item) => `${item.label}: ${item.raw}`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTopLojas(labels, values) {
+      const ctx = document.getElementById("chartTopLojas");
+
+      if (chartTopLojas) chartTopLojas.destroy();
+      chartTopLojas = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Ocorrências",
+            data: values
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (item) => `Ocorrências: ${item.raw}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { maxRotation: 0, minRotation: 0 }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function renderDept(labels, values) {
+      const ctx = document.getElementById("chartDept");
+
+      if (chartDept) chartDept.destroy();
+      chartDept = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Registros (linhas) por departamento",
+            data: values
+          }]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (item) => `Qtd: ${item.raw}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { precision: 0 }
+            },
+            y: {
+              ticks: { autoSkip: false }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
