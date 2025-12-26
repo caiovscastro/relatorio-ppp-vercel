@@ -1152,7 +1152,13 @@
             const qtdNum = parseNumeroBr(r.quantidade);
             const vUnitNum = parseNumeroBr(r.valorUnitario);
             const totalNum = qtdNum * vUnitNum;
-            _toggleDontCare = totalNum; // (não altera lógica)
+
+            /* =========================================================
+               ✅ CORREÇÃO:
+               - Removido "_toggleDontCare = totalNum;"
+               Motivo: pode causar ReferenceError e/ou vazar variável global.
+               ========================================================= */
+
             totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -1421,73 +1427,73 @@
       }
     }
 
-function exportarParaXlsx(registros) {
-  const cabecalho = [
-    "Loja",
-    "Usuário",
-    "EAN",
-    "Cod Consinco",
-    "Produto",
-    "Departamento",
-    "Seção",
-    "Grupo",
-    "Subgrupo",
-    "Categoria",
-    "Relatório / Observação",
-    "Quantidade",
-    "Valor unitário",
-    "Valor total (Qtd x Unit)",
-    "Documento",
-    "Data ocorrido", // R
-    "Hora ocorrido"  // S
-  ];
+    function exportarParaXlsx(registros) {
+      const cabecalho = [
+        "Loja",
+        "Usuário",
+        "EAN",
+        "Cod Consinco",
+        "Produto",
+        "Departamento",
+        "Seção",
+        "Grupo",
+        "Subgrupo",
+        "Categoria",
+        "Relatório / Observação",
+        "Quantidade",
+        "Valor unitário",
+        "Valor total (Qtd x Unit)",
+        "Documento",
+        "Data ocorrido", // R
+        "Hora ocorrido"  // S
+      ];
 
-  const linhas = registros.map((r) => {
-    const qtdNum = parseNumeroBr(r.quantidade);
-    const vUnitNum = parseNumeroBr(r.valorUnitario);
-    const totalNum = qtdNum * vUnitNum;
+      const linhas = registros.map((r) => {
+        const qtdNum = parseNumeroBr(r.quantidade);
+        const vUnitNum = parseNumeroBr(r.valorUnitario);
+        const totalNum = qtdNum * vUnitNum;
 
-    return [
-      r.loja || "",
-      r.usuario || "",
-      r.ean || "",
-      r.codConsinco || "",
-      r.produto || "",
-      r.departamento || "",
-      r.secao || "",
-      r.grupo || "",
-      r.subgrupo || "",
-      r.categoria || "",
-      r.relatorio || "",
-      qtdNum,
-      vUnitNum,
-      totalNum || 0,
-      r.documento || "",
-      r.dataOcorrido || "", // coluna R
-      r.horaOcorrido || ""  // coluna S
-    ];
-  });
+        return [
+          r.loja || "",
+          r.usuario || "",
+          r.ean || "",
+          r.codConsinco || "",
+          r.produto || "",
+          r.departamento || "",
+          r.secao || "",
+          r.grupo || "",
+          r.subgrupo || "",
+          r.categoria || "",
+          r.relatorio || "",
+          qtdNum,
+          vUnitNum,
+          totalNum || 0,
+          r.documento || "",
+          r.dataOcorrido || "", // coluna R
+          r.horaOcorrido || ""  // coluna S
+        ];
+      });
 
-  const dados = [cabecalho, ...linhas];
+      const dados = [cabecalho, ...linhas];
 
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(dados);
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(dados);
 
-  const range = XLSX.utils.decode_range(ws["!ref"]);
+      const range = XLSX.utils.decode_range(ws["!ref"]);
 
-  for (let R = 1; R <= range.e.r; R++) {
-    const cellQtd  = ws[XLSX.utils.encode_cell({ r: R, c: 11 })];
-    const cellUnit = ws[XLSX.utils.encode_cell({ r: R, c: 12 })];
-    const cellTot  = ws[XLSX.utils.encode_cell({ r: R, c: 13 })];
+      for (let R = 1; R <= range.e.r; R++) {
+        const cellQtd  = ws[XLSX.utils.encode_cell({ r: R, c: 11 })];
+        const cellUnit = ws[XLSX.utils.encode_cell({ r: R, c: 12 })];
+        const cellTot  = ws[XLSX.utils.encode_cell({ r: R, c: 13 })];
 
-    if (cellQtd && typeof cellQtd.v === "number")  cellQtd.z  = "#,##0";
-    if (cellUnit && typeof cellUnit.v === "number") cellUnit.z = '"R$" #,##0.00';
-    if (cellTot && typeof cellTot.v === "number")  cellTot.z  = '"R$" #,##0.00';
-  }
+        if (cellQtd && typeof cellQtd.v === "number")  cellQtd.z  = "#,##0";
+        if (cellUnit && typeof cellUnit.v === "number") cellUnit.z = '"R$" #,##0.00';
+        if (cellTot && typeof cellTot.v === "number")  cellTot.z  = '"R$" #,##0.00';
+      }
 
-  XLSX.utils.book_append_sheet(wb, ws, "Relatorios PPP");
-  XLSX.writeFile(wb, "relatorios_ppp.xlsx");
-}
+      XLSX.utils.book_append_sheet(wb, ws, "Relatorios PPP");
+      XLSX.writeFile(wb, "relatorios_ppp.xlsx");
+    }
   </script>
 </body>
 </html>
