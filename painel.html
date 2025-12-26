@@ -531,14 +531,10 @@
     }
 
     /* =====================================================================================
-       ALTERAÇÃO SOLICITADA (ÚNICA):
-       Trocar o texto do botão do input file (que é do navegador e não dá pra renomear)
-       por um botão visual com o texto: "Abrir câmera📸"
-       - Mantém o mesmo id="fotoOcorrencia" (JS continua funcionando igual)
-       - Não altera a lógica, apenas a apresentação
+       ALTERAÇÃO SOLICITADA (ÚNICA ANTERIOR):
+       Botão visual para o input file: "Abrir câmera📸"
        ===================================================================================== */
 
-    /* Esconde o input nativo para não aparecer "Escolher arquivo" */
     .input-file-hidden {
       position: absolute;
       left: -9999px;
@@ -547,7 +543,6 @@
       opacity: 0;
     }
 
-    /* Botão visual com o texto "Abrir câmera📸" */
     .btn-abrir-camera {
       display: inline-block;
       width: 100%;
@@ -568,11 +563,47 @@
       background: #0050cc;
     }
 
-    /* Quando o input estiver disabled, o botão visual também fica desabilitado */
     #fotoOcorrencia:disabled + .btn-abrir-camera {
       opacity: 0.55;
       cursor: not-allowed;
       pointer-events: none;
+    }
+
+    /* =====================================================================================
+       ✅ ALTERAÇÃO SOLICITADA (NOVA):
+       Campos obrigatórios Data/Hora do ocorrido no popup finalização,
+       lado a lado, abaixo do relatório.
+       ===================================================================================== */
+    .finalizar-dtrow{
+      display:flex;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+
+    .finalizar-dtcol{
+      flex: 1 1 0;
+      display:flex;
+      flex-direction: column;
+      gap:6px;
+      min-width: 0;
+      text-align: left;
+    }
+
+    .finalizar-dtcol label{
+      font-weight: 700;
+      font-size: 13px;
+      color:#111;
+    }
+
+    .finalizar-dtinput{
+      width:100%;
+      box-sizing:border-box;
+      border-radius: 8px;
+      border: 1px solid #c3c3c3;
+      padding: 10px 12px;
+      font-size: 14px;
+      background:#fff;
+      outline:none;
     }
   </style>
 </head>
@@ -647,28 +678,50 @@
 
   <div id="overlayFinalizar" class="overlay-popup" style="z-index:10005;">
     <div class="confirm-box">
+      <!-- Relatório (obrigatório) -->
       <textarea id="finalizarRelatorio" class="finalizar-textarea" placeholder="Relatório (obrigatório)"></textarea>
+
+      <!-- =================================================================================
+           ✅ ALTERAÇÃO SOLICITADA (NOVA):
+           Data ocorrido (obrigatório) + Hora ocorrido (obrigatório), lado a lado,
+           logo abaixo do relatório.
+           ================================================================================= -->
+      <div class="finalizar-dtrow" aria-label="Data e Hora do ocorrido (obrigatórios)">
+        <div class="finalizar-dtcol">
+          <label for="dataOcorrido">Data do ocorrido (obrigatório):</label>
+          <input id="dataOcorrido" class="finalizar-dtinput" type="date" />
+        </div>
+
+        <div class="finalizar-dtcol">
+          <label for="horaOcorrido">Hora do ocorrido (obrigatório):</label>
+          <input id="horaOcorrido" class="finalizar-dtinput" type="time" />
+        </div>
+      </div>
 
       <div class="finalizar-foto">
         <label for="fotoOcorrencia" style="font-weight:700; display:block; margin-bottom:6px;">
           Foto (opcional):
         </label>
 
-        <!-- =================================================================================
-             ALTERAÇÃO SOLICITADA (ÚNICA):
-             Mantém id="fotoOcorrencia" (JS continua igual),
-             mas troca o "Escolher arquivo" por um botão visual "Abrir câmera📸".
-             ================================================================================= -->
         <input id="fotoOcorrencia" class="input-file-hidden" type="file" accept="image/*" capture="environment" />
         <label for="fotoOcorrencia" class="btn-abrir-camera">Abrir câmera📸</label>
 
         <small>É possivel enviar apenas uma imagem por ocorrência.</small>
 
-        <!-- feedback do upload -->
+        <!-- =================================================================================
+             ✅ ALTERAÇÃO SOLICITADA (NOVA):
+             Após tirar/selecionar a foto, mostrar o NOME DO ARQUIVO abaixo do botão.
+             Reaproveitei este mesmo campo (sem criar nova UI).
+             ================================================================================= -->
         <div id="fotoStatus" class="foto-status"></div>
       </div>
 
+      <!-- =================================================================================
+           ✅ Validação “igual ao relatório”:
+           usa o mesmo bloco de erro para relatório/data/hora.
+           ================================================================================= -->
       <div id="finalizarErro" class="finalizar-erro">Preencha o relatório para finalizar.</div>
+
       <p>Deseja msm Enviar a ocorrência?</p>
       <div class="confirm-buttons">
         <button class="btnConfirmar" onclick="confirmarFinalizarOcorrencia(true)">Sim</button>
@@ -808,11 +861,7 @@
   const STORAGE_DOC_ATUAL        = "PPP_DOC_ATUAL";
   const STORAGE_ITENS_OCORRENCIA = "PPP_ITENS_OCORRENCIA";
 
-  /* ========= NOVO (mínimo necessário) =========
-     Link da imagem anexada nesta ocorrência.
-     - garante 1 imagem por ocorrência
-     - mantém persistência se recarregar antes de finalizar
-  */
+  /* ========= Link da imagem anexada nesta ocorrência (1 por ocorrência) ========= */
   const STORAGE_IMG_URL          = "PPP_IMG_URL";
 
   /* ========= ESTADO EM MEMÓRIA ========= */
@@ -842,6 +891,37 @@
     document.getElementById("lojaSpan").textContent    = lojaLogada;
 
     document.getElementById("appRoot").style.display = "block";
+
+    /* =================================================================================
+       ✅ ALTERAÇÃO SOLICITADA (NOVA):
+       Ao selecionar/tirar foto, mostrar o NOME do arquivo abaixo do botão.
+       (Somente UI; não muda regra de 1 foto/ocorrência nem upload)
+       ================================================================================= */
+    const inputFoto = document.getElementById("fotoOcorrencia");
+    if (inputFoto) {
+      inputFoto.addEventListener("change", () => {
+        const fotoStatus = document.getElementById("fotoStatus");
+        const file = inputFoto.files && inputFoto.files[0] ? inputFoto.files[0] : null;
+
+        // Se não há arquivo, limpa apenas a parte “nome”
+        if (!file) {
+          if (fotoStatus) fotoStatus.textContent = "";
+          return;
+        }
+
+        // Se já existe imagem anexada (regra 1 por ocorrência), o input fica disabled.
+        // Mesmo assim, se por algum motivo disparar change, respeita a regra.
+        const urlJaEnviada = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
+        if (urlJaEnviada) {
+          if (fotoStatus) fotoStatus.textContent = "Uma imagem já foi anexada nesta ocorrência.";
+          inputFoto.value = "";
+          return;
+        }
+
+        // Mostra somente o nome do arquivo abaixo do botão (pedido do usuário)
+        if (fotoStatus) fotoStatus.textContent = `Arquivo selecionado: ${file.name}`;
+      });
+    }
 
     carregarBase();
   });
@@ -925,7 +1005,6 @@
     docAtual = "";
     itensOcorrencia = [];
 
-    // limpa também imagem da ocorrência
     try { localStorage.removeItem(STORAGE_IMG_URL); } catch (e) {}
 
     salvarEstadoOcorrencia();
@@ -1021,7 +1100,6 @@
 
       carregarEstadoOcorrencia();
 
-      // Popup só se houver itens guardados
       const temItensGuardados = Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0;
       if (temItensGuardados) {
         document.getElementById("overlayOcorrenciaPendente").style.display = "flex";
@@ -1069,7 +1147,6 @@
     docAtual = gerarNumeroDocumento();
     ocorrenciaAtiva = true;
 
-    // Nova ocorrência: zera itens e zera imagem anexada
     itensOcorrencia = [];
     try { localStorage.removeItem(STORAGE_IMG_URL); } catch (e) {}
 
@@ -1103,11 +1180,18 @@
     document.getElementById("finalizarRelatorio").value = "";
     document.getElementById("finalizarErro").style.display = "none";
 
-    // feedback da foto no popup
+    /* =================================================================================
+       ✅ ALTERAÇÃO SOLICITADA (NOVA):
+       Zera data/hora do ocorrido ao abrir popup (exigidas antes do envio)
+       ================================================================================= */
+    const dataEl = document.getElementById("dataOcorrido");
+    const horaEl = document.getElementById("horaOcorrido");
+    if (dataEl) dataEl.value = "";
+    if (horaEl) horaEl.value = "";
+
     const fotoStatus = document.getElementById("fotoStatus");
     if (fotoStatus) fotoStatus.textContent = "";
 
-    // 1 imagem por ocorrência: se já tem URL, bloqueia novo arquivo
     const urlJaEnviada = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
     const inputFoto = document.getElementById("fotoOcorrencia");
 
@@ -1123,7 +1207,6 @@
     document.getElementById("overlayFinalizar").style.display = "flex";
   }
 
-  // async: pode subir foto antes do lote
   async function confirmarFinalizarOcorrencia(confirmado) {
     const overlay = document.getElementById("overlayFinalizar");
     const erroEl = document.getElementById("finalizarErro");
@@ -1135,8 +1218,28 @@
     }
 
     const rel = document.getElementById("finalizarRelatorio").value.trim();
-    if (!rel) {
-      erroEl.style.display = "block";
+
+    /* =================================================================================
+       ✅ ALTERAÇÃO SOLICITADA (NOVA):
+       Data e Hora do ocorrido obrigatórios, mesma “pegada” do relatório:
+       - se faltar, mostra o MESMO bloco #finalizarErro e bloqueia envio
+       ================================================================================= */
+    const dataOcorrido = (document.getElementById("dataOcorrido")?.value || "").trim();
+    const horaOcorrido = (document.getElementById("horaOcorrido")?.value || "").trim();
+
+    if (!rel || !dataOcorrido || !horaOcorrido) {
+      // Mantém comportamento: exibe erro no mesmo lugar e não fecha popup.
+      // Ajusta mensagem sem criar novo mecanismo.
+      if (erroEl) {
+        if (!rel && (!dataOcorrido || !horaOcorrido)) {
+          erroEl.textContent = "Preencha o relatório e selecione a data e a hora do ocorrido para finalizar.";
+        } else if (!rel) {
+          erroEl.textContent = "Preencha o relatório para finalizar.";
+        } else {
+          erroEl.textContent = "Selecione a data e a hora do ocorrido para finalizar.";
+        }
+        erroEl.style.display = "block";
+      }
       return;
     }
 
@@ -1158,7 +1261,11 @@
       // Foto é opcional: segue sem imagem
     }
 
-    enviarLoteFinalizacao(rel, imagemUrl);
+    /* =================================================================================
+       ✅ ALTERAÇÃO SOLICITADA (NOVA):
+       Envia data/hora para o lote e repete em cada produto.
+       ================================================================================= */
+    enviarLoteFinalizacao(rel, imagemUrl, dataOcorrido, horaOcorrido);
   }
 
   /* ===================== Upload de imagem ===================== */
@@ -1227,8 +1334,6 @@
     });
 
     const dados = await resp.json().catch(() => ({}));
-
-    // JSON completo no console (F12) — você não precisa “me mandar”
     console.log("[PPP] Resposta /api/upload-imagem:", { httpOk: resp.ok, dados });
 
     if (!resp.ok || !dados.sucesso || !dados.imageUrl) {
@@ -1238,13 +1343,11 @@
       throw new Error(msg);
     }
 
-    // Feedback visível
     if (fotoStatus) {
       const fileId = dados.fileId ? ` (ID: ${dados.fileId})` : "";
       fotoStatus.textContent = "Foto anexada com sucesso." + fileId;
     }
 
-    // Se vier link do Drive, mostra no status principal
     if (status) {
       const webViewLink = dados.webViewLink || "";
       const fileId = dados.fileId || "";
@@ -1256,18 +1359,30 @@
     return String(dados.imageUrl || "");
   }
 
-  async function enviarLoteFinalizacao(relatorioTexto, imagemUrl) {
+  /* =================================================================================
+     ✅ ALTERAÇÃO SOLICITADA (NOVA):
+     Agora recebe data/hora do ocorrido e repete em cada item do lote.
+     - Esses campos precisam ser gravados na planilha nas colunas R e S pela API.
+     ================================================================================= */
+  async function enviarLoteFinalizacao(relatorioTexto, imagemUrl, dataOcorrido, horaOcorrido) {
     const status = document.getElementById("status");
 
     const lote = itensOcorrencia.map((item, idx) => ({
       produto: item.produto,
       loja: item.loja,
       usuario: item.usuario,
+
+      // Mantém regra atual: relatório e imagem apenas no último item
       observacao: (idx === itensOcorrencia.length - 1) ? relatorioTexto : "",
       imagemUrl: (idx === itensOcorrencia.length - 1) ? (imagemUrl || "") : "",
+
       quantidade: item.quantidade,
       valorUnitario: item.valorUnitario,
       numeroDocumento: item.numeroDocumento,
+
+      // ✅ NOVO: repetir data/hora para cada produto do lote
+      dataOcorrido: dataOcorrido, // -> coluna R (API deve mapear)
+      horaOcorrido: horaOcorrido, // -> coluna S (API deve mapear)
     }));
 
     try {
@@ -1292,7 +1407,6 @@
       document.getElementById("valorUnitario").value = "";
       document.getElementById("campoBusca").value = "";
 
-      // limpa foto UI para próxima ocorrência
       try {
         const inputFoto = document.getElementById("fotoOcorrencia");
         if (inputFoto) {
@@ -1653,7 +1767,6 @@
     document.getElementById("overlaySairConfirm").style.display = "none";
     if (!confirmado) return;
 
-    // Pendência ao sair só se houver itens guardados
     const temPendente = Array.isArray(itensOcorrencia) && itensOcorrencia.length > 0;
 
     if (temPendente) {
