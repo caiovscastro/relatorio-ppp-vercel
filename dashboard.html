@@ -20,11 +20,14 @@
     }
 
     /* =========================================================
-       PEDIDO #3 (AGORA):
-       - Ajuste da largura do card do topo (topbar) para seguir
-         a mesma largura da soma dos cards abaixo (grid).
-       - E o card de status (status) também.
-       Implementação: width:100% + box-sizing
+       AJUSTE (PEDIDO #2):
+       - Garantir que TOPBAR e STATUS tenham a mesma largura visual
+         do card "Top 15 produtos" no desktop.
+       Observação:
+       - Os cards (.tile) possuem borda e, sem box-sizing, podem
+         “parecer” ligeiramente maiores. Então:
+         1) Forçamos box-sizing em .tile
+         2) Mantemos topbar/status em border-box (já estavam)
        ========================================================= */
     .topbar{
       width: 100%;
@@ -90,6 +93,61 @@
     }
 
     /* =========================================================
+       NOVO (PEDIDO #3, #4, #5):
+       - 2 filtros por data (início/fim)
+       - 1 caixa de “venda” para calcular participação
+       - Os 3 novos campos ficam à ESQUERDA do filtro Bandeira
+       - Em celular, ficam ABAIXO do filtro Bandeira
+       ========================================================= */
+    .filters-wrap{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .filters-main{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .filters-extra{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .input-filter{
+      border: 1px solid #d6d6d6;
+      background: #fff;
+      color: #111;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-weight: 700;
+      font-size: 13px;
+      outline: none;
+      min-width: 140px;
+      box-sizing: border-box;
+    }
+
+    /* input date costuma ficar “apertado” em alguns browsers */
+    .input-date{
+      min-width: 148px;
+    }
+
+    /* Campo de “venda” (participação) – apenas texto formatado (dinheiro) */
+    .input-money{
+      min-width: 170px;
+      text-align: right;
+    }
+
+    /* =========================================================
        Grid principal
        ========================================================= */
     .grid{
@@ -120,6 +178,9 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
       padding: 12px 14px;
       min-height: 180px;
+
+      /* AJUSTE (PEDIDO #2): evita “crescer” visualmente por borda */
+      box-sizing: border-box;
     }
 
     .tile h3{
@@ -151,21 +212,26 @@
       text-align: center;
     }
 
-    .big-number .label{
-      font-weight: 800;
-      color: #555;
-      font-size: 14px;
-      text-align: center;
-    }
-
     /* =========================================================
-       NOVO (PEDIDO ATUAL):
-       - Valor em R$ no card de Ocorrências e no card por bandeira
+       NOVO (já existia no seu código):
+       - Valor em R$ no card de Ocorrências
        ========================================================= */
     .big-number .valor{
       font-weight: 900;
       color: #111;
       font-size: 16px;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    /* =========================================================
+       NOVO (PEDIDO #4):
+       - Mostrar percentual de participação abaixo do valor
+       ========================================================= */
+    .big-number .participacao{
+      font-weight: 800;
+      color: #555;
+      font-size: 13px;
       text-align: center;
       margin-top: 2px;
     }
@@ -234,7 +300,7 @@
       line-height: 1;
     }
 
-    /* NOVO (PEDIDO ATUAL): valor abaixo do número por bandeira */
+    /* Valor abaixo do número por bandeira */
     .bandeira-valor{
       font-size: 14px;
       font-weight: 900;
@@ -251,8 +317,7 @@
     }
 
     /* =========================================================
-       PEDIDO #3 (AGORA):
-       - Status com mesma largura do grid/topbar
+       Status (mantido com width 100% e border-box)
        ========================================================= */
     .status{
       width: 100%;
@@ -327,9 +392,38 @@
         width: 100%;
       }
 
-      .topbar > div:last-child .btn,
-      .topbar > div:last-child .select-filter{
+      /* =========================================================
+         PEDIDO #5:
+         - Em celular, os 3 novos campos ficam ABAIXO do filtro bandeira
+         Implementação:
+         - filters-main (select + botões) fica “em cima”
+         - filters-extra (datas + venda) vai para baixo e ocupa 100%
+         ========================================================= */
+      .filters-wrap{
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .filters-main{
+        order: 1;
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .filters-extra{
+        order: 2;
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .filters-main .btn,
+      .filters-main .select-filter{
         flex: 1 1 auto;
+      }
+
+      .filters-extra .input-filter{
+        width: 100%;
+        min-width: 0;
       }
     }
   </style>
@@ -350,16 +444,56 @@
         <p class="subtitle" id="subInfo">Carregando dados...</p>
       </div>
 
-      <div style="display:flex; gap:8px; align-items:center;">
-        <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
+      <!-- =========================================================
+           CONTROLES (PEDIDO #3, #4, #5)
+           - filters-extra (datas + venda/participação) à esquerda
+           - filtro bandeira e botões no bloco filters-main
+           - em celular, extra vai abaixo
+           ========================================================= -->
+      <div class="filters-wrap">
+        <!-- NOVOS CAMPOS (fica à esquerda do filtro bandeira no desktop) -->
+        <div class="filters-extra">
+          <input
+            id="dataInicio"
+            class="input-filter input-date"
+            type="date"
+            aria-label="Data início"
+            title="Data início"
+          />
 
-        <select id="filtroBandeira" class="select-filter" onchange="carregar()">
-          <option value="TODOS">Todos</option>
-          <option value="BIG">BIG</option>
-          <option value="ULT">ULT</option>
-        </select>
+          <input
+            id="dataFim"
+            class="input-filter input-date"
+            type="date"
+            aria-label="Data fim"
+            title="Data fim"
+          />
 
-        <button class="btn btn-back" onclick="voltar()">Voltar</button>
+          <input
+            id="valorVenda"
+            class="input-filter input-money"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Venda (ex: 0,00)"
+            aria-label="Valor da venda para participação"
+            title="Digite a venda (aceita negativo). Ex: 1.234,56"
+          />
+        </div>
+
+        <!-- Controles principais (mantidos) -->
+        <div class="filters-main">
+          <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
+
+          <select id="filtroBandeira" class="select-filter" onchange="carregar()">
+            <option value="TODOS">Todos</option>
+            <option value="BIG">BIG</option>
+            <option value="ULT">ULT</option>
+          </select>
+
+          <button class="btn btn-back" onclick="voltar()">Voltar</button>
+        </div>
       </div>
     </div>
 
@@ -375,13 +509,22 @@
         <div class="ocorrencias-split">
           <div class="big-number" style="height:auto;">
             <div class="n" id="totalOcorrencias">0</div>
-            <div class="label">registradas</div>
 
             <!-- =========================================================
-                 NOVO (PEDIDO ATUAL):
-                 - Valor total (R$) das ocorrências (segue o filtro)
+                 PEDIDO #1:
+                 - Remover a palavra "registradas" (linha abaixo do número)
+                 Implementação:
+                 - Removido completamente o elemento que continha o texto
                  ========================================================= -->
+
+            <!-- Valor total (R$) das ocorrências (segue filtros) -->
             <div class="valor" id="totalValorOcorrencias">R$ 0,00</div>
+
+            <!-- =========================================================
+                 PEDIDO #4:
+                 - Mostrar “Participação” (%) abaixo do valor
+                 ========================================================= -->
+            <div class="participacao" id="pctParticipacao">Participação: 0,00%</div>
           </div>
 
           <div class="ocorrencias-pie">
@@ -397,8 +540,6 @@
         <div class="bandeira-split" aria-label="Ocorrências por bandeira (BIG e ULT)">
           <div class="bandeira-col">
             <div class="bandeira-num" id="bandeiraBIG">0</div>
-
-            <!-- NOVO (PEDIDO ATUAL): Valor em R$ do BIG (sem filtro) -->
             <div class="bandeira-valor" id="valorBIG">R$ 0,00</div>
 
             <img
@@ -412,8 +553,6 @@
 
           <div class="bandeira-col">
             <div class="bandeira-num" id="bandeiraULT">0</div>
-
-            <!-- NOVO (PEDIDO ATUAL): Valor em R$ do ULT (sem filtro) -->
             <div class="bandeira-valor" id="valorULT">R$ 0,00</div>
 
             <img
@@ -481,6 +620,14 @@
     let chartTopProdutos = null;
     let chartGravidade = null;
 
+    /* =========================================================
+       NOVO (PEDIDO #4):
+       - Guardar o total em R$ das ocorrências (já filtradas)
+         para recalcular a participação quando o usuário digitar
+         a “venda” no campo.
+       ========================================================= */
+    let totalValorOcorrenciasAtual = 0;
+
     /* ====== Gate de acesso (só abre via botão) ====== */
     function validarAcesso() {
       const dashOk = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim() === "1";
@@ -507,6 +654,28 @@
       }
 
       document.getElementById("app").style.display = "block";
+
+      /* =========================================================
+         NOVO (PEDIDO #3 e #4):
+         - Eventos dos novos campos:
+           * datas -> recarrega (aplica filtro por intervalo)
+           * venda -> recalcula participação em tempo real
+         ========================================================= */
+      document.getElementById("dataInicio")?.addEventListener("change", carregar);
+      document.getElementById("dataFim")?.addEventListener("change", carregar);
+
+      const inpVenda = document.getElementById("valorVenda");
+      if (inpVenda) {
+        inpVenda.addEventListener("input", () => {
+          formatarCampoMoeda(inpVenda);
+          atualizarParticipacao();
+        });
+        inpVenda.addEventListener("blur", () => {
+          formatarCampoMoeda(inpVenda, { forceTwoDecimals: true });
+          atualizarParticipacao();
+        });
+      }
+
       carregar();
     });
 
@@ -562,12 +731,128 @@
     }
 
     /* =========================================================
-       NOVO (PEDIDO ATUAL):
-       - Formatação BRL "R$"
+       Formatação BRL "R$"
        ========================================================= */
     function formatarBRL(n) {
       const v = Number(n) || 0;
       return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    /* =========================================================
+       NOVO (PEDIDO #3):
+       - Converter datas do registro para ISO (YYYY-MM-DD) para
+         comparar com inputs type="date"
+       Suporta:
+       - "YYYY-MM-DD ..."
+       - "DD/MM/YYYY ..."
+       ========================================================= */
+    function dataRegistroParaISO(dataHora) {
+      const raw = String(dataHora || "").trim();
+      if (!raw) return "";
+
+      const dataParte = raw.split(" ")[0] || "";
+
+      // Caso já esteja em ISO (ex: 2025-12-24)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dataParte)) return dataParte;
+
+      // Caso esteja em BR (ex: 24/12/2025)
+      const m = dataParte.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (m) {
+        const dd = m[1], mm = m[2], yyyy = m[3];
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      return "";
+    }
+
+    /* =========================================================
+       NOVO (PEDIDO #4):
+       - Campo de moeda com máscara:
+         * aceita negativo
+         * enquanto digita, mantém formato 1.234,56
+         * sempre com 2 casas decimais
+       Observação:
+       - Não adiciona "R$" no input (você pediu "valor" formatado)
+       ========================================================= */
+    function formatarCampoMoeda(inputEl, opts = {}) {
+      const forceTwoDecimals = !!opts.forceTwoDecimals;
+
+      if (!inputEl) return;
+
+      // Mantém se usuário colocou "-" em qualquer posição
+      const original = String(inputEl.value || "");
+      const neg = original.includes("-");
+
+      // Remove tudo que não for dígito
+      const digits = original.replace(/[^\d]/g, "");
+
+      // Se não tem dígitos, zera (e mantém negativo apenas se o usuário insistir)
+      if (!digits) {
+        inputEl.value = (neg ? "-" : "") + (forceTwoDecimals ? "0,00" : "");
+        return;
+      }
+
+      // Interpreta como centavos
+      const cents = parseInt(digits, 10);
+      const valor = (isNaN(cents) ? 0 : cents) / 100;
+
+      // Formata como pt-BR sem símbolo de moeda
+      const formatado = valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      // Aplica sinal negativo (se usuário indicou)
+      // Se valor for 0, mantém "0,00" (negativo em zero é irrelevante, mas deixo você decidir)
+      inputEl.value = (neg ? "-" : "") + formatado;
+    }
+
+    /* =========================================================
+       NOVO (PEDIDO #4):
+       - Parse do input “venda” (formato BR com possível "-")
+       ========================================================= */
+    function parseMoedaInput(valorStr) {
+      let s = String(valorStr || "").trim();
+      if (!s) return 0;
+
+      // Detecta sinal negativo
+      const neg = s.includes("-");
+      s = s.replace(/-/g, "");
+
+      // Remove símbolos e espaços (aceita "R$" se colarem)
+      s = s.replace(/[R$\s]/g, "");
+
+      // Converte pt-BR para Number
+      const n = parseNumeroBr(s);
+      return neg ? -Math.abs(n) : n;
+    }
+
+    /* =========================================================
+       NOVO (PEDIDO #4):
+       - Calcula e exibe participação (%):
+         participação = (valor_ocorrencias_filtradas / venda_digitada) * 100
+       Regras:
+       - Se venda = 0 -> mostra 0,00%
+       - Aceita venda negativa (percentual pode ficar negativo)
+       ========================================================= */
+    function atualizarParticipacao() {
+      const el = document.getElementById("pctParticipacao");
+      const inp = document.getElementById("valorVenda");
+      if (!el || !inp) return;
+
+      const venda = parseMoedaInput(inp.value);
+      const base = Number(totalValorOcorrenciasAtual) || 0;
+
+      let pct = 0;
+      if (venda !== 0) pct = (base * 100) / venda;
+
+      // Formato com 2 casas e vírgula
+      const pctStr = (Number.isFinite(pct) ? pct : 0).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      el.textContent = `Participação: ${pctStr}%`;
     }
 
     async function carregar() {
@@ -590,19 +875,35 @@
         const registros = dados.registros;
 
         /* =========================================================
-           FILTRO: Todos | BIG | ULT
-           - Ocorrências (card) segue filtro
-           - Pizza (gravidade) segue filtro (pedido anterior)
-           - Bandeira + Percentual por bandeira mantêm sem filtro
+           FILTROS (PEDIDO #3):
+           - Bandeira: Todos | BIG | ULT
+           - Data início/fim: intervalo (inclusive)
            ========================================================= */
         const filtro = (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
 
-        const registrosFiltrados = (filtro === "BIG" || filtro === "ULT")
-          ? registros.filter(r => bandeiraPorLoja(r.loja) === filtro)
-          : registros.slice();
+        const dataInicio = (document.getElementById("dataInicio")?.value || "").trim(); // ISO YYYY-MM-DD
+        const dataFim = (document.getElementById("dataFim")?.value || "").trim();       // ISO YYYY-MM-DD
+
+        const registrosFiltrados = registros.filter(r => {
+          // 1) Bandeira
+          if (filtro === "BIG" || filtro === "ULT") {
+            if (bandeiraPorLoja(r.loja) !== filtro) return false;
+          }
+
+          // 2) Datas (intervalo)
+          if (dataInicio || dataFim) {
+            const iso = dataRegistroParaISO(r.dataHora);
+            if (!iso) return false;
+
+            if (dataInicio && iso < dataInicio) return false;
+            if (dataFim && iso > dataFim) return false;
+          }
+
+          return true;
+        });
 
         /* =========================================================
-           (A) OCORRÊNCIAS (COM FILTRO) + NOVO VALOR (R$)
+           (A) OCORRÊNCIAS (COM FILTRO) + VALOR (R$)
            - conta ocorrências únicas
            - soma valor por ocorrência única (quantidade * valorUnitario)
            ========================================================= */
@@ -628,15 +929,19 @@
         const totalOcFiltradoTotal = setOccFiltradoTotal.size;
         document.getElementById("totalOcorrencias").textContent = String(totalOcFiltradoTotal);
 
-        /* NOVO (PEDIDO ATUAL): total em R$ (somando valores das ocorrências únicas filtradas) */
+        // Total em R$ (somando valores das ocorrências únicas filtradas)
         let somaValorOcorrenciasFiltradas = 0;
         for (const v of valorPorOcorrenciaFiltrada.values()) somaValorOcorrenciasFiltradas += (Number(v) || 0);
+
         document.getElementById("totalValorOcorrencias").textContent = formatarBRL(somaValorOcorrenciasFiltradas);
 
+        // NOVO (PEDIDO #4): guarda e atualiza participação
+        totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
+        atualizarParticipacao();
+
         /* =========================================================
-           (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + NOVO VALOR (R$)
-           - conta ocorrências únicas por bandeira
-           - soma valor por ocorrência única por bandeira
+           (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + VALOR (R$)
+           - mantém sem filtro (como estava)
            ========================================================= */
         const occPorBandeira = { BIG: 0, ULT: 0 };
         const valorPorBandeira = { BIG: 0, ULT: 0 };
@@ -674,7 +979,6 @@
         document.getElementById("bandeiraBIG").textContent = String(occPorBandeira.BIG || 0);
         document.getElementById("bandeiraULT").textContent = String(occPorBandeira.ULT || 0);
 
-        /* NOVO (PEDIDO ATUAL): valores em R$ por bandeira (sem filtro) */
         document.getElementById("valorBIG").textContent = formatarBRL(valorPorBandeira.BIG || 0);
         document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeira.ULT || 0);
 
@@ -682,8 +986,7 @@
         renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
         /* =========================================================
-           (C) GRAVIDADE (COM FILTRO)  ✅
-           - usa os valores das ocorrências únicas filtradas
+           (C) GRAVIDADE (COM FILTRO)
            ========================================================= */
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
         for (const v of valorPorOcorrenciaFiltrada.values()) {
@@ -698,7 +1001,6 @@
            - Top 5 lojas
            - Ocorrências por departamento
            - Top 15 produtos
-           - SubInfo
            ========================================================= */
 
         /* Top 5 lojas (por ocorrência única) - COM FILTRO */
@@ -766,10 +1068,15 @@
         renderDept(deptLabels, deptValues);
         renderTopProdutos(prodLabels, prodValues);
 
-        /* SubInfo (sem texto de filtro) */
+        /* SubInfo (agora também “explica” que há filtro de data quando usado) */
+        const infoFiltroData = (dataInicio || dataFim)
+          ? ` | período: ${dataInicio || "—"} até ${dataFim || "—"}`
+          : "";
+
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
-          `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
+          `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências` +
+          infoFiltroData;
 
         status.textContent = "Dashboard atualizado com sucesso.";
       } catch (e) {
@@ -781,12 +1088,7 @@
 
     /* ===========================================================
        TOP 5 LOJAS
-       PEDIDO #2 (anterior):
-       - Corrige “corte”/sumiço do valor/rótulo nas primeiras barras
-         quando BIG domina (escala sem headroom).
-       Implementação:
-       - Define suggestedMax (max * 1.2) no eixo Y
-       - Assim sobra espaço para o rótulo acima da barra
+       - Mantido ajuste de “headroom” (suggestedMax) para rótulos
        =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
@@ -1109,5 +1411,10 @@
       });
     }
   </script>
+
+  <!-- Fontes (documentação confiável) -->
+  <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
+  <!-- input[type="date"] (HTML): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
+  <!-- Intl.NumberFormat / toLocaleString: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat -->
 </body>
 </html>
