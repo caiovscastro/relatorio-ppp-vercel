@@ -330,7 +330,51 @@
       .row2{ grid-template-columns: 1fr; }
     }
 
+    /* =========================================================
+       ✅ AJUSTE SOMENTE PARA CELULAR (mantém desktop intacto)
+       Problema relatado:
+       - no celular fica com “zoom” e puxa para a direita (overflow-x)
+       Causa típica:
+       - algum elemento interno estoura a largura do viewport (min-width, canvas, etc.)
+       Correção:
+       - blindagem anti-overflow e centralização real do container no mobile
+       ========================================================= */
     @media (max-width: 640px){
+
+      /* 1) Blindagem: evita qualquer “puxada” horizontal no mobile */
+      html, body{
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden; /* impede ficar “indo pra direita” */
+      }
+
+      /* 2) Garante cálculo de largura previsível (principalmente inputs) */
+      *, *::before, *::after{
+        box-sizing: border-box;
+      }
+
+      /* 3) No mobile, o container precisa ser 100% do viewport
+            (evita arredondamento do vw criar 1~3px de overflow) */
+      .wrap{
+        width: 100%;
+        max-width: 100%;
+        margin: 12px auto 24px;  /* continua centralizado */
+        padding-left: 10px;      /* respiro lateral */
+        padding-right: 10px;
+      }
+
+      /* 4) Evita qualquer filho do topo forçar largura maior que a tela */
+      .filters-wrap,
+      .filters-main,
+      .filters-extra{
+        max-width: 100%;
+      }
+
+      /* 5) Canvas e imagens nunca podem estourar o card no mobile */
+      canvas{ max-width: 100%; }
+      img{ max-width: 100%; }
+
+      /* ======= Seus ajustes mobile já existentes (mantidos) ======= */
       .grid{ grid-template-columns: 1fr; }
       .big-number .n{ font-size: 82px; }
       .canvas-wrap{ height: 240px; }
@@ -1126,8 +1170,9 @@
   </script>
 
   <!-- Fontes (documentação confiável) -->
-  <!-- CSS Grid (grid-column / spanning): https://developer.mozilla.org/en-US/docs/Web/CSS/grid-column -->
-  <!-- CSS Grid Layout: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout -->
-  <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
+  <!-- CSS Overflow (overflow-x): https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
+  <!-- CSS box-sizing: https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing -->
+  <!-- Viewport meta: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
+  <!-- Chart.js responsive: https://www.chartjs.org/docs/latest/configuration/responsive.html -->
 </body>
 </html>
