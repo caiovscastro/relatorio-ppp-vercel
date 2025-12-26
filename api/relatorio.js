@@ -7,7 +7,7 @@
 // - Imagem opcional (URL na coluna Q)
 //
 // NOVO (SOLICITADO):
-// - DATA_OCORRIDO -> coluna R
+// - DATA_OCORRIDO -> coluna R  (formato BR: dd/MM/yyyy) ✅ AJUSTADO
 // - HORA_OCORRIDO -> coluna S
 //
 // Fluxo:
@@ -67,7 +67,7 @@ async function garantirAbaRelatorio() {
     "LOJA",                  // B
     "USUARIO",               // C
     "EAN",                   // D
-    "COD CONSINCO",           // E
+    "COD CONSINCO",          // E
     "PRODUTO",               // F
     "DEPARTAMENTO",          // G
     "SECAO",                 // H
@@ -121,6 +121,23 @@ function gerarIdRegistro() {
   );
 }
 
+/* =====================================================================================
+   ✅ AJUSTE SOLICITADO:
+   O input type="date" do HTML sempre envia "YYYY-MM-DD".
+   Para gravar na planilha como "DD/MM/YYYY", convertemos aqui na API.
+
+   - Se vier vazio, retorna ""
+   - Se NÃO vier no formato ISO, retorna como está (não quebra compatibilidade)
+   ===================================================================================== */
+function isoParaBR(iso) {
+  const s = String(iso || "").trim();
+  if (!s) return "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  const [yyyy, mm, dd] = s.split("-");
+  return `${dd}/${mm}/${yyyy}`;
+}
+
 /**
  * Validação mínima (mantida exatamente como você tinha)
  */
@@ -162,7 +179,7 @@ function montarLinhaPlanilha(reg, dataHoraRegistro, idRegistro) {
     quantidade,
     valorUnitario,
     numeroDocumento,
-    dataOcorrido, // ✅ vindo do front
+    dataOcorrido, // ✅ vindo do front (ISO: YYYY-MM-DD)
     horaOcorrido, // ✅ vindo do front
   } = reg;
 
@@ -178,25 +195,25 @@ function montarLinhaPlanilha(reg, dataHoraRegistro, idRegistro) {
   ] = produto;
 
   return [
-    dataHoraRegistro,     // A
-    loja,                 // B
-    usuario,              // C
-    ean,                  // D
-    codConsinco,          // E
-    nomeProduto,          // F
-    departamento,         // G
-    secao,                // H
-    grupo,                // I
-    subgrupo,             // J
-    categoria,            // K
-    observacao || "",     // L
-    quantidade,           // M
-    valorUnitario,        // N
-    numeroDocumento,      // O
-    idRegistro,           // P
-    imagemUrl || "",      // Q
-    dataOcorrido || "",   // R  ✅
-    horaOcorrido || "",   // S  ✅
+    dataHoraRegistro,           // A
+    loja,                       // B
+    usuario,                    // C
+    ean,                        // D
+    codConsinco,                // E
+    nomeProduto,                // F
+    departamento,               // G
+    secao,                      // H
+    grupo,                      // I
+    subgrupo,                   // J
+    categoria,                  // K
+    observacao || "",           // L
+    quantidade,                 // M
+    valorUnitario,              // N
+    numeroDocumento,            // O
+    idRegistro,                 // P
+    imagemUrl || "",            // Q
+    isoParaBR(dataOcorrido),    // R  ✅ AJUSTADO p/ dd/MM/yyyy
+    horaOcorrido || "",         // S  ✅
   ];
 }
 
@@ -266,3 +283,9 @@ export default async function handler(req, res) {
     });
   }
 }
+
+/*
+Fontes (documentação confiável):
+- <input type="date"> retorna YYYY-MM-DD: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date
+- Sheets API values.append / valueInputOption: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+*/
