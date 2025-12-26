@@ -28,7 +28,12 @@
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
       padding: 12px 14px;
+
+      /* ATENÇÃO:
+         Este min-height é desejado para os cards do dashboard,
+         mas NÃO é desejado para o card do topo (título+filtros). */
       min-height: 180px;
+
       box-sizing: border-box;
     }
 
@@ -42,14 +47,21 @@
     }
 
     /* =========================================================
-       (PEDIDO #2)
+       (AJUSTE SOLICITADO AGORA)
+       O topo precisa manter a ALTURA anterior.
+       Como ele virou ".tile", herdou "min-height: 180px" e ficou alto.
+       Então zeramos SOMENTE no topo.
+       ========================================================= */
+    .tile.topbar{
+      min-height: unset; /* remove o min-height herdado do .tile (mantém a altura “natural”) */
+      /* se preferir ainda mais rígido: min-height: 0;  (mas unset é o mais limpo aqui) */
+    }
+
+    /* =========================================================
        Card do topo (título + filtros) deve alinhar largura com os demais.
-       Implementação definitiva:
-       - O topo passa a ser um .tile (mesma borda/padding/sombra)
-       - Mantemos apenas layout (flex) aqui, sem “casca” visual diferente.
+       Mantém o visual de tile (borda/padding/sombra), mas com altura natural.
        ========================================================= */
     .topbar{
-      /* >>> A “casca” visual vem do .tile. Aqui fica só layout. */
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -369,7 +381,7 @@
         order: 1;
         width: 100%;
         justify-content: flex-end;
-        flex-wrap: nowrap; /* reforço */
+        flex-wrap: nowrap;
       }
 
       /* inputs encolhem em 1 linha */
@@ -393,8 +405,8 @@
 
   <div id="app" class="wrap" style="display:none;">
     <!-- =========================================================
-         (PEDIDO #2)
-         O topo agora é um .tile -> alinha perfeitamente com os demais
+         Topo como tile para manter mesma largura/visual,
+         MAS com min-height removido para não ficar alto.
          ========================================================= -->
     <div class="tile topbar">
       <div>
@@ -604,7 +616,6 @@
     }
 
     /* =========================================================
-       (PEDIDO #5)
        Top 15 produtos: limitar para 30 caracteres
        ========================================================= */
     function abreviarProduto(nome) {
@@ -894,13 +905,12 @@
         const prodValues = topProd.map(([,q]) => q);
 
         /* =========================================================
-           (PEDIDO #4)
            Dept + TopProdutos mudam de cor:
-           - Se filtro = ULT => verde ULT (mesma “família” do Top 5 ULT)
-           - Caso contrário => cor padrão do Dept (roxo claro)
+           - Se filtro = ULT => verde ULT
+           - Caso contrário => cor padrão do Dept
            ========================================================= */
         const COR_DEPT_PADRAO = "#A98AE8";
-        const COR_ULT = "#43A047"; /* mesma usada no Top 5 para ULT */
+        const COR_ULT = "#43A047";
         const corDeptTopProd = (filtro === "ULT") ? COR_ULT : COR_DEPT_PADRAO;
 
         /* Render charts */
@@ -909,9 +919,7 @@
         renderTopProdutos(prodLabels, prodValues, corDeptTopProd);
 
         /* =========================================================
-           (PEDIDO #3)
-           Remover o “| período ...” e manter só:
-           registros | ocorrências
+           Subtítulo: somente "registros | ocorrências"
            ========================================================= */
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
@@ -926,7 +934,7 @@
     }
 
     /* ===========================================================
-       TOP 5 LOJAS (mantido)
+       TOP 5 LOJAS
        =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
@@ -1000,7 +1008,6 @@
 
     /* ===========================================================
        OCORRÊNCIAS POR DEPARTAMENTO
-       (PEDIDO #4) recebe a cor dinâmica
        =========================================================== */
     function renderDept(labels, values, corBarra) {
       const ctx = document.getElementById("chartDept");
@@ -1058,7 +1065,7 @@
     }
 
     /* ===========================================================
-       PERCENTUAL POR BANDEIRA (mantido)
+       PERCENTUAL POR BANDEIRA
        =========================================================== */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
@@ -1124,7 +1131,6 @@
 
     /* ===========================================================
        TOP 15 PRODUTOS
-       (PEDIDO #4) recebe a cor dinâmica
        =========================================================== */
     function renderTopProdutos(labels, values, corBarra) {
       const ctx = document.getElementById("chartTopProdutos");
@@ -1183,10 +1189,6 @@
 
     /* ===========================================================
        PIZZA - Gravidade
-       (PEDIDO #1) cores iguais à imagem:
-       - Leve: azul
-       - Média: roxo
-       - Grave: rosa
        =========================================================== */
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
@@ -1205,7 +1207,7 @@
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.font = "bold 12px Arial";
-          ctx.fillStyle = "#fff"; // branco para destacar nas cores fortes
+          ctx.fillStyle = "#fff";
 
           meta.data.forEach((arc, i) => {
             const val = chart.data.datasets[0].data[i] || 0;
@@ -1226,9 +1228,9 @@
           datasets: [{
             data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
             backgroundColor: [
-              "#1E88E5", // LEVE (azul)
-              "#6A5ACD", // MÉDIA (roxo)
-              "#FF2DA1"  // GRAVE (rosa)
+              "#1E88E5", // Leve (azul)
+              "#6A5ACD", // Média (roxo)
+              "#FF2DA1"  // Grave (rosa)
             ],
             borderWidth: 0
           }]
@@ -1254,9 +1256,10 @@
     }
   </script>
 
-  <!-- Fontes (documentação confiável) -->
+  <!-- Fontes (confiáveis) -->
+  <!-- CSS min-height: https://developer.mozilla.org/en-US/docs/Web/CSS/min-height -->
+  <!-- Especificidade de seletor (".tile.topbar"): https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity -->
+  <!-- Flexbox (layout do topo): https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox -->
   <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
-  <!-- Flexbox (nowrap / shrink / min-width:0): https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox -->
-  <!-- text-overflow (ellipsis): https://developer.mozilla.org/en-US/docs/Web/CSS/text-overflow -->
 </body>
 </html>
