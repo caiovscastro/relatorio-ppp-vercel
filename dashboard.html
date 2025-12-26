@@ -482,9 +482,9 @@
             inputmode="decimal"
             autocomplete="off"
             spellcheck="false"
-            placeholder="Venda (ex: 0,00)"
-            aria-label="Valor da venda para participação"
-            title="Digite a venda (aceita negativo). Ex: 1.234,56"
+            placeholder="Valor (ex: 0,00)"
+            aria-label="Valor para participação"
+            title="Digite o valor (aceita negativo). Ex: 1.234,56"
           />
         </div>
 
@@ -565,7 +565,7 @@
       <!-- LINHA DE BAIXO -->
       <div class="row2">
         <div class="tile">
-          <h3>Top 5 lojas</h3>
+          <h3>Top 5 lojas com maior nº de ocorrências</h3>
           <div class="canvas-wrap">
             <canvas id="chartTopLojas"></canvas>
           </div>
@@ -582,7 +582,7 @@
       <!-- Top 15 produtos -->
       <div class="row3">
         <div class="tile" style="min-height: 240px;">
-          <h3>Top 15 produtos (maior nº de registros)</h3>
+          <h3>Top 15 produtos com maior nº de registros</h3>
           <div class="canvas-wrap" style="height: 280px;">
             <canvas id="chartTopProdutos"></canvas>
           </div>
@@ -959,7 +959,7 @@
         renderTopProdutos(prodLabels, prodValues);
 
         const infoFiltroData = (dataInicio || dataFim)
-          ? ` | período: ${dataInicio || "—"} até ${dataFim || "—"}`
+      //    ? ` | período: ${dataInicio || "—"} até ${dataFim || "—"}`
           : "";
 
         subInfo.textContent =
