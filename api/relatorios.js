@@ -6,10 +6,10 @@
 // GOOGLE_PRIVATE_KEY
 // SPREADSHEET_ID
 //
-// Colunas esperadas em RELATORIO (A:Q):
-// A  DATA/HORA
-// B  LOJAS
-// C  USÚARIOS
+// Colunas esperadas em RELATORIO (A:S):
+// A  DATA/HORA REGISTRO
+// B  LOJA
+// C  USUARIO
 // D  EAN
 // E  COD CONSINCO
 // F  PRODUTO
@@ -18,12 +18,21 @@
 // I  GRUPO
 // J  SUBGRUPO
 // K  CATEGORIA
-// L  RELATORIO/OBSERVAÇÃO
+// L  RELATORIO/OBSERVACAO
 // M  QUANTIDADE
 // N  VALOR UNITARIO
 // O  DOCUMENTO
-// P  ID  (identificador único do registro – usado para exclusão/edição)
-// Q  IMAGEM_URL (link da imagem - Firebase Storage)
+// P  ID
+// Q  IMAGEM_URL
+// R  DATA_OCORRIDO   ✅ NOVO (usado no filtro de datas do dashboard)
+// S  HORA_OCORRIDO   ✅ NOVO (usado para filtro por turno no dashboard)
+//
+// Ajustes aplicados:
+// 1) Range agora é A2:S (inclui R e S).
+// 2) Retorna no JSON: dataOcorrido (R) e horaOcorrido (S).
+// 3) Normaliza horaOcorrido para "HH:mm" (remove segundos se vier "HH:mm:ss").
+// 4) Filtro por dataInicio/dataFim (querystring) agora usa DATA_OCORRIDO (coluna R),
+//    como solicitado.
 
 import { google } from "googleapis";
 
@@ -49,19 +58,51 @@ async function getSheetsClient() {
 }
 
 /**
- * Converte "27/11/2025 14:32:10" -> Date(ano/mes/dia)
+ * Normaliza hora para "HH:mm".
+ * Aceita: "HH:mm", "HH:mm:ss", "H:mm", "H:mm:ss"
  */
-function parseDataDaPlanilha(dataHoraStr) {
-  if (!dataHoraStr) return null;
+function normalizarHoraHHMM(horaStr) {
+  const s = String(horaStr || "").trim();
+  if (!s) return "";
 
-  try {
-    const [parteData] = String(dataHoraStr).split(" ");
-    const [dia, mes, ano] = (parteData || "").split("/");
-    if (!dia || !mes || !ano) return null;
-    return new Date(Number(ano), Number(mes) - 1, Number(dia));
-  } catch (e) {
-    return null;
+  // pega os dois primeiros blocos numéricos separados por ":"
+  const m = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!m) return s; // se vier algo inesperado, devolve como está (não quebra)
+
+  const hh = String(parseInt(m[1], 10)).padStart(2, "0");
+  const mm = String(parseInt(m[2], 10)).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+/**
+ * Converte datas da planilha para Date (sem horário).
+ * Aceita:
+ * - "dd/MM/yyyy"
+ * - "yyyy-MM-dd"
+ * - "dd/MM/yyyy HH:mm" (vai usar só a parte da data)
+ */
+function parseDataSomente(dataStr) {
+  if (!dataStr) return null;
+
+  const raw = String(dataStr).trim();
+  if (!raw) return null;
+
+  const parteData = raw.split(" ")[0] || "";
+
+  // yyyy-MM-dd
+  if (/^\d{4}-\d{2}-\d{2}$/.test(parteData)) {
+    const [yyyy, mm, dd] = parteData.split("-");
+    return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
   }
+
+  // dd/MM/yyyy
+  const m = parteData.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (m) {
+    const dd = m[1], mm = m[2], yyyy = m[3];
+    return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  }
+
+  return null;
 }
 
 export default async function handler(req, res) {
@@ -82,12 +123,12 @@ export default async function handler(req, res) {
 
     const sheets = await getSheetsClient();
 
-    // ✅ CORRIGIDO: agora inclui a coluna Q (imagem)
-    const range = "RELATORIO!A2:Q";
+    // ✅ Agora inclui até a coluna S (DATA_OCORRIDO e HORA_OCORRIDO)
+    const range = "RELATORIO!A2:S";
     const resposta = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
-      valueRenderOption: "FORMATTED_VALUE",
+      valueRenderOption: "FORMATTED_VALUE", // importante: traz datas/horas formatadas como texto
     });
 
     const rows = resposta.data.values || [];
@@ -110,10 +151,15 @@ export default async function handler(req, res) {
         valorUnitario,     // N
         documentoCol,      // O
         idCol,             // P
-        imagemUrlCol,      // Q  ✅ NOVO
+        imagemUrlCol,      // Q
+        dataOcorridoCol,   // R  ✅
+        horaOcorridoCol,   // S  ✅
       ] = row;
 
+      const horaOcorridoNorm = normalizarHoraHHMM(horaOcorridoCol);
+
       return {
+        // Mantém compatibilidade com seu dashboard atual
         dataHora: dataHora || "",
         loja: lojaCol || "",
         usuario: usuarioCol || "",
@@ -130,15 +176,20 @@ export default async function handler(req, res) {
         valorUnitario: valorUnitario || "",
         documento: documentoCol || "",
 
-        // ✅ mantenho compatibilidade com seu front (ele aceita id também)
+        // IDs (compatibilidade)
         id: idCol || "",
         idRegistro: idCol || "",
 
-        // ✅ campo que o painel-gestor.html deve usar pra miniatura/botão
+        // Imagem (compatibilidade)
         imageUrl: imagemUrlCol || "",
+
+        // ✅ NOVOS CAMPOS (para filtro por data e turno no front)
+        dataOcorrido: dataOcorridoCol || "",
+        horaOcorrido: horaOcorridoNorm || "",
       };
     });
 
+    // Intervalo (se vier querystring)
     const iniDate = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
     const fimDate = dataFim ? new Date(`${dataFim}T23:59:59`) : null;
 
@@ -148,13 +199,14 @@ export default async function handler(req, res) {
     const depFiltro = departamento.trim().toUpperCase();
 
     const filtrados = registros.filter((reg) => {
-      if (lojaFiltro && !reg.loja.toLowerCase().includes(lojaFiltro)) return false;
-      if (usuarioFiltro && !reg.usuario.toLowerCase().includes(usuarioFiltro)) return false;
-      if (docFiltro && reg.documento !== docFiltro) return false;
-      if (depFiltro && reg.departamento.toUpperCase() !== depFiltro) return false;
+      if (lojaFiltro && !String(reg.loja || "").toLowerCase().includes(lojaFiltro)) return false;
+      if (usuarioFiltro && !String(reg.usuario || "").toLowerCase().includes(usuarioFiltro)) return false;
+      if (docFiltro && String(reg.documento || "") !== docFiltro) return false;
+      if (depFiltro && String(reg.departamento || "").toUpperCase() !== depFiltro) return false;
 
+      // ✅ SOLICITADO: filtro de datas usa a coluna R (DATA_OCORRIDO)
       if (iniDate || fimDate) {
-        const dataReg = parseDataDaPlanilha(reg.dataHora);
+        const dataReg = parseDataSomente(reg.dataOcorrido);
         if (!dataReg) return false;
         if (iniDate && dataReg < iniDate) return false;
         if (fimDate && dataReg > fimDate) return false;
