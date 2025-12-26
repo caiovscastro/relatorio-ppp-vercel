@@ -28,12 +28,7 @@
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
       padding: 12px 14px;
-
-      /* ATENÇÃO:
-         Este min-height é desejado para os cards do dashboard,
-         mas NÃO é desejado para o card do topo (título+filtros). */
       min-height: 180px;
-
       box-sizing: border-box;
     }
 
@@ -47,31 +42,27 @@
     }
 
     /* =========================================================
-       (AJUSTE SOLICITADO AGORA)
-       O topo precisa manter a ALTURA anterior.
-       Como ele virou ".tile", herdou "min-height: 180px" e ficou alto.
-       Então zeramos SOMENTE no topo.
+       ✅ CORREÇÃO DEFINITIVA (seu ponto)
+       O topo agora faz parte do MESMO GRID dos cards abaixo.
+       Isso elimina qualquer “diferença de largura percebida”.
        ========================================================= */
-    .tile.topbar{
-      min-height: unset; /* remove o min-height herdado do .tile (mantém a altura “natural”) */
-      /* se preferir ainda mais rígido: min-height: 0;  (mas unset é o mais limpo aqui) */
+    .grid{
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
     }
 
-    /* =========================================================
-       Card do topo (título + filtros) deve alinhar largura com os demais.
-       Mantém o visual de tile (borda/padding/sombra), mas com altura natural.
-       ========================================================= */
+    /* Topo ocupando as 3 colunas do grid (mesmo “sistema” dos cards) */
     .topbar{
+      grid-column: 1 / -1; /* <<< span total: mesma largura do conjunto abaixo */
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
 
-      /* Distância até os cards abaixo */
-      margin-bottom: 12px;
-
-      /* Evita que o conteúdo force overflow estranho */
-      width: 100%;
+      /* Mantém a altura “natural” (não aumenta artificialmente) */
+      min-height: unset; /* <<< importante: não herdar min-height:180px de .tile */
+      padding: 14px 16px; /* mantém confortável sem “crescer” exagerado */
     }
 
     /* =========================================================
@@ -82,10 +73,8 @@
       font-weight: 800;
       letter-spacing: 0.2px;
 
-      /* Responsivo: reduz sem quebrar */
       font-size: clamp(16px, 2.2vw, 20px);
 
-      /* 1 linha */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -182,14 +171,8 @@
     }
 
     /* =========================================================
-       Grid principal
+       Linhas internas do grid (mantidas)
        ========================================================= */
-    .grid{
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-    }
-
     .row2{
       grid-column: 1 / -1;
       display: grid;
@@ -361,6 +344,7 @@
         min-height: 280px;
       }
 
+      /* topo em coluna no mobile */
       .topbar{
         flex-direction: column;
         align-items: stretch;
@@ -404,48 +388,51 @@
   </div>
 
   <div id="app" class="wrap" style="display:none;">
+
     <!-- =========================================================
-         Topo como tile para manter mesma largura/visual,
-         MAS com min-height removido para não ficar alto.
+         ✅ Agora TUDO está dentro do mesmo GRID mestre.
+         O topo vira um item do grid e ocupa as 3 colunas.
          ========================================================= -->
-    <div class="tile topbar">
-      <div>
-        <h1 class="title">RELATÓRIO DE OCORRÊNCIAS</h1>
-        <p class="subtitle" id="subInfo">Carregando dados...</p>
-      </div>
-
-      <div class="filters-wrap">
-        <div class="filters-extra">
-          <input id="dataInicio" class="input-filter input-date" type="date" aria-label="Data início" title="Data início" />
-          <input id="dataFim" class="input-filter input-date" type="date" aria-label="Data fim" title="Data fim" />
-          <input
-            id="valorVenda"
-            class="input-filter input-money"
-            type="text"
-            inputmode="decimal"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="Valor (ex: 0,00)"
-            aria-label="Valor para participação"
-            title="Digite o valor (aceita negativo). Ex: 1.234,56"
-          />
-        </div>
-
-        <div class="filters-main">
-          <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
-
-          <select id="filtroBandeira" class="select-filter" onchange="carregar()">
-            <option value="TODOS">Todos</option>
-            <option value="BIG">BIG</option>
-            <option value="ULT">ULT</option>
-          </select>
-
-          <button class="btn btn-back" onclick="voltar()">Voltar</button>
-        </div>
-      </div>
-    </div>
-
     <div class="grid">
+
+      <!-- TOPO (span total do grid) -->
+      <div class="tile topbar">
+        <div>
+          <h1 class="title">RELATÓRIO DE OCORRÊNCIAS</h1>
+          <p class="subtitle" id="subInfo">Carregando dados...</p>
+        </div>
+
+        <div class="filters-wrap">
+          <div class="filters-extra">
+            <input id="dataInicio" class="input-filter input-date" type="date" aria-label="Data início" title="Data início" />
+            <input id="dataFim" class="input-filter input-date" type="date" aria-label="Data fim" title="Data fim" />
+            <input
+              id="valorVenda"
+              class="input-filter input-money"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Valor (ex: 0,00)"
+              aria-label="Valor para participação"
+              title="Digite o valor (aceita negativo). Ex: 1.234,56"
+            />
+          </div>
+
+          <div class="filters-main">
+            <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
+
+            <select id="filtroBandeira" class="select-filter" onchange="carregar()">
+              <option value="TODOS">Todos</option>
+              <option value="BIG">BIG</option>
+              <option value="ULT">ULT</option>
+            </select>
+
+            <button class="btn btn-back" onclick="voltar()">Voltar</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 1) Ocorrências + Pizza Gravidade -->
       <div class="tile">
         <h3>Ocorrências</h3>
@@ -471,7 +458,6 @@
           <div class="bandeira-col">
             <div class="bandeira-num" id="bandeiraBIG">0</div>
             <div class="bandeira-valor" id="valorBIG">R$ 0,00</div>
-
             <img class="bandeira-logo" src="https://i.ibb.co/Kz5DZ8nP/1001316505.png" alt="Big Box" />
           </div>
 
@@ -480,7 +466,6 @@
           <div class="bandeira-col">
             <div class="bandeira-num" id="bandeiraULT">0</div>
             <div class="bandeira-valor" id="valorULT">R$ 0,00</div>
-
             <img class="bandeira-logo" src="https://i.ibb.co/270L2q5v/C-pia-de-C-pia-de-Filipeta-TV-2011-20231119-152254-0000.png" alt="Ultrabox" />
           </div>
         </div>
@@ -520,7 +505,8 @@
           </div>
         </div>
       </div>
-    </div>
+
+    </div><!-- /grid -->
 
     <div class="status" id="status">Aguardando...</div>
   </div>
@@ -615,9 +601,7 @@
       return s.length > 10 ? (s.slice(0, 10) + "…") : s;
     }
 
-    /* =========================================================
-       Top 15 produtos: limitar para 30 caracteres
-       ========================================================= */
+    /* Top 15 produtos: limitar para 30 caracteres */
     function abreviarProduto(nome) {
       const s = String(nome || "").trim();
       if (!s) return "N/I";
@@ -652,7 +636,6 @@
         const dd = m[1], mm = m[2], yyyy = m[3];
         return `${yyyy}-${mm}-${dd}`;
       }
-
       return "";
     }
 
@@ -745,13 +728,10 @@
             if (dataInicio && iso < dataInicio) return false;
             if (dataFim && iso > dataFim) return false;
           }
-
           return true;
         });
 
-        /* =========================================================
-           (A) OCORRÊNCIAS (COM FILTRO) + VALOR (R$)
-           ========================================================= */
+        // (A) OCORRÊNCIAS (COM FILTRO) + VALOR
         const setOccFiltradoTotal = new Set();
         const valorPorOcorrenciaFiltrada = new Map();
 
@@ -771,20 +751,16 @@
           );
         }
 
-        const totalOcFiltradoTotal = setOccFiltradoTotal.size;
-        document.getElementById("totalOcorrencias").textContent = String(totalOcFiltradoTotal);
+        document.getElementById("totalOcorrencias").textContent = String(setOccFiltradoTotal.size);
 
         let somaValorOcorrenciasFiltradas = 0;
         for (const v of valorPorOcorrenciaFiltrada.values()) somaValorOcorrenciasFiltradas += (Number(v) || 0);
 
         document.getElementById("totalValorOcorrencias").textContent = formatarBRL(somaValorOcorrenciasFiltradas);
-
         totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
         atualizarParticipacao();
 
-        /* =========================================================
-           (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + VALOR (R$)
-           ========================================================= */
+        // (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + VALOR
         const occPorBandeira = { BIG: 0, ULT: 0 };
         const valorPorBandeira = { BIG: 0, ULT: 0 };
 
@@ -809,9 +785,7 @@
           if (!k || setOccAll.has(k)) continue;
           setOccAll.add(k);
 
-          const loja = (r.loja || "").trim() || "SEM LOJA";
-          const band = bandeiraPorLoja(loja);
-
+          const band = bandeiraPorLoja((r.loja || "").trim());
           if (band) {
             occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
             valorPorBandeira[band] = (valorPorBandeira[band] || 0) + (valorPorOcorrenciaAll.get(k) || 0);
@@ -826,9 +800,7 @@
 
         renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
-        /* =========================================================
-           (C) GRAVIDADE (COM FILTRO)
-           ========================================================= */
+        // (C) GRAVIDADE (COM FILTRO)
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
         for (const v of valorPorOcorrenciaFiltrada.values()) {
           if (v >= 500) qtdGrave++;
@@ -837,40 +809,27 @@
         }
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
-        /* =========================================================
-           (D) ITENS QUE SEGUEM FILTRO:
-           - Top 5 lojas
-           - Ocorrências por departamento
-           - Top 15 produtos
-           ========================================================= */
-
-        /* Top 5 lojas (por ocorrência única) - COM FILTRO */
+        // (D) Top 5 lojas / Dept / Top produtos (COM FILTRO)
         const occPorLoja = new Map();
         const setOccFiltrado = new Set();
 
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
           if (!k || setOccFiltrado.has(k)) continue;
-
           setOccFiltrado.add(k);
 
           const loja = (r.loja || "").trim() || "SEM LOJA";
           occPorLoja.set(loja, (occPorLoja.get(loja) || 0) + 1);
         }
 
-        const top = Array.from(occPorLoja.entries())
-          .sort((a,b) => b[1] - a[1])
-          .slice(0, 5);
-
+        const top = Array.from(occPorLoja.entries()).sort((a,b) => b[1] - a[1]).slice(0, 5);
         const topLabels = top.map(([loja]) => abreviarLojaParaTop5(loja));
         const topValues = top.map(([,qtd]) => qtd);
 
-        /* Ocorrências por departamento (por ocorrência, não por linha) - COM FILTRO */
         const deptPorOcorrencia = new Map();
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
-
           const dep = (r.departamento || "N/I").toString().trim().toUpperCase() || "N/I";
           if (!deptPorOcorrencia.has(k)) deptPorOcorrencia.set(k, new Set());
           deptPorOcorrencia.get(k).add(dep);
@@ -878,49 +837,32 @@
 
         const occPorDept = new Map();
         for (const [, setDeps] of deptPorOcorrencia.entries()) {
-          for (const dep of setDeps.values()) {
-            occPorDept.set(dep, (occPorDept.get(dep) || 0) + 1);
-          }
+          for (const dep of setDeps.values()) occPorDept.set(dep, (occPorDept.get(dep) || 0) + 1);
         }
 
-        const deptOrdenado = Array.from(occPorDept.entries())
-          .sort((a,b) => b[1] - a[1])
-          .slice(0, 12);
-
+        const deptOrdenado = Array.from(occPorDept.entries()).sort((a,b) => b[1] - a[1]).slice(0, 12);
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
-        /* Top 15 produtos por nº de registros - COM FILTRO */
         const registrosPorProduto = new Map();
         for (const r of registrosFiltrados) {
           const prod = (r.produto || "N/I").toString().trim() || "N/I";
           registrosPorProduto.set(prod, (registrosPorProduto.get(prod) || 0) + 1);
         }
 
-        const topProd = Array.from(registrosPorProduto.entries())
-          .sort((a,b) => b[1] - a[1])
-          .slice(0, 15);
-
+        const topProd = Array.from(registrosPorProduto.entries()).sort((a,b) => b[1] - a[1]).slice(0, 15);
         const prodLabels = topProd.map(([p]) => abreviarProduto(p));
         const prodValues = topProd.map(([,q]) => q);
 
-        /* =========================================================
-           Dept + TopProdutos mudam de cor:
-           - Se filtro = ULT => verde ULT
-           - Caso contrário => cor padrão do Dept
-           ========================================================= */
         const COR_DEPT_PADRAO = "#A98AE8";
         const COR_ULT = "#43A047";
         const corDeptTopProd = (filtro === "ULT") ? COR_ULT : COR_DEPT_PADRAO;
 
-        /* Render charts */
         renderTopLojas(topLabels, topValues);
         renderDept(deptLabels, deptValues, corDeptTopProd);
         renderTopProdutos(prodLabels, prodValues, corDeptTopProd);
 
-        /* =========================================================
-           Subtítulo: somente "registros | ocorrências"
-           ========================================================= */
+        // mantém só registros | ocorrências
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
           `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
@@ -928,14 +870,11 @@
         status.textContent = "Dashboard atualizado com sucesso.";
       } catch (e) {
         console.error("Erro no dashboard:", e);
-        status.textContent = "Erro de conexão ao montar o dashboard.";
-        subInfo.textContent = "Erro ao carregar.";
+        document.getElementById("status").textContent = "Erro de conexão ao montar o dashboard.";
+        document.getElementById("subInfo").textContent = "Erro ao carregar.";
       }
     }
 
-    /* ===========================================================
-       TOP 5 LOJAS
-       =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
       if (chartTopLojas) chartTopLojas.destroy();
@@ -977,38 +916,20 @@
 
       chartTopLojas = new Chart(ctx, {
         type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Ocorrências",
-            data: values,
-            backgroundColor: bgColors
-          }]
-        },
+        data: { labels, datasets: [{ label: "Ocorrências", data: values, backgroundColor: bgColors }] },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
-          },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
             x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false } },
-            y: {
-              beginAtZero: true,
-              suggestedMax: suggestedMax,
-              ticks: { precision: 0 },
-              grid: { display: false }
-            }
+            y: { beginAtZero: true, suggestedMax, ticks: { precision: 0 }, grid: { display: false } }
           }
         },
         plugins: [valueOnTopPlugin]
       });
     }
 
-    /* ===========================================================
-       OCORRÊNCIAS POR DEPARTAMENTO
-       =========================================================== */
     function renderDept(labels, values, corBarra) {
       const ctx = document.getElementById("chartDept");
       if (chartDept) chartDept.destroy();
@@ -1029,8 +950,7 @@
           meta.data.forEach((bar, i) => {
             const val = chart.data.datasets[0].data[i];
             const x = Math.min(bar.x + 6, chartArea.right - 6);
-            const y = bar.y;
-            ctx.fillText(String(val), x, y);
+            ctx.fillText(String(val), x, bar.y);
           });
 
           ctx.restore();
@@ -1039,22 +959,12 @@
 
       chartDept = new Chart(ctx, {
         type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Ocorrências por departamento",
-            data: values,
-            backgroundColor: corBarra || "#A98AE8"
-          }]
-        },
+        data: { labels, datasets: [{ label: "Ocorrências por departamento", data: values, backgroundColor: corBarra || "#A98AE8" }] },
         options: {
           indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
-          },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
             x: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } },
             y: { ticks: { autoSkip: false }, grid: { display: false } }
@@ -1064,9 +974,6 @@
       });
     }
 
-    /* ===========================================================
-       PERCENTUAL POR BANDEIRA
-       =========================================================== */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
       if (chartPctBandeira) chartPctBandeira.destroy();
@@ -1089,10 +996,8 @@
           meta.data.forEach((arc, i) => {
             const val = chart.data.datasets[0].data[i] || 0;
             const pct = total > 0 ? (val * 100 / total) : 0;
-            const label = `${pct.toFixed(1)}%`;
-
             const pos = arc.tooltipPosition();
-            ctx.fillText(label, pos.x, pos.y);
+            ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
           });
 
           ctx.restore();
@@ -1101,37 +1006,24 @@
 
       chartPctBandeira = new Chart(ctx, {
         type: "doughnut",
-        data: {
-          labels: ["BIG", "ULT"],
-          datasets: [{
-            data: [qtdBIG || 0, qtdULT || 0],
-            backgroundColor: ["#A98AE8", "#43A047"]
-          }]
-        },
+        data: { labels: ["BIG", "ULT"], datasets: [{ data: [qtdBIG || 0, qtdULT || 0], backgroundColor: ["#A98AE8", "#43A047"] }] },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           cutout: "62%",
           plugins: {
             legend: { display: true, position: "bottom" },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const v = ctx.raw || 0;
-                  const pct = total > 0 ? (v * 100 / total) : 0;
-                  return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
-                }
-              }
-            }
+            tooltip: { callbacks: { label: (ctx) => {
+              const v = ctx.raw || 0;
+              const pct = total > 0 ? (v * 100 / total) : 0;
+              return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
+            }}}
           }
         },
         plugins: [pctLabelPlugin]
       });
     }
 
-    /* ===========================================================
-       TOP 15 PRODUTOS
-       =========================================================== */
     function renderTopProdutos(labels, values, corBarra) {
       const ctx = document.getElementById("chartTopProdutos");
       if (chartTopProdutos) chartTopProdutos.destroy();
@@ -1152,8 +1044,7 @@
           meta.data.forEach((bar, i) => {
             const val = chart.data.datasets[0].data[i];
             const x = Math.min(bar.x + 6, chartArea.right - 6);
-            const y = bar.y;
-            ctx.fillText(String(val), x, y);
+            ctx.fillText(String(val), x, bar.y);
           });
 
           ctx.restore();
@@ -1162,22 +1053,12 @@
 
       chartTopProdutos = new Chart(ctx, {
         type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Registros",
-            data: values,
-            backgroundColor: corBarra || "#A98AE8"
-          }]
-        },
+        data: { labels, datasets: [{ label: "Registros", data: values, backgroundColor: corBarra || "#A98AE8" }] },
         options: {
           indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } }
-          },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } } },
           scales: {
             x: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } },
             y: { ticks: { autoSkip: false }, grid: { display: false } }
@@ -1187,9 +1068,6 @@
       });
     }
 
-    /* ===========================================================
-       PIZZA - Gravidade
-       =========================================================== */
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
       if (chartGravidade) chartGravidade.destroy();
@@ -1212,9 +1090,8 @@
           meta.data.forEach((arc, i) => {
             const val = chart.data.datasets[0].data[i] || 0;
             const pct = total > 0 ? (val * 100 / total) : 0;
-            const label = `${pct.toFixed(1)}%`;
             const pos = arc.tooltipPosition();
-            ctx.fillText(label, pos.x, pos.y);
+            ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
           });
 
           ctx.restore();
@@ -1227,11 +1104,7 @@
           labels: ["Leve", "Média", "Grave"],
           datasets: [{
             data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
-            backgroundColor: [
-              "#1E88E5", // Leve (azul)
-              "#6A5ACD", // Média (roxo)
-              "#FF2DA1"  // Grave (rosa)
-            ],
+            backgroundColor: ["#1E88E5", "#6A5ACD", "#FF2DA1"],
             borderWidth: 0
           }]
         },
@@ -1240,15 +1113,11 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: true, position: "bottom" },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const v = ctx.raw || 0;
-                  const pct = total > 0 ? (v * 100 / total) : 0;
-                  return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
-                }
-              }
-            }
+            tooltip: { callbacks: { label: (ctx) => {
+              const v = ctx.raw || 0;
+              const pct = total > 0 ? (v * 100 / total) : 0;
+              return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
+            }}}
           }
         },
         plugins: [pctLabelPlugin]
@@ -1256,10 +1125,9 @@
     }
   </script>
 
-  <!-- Fontes (confiáveis) -->
-  <!-- CSS min-height: https://developer.mozilla.org/en-US/docs/Web/CSS/min-height -->
-  <!-- Especificidade de seletor (".tile.topbar"): https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity -->
-  <!-- Flexbox (layout do topo): https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox -->
+  <!-- Fontes (documentação confiável) -->
+  <!-- CSS Grid (grid-column / spanning): https://developer.mozilla.org/en-US/docs/Web/CSS/grid-column -->
+  <!-- CSS Grid Layout: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout -->
   <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 </body>
 </html>
