@@ -172,6 +172,77 @@
     }
 
     /* =========================================================
+       ✅ NOVO (SOLICITADO): Filtro de TURNO com checkboxes (dropdown)
+       - Posicionado ao lado do botão Atualizar
+       - Inicia com TODOS marcados
+       ========================================================= */
+    .turno-wrap{
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .btn-turno{
+      border: 1px solid #d6d6d6;
+      background: #fff;
+      color: #111;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .turno-panel{
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 220px;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.16);
+      padding: 10px;
+      z-index: 20000;
+      display: none;
+    }
+
+    .turno-panel .item{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .turno-panel .item:hover{
+      background: #f4f4f4;
+    }
+
+    .turno-panel input[type="checkbox"]{
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .turno-panel .lbl{
+      font-size: 13px;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .turno-panel .hint{
+      font-size: 11px;
+      color: #555;
+      margin-top: 8px;
+      line-height: 1.35;
+    }
+
+    /* =========================================================
        Linhas internas do grid (mantidas)
        ========================================================= */
     .row2{
@@ -333,32 +404,20 @@
 
     /* =========================================================
        ✅ AJUSTE PARA CELULAR (corrige “zoom” + layout indo pra direita)
-       Diagnóstico objetivo:
-       - Em mobile, um único elemento “não encolhe” (min-width implícito)
-         é suficiente para estourar a largura e causar a sensação de zoom/shift.
-       - Em Flexbox/Grid, o vilão mais comum é: min-width:auto (padrão),
-         especialmente em itens flex e em canvas.
-       Correção aplicada (somente no mobile):
-       - Impõe "min-width:0" nos itens críticos (permite encolher)
-       - Força canvas a respeitar 100% da largura do container
-       - Centraliza o container com padding (sem usar vw que pode arredondar)
-       - Bloqueia overflow-x (última linha de defesa)
+       (mantido)
        ========================================================= */
     @media (max-width: 640px){
 
-      /* Linha de defesa #1: nunca permitir overflow horizontal no mobile */
       html, body{
         width: 100%;
         max-width: 100%;
         overflow-x: hidden;
       }
 
-      /* Linha de defesa #2: box-sizing consistente */
       *, *::before, *::after{
         box-sizing: border-box;
       }
 
-      /* Linha de defesa #3: container 100% do viewport (sem “92vw” no mobile) */
       .wrap{
         width: 100%;
         max-width: 100%;
@@ -367,10 +426,6 @@
         padding-right: 10px;
       }
 
-      /* ======== AQUI está o ajuste-chave (definitivo) ========
-         Em flex/grid, itens têm min-width:auto por padrão e podem “forçar” overflow.
-         Garantimos que TUDO pode encolher dentro do viewport.
-      */
       .grid, .row2, .row3,
       .tile,
       .topbar,
@@ -382,20 +437,16 @@
         max-width: 100%;
       }
 
-      /* Canvas é um causador frequente de “estouro” em mobile.
-         Forçamos a obedecer o container (sem afetar desktop). */
       canvas{
         display: block;
-        width: 100% !important;   /* garante que não crie largura maior que o card */
+        width: 100% !important;
         max-width: 100% !important;
       }
 
-      /* Imagens idem */
       img{
         max-width: 100%;
       }
 
-      /* ======= Seus ajustes mobile (mantidos) ======= */
       .grid{ grid-template-columns: 1fr; }
       .big-number .n{ font-size: 82px; }
       .canvas-wrap{ height: 240px; }
@@ -409,7 +460,6 @@
         min-height: 280px;
       }
 
-      /* topo em coluna no mobile */
       .topbar{
         flex-direction: column;
         align-items: stretch;
@@ -433,10 +483,9 @@
         flex-wrap: nowrap;
       }
 
-      /* inputs encolhem em 1 linha */
       .filters-extra .input-filter{
         flex: 1 1 0;
-        min-width: 0;   /* crucial para input não forçar largura */
+        min-width: 0;
         max-width: 100%;
       }
       .filters-extra .input-date{ min-width: 0; }
@@ -455,10 +504,6 @@
 
   <div id="app" class="wrap" style="display:none;">
 
-    <!-- =========================================================
-         ✅ Agora TUDO está dentro do mesmo GRID mestre.
-         O topo vira um item do grid e ocupa as 3 colunas.
-         ========================================================= -->
     <div class="grid">
 
       <!-- TOPO (span total do grid) -->
@@ -487,6 +532,41 @@
 
           <div class="filters-main">
             <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
+
+            <!-- =================================================================================
+                 ✅ NOVO (SOLICITADO): Filtro por turno com checkboxes
+                 - Ao lado do botão Atualizar
+                 - Inicia com Manhã/Tarde/Madrugada todos marcados
+                 - Filtra usando a coluna S (HORA_OCORRIDO)
+                 ================================================================================= -->
+            <div class="turno-wrap" id="turnoWrap">
+              <button type="button" class="btn-turno" id="btnTurno" aria-haspopup="true" aria-expanded="false">
+                Turno ▾
+              </button>
+
+              <div class="turno-panel" id="turnoPanel" role="menu" aria-label="Filtro de turno">
+                <div class="item">
+                  <input type="checkbox" id="ckManha" checked />
+                  <label class="lbl" for="ckManha">Manhã</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckTarde" checked />
+                  <label class="lbl" for="ckTarde">Tarde</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckMadrugada" checked />
+                  <label class="lbl" for="ckMadrugada">Madrugada</label>
+                </div>
+
+                <div class="hint">
+                  Manhã: 07:00–14:00<br/>
+                  Tarde: 14:01–22:00<br/>
+                  Madrugada: 22:01–23:59 e 00:00–06:59
+                </div>
+              </div>
+            </div>
 
             <select id="filtroBandeira" class="select-filter" onchange="carregar()">
               <option value="TODOS">Todos</option>
@@ -633,8 +713,67 @@
         });
       }
 
+      /* =================================================================================
+         ✅ NOVO (SOLICITADO): Eventos do filtro de turno (checkboxes)
+         - padrão: todos checked
+         - qualquer mudança: recarrega
+         - dropdown abre/fecha ao clicar no botão e fecha ao clicar fora
+         ================================================================================= */
+      setupFiltroTurno();
+
       carregar();
     });
+
+    /* =================================================================================
+       ✅ NOVO: Setup completo do filtro de turno (UI + eventos)
+       ================================================================================= */
+    function setupFiltroTurno(){
+      const btn = document.getElementById("btnTurno");
+      const panel = document.getElementById("turnoPanel");
+      const wrap = document.getElementById("turnoWrap");
+
+      const ckManha = document.getElementById("ckManha");
+      const ckTarde = document.getElementById("ckTarde");
+      const ckMadrugada = document.getElementById("ckMadrugada");
+
+      if (!btn || !panel || !wrap || !ckManha || !ckTarde || !ckMadrugada) return;
+
+      // Abre/fecha o dropdown
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const aberto = panel.style.display === "block";
+        panel.style.display = aberto ? "none" : "block";
+        btn.setAttribute("aria-expanded", aberto ? "false" : "true");
+      });
+
+      // Clique fora fecha
+      document.addEventListener("click", (e) => {
+        if (!wrap.contains(e.target)) {
+          panel.style.display = "none";
+          btn.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      // Mudança em qualquer checkbox => recarrega
+      const onChange = () => carregar();
+      ckManha.addEventListener("change", onChange);
+      ckTarde.addEventListener("change", onChange);
+      ckMadrugada.addEventListener("change", onChange);
+
+      // Permite clicar na linha inteira (melhor usabilidade)
+      panel.querySelectorAll(".item").forEach((row) => {
+        row.addEventListener("click", (e) => {
+          const input = row.querySelector('input[type="checkbox"]');
+          // Se clicou diretamente no checkbox/label, o browser já alterna.
+          // Se clicou no "row" em si, alterna manualmente.
+          const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : "";
+          if (tag !== "INPUT" && tag !== "LABEL" && input) {
+            input.checked = !input.checked;
+            carregar();
+          }
+        });
+      });
+    }
 
     function chaveOcorrencia(r) {
       const documento = (r.documento || "").trim();
@@ -642,6 +781,10 @@
 
       const usuario = (r.usuario || "").trim();
       const loja = (r.loja || "").trim();
+
+      // IMPORTANTE:
+      // A chave da ocorrência permanece como era (usa a data do registro A),
+      // pois você não solicitou mudar a lógica de “ocorrência”.
       const dataStr = (r.dataHora || "").split(" ")[0] || "";
 
       return `${documento}||${usuario}||${loja}||${dataStr}`;
@@ -689,20 +832,96 @@
       return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
-    function dataRegistroParaISO(dataHora) {
-      const raw = String(dataHora || "").trim();
-      if (!raw) return "";
+    /* =================================================================================
+       ✅ ALTERAÇÃO SOLICITADA #1:
+       Filtro de datas agora considera a COLUNA R (DATA_OCORRIDO),
+       e NÃO mais a data/hora do registro (coluna A).
+       - No objeto r vindo da API, assumimos que chega como r.dataOcorrido
+         (ou variações comuns). O valor é dd/MM/yyyy (como você ajustou na API),
+         mas suportamos yyyy-mm-dd para compatibilidade.
+       ================================================================================= */
+    function dataOcorridoParaISO(r) {
+      // Tenta pegar por diferentes nomes (robustez sem alterar API)
+      const raw =
+        (r && (r.dataOcorrido || r.data_ocorrido || r.DATA_OCORRIDO || r["DATA_OCORRIDO"])) || "";
 
-      const dataParte = raw.split(" ")[0] || "";
+      const s = String(raw || "").trim();
+      if (!s) return "";
 
-      if (/^\d{4}-\d{2}-\d{2}$/.test(dataParte)) return dataParte;
+      // Se já vier no padrão ISO
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
 
-      const m = dataParte.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      // Se vier no padrão BR
+      const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (m) {
         const dd = m[1], mm = m[2], yyyy = m[3];
         return `${yyyy}-${mm}-${dd}`;
       }
+
       return "";
+    }
+
+    /* =================================================================================
+       ✅ ALTERAÇÃO SOLICITADA #2:
+       Turnos são definidos pela COLUNA S (HORA_OCORRIDO).
+       Regras:
+       - Manhã: 07:00 a 14:00 (inclusive)
+       - Tarde: 14:01 a 22:00 (inclusive)
+       - Madrugada: 22:01 a 23:59 e 00:00 a 06:59
+       ================================================================================= */
+    function horaOcorridoParaMinutos(r) {
+      const raw =
+        (r && (r.horaOcorrido || r.hora_ocorrido || r.HORA_OCORRIDO || r["HORA_OCORRIDO"])) || "";
+
+      const s = String(raw || "").trim();
+      if (!s) return null;
+
+      // Esperado: "HH:mm"
+      const m = s.match(/^(\d{2}):(\d{2})$/);
+      if (!m) return null;
+
+      const hh = parseInt(m[1], 10);
+      const mi = parseInt(m[2], 10);
+
+      if (!Number.isFinite(hh) || !Number.isFinite(mi)) return null;
+      if (hh < 0 || hh > 23 || mi < 0 || mi > 59) return null;
+
+      return (hh * 60) + mi;
+    }
+
+    function minutoDentroDeTurno(min, turno) {
+      if (min === null || min === undefined) return false;
+
+      // Manhã: 07:00 (420) até 14:00 (840)
+      if (turno === "MANHA") return (min >= 420 && min <= 840);
+
+      // Tarde: 14:01 (841) até 22:00 (1320)
+      if (turno === "TARDE") return (min >= 841 && min <= 1320);
+
+      // Madrugada: 22:01 (1321) até 23:59 (1439) OU 00:00 (0) até 06:59 (419)
+      if (turno === "MADRUGADA") return ((min >= 1321 && min <= 1439) || (min >= 0 && min <= 419));
+
+      return false;
+    }
+
+    function obterTurnosSelecionados() {
+      const ckManha = document.getElementById("ckManha");
+      const ckTarde = document.getElementById("ckTarde");
+      const ckMadrugada = document.getElementById("ckMadrugada");
+
+      // Se algo der errado, por segurança não filtra por turno
+      if (!ckManha || !ckTarde || !ckMadrugada) {
+        return { MANHA: true, TARDE: true, MADRUGADA: true, all: true };
+      }
+
+      const sel = {
+        MANHA: !!ckManha.checked,
+        TARDE: !!ckTarde.checked,
+        MADRUGADA: !!ckMadrugada.checked,
+      };
+
+      sel.all = (sel.MANHA && sel.TARDE && sel.MADRUGADA);
+      return sel;
     }
 
     function formatarCampoMoeda(inputEl, opts = {}) {
@@ -780,20 +999,49 @@
         const registros = dados.registros;
 
         const filtro = (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
-        const dataInicio = (document.getElementById("dataInicio")?.value || "").trim();
-        const dataFim = (document.getElementById("dataFim")?.value || "").trim();
+        const dataInicio = (document.getElementById("dataInicio")?.value || "").trim(); // ISO yyyy-mm-dd
+        const dataFim = (document.getElementById("dataFim")?.value || "").trim();       // ISO yyyy-mm-dd
+
+        // ✅ NOVO: turnos selecionados (checkboxes)
+        const turnosSel = obterTurnosSelecionados();
 
         const registrosFiltrados = registros.filter(r => {
+          // Bandeira (mantido)
           if (filtro === "BIG" || filtro === "ULT") {
             if (bandeiraPorLoja(r.loja) !== filtro) return false;
           }
 
+          /* =========================================================
+             ✅ FILTRO DE DATA (SOLICITADO):
+             Usa DATA_OCORRIDO (coluna R)
+             - converte para ISO e compara com os inputs type="date"
+             ========================================================= */
           if (dataInicio || dataFim) {
-            const iso = dataRegistroParaISO(r.dataHora);
-            if (!iso) return false;
+            const iso = dataOcorridoParaISO(r);
+            if (!iso) return false; // se não tem data_ocorrido, não entra no recorte de datas
             if (dataInicio && iso < dataInicio) return false;
             if (dataFim && iso > dataFim) return false;
           }
+
+          /* =========================================================
+             ✅ FILTRO DE TURNO (SOLICITADO):
+             Usa HORA_OCORRIDO (coluna S)
+             Regras conforme seu enunciado.
+             - Se todos marcados: não filtra por turno
+             - Se nenhum marcado: resultado fica vazio (comportamento lógico)
+             ========================================================= */
+          if (!turnosSel.all) {
+            const min = horaOcorridoParaMinutos(r);
+            // Se está filtrando por turno e não há hora_ocorrido válida, exclui
+            if (min === null) return false;
+
+            const okManha = turnosSel.MANHA && minutoDentroDeTurno(min, "MANHA");
+            const okTarde = turnosSel.TARDE && minutoDentroDeTurno(min, "TARDE");
+            const okMadr = turnosSel.MADRUGADA && minutoDentroDeTurno(min, "MADRUGADA");
+
+            if (!(okManha || okTarde || okMadr)) return false;
+          }
+
           return true;
         });
 
@@ -826,7 +1074,7 @@
         totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
         atualizarParticipacao();
 
-        // (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + VALOR
+        // (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + VALOR (mantido)
         const occPorBandeira = { BIG: 0, ULT: 0 };
         const valorPorBandeira = { BIG: 0, ULT: 0 };
 
@@ -928,7 +1176,6 @@
         renderDept(deptLabels, deptValues, corDeptTopProd);
         renderTopProdutos(prodLabels, prodValues, corDeptTopProd);
 
-        // mantém só registros | ocorrências
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
           `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
@@ -1192,6 +1439,9 @@
   </script>
 
   <!-- Fontes (documentação confiável) -->
+  <!-- input type="date" retorna yyyy-mm-dd: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
+  <!-- Checkbox input: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox -->
+  <!-- Date parsing (string->date): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date -->
   <!-- Flex item min-width (por que min-width:0 resolve overflow): https://developer.mozilla.org/en-US/docs/Web/CSS/min-width -->
   <!-- overflow-x: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
   <!-- Canvas sizing (CSS width/height vs atributos): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas -->
