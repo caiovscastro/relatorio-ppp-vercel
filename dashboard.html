@@ -20,14 +20,12 @@
     }
 
     /* =========================================================
-       AJUSTE (PEDIDO #2):
-       - Garantir que TOPBAR e STATUS tenham a mesma largura visual
-         do card "Top 15 produtos" no desktop.
-       Observação:
-       - Os cards (.tile) possuem borda e, sem box-sizing, podem
-         “parecer” ligeiramente maiores. Então:
-         1) Forçamos box-sizing em .tile
-         2) Mantemos topbar/status em border-box (já estavam)
+       AJUSTES (PEDIDO #2 e #3 do NOVO PRINT):
+       #3 - Card do título com MESMA “cara”/largura dos demais
+            (parece “mais largo” quando não tem borda/mesma cor).
+       Implementação:
+       - Mantém width:100% (já alinhado ao grid)
+       - Adiciona BORDA + BG do tile para ficar “igual” visualmente
        ========================================================= */
     .topbar{
       width: 100%;
@@ -39,22 +37,45 @@
       gap: 10px;
       padding: 14px 16px;
       border-radius: 12px;
-      background: #ffffff;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+
+      /* >>> igual aos .tile (visualmente) */
+      background: #f6f6f6;
+      border: 1px solid #e5e5e5;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+
       margin-bottom: 14px;
     }
 
+    /* =========================================================
+       PEDIDO #2 (NOVO):
+       - Título deve caber em UMA ÚNICA LINHA
+       Implementação:
+       - white-space: nowrap
+       - font-size responsivo com clamp
+       - se a tela for MUITO estreita, evita quebra e corta com "…"
+       ========================================================= */
     .title{
       margin: 0;
-      font-size: 20px;
       font-weight: 800;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.2px;
+
+      /* Responsivo: reduz um pouco no celular sem precisar quebrar linha */
+      font-size: clamp(16px, 2.2vw, 20px);
+
+      /* 1 linha apenas */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     .subtitle{
       margin: 4px 0 0;
       font-size: 12px;
       color: #555;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .btn{
@@ -93,11 +114,7 @@
     }
 
     /* =========================================================
-       NOVO (PEDIDO #3, #4, #5):
-       - 2 filtros por data (início/fim)
-       - 1 caixa de “venda” para calcular participação
-       - Os 3 novos campos ficam à ESQUERDA do filtro Bandeira
-       - Em celular, ficam ABAIXO do filtro Bandeira
+       CONTROLES (datas + venda + botões)
        ========================================================= */
     .filters-wrap{
       display:flex;
@@ -115,11 +132,19 @@
       justify-content: flex-end;
     }
 
+    /* =========================================================
+       PEDIDO #1 (NOVO):
+       - Datas + Venda SEMPRE NA MESMA LINHA, inclusive no celular
+       Implementação:
+       - flex-wrap: nowrap
+       - inputs com min-width: 0 + flex: 1 para encolherem quando necessário
+       - se ficar apertado, eles encolhem ao invés de quebrar linha
+       ========================================================= */
     .filters-extra{
       display:flex;
       gap:8px;
       align-items:center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;      /* <<< chave: nunca quebrar linha */
       justify-content: flex-end;
     }
 
@@ -178,8 +203,6 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
       padding: 12px 14px;
       min-height: 180px;
-
-      /* AJUSTE (PEDIDO #2): evita “crescer” visualmente por borda */
       box-sizing: border-box;
     }
 
@@ -212,10 +235,6 @@
       text-align: center;
     }
 
-    /* =========================================================
-       NOVO (já existia no seu código):
-       - Valor em R$ no card de Ocorrências
-       ========================================================= */
     .big-number .valor{
       font-weight: 900;
       color: #111;
@@ -224,10 +243,6 @@
       margin-top: 2px;
     }
 
-    /* =========================================================
-       NOVO (PEDIDO #4):
-       - Mostrar percentual de participação abaixo do valor
-       ========================================================= */
     .big-number .participacao{
       font-weight: 800;
       color: #555;
@@ -241,9 +256,6 @@
       height: 210px;
     }
 
-    /* =========================================================
-       Ocorrências: split (número + pizza)
-       ========================================================= */
     .ocorrencias-split{
       height: calc(100% - 28px);
       display: grid;
@@ -252,18 +264,12 @@
       align-items: center;
     }
 
-    /* =========================================================
-       Pizza maior (já estava)
-       ========================================================= */
     .ocorrencias-pie{
       position: relative;
       height: 240px;
       min-height: 240px;
     }
 
-    /* ============================
-       Card “Ocorrências por Bandeira”
-       ============================ */
     .tile.bandeira-tile h3{
       text-align: center;
     }
@@ -300,7 +306,6 @@
       line-height: 1;
     }
 
-    /* Valor abaixo do número por bandeira */
     .bandeira-valor{
       font-size: 14px;
       font-weight: 900;
@@ -316,9 +321,6 @@
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
     }
 
-    /* =========================================================
-       Status (mantido com width 100% e border-box)
-       ========================================================= */
     .status{
       width: 100%;
       box-sizing: border-box;
@@ -328,6 +330,7 @@
       color: #333;
       padding: 12px 14px;
       border-radius: 12px;
+
       background: #fff;
       border: 1px solid #e5e5e5;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
@@ -362,18 +365,16 @@
       .bandeira-num{ font-size: 40px; }
       .bandeira-logo{ width: 132px; height: 44px; }
 
-      /* Em celular, “Ocorrências” empilha número e pizza para caber melhor */
       .ocorrencias-split{
         grid-template-columns: 1fr;
       }
 
-      /* Pizza maior no celular também */
       .ocorrencias-pie{
         height: 280px;
         min-height: 280px;
       }
 
-      /* No celular, botões/controles ficam por último (já estava) */
+      /* No celular, layout do topo em coluna (ok) */
       .topbar{
         flex-direction: column;
         align-items: stretch;
@@ -393,36 +394,47 @@
       }
 
       /* =========================================================
-         PEDIDO #5:
-         - Em celular, os 3 novos campos ficam ABAIXO do filtro bandeira
+         PEDIDO #1 (NOVO) - parte mobile:
+         - Mantém o container geral em coluna (pra caber bem),
+           MAS garante que datas+venda sigam na MESMA LINHA.
          Implementação:
-         - filters-main (select + botões) fica “em cima”
-         - filters-extra (datas + venda) vai para baixo e ocupa 100%
+         - NÃO forçamos width:100% nos inputs (isso quebrava)
+         - Fazemos os 3 inputs encolherem com flex:1 e min-width:0
+         - Ajustamos min-width padrão para evitar quebra
          ========================================================= */
       .filters-wrap{
         flex-direction: column;
         align-items: stretch;
       }
 
+      /* Mantém botões/seletores embaixo como estava */
       .filters-main{
-        order: 1;
-        width: 100%;
-        justify-content: flex-end;
-      }
-
-      .filters-extra{
         order: 2;
         width: 100%;
         justify-content: flex-end;
       }
 
-      .filters-main .btn,
-      .filters-main .select-filter{
-        flex: 1 1 auto;
+      /* Datas+Venda ficam em cima e SEMPRE em 1 linha */
+      .filters-extra{
+        order: 1;
+        width: 100%;
+        justify-content: flex-end;
+
+        /* já está nowrap no desktop, reforço aqui */
+        flex-wrap: nowrap;
       }
 
+      /* Inputs das datas+venda devem encolher (sem quebrar linha) */
       .filters-extra .input-filter{
-        width: 100%;
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      /* Para evitar que os campos fiquem enormes/estranhos */
+      .filters-extra .input-date{
+        min-width: 0;
+      }
+      .filters-extra .input-money{
         min-width: 0;
       }
     }
@@ -444,14 +456,8 @@
         <p class="subtitle" id="subInfo">Carregando dados...</p>
       </div>
 
-      <!-- =========================================================
-           CONTROLES (PEDIDO #3, #4, #5)
-           - filters-extra (datas + venda/participação) à esquerda
-           - filtro bandeira e botões no bloco filters-main
-           - em celular, extra vai abaixo
-           ========================================================= -->
       <div class="filters-wrap">
-        <!-- NOVOS CAMPOS (fica à esquerda do filtro bandeira no desktop) -->
+        <!-- Datas + Venda (sempre em 1 linha, inclusive no celular) -->
         <div class="filters-extra">
           <input
             id="dataInicio"
@@ -482,7 +488,7 @@
           />
         </div>
 
-        <!-- Controles principais (mantidos) -->
+        <!-- Botões / filtro bandeira -->
         <div class="filters-main">
           <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
 
@@ -498,10 +504,6 @@
     </div>
 
     <div class="grid">
-      <!-- =========================================================
-           LINHA DE CIMA (3 cartões iguais)
-           ========================================================= -->
-
       <!-- 1) Ocorrências + Pizza Gravidade -->
       <div class="tile">
         <h3>Ocorrências</h3>
@@ -510,20 +512,8 @@
           <div class="big-number" style="height:auto;">
             <div class="n" id="totalOcorrencias">0</div>
 
-            <!-- =========================================================
-                 PEDIDO #1:
-                 - Remover a palavra "registradas" (linha abaixo do número)
-                 Implementação:
-                 - Removido completamente o elemento que continha o texto
-                 ========================================================= -->
-
-            <!-- Valor total (R$) das ocorrências (segue filtros) -->
             <div class="valor" id="totalValorOcorrencias">R$ 0,00</div>
 
-            <!-- =========================================================
-                 PEDIDO #4:
-                 - Mostrar “Participação” (%) abaixo do valor
-                 ========================================================= -->
             <div class="participacao" id="pctParticipacao">Participação: 0,00%</div>
           </div>
 
@@ -533,7 +523,7 @@
         </div>
       </div>
 
-      <!-- 2) Ocorrências por bandeira (mantém sem filtro) -->
+      <!-- 2) Ocorrências por bandeira (sem filtro) -->
       <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
@@ -564,7 +554,7 @@
         </div>
       </div>
 
-      <!-- 3) Percentual por bandeira (mantém sem filtro) -->
+      <!-- 3) Percentual por bandeira (sem filtro) -->
       <div class="tile">
         <h3>Percentual por bandeira</h3>
         <div class="canvas-wrap" style="height: 210px;">
@@ -572,9 +562,7 @@
         </div>
       </div>
 
-      <!-- =========================================================
-           LINHA DE BAIXO (2 cartões iguais)
-           ========================================================= -->
+      <!-- LINHA DE BAIXO -->
       <div class="row2">
         <div class="tile">
           <h3>Top 5 lojas</h3>
@@ -591,9 +579,7 @@
         </div>
       </div>
 
-      <!-- =========================================================
-           Top 15 produtos
-           ========================================================= -->
+      <!-- Top 15 produtos -->
       <div class="row3">
         <div class="tile" style="min-height: 240px;">
           <h3>Top 15 produtos (maior nº de registros)</h3>
@@ -620,19 +606,12 @@
     let chartTopProdutos = null;
     let chartGravidade = null;
 
-    /* =========================================================
-       NOVO (PEDIDO #4):
-       - Guardar o total em R$ das ocorrências (já filtradas)
-         para recalcular a participação quando o usuário digitar
-         a “venda” no campo.
-       ========================================================= */
+    // Guarda o total em R$ das ocorrências filtradas para calcular participação
     let totalValorOcorrenciasAtual = 0;
 
-    /* ====== Gate de acesso (só abre via botão) ====== */
     function validarAcesso() {
       const dashOk = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim() === "1";
       const sessaoGestor = sessionStorage.getItem(STORAGE_KEY_GESTOR);
-
       if (!dashOk || !sessaoGestor) return false;
 
       try {
@@ -655,12 +634,6 @@
 
       document.getElementById("app").style.display = "block";
 
-      /* =========================================================
-         NOVO (PEDIDO #3 e #4):
-         - Eventos dos novos campos:
-           * datas -> recarrega (aplica filtro por intervalo)
-           * venda -> recalcula participação em tempo real
-         ========================================================= */
       document.getElementById("dataInicio")?.addEventListener("change", carregar);
       document.getElementById("dataFim")?.addEventListener("change", carregar);
 
@@ -679,7 +652,6 @@
       carregar();
     });
 
-    /* ====== Mesma lógica do gerente: “ocorrência única” ====== */
     function chaveOcorrencia(r) {
       const documento = (r.documento || "").trim();
       if (!documento) return "";
@@ -717,9 +689,6 @@
       return s.length > 20 ? (s.slice(0, 20) + "…") : s;
     }
 
-    /* =========================================================
-       UTIL: parse número BR (ex: "1.234,56") -> 1234.56
-       ========================================================= */
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
@@ -730,32 +699,19 @@
       return isNaN(n) ? 0 : n;
     }
 
-    /* =========================================================
-       Formatação BRL "R$"
-       ========================================================= */
     function formatarBRL(n) {
       const v = Number(n) || 0;
       return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
-    /* =========================================================
-       NOVO (PEDIDO #3):
-       - Converter datas do registro para ISO (YYYY-MM-DD) para
-         comparar com inputs type="date"
-       Suporta:
-       - "YYYY-MM-DD ..."
-       - "DD/MM/YYYY ..."
-       ========================================================= */
     function dataRegistroParaISO(dataHora) {
       const raw = String(dataHora || "").trim();
       if (!raw) return "";
 
       const dataParte = raw.split(" ")[0] || "";
 
-      // Caso já esteja em ISO (ex: 2025-12-24)
       if (/^\d{4}-\d{2}-\d{2}$/.test(dataParte)) return dataParte;
 
-      // Caso esteja em BR (ex: 24/12/2025)
       const m = dataParte.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (m) {
         const dd = m[1], mm = m[2], yyyy = m[3];
@@ -765,76 +721,42 @@
       return "";
     }
 
-    /* =========================================================
-       NOVO (PEDIDO #4):
-       - Campo de moeda com máscara:
-         * aceita negativo
-         * enquanto digita, mantém formato 1.234,56
-         * sempre com 2 casas decimais
-       Observação:
-       - Não adiciona "R$" no input (você pediu "valor" formatado)
-       ========================================================= */
     function formatarCampoMoeda(inputEl, opts = {}) {
       const forceTwoDecimals = !!opts.forceTwoDecimals;
-
       if (!inputEl) return;
 
-      // Mantém se usuário colocou "-" em qualquer posição
       const original = String(inputEl.value || "");
       const neg = original.includes("-");
-
-      // Remove tudo que não for dígito
       const digits = original.replace(/[^\d]/g, "");
 
-      // Se não tem dígitos, zera (e mantém negativo apenas se o usuário insistir)
       if (!digits) {
         inputEl.value = (neg ? "-" : "") + (forceTwoDecimals ? "0,00" : "");
         return;
       }
 
-      // Interpreta como centavos
       const cents = parseInt(digits, 10);
       const valor = (isNaN(cents) ? 0 : cents) / 100;
 
-      // Formata como pt-BR sem símbolo de moeda
       const formatado = valor.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
 
-      // Aplica sinal negativo (se usuário indicou)
-      // Se valor for 0, mantém "0,00" (negativo em zero é irrelevante, mas deixo você decidir)
       inputEl.value = (neg ? "-" : "") + formatado;
     }
 
-    /* =========================================================
-       NOVO (PEDIDO #4):
-       - Parse do input “venda” (formato BR com possível "-")
-       ========================================================= */
     function parseMoedaInput(valorStr) {
       let s = String(valorStr || "").trim();
       if (!s) return 0;
 
-      // Detecta sinal negativo
       const neg = s.includes("-");
       s = s.replace(/-/g, "");
-
-      // Remove símbolos e espaços (aceita "R$" se colarem)
       s = s.replace(/[R$\s]/g, "");
 
-      // Converte pt-BR para Number
       const n = parseNumeroBr(s);
       return neg ? -Math.abs(n) : n;
     }
 
-    /* =========================================================
-       NOVO (PEDIDO #4):
-       - Calcula e exibe participação (%):
-         participação = (valor_ocorrencias_filtradas / venda_digitada) * 100
-       Regras:
-       - Se venda = 0 -> mostra 0,00%
-       - Aceita venda negativa (percentual pode ficar negativo)
-       ========================================================= */
     function atualizarParticipacao() {
       const el = document.getElementById("pctParticipacao");
       const inp = document.getElementById("valorVenda");
@@ -846,7 +768,6 @@
       let pct = 0;
       if (venda !== 0) pct = (base * 100) / venda;
 
-      // Formato com 2 casas e vírgula
       const pctStr = (Number.isFinite(pct) ? pct : 0).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -874,27 +795,18 @@
 
         const registros = dados.registros;
 
-        /* =========================================================
-           FILTROS (PEDIDO #3):
-           - Bandeira: Todos | BIG | ULT
-           - Data início/fim: intervalo (inclusive)
-           ========================================================= */
         const filtro = (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
-
-        const dataInicio = (document.getElementById("dataInicio")?.value || "").trim(); // ISO YYYY-MM-DD
-        const dataFim = (document.getElementById("dataFim")?.value || "").trim();       // ISO YYYY-MM-DD
+        const dataInicio = (document.getElementById("dataInicio")?.value || "").trim();
+        const dataFim = (document.getElementById("dataFim")?.value || "").trim();
 
         const registrosFiltrados = registros.filter(r => {
-          // 1) Bandeira
           if (filtro === "BIG" || filtro === "ULT") {
             if (bandeiraPorLoja(r.loja) !== filtro) return false;
           }
 
-          // 2) Datas (intervalo)
           if (dataInicio || dataFim) {
             const iso = dataRegistroParaISO(r.dataHora);
             if (!iso) return false;
-
             if (dataInicio && iso < dataInicio) return false;
             if (dataFim && iso > dataFim) return false;
           }
@@ -902,13 +814,9 @@
           return true;
         });
 
-        /* =========================================================
-           (A) OCORRÊNCIAS (COM FILTRO) + VALOR (R$)
-           - conta ocorrências únicas
-           - soma valor por ocorrência única (quantidade * valorUnitario)
-           ========================================================= */
+        // (A) Ocorrências + Valor (com filtro)
         const setOccFiltradoTotal = new Set();
-        const valorPorOcorrenciaFiltrada = new Map(); // k -> valor acumulado
+        const valorPorOcorrenciaFiltrada = new Map();
 
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
@@ -929,24 +837,19 @@
         const totalOcFiltradoTotal = setOccFiltradoTotal.size;
         document.getElementById("totalOcorrencias").textContent = String(totalOcFiltradoTotal);
 
-        // Total em R$ (somando valores das ocorrências únicas filtradas)
         let somaValorOcorrenciasFiltradas = 0;
         for (const v of valorPorOcorrenciaFiltrada.values()) somaValorOcorrenciasFiltradas += (Number(v) || 0);
 
         document.getElementById("totalValorOcorrencias").textContent = formatarBRL(somaValorOcorrenciasFiltradas);
 
-        // NOVO (PEDIDO #4): guarda e atualiza participação
         totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
         atualizarParticipacao();
 
-        /* =========================================================
-           (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + VALOR (R$)
-           - mantém sem filtro (como estava)
-           ========================================================= */
+        // (B) Ocorrências por bandeira (sem filtro) + valor
         const occPorBandeira = { BIG: 0, ULT: 0 };
         const valorPorBandeira = { BIG: 0, ULT: 0 };
 
-        const valorPorOcorrenciaAll = new Map(); // k -> valor total (base completa)
+        const valorPorOcorrenciaAll = new Map();
         for (const r of registros) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
@@ -982,12 +885,9 @@
         document.getElementById("valorBIG").textContent = formatarBRL(valorPorBandeira.BIG || 0);
         document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeira.ULT || 0);
 
-        /* Percentual por bandeira (SEM FILTRO) */
         renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
-        /* =========================================================
-           (C) GRAVIDADE (COM FILTRO)
-           ========================================================= */
+        // (C) Gravidade (com filtro)
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
         for (const v of valorPorOcorrenciaFiltrada.values()) {
           if (v >= 500) qtdGrave++;
@@ -996,14 +896,7 @@
         }
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
-        /* =========================================================
-           (D) ITENS QUE SEGUEM FILTRO:
-           - Top 5 lojas
-           - Ocorrências por departamento
-           - Top 15 produtos
-           ========================================================= */
-
-        /* Top 5 lojas (por ocorrência única) - COM FILTRO */
+        // (D) Top 5 lojas / Dept / Top produtos (com filtro)
         const occPorLoja = new Map();
         const setOccFiltrado = new Set();
 
@@ -1024,7 +917,6 @@
         const topLabels = top.map(([loja]) => abreviarLojaParaTop5(loja));
         const topValues = top.map(([,qtd]) => qtd);
 
-        /* Ocorrências por departamento (por ocorrência, não por linha) - COM FILTRO */
         const deptPorOcorrencia = new Map();
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
@@ -1049,7 +941,6 @@
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
-        /* Top 15 produtos por nº de registros - COM FILTRO */
         const registrosPorProduto = new Map();
         for (const r of registrosFiltrados) {
           const prod = (r.produto || "N/I").toString().trim() || "N/I";
@@ -1063,12 +954,10 @@
         const prodLabels = topProd.map(([p]) => abreviarProduto(p));
         const prodValues = topProd.map(([,q]) => q);
 
-        /* Render charts */
         renderTopLojas(topLabels, topValues);
         renderDept(deptLabels, deptValues);
         renderTopProdutos(prodLabels, prodValues);
 
-        /* SubInfo (agora também “explica” que há filtro de data quando usado) */
         const infoFiltroData = (dataInicio || dataFim)
           ? ` | período: ${dataInicio || "—"} até ${dataFim || "—"}`
           : "";
@@ -1086,10 +975,6 @@
       }
     }
 
-    /* ===========================================================
-       TOP 5 LOJAS
-       - Mantido ajuste de “headroom” (suggestedMax) para rótulos
-       =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
       if (chartTopLojas) chartTopLojas.destroy();
@@ -1160,9 +1045,6 @@
       });
     }
 
-    /* ===========================================================
-       OCORRÊNCIAS POR DEPARTAMENTO (mantido)
-       =========================================================== */
     function renderDept(labels, values) {
       const ctx = document.getElementById("chartDept");
       if (chartDept) chartDept.destroy();
@@ -1218,9 +1100,6 @@
       });
     }
 
-    /* ===========================================================
-       PERCENTUAL POR BANDEIRA (mantido – SEM FILTRO)
-       =========================================================== */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
       if (chartPctBandeira) chartPctBandeira.destroy();
@@ -1259,10 +1138,7 @@
           labels: ["BIG", "ULT"],
           datasets: [{
             data: [qtdBIG || 0, qtdULT || 0],
-            backgroundColor: [
-              "#A98AE8",
-              "#43A047"
-            ]
+            backgroundColor: ["#A98AE8", "#43A047"]
           }]
         },
         options: {
@@ -1286,9 +1162,6 @@
       });
     }
 
-    /* ===========================================================
-       TOP 15 PRODUTOS (mantido)
-       =========================================================== */
     function renderTopProdutos(labels, values) {
       const ctx = document.getElementById("chartTopProdutos");
       if (chartTopProdutos) chartTopProdutos.destroy();
@@ -1344,9 +1217,6 @@
       });
     }
 
-    /* ===========================================================
-       PIZZA - Gravidade (segue filtro)
-       =========================================================== */
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
       if (chartGravidade) chartGravidade.destroy();
@@ -1384,11 +1254,7 @@
           labels: ["Leve", "Média", "Grave"],
           datasets: [{
             data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
-            backgroundColor: [
-              "#9E9E9E",
-              "#A98AE8",
-              "#F44336"
-            ]
+            backgroundColor: ["#9E9E9E", "#A98AE8", "#F44336"]
           }]
         },
         options: {
@@ -1413,8 +1279,9 @@
   </script>
 
   <!-- Fontes (documentação confiável) -->
+  <!-- Flexbox (nowrap / shrink / min-width:0): https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox -->
+  <!-- white-space / overflow / ellipsis: https://developer.mozilla.org/en-US/docs/Web/CSS/text-overflow -->
+  <!-- clamp(): https://developer.mozilla.org/en-US/docs/Web/CSS/clamp -->
   <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
-  <!-- input[type="date"] (HTML): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
-  <!-- Intl.NumberFormat / toLocaleString: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat -->
 </body>
 </html>
