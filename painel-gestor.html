@@ -160,23 +160,19 @@
     /* =========================================================
        PEDIDO #1:
        - Diminuir o tamanho das fontes dos botões para caber no celular
-       Implementação:
-       - reduz font-size e padding especificamente no bloco dos botões
-       - adiciona um ajuste extra em telas pequenas (max-width: 480px)
-       - NÃO altera layout, cores, nem outras áreas
+       (mantido exatamente como estava)
        ========================================================= */
     .botoes-filtro .btn {
       width: 100%;
-      font-size: 11px;     /* antes: 12px -> menor para não “estourar” */
-      padding: 6px 6px;    /* antes: 6px 8px -> reduz horizontal */
-      letter-spacing: 0;   /* garante que não aumenta largura */
+      font-size: 11px;
+      padding: 6px 6px;
+      letter-spacing: 0;
     }
 
-    /* Reforço para celulares menores */
     @media (max-width: 480px) {
       .botoes-filtro .btn {
-        font-size: 10px;   /* ainda menor em telas bem estreitas */
-        padding: 6px 4px;  /* reduz mais para caber */
+        font-size: 10px;
+        padding: 6px 4px;
       }
     }
 
@@ -195,7 +191,6 @@
       color: #fff;
     }
 
-    /* estilo do botão Dashboard (mantido) */
     .btn-dashboard {
       background: #6a5acd;
       color: #fff;
@@ -704,10 +699,7 @@
 
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
-
-        <!-- Botão Dashboard (agora com validação de usuário autorizado) -->
         <button class="btn btn-dashboard" onclick="abrirDashboard()">Dashboard</button>
-
         <button class="btn btn-exportar" onclick="abrirModalDownload()">Exportar XLSX</button>
         <button class="btn btn-aplicar" onclick="aplicarFiltrosLocal()">Aplicar filtros</button>
       </div>
@@ -804,8 +796,6 @@
 
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
-
-    /* flag que libera o acesso ao dashboard apenas via botão */
     const STORAGE_DASH_OK = "PPP_DASH_OK";
 
     let usuarioLogado = null;
@@ -819,13 +809,7 @@
     let registroParaEditar = null;
 
     /* =========================================================
-       PEDIDO #2:
-       - Só abrir o Dashboard se o usuário logado for:
-         "gaspar.silva" ou "caio.castro"
-       Implementação:
-       - valida usuarioLogado (já carregado no DOMContentLoaded)
-       - se não autorizado, bloqueia e avisa
-       - NÃO altera o fluxo do dashboard (STORAGE_DASH_OK continua igual)
+       Dashboard (mantido)
        ========================================================= */
     function abrirDashboard() {
       const u = String(usuarioLogado || "").trim().toLowerCase();
@@ -887,18 +871,50 @@
       }, 200);
     }
 
-    /* ========= PARSE DE DATA (STRING -> Date) ========= */
-    function parseDataDaPlanilha(dataHoraStr) {
-      if (!dataHoraStr) return null;
-      try {
-        const limpo = String(dataHoraStr).replace(/,/g, "");
-        const [parteData] = limpo.split(" ");
-        const [dia, mes, ano] = (parteData || "").split("/");
-        if (!dia || !mes || !ano) return null;
-        return new Date(Number(ano), Number(mes) - 1, Number(dia));
-      } catch (e) {
-        return null;
-      }
+    /* =========================================================
+       ✅ AJUSTE SOLICITADO:
+       - Data/Hora do painel NÃO vem mais da coluna A.
+       - Agora deve vir de R (dataOcorrido) e S (horaOcorrido),
+         concatenadas: "DD/MM/AAAA HH:mm" (apenas 1 espaço).
+       - Todos os filtros de data devem usar SOMENTE a data de R.
+       ========================================================= */
+
+    /**
+     * Converte "DD/MM/AAAA" (coluna R) -> "AAAA-MM-DD" (para comparar com input type="date").
+     */
+    function dataBRParaISO(dataBR) {
+      const s = String(dataBR || "").trim();
+      if (!s) return "";
+      const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!m) return "";
+      const dd = m[1], mm = m[2], yyyy = m[3];
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    /**
+     * Normaliza hora para "HH:mm" (se vier "HH:mm:ss", remove os segundos).
+     */
+    function normalizarHoraHHMM(horaStr) {
+      const s = String(horaStr || "").trim();
+      if (!s) return "";
+      const m = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+      if (!m) return s;
+      const hh = String(parseInt(m[1], 10)).padStart(2, "0");
+      const mm = String(parseInt(m[2], 10)).padStart(2, "0");
+      return `${hh}:${mm}`;
+    }
+
+    /**
+     * Retorna "DD/MM/AAAA HH:mm" usando R e S.
+     * (Se faltar algo, retorna "-" para não quebrar UI.)
+     */
+    function dataHoraOcorridoConcatenada(reg) {
+      const dataBR = String(reg?.dataOcorrido || "").trim();
+      const hora = normalizarHoraHHMM(reg?.horaOcorrido || "");
+      if (!dataBR && !hora) return "-";
+      if (!dataBR) return `- ${hora}`.trim();
+      if (!hora) return dataBR;
+      return `${dataBR} ${hora}`;
     }
 
     /* ========= FILTRAGEM LOCAL ========= */
@@ -907,11 +923,10 @@
       const usuarioFiltro = document.getElementById("filtroUsuario").value.trim().toLowerCase();
       const docFiltro = document.getElementById("filtroDocumento").value.trim();
       const depFiltro = document.getElementById("filtroDepartamento").value.trim().toUpperCase();
+
+      // inputs type="date" retornam "YYYY-MM-DD"
       const dataInicio = document.getElementById("dataInicio").value;
       const dataFim = document.getElementById("dataFim").value;
-
-      const iniDate = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
-      const fimDate = dataFim ? new Date(`${dataFim}T23:59:59`) : null;
 
       return registrosBase.filter((reg) => {
         if (lojaFiltro && !reg.loja.toLowerCase().includes(lojaFiltro)) return false;
@@ -919,11 +934,19 @@
         if (docFiltro && reg.documento !== docFiltro) return false;
         if (depFiltro && reg.departamento.toUpperCase() !== depFiltro) return false;
 
-        if (iniDate || fimDate) {
-          const dataReg = parseDataDaPlanilha(reg.dataHora);
-          if (!dataReg) return false;
-          if (iniDate && dataReg < iniDate) return false;
-          if (fimDate && dataReg > fimDate) return false;
+        /* =========================================================
+           ✅ SOLICITADO:
+           - Filtro de data usa SOMENTE coluna R (dataOcorrido).
+           Estratégia:
+           - converte "DD/MM/AAAA" -> "AAAA-MM-DD"
+           - compara como string, porque ISO ordena corretamente.
+           ========================================================= */
+        if (dataInicio || dataFim) {
+          const isoReg = dataBRParaISO(reg.dataOcorrido);
+          if (!isoReg) return false; // se não tem data_ocorrido, não entra no filtro
+
+          if (dataInicio && isoReg < dataInicio) return false;
+          if (dataFim && isoReg > dataFim) return false;
         }
 
         return true;
@@ -961,8 +984,6 @@
 
     function logoutGestor() {
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
-
-      /* opcional: ao sair, invalida também o acesso ao dashboard */
       try { sessionStorage.removeItem(STORAGE_DASH_OK); } catch (e) {}
     }
 
@@ -1013,7 +1034,13 @@
 
         const usuario = (r.usuario || "").trim();
         const loja = (r.loja || "").trim();
-        const dataStr = (r.dataHora || "").split(" ")[0] || "";
+
+        /* =========================================================
+           ✅ SOLICITADO:
+           - A “data” que entra na chave de ocorrência também deve vir de R
+             (para não ficar inconsistência com filtros/visual).
+           ========================================================= */
+        const dataStr = String(r.dataOcorrido || "").trim(); // R (DD/MM/AAAA) — sem hora
 
         const chave = `${documento}||${usuario}||${loja}||${dataStr}`;
         setOcorrencias.add(chave);
@@ -1125,7 +1152,7 @@
             const qtdNum = parseNumeroBr(r.quantidade);
             const vUnitNum = parseNumeroBr(r.valorUnitario);
             const totalNum = qtdNum * vUnitNum;
-            _toggleDontCare = totalNum; // (não altera lógica, apenas evita “unused” em alguns linters)
+            _toggleDontCare = totalNum; // (não altera lógica)
             totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -1134,12 +1161,19 @@
 
           const imageUrl = (r.imageUrl || r.imagemUrl || r.urlImagem || "").toString().trim();
 
+          /* =========================================================
+             ✅ SOLICITADO:
+             - Trocar o "Data/Hora" exibido para vir de R e S:
+               "DD/MM/AAAA HH:mm" (1 espaço).
+             ========================================================= */
+          const dataHoraExibicao = dataHoraOcorridoConcatenada(r);
+
           return `
             <div class="cartao" onclick="preencherFiltrosPorRegistro(${index})">
               <div class="cartao-pares cartao-pares-superior">
                 <div class="cartao-pareado">
                   <span class="rotulo">Data/Hora:</span>
-                  <span class="valor valor-compacto">${r.dataHora || "-"}</span>
+                  <span class="valor valor-compacto">${dataHoraExibicao}</span>
                 </div>
                 <div class="cartao-pareado pareado-usuario">
                   <span class="rotulo">Usuário:</span>
@@ -1412,8 +1446,14 @@
         const vUnitNum = parseNumeroBr(r.valorUnitario);
         const totalNum = qtdNum * vUnitNum;
 
+        /* =========================================================
+           ✅ SOLICITADO:
+           - Export também deve levar a Data/Hora de R e S concatenadas.
+           ========================================================= */
+        const dataHoraExport = dataHoraOcorridoConcatenada(r);
+
         return [
-          r.dataHora || "",
+          dataHoraExport,
           r.loja || "",
           r.usuario || "",
           r.ean || "",
