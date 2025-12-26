@@ -19,50 +19,61 @@
       margin: 16px auto 30px;
     }
 
+    /* ============================
+       Tiles (BASE VISUAL)
+       ============================ */
+    .tile{
+      background: #f6f6f6;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      padding: 12px 14px;
+      min-height: 180px;
+      box-sizing: border-box;
+    }
+
+    .tile h3{
+      margin: 0 0 10px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #111;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
     /* =========================================================
-       AJUSTES (PEDIDO #2 e #3 do NOVO PRINT):
-       #3 - Card do título com MESMA “cara”/largura dos demais
-            (parece “mais largo” quando não tem borda/mesma cor).
-       Implementação:
-       - Mantém width:100% (já alinhado ao grid)
-       - Adiciona BORDA + BG do tile para ficar “igual” visualmente
+       (PEDIDO #2)
+       Card do topo (título + filtros) deve alinhar largura com os demais.
+       Implementação definitiva:
+       - O topo passa a ser um .tile (mesma borda/padding/sombra)
+       - Mantemos apenas layout (flex) aqui, sem “casca” visual diferente.
        ========================================================= */
     .topbar{
-      width: 100%;
-      box-sizing: border-box;
-
+      /* >>> A “casca” visual vem do .tile. Aqui fica só layout. */
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 14px 16px;
-      border-radius: 12px;
 
-      /* >>> igual aos .tile (visualmente) */
-      background: #f6f6f6;
-      border: 1px solid #e5e5e5;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      /* Distância até os cards abaixo */
+      margin-bottom: 12px;
 
-      margin-bottom: 14px;
+      /* Evita que o conteúdo force overflow estranho */
+      width: 100%;
     }
 
     /* =========================================================
-       PEDIDO #2 (NOVO):
-       - Título deve caber em UMA ÚNICA LINHA
-       Implementação:
-       - white-space: nowrap
-       - font-size responsivo com clamp
-       - se a tela for MUITO estreita, evita quebra e corta com "…"
+       Título deve caber em 1 linha
        ========================================================= */
     .title{
       margin: 0;
       font-weight: 800;
       letter-spacing: 0.2px;
 
-      /* Responsivo: reduz um pouco no celular sem precisar quebrar linha */
+      /* Responsivo: reduz sem quebrar */
       font-size: clamp(16px, 2.2vw, 20px);
 
-      /* 1 linha apenas */
+      /* 1 linha */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -98,9 +109,6 @@
       color: #111;
     }
 
-    /* =========================================================
-       Lista suspensa ao lado do botão Atualizar: Todos | BIG | ULT
-       ========================================================= */
     .select-filter{
       border: 1px solid #d6d6d6;
       background: #fff;
@@ -132,19 +140,12 @@
       justify-content: flex-end;
     }
 
-    /* =========================================================
-       PEDIDO #1 (NOVO):
-       - Datas + Venda SEMPRE NA MESMA LINHA, inclusive no celular
-       Implementação:
-       - flex-wrap: nowrap
-       - inputs com min-width: 0 + flex: 1 para encolherem quando necessário
-       - se ficar apertado, eles encolhem ao invés de quebrar linha
-       ========================================================= */
+    /* Datas + Venda sempre em 1 linha */
     .filters-extra{
       display:flex;
       gap:8px;
       align-items:center;
-      flex-wrap: nowrap;      /* <<< chave: nunca quebrar linha */
+      flex-wrap: nowrap;
       justify-content: flex-end;
     }
 
@@ -161,12 +162,8 @@
       box-sizing: border-box;
     }
 
-    /* input date costuma ficar “apertado” em alguns browsers */
-    .input-date{
-      min-width: 148px;
-    }
+    .input-date{ min-width: 148px; }
 
-    /* Campo de “venda” (participação) – apenas texto formatado (dinheiro) */
     .input-money{
       min-width: 170px;
       text-align: right;
@@ -191,28 +188,6 @@
     .row3{
       grid-column: 1 / -1;
       display: block;
-    }
-
-    /* ============================
-       Tiles
-       ============================ */
-    .tile{
-      background: #f6f6f6;
-      border: 1px solid #e5e5e5;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      padding: 12px 14px;
-      min-height: 180px;
-      box-sizing: border-box;
-    }
-
-    .tile h3{
-      margin: 0 0 10px;
-      font-size: 13px;
-      font-weight: 900;
-      color: #111;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
     }
 
     /* ============================
@@ -270,9 +245,10 @@
       min-height: 240px;
     }
 
-    .tile.bandeira-tile h3{
-      text-align: center;
-    }
+    /* ============================
+       Card “Ocorrências por Bandeira”
+       ============================ */
+    .tile.bandeira-tile h3{ text-align: center; }
 
     .bandeira-split{
       height: calc(100% - 28px);
@@ -321,16 +297,17 @@
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
     }
 
+    /* =========================================================
+       Status
+       ========================================================= */
     .status{
       width: 100%;
       box-sizing: border-box;
-
       margin-top: 10px;
       font-size: 13px;
       color: #333;
       padding: 12px 14px;
       border-radius: 12px;
-
       background: #fff;
       border: 1px solid #e5e5e5;
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
@@ -365,78 +342,43 @@
       .bandeira-num{ font-size: 40px; }
       .bandeira-logo{ width: 132px; height: 44px; }
 
-      .ocorrencias-split{
-        grid-template-columns: 1fr;
-      }
+      .ocorrencias-split{ grid-template-columns: 1fr; }
 
       .ocorrencias-pie{
         height: 280px;
         min-height: 280px;
       }
 
-      /* No celular, layout do topo em coluna (ok) */
       .topbar{
         flex-direction: column;
         align-items: stretch;
       }
 
-      .topbar > div:last-child{
-        order: 2;
-        margin-top: 8px;
-        width: 100%;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-      }
-
-      .topbar > div:first-child{
-        order: 1;
-        width: 100%;
-      }
-
-      /* =========================================================
-         PEDIDO #1 (NOVO) - parte mobile:
-         - Mantém o container geral em coluna (pra caber bem),
-           MAS garante que datas+venda sigam na MESMA LINHA.
-         Implementação:
-         - NÃO forçamos width:100% nos inputs (isso quebrava)
-         - Fazemos os 3 inputs encolherem com flex:1 e min-width:0
-         - Ajustamos min-width padrão para evitar quebra
-         ========================================================= */
       .filters-wrap{
         flex-direction: column;
         align-items: stretch;
       }
 
-      /* Mantém botões/seletores embaixo como estava */
       .filters-main{
         order: 2;
         width: 100%;
         justify-content: flex-end;
       }
 
-      /* Datas+Venda ficam em cima e SEMPRE em 1 linha */
       .filters-extra{
         order: 1;
         width: 100%;
         justify-content: flex-end;
-
-        /* já está nowrap no desktop, reforço aqui */
-        flex-wrap: nowrap;
+        flex-wrap: nowrap; /* reforço */
       }
 
-      /* Inputs das datas+venda devem encolher (sem quebrar linha) */
+      /* inputs encolhem em 1 linha */
       .filters-extra .input-filter{
         flex: 1 1 0;
         min-width: 0;
       }
-
-      /* Para evitar que os campos fiquem enormes/estranhos */
-      .filters-extra .input-date{
-        min-width: 0;
-      }
-      .filters-extra .input-money{
-        min-width: 0;
-      }
+      .filters-extra .input-date{ min-width: 0; }
+      .filters-extra .input-money{ min-width: 0; }
     }
   </style>
 </head>
@@ -450,31 +392,20 @@
   </div>
 
   <div id="app" class="wrap" style="display:none;">
-    <div class="topbar">
+    <!-- =========================================================
+         (PEDIDO #2)
+         O topo agora é um .tile -> alinha perfeitamente com os demais
+         ========================================================= -->
+    <div class="tile topbar">
       <div>
         <h1 class="title">RELATÓRIO DE OCORRÊNCIAS</h1>
         <p class="subtitle" id="subInfo">Carregando dados...</p>
       </div>
 
       <div class="filters-wrap">
-        <!-- Datas + Venda (sempre em 1 linha, inclusive no celular) -->
         <div class="filters-extra">
-          <input
-            id="dataInicio"
-            class="input-filter input-date"
-            type="date"
-            aria-label="Data início"
-            title="Data início"
-          />
-
-          <input
-            id="dataFim"
-            class="input-filter input-date"
-            type="date"
-            aria-label="Data fim"
-            title="Data fim"
-          />
-
+          <input id="dataInicio" class="input-filter input-date" type="date" aria-label="Data início" title="Data início" />
+          <input id="dataFim" class="input-filter input-date" type="date" aria-label="Data fim" title="Data fim" />
           <input
             id="valorVenda"
             class="input-filter input-money"
@@ -488,7 +419,6 @@
           />
         </div>
 
-        <!-- Botões / filtro bandeira -->
         <div class="filters-main">
           <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
 
@@ -511,9 +441,7 @@
         <div class="ocorrencias-split">
           <div class="big-number" style="height:auto;">
             <div class="n" id="totalOcorrencias">0</div>
-
             <div class="valor" id="totalValorOcorrencias">R$ 0,00</div>
-
             <div class="participacao" id="pctParticipacao">Participação: 0,00%</div>
           </div>
 
@@ -532,11 +460,7 @@
             <div class="bandeira-num" id="bandeiraBIG">0</div>
             <div class="bandeira-valor" id="valorBIG">R$ 0,00</div>
 
-            <img
-              class="bandeira-logo"
-              src="https://i.ibb.co/Kz5DZ8nP/1001316505.png"
-              alt="Big Box"
-            />
+            <img class="bandeira-logo" src="https://i.ibb.co/Kz5DZ8nP/1001316505.png" alt="Big Box" />
           </div>
 
           <div class="bandeira-divider" aria-hidden="true"></div>
@@ -545,11 +469,7 @@
             <div class="bandeira-num" id="bandeiraULT">0</div>
             <div class="bandeira-valor" id="valorULT">R$ 0,00</div>
 
-            <img
-              class="bandeira-logo"
-              src="https://i.ibb.co/270L2q5v/C-pia-de-C-pia-de-Filipeta-TV-2011-20231119-152254-0000.png"
-              alt="Ultrabox"
-            />
+            <img class="bandeira-logo" src="https://i.ibb.co/270L2q5v/C-pia-de-C-pia-de-Filipeta-TV-2011-20231119-152254-0000.png" alt="Ultrabox" />
           </div>
         </div>
       </div>
@@ -683,10 +603,14 @@
       return s.length > 10 ? (s.slice(0, 10) + "…") : s;
     }
 
+    /* =========================================================
+       (PEDIDO #5)
+       Top 15 produtos: limitar para 30 caracteres
+       ========================================================= */
     function abreviarProduto(nome) {
       const s = String(nome || "").trim();
       if (!s) return "N/I";
-      return s.length > 20 ? (s.slice(0, 20) + "…") : s;
+      return s.length > 30 ? (s.slice(0, 30) + "…") : s;
     }
 
     function parseNumeroBr(valor) {
@@ -814,7 +738,9 @@
           return true;
         });
 
-        // (A) Ocorrências + Valor (com filtro)
+        /* =========================================================
+           (A) OCORRÊNCIAS (COM FILTRO) + VALOR (R$)
+           ========================================================= */
         const setOccFiltradoTotal = new Set();
         const valorPorOcorrenciaFiltrada = new Map();
 
@@ -845,7 +771,9 @@
         totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
         atualizarParticipacao();
 
-        // (B) Ocorrências por bandeira (sem filtro) + valor
+        /* =========================================================
+           (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + VALOR (R$)
+           ========================================================= */
         const occPorBandeira = { BIG: 0, ULT: 0 };
         const valorPorBandeira = { BIG: 0, ULT: 0 };
 
@@ -887,7 +815,9 @@
 
         renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
-        // (C) Gravidade (com filtro)
+        /* =========================================================
+           (C) GRAVIDADE (COM FILTRO)
+           ========================================================= */
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
         for (const v of valorPorOcorrenciaFiltrada.values()) {
           if (v >= 500) qtdGrave++;
@@ -896,7 +826,14 @@
         }
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
-        // (D) Top 5 lojas / Dept / Top produtos (com filtro)
+        /* =========================================================
+           (D) ITENS QUE SEGUEM FILTRO:
+           - Top 5 lojas
+           - Ocorrências por departamento
+           - Top 15 produtos
+           ========================================================= */
+
+        /* Top 5 lojas (por ocorrência única) - COM FILTRO */
         const occPorLoja = new Map();
         const setOccFiltrado = new Set();
 
@@ -917,6 +854,7 @@
         const topLabels = top.map(([loja]) => abreviarLojaParaTop5(loja));
         const topValues = top.map(([,qtd]) => qtd);
 
+        /* Ocorrências por departamento (por ocorrência, não por linha) - COM FILTRO */
         const deptPorOcorrencia = new Map();
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
@@ -941,6 +879,7 @@
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
+        /* Top 15 produtos por nº de registros - COM FILTRO */
         const registrosPorProduto = new Map();
         for (const r of registrosFiltrados) {
           const prod = (r.produto || "N/I").toString().trim() || "N/I";
@@ -954,18 +893,29 @@
         const prodLabels = topProd.map(([p]) => abreviarProduto(p));
         const prodValues = topProd.map(([,q]) => q);
 
+        /* =========================================================
+           (PEDIDO #4)
+           Dept + TopProdutos mudam de cor:
+           - Se filtro = ULT => verde ULT (mesma “família” do Top 5 ULT)
+           - Caso contrário => cor padrão do Dept (roxo claro)
+           ========================================================= */
+        const COR_DEPT_PADRAO = "#A98AE8";
+        const COR_ULT = "#43A047"; /* mesma usada no Top 5 para ULT */
+        const corDeptTopProd = (filtro === "ULT") ? COR_ULT : COR_DEPT_PADRAO;
+
+        /* Render charts */
         renderTopLojas(topLabels, topValues);
-        renderDept(deptLabels, deptValues);
-        renderTopProdutos(prodLabels, prodValues);
+        renderDept(deptLabels, deptValues, corDeptTopProd);
+        renderTopProdutos(prodLabels, prodValues, corDeptTopProd);
 
-        const infoFiltroData = (dataInicio || dataFim)
-         ? ` | período: ${dataInicio || "—"} até ${dataFim || "—"}`
-          : "";
-
+        /* =========================================================
+           (PEDIDO #3)
+           Remover o “| período ...” e manter só:
+           registros | ocorrências
+           ========================================================= */
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
-          `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências` +
-          infoFiltroData;
+          `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
 
         status.textContent = "Dashboard atualizado com sucesso.";
       } catch (e) {
@@ -975,6 +925,9 @@
       }
     }
 
+    /* ===========================================================
+       TOP 5 LOJAS (mantido)
+       =========================================================== */
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
       if (chartTopLojas) chartTopLojas.destroy();
@@ -1045,7 +998,11 @@
       });
     }
 
-    function renderDept(labels, values) {
+    /* ===========================================================
+       OCORRÊNCIAS POR DEPARTAMENTO
+       (PEDIDO #4) recebe a cor dinâmica
+       =========================================================== */
+    function renderDept(labels, values, corBarra) {
       const ctx = document.getElementById("chartDept");
       if (chartDept) chartDept.destroy();
 
@@ -1080,7 +1037,7 @@
           datasets: [{
             label: "Ocorrências por departamento",
             data: values,
-            backgroundColor: "#A98AE8"
+            backgroundColor: corBarra || "#A98AE8"
           }]
         },
         options: {
@@ -1100,6 +1057,9 @@
       });
     }
 
+    /* ===========================================================
+       PERCENTUAL POR BANDEIRA (mantido)
+       =========================================================== */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
       if (chartPctBandeira) chartPctBandeira.destroy();
@@ -1162,7 +1122,11 @@
       });
     }
 
-    function renderTopProdutos(labels, values) {
+    /* ===========================================================
+       TOP 15 PRODUTOS
+       (PEDIDO #4) recebe a cor dinâmica
+       =========================================================== */
+    function renderTopProdutos(labels, values, corBarra) {
       const ctx = document.getElementById("chartTopProdutos");
       if (chartTopProdutos) chartTopProdutos.destroy();
 
@@ -1197,7 +1161,7 @@
           datasets: [{
             label: "Registros",
             data: values,
-            backgroundColor: "#6A5ACD"
+            backgroundColor: corBarra || "#A98AE8"
           }]
         },
         options: {
@@ -1217,6 +1181,13 @@
       });
     }
 
+    /* ===========================================================
+       PIZZA - Gravidade
+       (PEDIDO #1) cores iguais à imagem:
+       - Leve: azul
+       - Média: roxo
+       - Grave: rosa
+       =========================================================== */
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
       if (chartGravidade) chartGravidade.destroy();
@@ -1234,12 +1205,12 @@
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.font = "bold 12px Arial";
-          ctx.fillStyle = "#111";
+          ctx.fillStyle = "#fff"; // branco para destacar nas cores fortes
 
           meta.data.forEach((arc, i) => {
             const val = chart.data.datasets[0].data[i] || 0;
             const pct = total > 0 ? (val * 100 / total) : 0;
-            const label = `${pct.toFixed(2)}%`;
+            const label = `${pct.toFixed(1)}%`;
             const pos = arc.tooltipPosition();
             ctx.fillText(label, pos.x, pos.y);
           });
@@ -1254,7 +1225,12 @@
           labels: ["Leve", "Média", "Grave"],
           datasets: [{
             data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
-            backgroundColor: ["#9E9E9E", "#A98AE8", "#F44336"]
+            backgroundColor: [
+              "#1E88E5", // LEVE (azul)
+              "#6A5ACD", // MÉDIA (roxo)
+              "#FF2DA1"  // GRAVE (rosa)
+            ],
+            borderWidth: 0
           }]
         },
         options: {
@@ -1267,7 +1243,7 @@
                 label: (ctx) => {
                   const v = ctx.raw || 0;
                   const pct = total > 0 ? (v * 100 / total) : 0;
-                  return `${ctx.label}: ${v} (${pct.toFixed(2)}%)`;
+                  return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
                 }
               }
             }
@@ -1279,9 +1255,8 @@
   </script>
 
   <!-- Fontes (documentação confiável) -->
-  <!-- Flexbox (nowrap / shrink / min-width:0): https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox -->
-  <!-- white-space / overflow / ellipsis: https://developer.mozilla.org/en-US/docs/Web/CSS/text-overflow -->
-  <!-- clamp(): https://developer.mozilla.org/en-US/docs/Web/CSS/clamp -->
   <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
+  <!-- Flexbox (nowrap / shrink / min-width:0): https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox -->
+  <!-- text-overflow (ellipsis): https://developer.mozilla.org/en-US/docs/Web/CSS/text-overflow -->
 </body>
 </html>
