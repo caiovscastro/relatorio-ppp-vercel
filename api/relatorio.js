@@ -1,17 +1,20 @@
 // api/relatorio.js
 // Grava relatórios na aba RELATORIO do Google Sheets.
 //
-// NOVO:
-// - Agora aceita envio em LOTE: { lote: [ { ...registro }, ... ] }
-// - Mantém compatibilidade com envio unitário antigo.
-// - (SOLICITADO) Suporta imagem opcional: grava a URL na coluna Q (IMAGEM_URL),
-//   normalmente enviada apenas no último item do lote.
+// SUPORTA:
+// - Envio em LOTE: { lote: [ { ...registro }, ... ] }
+// - Envio unitário (compatibilidade)
+// - Imagem opcional (URL na coluna Q)
+//
+// NOVO (SOLICITADO):
+// - DATA_OCORRIDO -> coluna R
+// - HORA_OCORRIDO -> coluna S
 //
 // Fluxo:
-// - Garante que a aba RELATORIO existe e possui cabeçalho em A1:Q1.
-// - Gera DATA/HORA em São Paulo.
-// - Gera um ID único (coluna P) para CADA registro.
-// - Insere as linhas na próxima linha disponível (append).
+// - Garante que a aba RELATORIO exista e tenha cabeçalho A1:S1
+// - Gera DATA/HORA do REGISTRO em São Paulo (coluna A)
+// - Gera um ID único por linha (coluna P)
+// - Insere linhas via append
 //
 // Variáveis de ambiente (Vercel):
 // - GOOGLE_SERVICE_ACCOUNT_EMAIL
@@ -24,10 +27,8 @@ const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
-// Conserta quebras de linha da chave privada (vem com "\n" e precisa ser newline de verdade)
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
-// Autenticação com Service Account (escopo de escrita)
 const auth = new google.auth.JWT(
   serviceAccountEmail,
   null,
@@ -37,12 +38,10 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: "v4", auth });
 
-// Controle simples para não recriar cabeçalho a cada requisição
 let headerGarantido = false;
 
 /**
- * Garante que a aba RELATORIO exista e tenha o cabeçalho correto em A1:Q1.
- * Caso não exista, cria a aba.
+ * Garante que a aba RELATORIO exista e tenha cabeçalho correto A:S
  */
 async function garantirAbaRelatorio() {
   if (headerGarantido) return;
@@ -51,7 +50,7 @@ async function garantirAbaRelatorio() {
   const sheetsList = spreadsheet.data.sheets || [];
 
   const existeRelatorio = sheetsList.some(
-    (s) => s.properties && s.properties.title === "RELATORIO"
+    (s) => s.properties?.title === "RELATORIO"
   );
 
   if (!existeRelatorio) {
@@ -63,32 +62,31 @@ async function garantirAbaRelatorio() {
     });
   }
 
-  // Cabeçalho (A:Q)
-  // Observação: ID permanece na coluna P (como estava).
-  // A coluna Q é a URL da imagem (opcional).
   const cabecalho = [[
-    "DATA/HORA",             // A
-    "LOJAS",                 // B
-    "USÚARIOS",              // C
+    "DATA/HORA REGISTRO",     // A
+    "LOJA",                  // B
+    "USUARIO",               // C
     "EAN",                   // D
-    "COD CONSINCO",          // E
+    "COD CONSINCO",           // E
     "PRODUTO",               // F
     "DEPARTAMENTO",          // G
     "SECAO",                 // H
     "GRUPO",                 // I
     "SUBGRUPO",              // J
     "CATEGORIA",             // K
-    "RELATORIO/OBSERVAÇÃO",  // L
+    "RELATORIO/OBSERVACAO",  // L
     "QUANTIDADE",            // M
     "VALOR UNITARIO",        // N
     "DOCUMENTO",             // O
     "ID",                    // P
-    "IMAGEM_URL",            // Q (SOLICITADO)
+    "IMAGEM_URL",            // Q
+    "DATA_OCORRIDO",         // R  ✅ NOVO
+    "HORA_OCORRIDO",         // S  ✅ NOVO
   ]];
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: "RELATORIO!A1:Q1",
+    range: "RELATORIO!A1:S1",
     valueInputOption: "RAW",
     requestBody: { values: cabecalho },
   });
@@ -97,24 +95,24 @@ async function garantirAbaRelatorio() {
 }
 
 /**
- * Gera DATA/HORA no fuso de São Paulo, sem segundos.
- * Formato: "dd/MM/aaaa HH:mm"
+ * Data/Hora do REGISTRO (não confundir com data ocorrido)
+ * Formato: dd/MM/yyyy HH:mm
  */
 function dataHoraSaoPauloSemSegundos() {
   const agora = new Date();
-  const options = { timeZone: "America/Sao_Paulo" };
-  const dataSP = new Date(agora.toLocaleString("en-US", options));
+  const sp = new Date(
+    agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+  );
 
-  const dia = String(dataSP.getDate()).padStart(2, "0");
-  const mes = String(dataSP.getMonth() + 1).padStart(2, "0");
-  const ano = dataSP.getFullYear();
-  const hora = String(dataSP.getHours()).padStart(2, "0");
-  const minuto = String(dataSP.getMinutes()).padStart(2, "0");
+  const dd = String(sp.getDate()).padStart(2, "0");
+  const mm = String(sp.getMonth() + 1).padStart(2, "0");
+  const yyyy = sp.getFullYear();
+  const hh = String(sp.getHours()).padStart(2, "0");
+  const mi = String(sp.getMinutes()).padStart(2, "0");
 
-  return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+  return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
 }
 
-// Mesmo padrão que você já usa (forte o suficiente para seu volume)
 function gerarIdRegistro() {
   return (
     Date.now().toString(36).toUpperCase() +
@@ -124,11 +122,7 @@ function gerarIdRegistro() {
 }
 
 /**
- * Validação mínima por registro.
- *
- * IMPORTANTE (conforme sua solicitação anterior):
- * - Observação (reg.observacao) NÃO é mais obrigatória.
- * - Imagem (reg.imagemUrl) é opcional.
+ * Validação mínima (mantida exatamente como você tinha)
  */
 function validarRegistroBasico(reg) {
   const {
@@ -140,15 +134,14 @@ function validarRegistroBasico(reg) {
     numeroDocumento,
   } = reg || {};
 
-  // Produto precisa ser um array com pelo menos 8 colunas (EAN..CATEGORIA)
   if (!Array.isArray(produto) || produto.length < 8) {
-    return "Dados de produto inválidos. Esperado array com pelo menos 8 colunas (EAN, COD, PRODUTO, DEP, SEÇÃO, GRUPO, SUBGRUPO, CATEGORIA).";
+    return "Dados de produto inválidos.";
   }
 
-  // Loja e usuário permanecem obrigatórios (identificação do registro)
-  if (!loja || !usuario) return "Loja e usuário são obrigatórios.";
+  if (!loja || !usuario) {
+    return "Loja e usuário são obrigatórios.";
+  }
 
-  // Mantém obrigatoriedade de quantidade, valor unitário e documento (como seu fluxo exige)
   if (!quantidade || !valorUnitario || !numeroDocumento) {
     return "Quantidade, valor unitário e número de documento são obrigatórios.";
   }
@@ -157,20 +150,20 @@ function validarRegistroBasico(reg) {
 }
 
 /**
- * Monta a linha exatamente na ordem A:Q para inserir na planilha.
- * Observação vai para a coluna L. Se vier vazia, será gravada vazia (permitido).
- * Imagem vai na coluna Q. Se vier vazia, grava vazio (permitido).
+ * Monta linha A:S
  */
-function montarLinhaPlanilha(reg, dataHora, idRegistro) {
+function montarLinhaPlanilha(reg, dataHoraRegistro, idRegistro) {
   const {
     produto,
     loja,
     usuario,
-    observacao,      // pode ser vazio / undefined
-    imagemUrl,       // NOVO: opcional
+    observacao,
+    imagemUrl,
     quantidade,
     valorUnitario,
     numeroDocumento,
+    dataOcorrido, // ✅ vindo do front
+    horaOcorrido, // ✅ vindo do front
   } = reg;
 
   const [
@@ -185,53 +178,48 @@ function montarLinhaPlanilha(reg, dataHora, idRegistro) {
   ] = produto;
 
   return [
-    dataHora,                // A
-    loja,                    // B
-    usuario,                 // C
-    ean,                     // D
-    codConsinco,             // E
-    nomeProduto,             // F
-    departamento,            // G
-    secao,                   // H
-    grupo,                   // I
-    subgrupo,                // J
-    categoria,               // K
-    observacao || "",        // L  (NÃO obrigatório)
-    quantidade,              // M
-    valorUnitario,           // N
-    numeroDocumento,         // O
-    idRegistro,              // P
-    imagemUrl || "",         // Q  (OPCIONAL)
+    dataHoraRegistro,     // A
+    loja,                 // B
+    usuario,              // C
+    ean,                  // D
+    codConsinco,          // E
+    nomeProduto,          // F
+    departamento,         // G
+    secao,                // H
+    grupo,                // I
+    subgrupo,             // J
+    categoria,            // K
+    observacao || "",     // L
+    quantidade,           // M
+    valorUnitario,        // N
+    numeroDocumento,      // O
+    idRegistro,           // P
+    imagemUrl || "",      // Q
+    dataOcorrido || "",   // R  ✅
+    horaOcorrido || "",   // S  ✅
   ];
 }
 
 export default async function handler(req, res) {
-  // Só aceitamos POST
   if (req.method !== "POST") {
-    return res
-      .status(405)
-      .json({ sucesso: false, message: "Método não permitido. Use POST." });
+    return res.status(405).json({
+      sucesso: false,
+      message: "Método não permitido. Use POST.",
+    });
   }
 
-  // Confere se as variáveis da Vercel estão presentes
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
       sucesso: false,
-      message:
-        "Configuração da API incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e SPREADSHEET_ID.",
+      message: "Configuração da API incompleta.",
     });
   }
 
   try {
-    // Garante aba + cabeçalho
     await garantirAbaRelatorio();
 
-    // Detecta se é lote ou envio unitário
     const body = req.body || {};
-    const lote = Array.isArray(body.lote) ? body.lote : null;
-
-    // Normaliza tudo para array para simplificar a lógica
-    const registros = lote ? lote : [body];
+    const registros = Array.isArray(body.lote) ? body.lote : [body];
 
     if (!registros.length) {
       return res.status(400).json({
@@ -240,7 +228,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Validação de todos antes de tentar escrever
     for (const reg of registros) {
       const erro = validarRegistroBasico(reg);
       if (erro) {
@@ -248,18 +235,15 @@ export default async function handler(req, res) {
       }
     }
 
-    // DATA/HORA: pode ser igual para o lote (consistência da ocorrência)
-    const dataHora = dataHoraSaoPauloSemSegundos();
+    const dataHoraRegistro = dataHoraSaoPauloSemSegundos();
 
-    // Monta linhas + ids
     const ids = [];
     const linhas = registros.map((reg) => {
-      const idRegistro = gerarIdRegistro();
-      ids.push(idRegistro);
-      return montarLinhaPlanilha(reg, dataHora, idRegistro);
+      const id = gerarIdRegistro();
+      ids.push(id);
+      return montarLinhaPlanilha(reg, dataHoraRegistro, id);
     });
 
-    // Append em lote (1 chamada, várias linhas)
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: "RELATORIO!A:A",
@@ -270,9 +254,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       sucesso: true,
-      message: lote
-        ? `Ocorrência finalizada. ${linhas.length} registro(s) gravado(s) com sucesso.`
-        : "Relatório registrado com sucesso na base de dados.",
+      message: `Ocorrência finalizada. ${linhas.length} registro(s) gravado(s) com sucesso.`,
       ids,
     });
   } catch (erro) {
