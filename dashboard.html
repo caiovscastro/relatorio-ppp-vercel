@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <!-- Viewport padrão (mantido) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DASHBOARD – Relatório de Ocorrências</title>
 
@@ -331,50 +332,70 @@
     }
 
     /* =========================================================
-       ✅ AJUSTE SOMENTE PARA CELULAR (mantém desktop intacto)
-       Problema relatado:
-       - no celular fica com “zoom” e puxa para a direita (overflow-x)
-       Causa típica:
-       - algum elemento interno estoura a largura do viewport (min-width, canvas, etc.)
-       Correção:
-       - blindagem anti-overflow e centralização real do container no mobile
+       ✅ AJUSTE PARA CELULAR (corrige “zoom” + layout indo pra direita)
+       Diagnóstico objetivo:
+       - Em mobile, um único elemento “não encolhe” (min-width implícito)
+         é suficiente para estourar a largura e causar a sensação de zoom/shift.
+       - Em Flexbox/Grid, o vilão mais comum é: min-width:auto (padrão),
+         especialmente em itens flex e em canvas.
+       Correção aplicada (somente no mobile):
+       - Impõe "min-width:0" nos itens críticos (permite encolher)
+       - Força canvas a respeitar 100% da largura do container
+       - Centraliza o container com padding (sem usar vw que pode arredondar)
+       - Bloqueia overflow-x (última linha de defesa)
        ========================================================= */
     @media (max-width: 640px){
 
-      /* 1) Blindagem: evita qualquer “puxada” horizontal no mobile */
+      /* Linha de defesa #1: nunca permitir overflow horizontal no mobile */
       html, body{
         width: 100%;
         max-width: 100%;
-        overflow-x: hidden; /* impede ficar “indo pra direita” */
+        overflow-x: hidden;
       }
 
-      /* 2) Garante cálculo de largura previsível (principalmente inputs) */
+      /* Linha de defesa #2: box-sizing consistente */
       *, *::before, *::after{
         box-sizing: border-box;
       }
 
-      /* 3) No mobile, o container precisa ser 100% do viewport
-            (evita arredondamento do vw criar 1~3px de overflow) */
+      /* Linha de defesa #3: container 100% do viewport (sem “92vw” no mobile) */
       .wrap{
         width: 100%;
         max-width: 100%;
-        margin: 12px auto 24px;  /* continua centralizado */
-        padding-left: 10px;      /* respiro lateral */
+        margin: 12px auto 24px;
+        padding-left: 10px;
         padding-right: 10px;
       }
 
-      /* 4) Evita qualquer filho do topo forçar largura maior que a tela */
+      /* ======== AQUI está o ajuste-chave (definitivo) ========
+         Em flex/grid, itens têm min-width:auto por padrão e podem “forçar” overflow.
+         Garantimos que TUDO pode encolher dentro do viewport.
+      */
+      .grid, .row2, .row3,
+      .tile,
+      .topbar,
+      .topbar > div,
       .filters-wrap,
-      .filters-main,
-      .filters-extra{
+      .filters-extra,
+      .filters-main{
+        min-width: 0;
         max-width: 100%;
       }
 
-      /* 5) Canvas e imagens nunca podem estourar o card no mobile */
-      canvas{ max-width: 100%; }
-      img{ max-width: 100%; }
+      /* Canvas é um causador frequente de “estouro” em mobile.
+         Forçamos a obedecer o container (sem afetar desktop). */
+      canvas{
+        display: block;
+        width: 100% !important;   /* garante que não crie largura maior que o card */
+        max-width: 100% !important;
+      }
 
-      /* ======= Seus ajustes mobile já existentes (mantidos) ======= */
+      /* Imagens idem */
+      img{
+        max-width: 100%;
+      }
+
+      /* ======= Seus ajustes mobile (mantidos) ======= */
       .grid{ grid-template-columns: 1fr; }
       .big-number .n{ font-size: 82px; }
       .canvas-wrap{ height: 240px; }
@@ -415,7 +436,8 @@
       /* inputs encolhem em 1 linha */
       .filters-extra .input-filter{
         flex: 1 1 0;
-        min-width: 0;
+        min-width: 0;   /* crucial para input não forçar largura */
+        max-width: 100%;
       }
       .filters-extra .input-date{ min-width: 0; }
       .filters-extra .input-money{ min-width: 0; }
@@ -1170,8 +1192,9 @@
   </script>
 
   <!-- Fontes (documentação confiável) -->
-  <!-- CSS Overflow (overflow-x): https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
-  <!-- CSS box-sizing: https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing -->
+  <!-- Flex item min-width (por que min-width:0 resolve overflow): https://developer.mozilla.org/en-US/docs/Web/CSS/min-width -->
+  <!-- overflow-x: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
+  <!-- Canvas sizing (CSS width/height vs atributos): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas -->
   <!-- Viewport meta: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
   <!-- Chart.js responsive: https://www.chartjs.org/docs/latest/configuration/responsive.html -->
 </body>
