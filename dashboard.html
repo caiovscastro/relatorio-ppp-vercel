@@ -172,6 +172,20 @@
     }
 
     /* =========================================================
+       ✅ AJUSTE SOLICITADO #2:
+       - caixa de valor 40% menor (valorVenda)
+       - filtros de datas 10% menor (dataInicio, dataFim)
+       ========================================================= */
+    #valorVenda{
+      transform: scale(0.6);
+      transform-origin: right center;
+    }
+    #dataInicio, #dataFim{
+      transform: scale(0.9);
+      transform-origin: right center;
+    }
+
+    /* =========================================================
        ✅ NOVO (SOLICITADO): Filtro de TURNO com checkboxes (dropdown)
        - Posicionado ao lado do botão Atualizar
        - Inicia com TODOS marcados
@@ -534,10 +548,8 @@
             <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
 
             <!-- =================================================================================
-                 ✅ NOVO (SOLICITADO): Filtro por turno com checkboxes
-                 - Ao lado do botão Atualizar
-                 - Inicia com Manhã/Tarde/Madrugada todos marcados
-                 - Filtra usando a coluna S (HORA_OCORRIDO)
+                 ✅ Filtro por turno com checkboxes (mantido)
+                 ✅ AJUSTE SOLICITADO #3: o título do botão muda conforme seleção
                  ================================================================================= -->
             <div class="turno-wrap" id="turnoWrap">
               <button type="button" class="btn-turno" id="btnTurno" aria-haspopup="true" aria-expanded="false">
@@ -596,7 +608,7 @@
         </div>
       </div>
 
-      <!-- 2) Ocorrências por bandeira (sem filtro) -->
+      <!-- 2) Ocorrências por bandeira (AGORA COM FILTROS de datas/turnos) -->
       <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
@@ -714,10 +726,7 @@
       }
 
       /* =================================================================================
-         ✅ NOVO (SOLICITADO): Eventos do filtro de turno (checkboxes)
-         - padrão: todos checked
-         - qualquer mudança: recarrega
-         - dropdown abre/fecha ao clicar no botão e fecha ao clicar fora
+         ✅ Eventos do filtro de turno (checkboxes)
          ================================================================================= */
       setupFiltroTurno();
 
@@ -725,7 +734,8 @@
     });
 
     /* =================================================================================
-       ✅ NOVO: Setup completo do filtro de turno (UI + eventos)
+       ✅ Setup completo do filtro de turno (UI + eventos)
+       ✅ AJUSTE SOLICITADO #3: atualizar título do botão conforme seleção
        ================================================================================= */
     function setupFiltroTurno(){
       const btn = document.getElementById("btnTurno");
@@ -754,8 +764,11 @@
         }
       });
 
-      // Mudança em qualquer checkbox => recarrega
-      const onChange = () => carregar();
+      // Mudança em qualquer checkbox => recarrega + atualiza título
+      const onChange = () => {
+        atualizarTituloTurno();  // ✅ novo
+        carregar();
+      };
       ckManha.addEventListener("change", onChange);
       ckTarde.addEventListener("change", onChange);
       ckMadrugada.addEventListener("change", onChange);
@@ -764,15 +777,43 @@
       panel.querySelectorAll(".item").forEach((row) => {
         row.addEventListener("click", (e) => {
           const input = row.querySelector('input[type="checkbox"]');
-          // Se clicou diretamente no checkbox/label, o browser já alterna.
-          // Se clicou no "row" em si, alterna manualmente.
           const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : "";
           if (tag !== "INPUT" && tag !== "LABEL" && input) {
             input.checked = !input.checked;
+            atualizarTituloTurno(); // ✅ novo
             carregar();
           }
         });
       });
+
+      // Estado inicial do título (todos marcados)
+      atualizarTituloTurno(); // ✅ novo
+    }
+
+    /* =================================================================================
+       ✅ AJUSTE SOLICITADO #3:
+       - Se todos marcados: "Todos os turnos"
+       - Se dois marcados: "Manhã/Tarde" (exemplo)
+       - Se um marcado: "Manhã"
+       - Se nenhum marcado: "Nenhum turno"
+       ================================================================================= */
+    function atualizarTituloTurno(){
+      const btn = document.getElementById("btnTurno");
+      const sel = obterTurnosSelecionados();
+
+      if (!btn || !sel) return;
+
+      const nomes = [];
+      if (sel.MANHA) nomes.push("Manhã");
+      if (sel.TARDE) nomes.push("Tarde");
+      if (sel.MADRUGADA) nomes.push("Madrugada");
+
+      let titulo = "Turno";
+      if (sel.all) titulo = "Todos os turnos";
+      else if (nomes.length === 0) titulo = "Nenhum turno";
+      else titulo = nomes.join("/");
+
+      btn.textContent = `${titulo} ▾`;
     }
 
     function chaveOcorrencia(r) {
@@ -833,25 +874,17 @@
     }
 
     /* =================================================================================
-       ✅ ALTERAÇÃO SOLICITADA #1:
-       Filtro de datas agora considera a COLUNA R (DATA_OCORRIDO),
-       e NÃO mais a data/hora do registro (coluna A).
-       - No objeto r vindo da API, assumimos que chega como r.dataOcorrido
-         (ou variações comuns). O valor é dd/MM/yyyy (como você ajustou na API),
-         mas suportamos yyyy-mm-dd para compatibilidade.
+       Filtro de datas considera a COLUNA R (DATA_OCORRIDO)
        ================================================================================= */
     function dataOcorridoParaISO(r) {
-      // Tenta pegar por diferentes nomes (robustez sem alterar API)
       const raw =
         (r && (r.dataOcorrido || r.data_ocorrido || r.DATA_OCORRIDO || r["DATA_OCORRIDO"])) || "";
 
       const s = String(raw || "").trim();
       if (!s) return "";
 
-      // Se já vier no padrão ISO
       if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
 
-      // Se vier no padrão BR
       const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (m) {
         const dd = m[1], mm = m[2], yyyy = m[3];
@@ -862,12 +895,7 @@
     }
 
     /* =================================================================================
-       ✅ ALTERAÇÃO SOLICITADA #2:
-       Turnos são definidos pela COLUNA S (HORA_OCORRIDO).
-       Regras:
-       - Manhã: 07:00 a 14:00 (inclusive)
-       - Tarde: 14:01 a 22:00 (inclusive)
-       - Madrugada: 22:01 a 23:59 e 00:00 a 06:59
+       Turnos pela COLUNA S (HORA_OCORRIDO)
        ================================================================================= */
     function horaOcorridoParaMinutos(r) {
       const raw =
@@ -876,7 +904,6 @@
       const s = String(raw || "").trim();
       if (!s) return null;
 
-      // Esperado: "HH:mm"
       const m = s.match(/^(\d{2}):(\d{2})$/);
       if (!m) return null;
 
@@ -892,13 +919,8 @@
     function minutoDentroDeTurno(min, turno) {
       if (min === null || min === undefined) return false;
 
-      // Manhã: 07:00 (420) até 14:00 (840)
       if (turno === "MANHA") return (min >= 420 && min <= 840);
-
-      // Tarde: 14:01 (841) até 22:00 (1320)
       if (turno === "TARDE") return (min >= 841 && min <= 1320);
-
-      // Madrugada: 22:01 (1321) até 23:59 (1439) OU 00:00 (0) até 06:59 (419)
       if (turno === "MADRUGADA") return ((min >= 1321 && min <= 1439) || (min >= 0 && min <= 419));
 
       return false;
@@ -909,7 +931,6 @@
       const ckTarde = document.getElementById("ckTarde");
       const ckMadrugada = document.getElementById("ckMadrugada");
 
-      // Se algo der errado, por segurança não filtra por turno
       if (!ckManha || !ckTarde || !ckMadrugada) {
         return { MANHA: true, TARDE: true, MADRUGADA: true, all: true };
       }
@@ -999,40 +1020,25 @@
         const registros = dados.registros;
 
         const filtro = (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
-        const dataInicio = (document.getElementById("dataInicio")?.value || "").trim(); // ISO yyyy-mm-dd
-        const dataFim = (document.getElementById("dataFim")?.value || "").trim();       // ISO yyyy-mm-dd
+        const dataInicio = (document.getElementById("dataInicio")?.value || "").trim();
+        const dataFim = (document.getElementById("dataFim")?.value || "").trim();
 
-        // ✅ NOVO: turnos selecionados (checkboxes)
         const turnosSel = obterTurnosSelecionados();
 
         const registrosFiltrados = registros.filter(r => {
-          // Bandeira (mantido)
           if (filtro === "BIG" || filtro === "ULT") {
             if (bandeiraPorLoja(r.loja) !== filtro) return false;
           }
 
-          /* =========================================================
-             ✅ FILTRO DE DATA (SOLICITADO):
-             Usa DATA_OCORRIDO (coluna R)
-             - converte para ISO e compara com os inputs type="date"
-             ========================================================= */
           if (dataInicio || dataFim) {
             const iso = dataOcorridoParaISO(r);
-            if (!iso) return false; // se não tem data_ocorrido, não entra no recorte de datas
+            if (!iso) return false;
             if (dataInicio && iso < dataInicio) return false;
             if (dataFim && iso > dataFim) return false;
           }
 
-          /* =========================================================
-             ✅ FILTRO DE TURNO (SOLICITADO):
-             Usa HORA_OCORRIDO (coluna S)
-             Regras conforme seu enunciado.
-             - Se todos marcados: não filtra por turno
-             - Se nenhum marcado: resultado fica vazio (comportamento lógico)
-             ========================================================= */
           if (!turnosSel.all) {
             const min = horaOcorridoParaMinutos(r);
-            // Se está filtrando por turno e não há hora_ocorrido válida, exclui
             if (min === null) return false;
 
             const okManha = turnosSel.MANHA && minutoDentroDeTurno(min, "MANHA");
@@ -1074,7 +1080,34 @@
         totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
         atualizarParticipacao();
 
-        // (B) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO) + VALOR (mantido)
+        // (B) OCORRÊNCIAS POR BANDEIRA (AGORA COM FILTROS de datas/turnos) + VALOR
+        // ✅ AJUSTE SOLICITADO #1
+        const occPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
+        const valorPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
+
+        // reutiliza o que já calculamos (valorPorOcorrenciaFiltrada) e a deduplicação (setOccFiltrado)
+        const setOccFiltradoBandeira = new Set();
+        for (const r of registrosFiltrados) {
+          const k = chaveOcorrencia(r);
+          if (!k || setOccFiltradoBandeira.has(k)) continue;
+          setOccFiltradoBandeira.add(k);
+
+          const band = bandeiraPorLoja((r.loja || "").trim());
+          if (band) {
+            occPorBandeiraFiltrada[band] = (occPorBandeiraFiltrada[band] || 0) + 1;
+            valorPorBandeiraFiltrada[band] = (valorPorBandeiraFiltrada[band] || 0) + (valorPorOcorrenciaFiltrada.get(k) || 0);
+          }
+        }
+
+        document.getElementById("bandeiraBIG").textContent = String(occPorBandeiraFiltrada.BIG || 0);
+        document.getElementById("bandeiraULT").textContent = String(occPorBandeiraFiltrada.ULT || 0);
+
+        document.getElementById("valorBIG").textContent = formatarBRL(valorPorBandeiraFiltrada.BIG || 0);
+        document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeiraFiltrada.ULT || 0);
+
+        // (C) Percentual por bandeira (mantido sem filtro, como estava)
+        // Obs: você não solicitou alterar este gráfico; apenas o card "Ocorrências por bandeira".
+        // Portanto, mantemos o comportamento anterior (sem filtro).
         const occPorBandeira = { BIG: 0, ULT: 0 };
         const valorPorBandeira = { BIG: 0, ULT: 0 };
 
@@ -1106,15 +1139,9 @@
           }
         }
 
-        document.getElementById("bandeiraBIG").textContent = String(occPorBandeira.BIG || 0);
-        document.getElementById("bandeiraULT").textContent = String(occPorBandeira.ULT || 0);
-
-        document.getElementById("valorBIG").textContent = formatarBRL(valorPorBandeira.BIG || 0);
-        document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeira.ULT || 0);
-
         renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
-        // (C) GRAVIDADE (COM FILTRO)
+        // (D) GRAVIDADE (COM FILTRO)
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
         for (const v of valorPorOcorrenciaFiltrada.values()) {
           if (v >= 500) qtdGrave++;
@@ -1123,7 +1150,7 @@
         }
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
-        // (D) Top 5 lojas / Dept / Top produtos (COM FILTRO)
+        // (E) Top 5 lojas / Dept / Top produtos (COM FILTRO)
         const occPorLoja = new Map();
         const setOccFiltrado = new Set();
 
@@ -1236,7 +1263,13 @@
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
             x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false } },
-            y: { beginAtZero: true, suggestedMax, ticks: { precision: 0 }, grid: { display: false } }
+
+            /* =========================================================
+               ✅ AJUSTE SOLICITADO #4:
+               Remover escalas de valores (ticks) no eixo Y (mantém grid off)
+               Observação: mantém o eixo para cálculo/plotagem, mas esconde os números.
+               ========================================================= */
+            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false } }
           }
         },
         plugins: [valueOnTopPlugin]
@@ -1279,7 +1312,8 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
-            x: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } },
+            /* ✅ AJUSTE SOLICITADO #4: ocultar escala numérica do eixo X (valores) */
+            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false } },
             y: { ticks: { autoSkip: false }, grid: { display: false } }
           }
         },
@@ -1373,7 +1407,8 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } } },
           scales: {
-            x: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } },
+            /* ✅ AJUSTE SOLICITADO #4: ocultar escala numérica do eixo X (valores) */
+            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false } },
             y: { ticks: { autoSkip: false }, grid: { display: false } }
           }
         },
@@ -1441,11 +1476,14 @@
   <!-- Fontes (documentação confiável) -->
   <!-- input type="date" retorna yyyy-mm-dd: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
   <!-- Checkbox input: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox -->
+  <!-- transform: scale(): https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/scale -->
+  <!-- transform-origin: https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin -->
   <!-- Date parsing (string->date): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date -->
   <!-- Flex item min-width (por que min-width:0 resolve overflow): https://developer.mozilla.org/en-US/docs/Web/CSS/min-width -->
   <!-- overflow-x: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
   <!-- Canvas sizing (CSS width/height vs atributos): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas -->
   <!-- Viewport meta: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
+  <!-- Chart.js scales ticks display (ocultar escala): https://www.chartjs.org/docs/latest/axes/styling.html#tick-configuration -->
   <!-- Chart.js responsive: https://www.chartjs.org/docs/latest/configuration/responsive.html -->
 </body>
 </html>
