@@ -43,9 +43,7 @@
     }
 
     /* =========================================================
-       ✅ CORREÇÃO DEFINITIVA (seu ponto)
-       O topo agora faz parte do MESMO GRID dos cards abaixo.
-       Isso elimina qualquer “diferença de largura percebida”.
+       Grid base
        ========================================================= */
     .grid{
       display: grid;
@@ -53,21 +51,20 @@
       gap: 12px;
     }
 
-    /* Topo ocupando as 3 colunas do grid (mesmo “sistema” dos cards) */
+    /* Topo ocupando as 3 colunas do grid */
     .topbar{
-      grid-column: 1 / -1; /* <<< span total: mesma largura do conjunto abaixo */
+      grid-column: 1 / -1;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
 
-      /* Mantém a altura “natural” (não aumenta artificialmente) */
-      min-height: unset; /* <<< importante: não herdar min-height:180px de .tile */
-      padding: 14px 16px; /* mantém confortável sem “crescer” exagerado */
+      min-height: unset;
+      padding: 14px 16px;
     }
 
     /* =========================================================
-       Título deve caber em 1 linha
+       Título
        ========================================================= */
     .title{
       margin: 0;
@@ -91,14 +88,30 @@
       text-overflow: ellipsis;
     }
 
+    /* =========================================================
+       ✅ PADRÃO ÚNICO DE ALTURA (solicitado)
+       Todos os filtros e botões no mesmo padrão de altura
+       ========================================================= */
+    :root{
+      --ctrl-h: 38px;     /* altura padrão */
+      --ctrl-gap: 8px;    /* distância padrão entre controles */
+      --ctrl-r: 10px;     /* raio padrão */
+    }
+
     .btn{
       border: none;
-      border-radius: 10px;
-      padding: 10px 12px;
+      border-radius: var(--ctrl-r);
+      height: var(--ctrl-h);
+      padding: 0 12px;           /* altura vem do height */
       cursor: pointer;
       font-weight: 700;
       font-size: 13px;
       white-space: nowrap;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
     }
 
     .btn-back{
@@ -115,12 +128,14 @@
       border: 1px solid #d6d6d6;
       background: #fff;
       color: #111;
-      border-radius: 10px;
-      padding: 9px 10px;
+      border-radius: var(--ctrl-r);
+      height: var(--ctrl-h);
+      padding: 0 10px;            /* altura vem do height */
       font-weight: 700;
       font-size: 13px;
       outline: none;
       cursor: pointer;
+      box-sizing: border-box;
     }
 
     /* =========================================================
@@ -128,7 +143,7 @@
        ========================================================= */
     .filters-wrap{
       display:flex;
-      gap:8px;
+      gap: var(--ctrl-gap);
       align-items:center;
       flex-wrap: wrap;
       justify-content: flex-end;
@@ -136,7 +151,7 @@
 
     .filters-main{
       display:flex;
-      gap:8px;
+      gap: var(--ctrl-gap);
       align-items:center;
       flex-wrap: wrap;
       justify-content: flex-end;
@@ -145,7 +160,7 @@
     /* Datas + Venda sempre em 1 linha */
     .filters-extra{
       display:flex;
-      gap:8px;
+      gap: var(--ctrl-gap);   /* ✅ mesma distância entre os 3 */
       align-items:center;
       flex-wrap: nowrap;
       justify-content: flex-end;
@@ -155,40 +170,38 @@
       border: 1px solid #d6d6d6;
       background: #fff;
       color: #111;
-      border-radius: 10px;
-      padding: 9px 10px;
+      border-radius: var(--ctrl-r);
+
+      height: var(--ctrl-h);        /* ✅ mesma altura dos botões */
+      padding: 0 10px;              /* altura vem do height */
+
       font-weight: 700;
       font-size: 13px;
       outline: none;
-      min-width: 140px;
+
       box-sizing: border-box;
     }
 
-    .input-date{ min-width: 148px; }
+    /* =========================================================
+       ✅ AJUSTE SOLICITADO #1 (correção do entendimento):
+       - Datas 10% menor (LARGURA)
+       - Valor 40% menor (LARGURA)
+       - Altura igual aos filtros de data (já garantido pelo --ctrl-h)
+       - Mesma distância entre os três (gap único do container)
+       ========================================================= */
+    .input-date{
+      width: 134px;          /* 148px - 10% ≈ 133,2 -> 134 */
+      min-width: 134px;
+    }
 
     .input-money{
-      min-width: 170px;
+      width: 102px;          /* 170px - 40% = 102px */
+      min-width: 102px;
       text-align: right;
     }
 
     /* =========================================================
-       ✅ AJUSTE SOLICITADO #2:
-       - caixa de valor 40% menor (valorVenda)
-       - filtros de datas 10% menor (dataInicio, dataFim)
-       ========================================================= */
-    #valorVenda{
-      transform: scale(0.6);
-      transform-origin: right center;
-    }
-    #dataInicio, #dataFim{
-      transform: scale(0.9);
-      transform-origin: right center;
-    }
-
-    /* =========================================================
-       ✅ NOVO (SOLICITADO): Filtro de TURNO com checkboxes (dropdown)
-       - Posicionado ao lado do botão Atualizar
-       - Inicia com TODOS marcados
+       Filtro de TURNO com checkboxes (dropdown)
        ========================================================= */
     .turno-wrap{
       position: relative;
@@ -200,13 +213,21 @@
       border: 1px solid #d6d6d6;
       background: #fff;
       color: #111;
-      border-radius: 10px;
-      padding: 9px 10px;
+      border-radius: var(--ctrl-r);
+
+      height: var(--ctrl-h);     /* ✅ mesma altura */
+      padding: 0 10px;           /* altura vem do height */
+
       font-weight: 800;
       font-size: 13px;
       cursor: pointer;
       white-space: nowrap;
       line-height: 1;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
     }
 
     .turno-panel{
@@ -257,7 +278,7 @@
     }
 
     /* =========================================================
-       Linhas internas do grid (mantidas)
+       Linhas internas do grid
        ========================================================= */
     .row2{
       grid-column: 1 / -1;
@@ -417,11 +438,9 @@
     }
 
     /* =========================================================
-       ✅ AJUSTE PARA CELULAR (corrige “zoom” + layout indo pra direita)
-       (mantido)
+       Ajuste para celular (mantido) + inputs flexíveis
        ========================================================= */
     @media (max-width: 640px){
-
       html, body{
         width: 100%;
         max-width: 100%;
@@ -497,13 +516,13 @@
         flex-wrap: nowrap;
       }
 
+      /* No mobile, mantém os 3 na mesma distância e mesma altura, porém responsivos */
       .filters-extra .input-filter{
         flex: 1 1 0;
-        min-width: 0;
+        min-width: 0 !important;
+        width: auto !important;
         max-width: 100%;
       }
-      .filters-extra .input-date{ min-width: 0; }
-      .filters-extra .input-money{ min-width: 0; }
     }
   </style>
 </head>
@@ -547,10 +566,12 @@
           <div class="filters-main">
             <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
 
-            <!-- =================================================================================
-                 ✅ Filtro por turno com checkboxes (mantido)
-                 ✅ AJUSTE SOLICITADO #3: o título do botão muda conforme seleção
-                 ================================================================================= -->
+            <!-- =========================================================
+                 Filtro por turno com checkboxes
+                 ✅ AJUSTE SOLICITADO #2:
+                 - Se tiver mais de um turno marcado (e não todos): título = "Turnos"
+                 - Mantém caso especial "Todos os turnos"
+                 ========================================================= -->
             <div class="turno-wrap" id="turnoWrap">
               <button type="button" class="btn-turno" id="btnTurno" aria-haspopup="true" aria-expanded="false">
                 Turno ▾
@@ -608,7 +629,7 @@
         </div>
       </div>
 
-      <!-- 2) Ocorrências por bandeira (AGORA COM FILTROS de datas/turnos) -->
+      <!-- 2) Ocorrências por bandeira (COM FILTROS de datas/turnos) -->
       <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
@@ -629,7 +650,7 @@
         </div>
       </div>
 
-      <!-- 3) Percentual por bandeira (sem filtro) -->
+      <!-- 3) Percentual por bandeira (mantido sem filtro) -->
       <div class="tile">
         <h3>Percentual por bandeira</h3>
         <div class="canvas-wrap" style="height: 210px;">
@@ -725,17 +746,12 @@
         });
       }
 
-      /* =================================================================================
-         ✅ Eventos do filtro de turno (checkboxes)
-         ================================================================================= */
       setupFiltroTurno();
-
       carregar();
     });
 
     /* =================================================================================
-       ✅ Setup completo do filtro de turno (UI + eventos)
-       ✅ AJUSTE SOLICITADO #3: atualizar título do botão conforme seleção
+       Setup do filtro de turno (UI + eventos)
        ================================================================================= */
     function setupFiltroTurno(){
       const btn = document.getElementById("btnTurno");
@@ -766,41 +782,40 @@
 
       // Mudança em qualquer checkbox => recarrega + atualiza título
       const onChange = () => {
-        atualizarTituloTurno();  // ✅ novo
+        atualizarTituloTurno();
         carregar();
       };
       ckManha.addEventListener("change", onChange);
       ckTarde.addEventListener("change", onChange);
       ckMadrugada.addEventListener("change", onChange);
 
-      // Permite clicar na linha inteira (melhor usabilidade)
+      // Clique na linha toda (melhor usabilidade)
       panel.querySelectorAll(".item").forEach((row) => {
         row.addEventListener("click", (e) => {
           const input = row.querySelector('input[type="checkbox"]');
           const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : "";
           if (tag !== "INPUT" && tag !== "LABEL" && input) {
             input.checked = !input.checked;
-            atualizarTituloTurno(); // ✅ novo
+            atualizarTituloTurno();
             carregar();
           }
         });
       });
 
-      // Estado inicial do título (todos marcados)
-      atualizarTituloTurno(); // ✅ novo
+      // Estado inicial do título
+      atualizarTituloTurno();
     }
 
     /* =================================================================================
-       ✅ AJUSTE SOLICITADO #3:
-       - Se todos marcados: "Todos os turnos"
-       - Se dois marcados: "Manhã/Tarde" (exemplo)
-       - Se um marcado: "Manhã"
-       - Se nenhum marcado: "Nenhum turno"
+       ✅ AJUSTE SOLICITADO #2 (novo comportamento):
+       - Todos marcados: "Todos os turnos"
+       - Exatamente 1 marcado: "Manhã" (ou Tarde/Madrugada)
+       - Mais de 1 marcado (2 marcados): "Turnos"
+       - Nenhum marcado: "Nenhum turno"
        ================================================================================= */
     function atualizarTituloTurno(){
       const btn = document.getElementById("btnTurno");
       const sel = obterTurnosSelecionados();
-
       if (!btn || !sel) return;
 
       const nomes = [];
@@ -811,7 +826,8 @@
       let titulo = "Turno";
       if (sel.all) titulo = "Todos os turnos";
       else if (nomes.length === 0) titulo = "Nenhum turno";
-      else titulo = nomes.join("/");
+      else if (nomes.length === 1) titulo = nomes[0];
+      else titulo = "Turnos";  // ✅ quando tiver mais de um turno marcado
 
       btn.textContent = `${titulo} ▾`;
     }
@@ -823,11 +839,8 @@
       const usuario = (r.usuario || "").trim();
       const loja = (r.loja || "").trim();
 
-      // IMPORTANTE:
-      // A chave da ocorrência permanece como era (usa a data do registro A),
-      // pois você não solicitou mudar a lógica de “ocorrência”.
+      // Mantido: chave usa data do registro (coluna A) como antes
       const dataStr = (r.dataHora || "").split(" ")[0] || "";
-
       return `${documento}||${usuario}||${loja}||${dataStr}`;
     }
 
@@ -851,7 +864,7 @@
       return s.length > 10 ? (s.slice(0, 10) + "…") : s;
     }
 
-    /* Top 15 produtos: limitar para 30 caracteres */
+    /* Top 15 produtos: limitar para 30 caracteres (mantido) */
     function abreviarProduto(nome) {
       const s = String(nome || "").trim();
       if (!s) return "N/I";
@@ -1080,12 +1093,10 @@
         totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
         atualizarParticipacao();
 
-        // (B) OCORRÊNCIAS POR BANDEIRA (AGORA COM FILTROS de datas/turnos) + VALOR
-        // ✅ AJUSTE SOLICITADO #1
+        // (B) OCORRÊNCIAS POR BANDEIRA (COM FILTROS) + VALOR
         const occPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
         const valorPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
 
-        // reutiliza o que já calculamos (valorPorOcorrenciaFiltrada) e a deduplicação (setOccFiltrado)
         const setOccFiltradoBandeira = new Set();
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
@@ -1095,7 +1106,8 @@
           const band = bandeiraPorLoja((r.loja || "").trim());
           if (band) {
             occPorBandeiraFiltrada[band] = (occPorBandeiraFiltrada[band] || 0) + 1;
-            valorPorBandeiraFiltrada[band] = (valorPorBandeiraFiltrada[band] || 0) + (valorPorOcorrenciaFiltrada.get(k) || 0);
+            valorPorBandeiraFiltrada[band] =
+              (valorPorBandeiraFiltrada[band] || 0) + (valorPorOcorrenciaFiltrada.get(k) || 0);
           }
         }
 
@@ -1105,9 +1117,7 @@
         document.getElementById("valorBIG").textContent = formatarBRL(valorPorBandeiraFiltrada.BIG || 0);
         document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeiraFiltrada.ULT || 0);
 
-        // (C) Percentual por bandeira (mantido sem filtro, como estava)
-        // Obs: você não solicitou alterar este gráfico; apenas o card "Ocorrências por bandeira".
-        // Portanto, mantemos o comportamento anterior (sem filtro).
+        // (C) Percentual por bandeira (mantido sem filtro)
         const occPorBandeira = { BIG: 0, ULT: 0 };
         const valorPorBandeira = { BIG: 0, ULT: 0 };
 
@@ -1262,14 +1272,18 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
-            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false } },
-
-            /* =========================================================
-               ✅ AJUSTE SOLICITADO #4:
-               Remover escalas de valores (ticks) no eixo Y (mantém grid off)
-               Observação: mantém o eixo para cálculo/plotagem, mas esconde os números.
-               ========================================================= */
-            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false } }
+            x: {
+              ticks: { maxRotation: 0, minRotation: 0, autoSkip: false },
+              grid: { display: false },
+              border: { display: false }  // ✅ AJUSTE SOLICITADO #3: remove a “linha” do eixo
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax,
+              ticks: { display: false },     // escala numérica oculta (já solicitado antes)
+              grid: { display: false },
+              border: { display: false }     // ✅ AJUSTE SOLICITADO #3: remove a “linha” do eixo
+            }
           }
         },
         plugins: [valueOnTopPlugin]
@@ -1312,9 +1326,17 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
-            /* ✅ AJUSTE SOLICITADO #4: ocultar escala numérica do eixo X (valores) */
-            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false } },
-            y: { ticks: { autoSkip: false }, grid: { display: false } }
+            x: {
+              beginAtZero: true,
+              ticks: { display: false },
+              grid: { display: false },
+              border: { display: false }  // ✅ AJUSTE SOLICITADO #3
+            },
+            y: {
+              ticks: { autoSkip: false },
+              grid: { display: false },
+              border: { display: false }  // ✅ AJUSTE SOLICITADO #3
+            }
           }
         },
         plugins: [valueAtEndPlugin]
@@ -1375,8 +1397,15 @@
       const ctx = document.getElementById("chartTopProdutos");
       if (chartTopProdutos) chartTopProdutos.destroy();
 
-      const valueAtEndPlugin = {
-        id: "valueAtEndPluginProdutos",
+      /* =================================================================================
+         ✅ AJUSTE SOLICITADO #4:
+         - Valor do rótulo (número) na parte "externa" do gráfico (área de padding)
+         - Sem estourar / sem sumir (usa padding à direita e clamp no canvas)
+         - Se necessário, “diminui um pouco a primeira coluna”:
+           reduz fonte/padding do eixo Y (labels dos produtos)
+         ================================================================================= */
+      const valueOutsidePlugin = {
+        id: "valueOutsidePluginProdutos",
         afterDatasetsDraw(chart) {
           const { ctx, chartArea } = chart;
           const meta = chart.getDatasetMeta(0);
@@ -1390,7 +1419,13 @@
 
           meta.data.forEach((bar, i) => {
             const val = chart.data.datasets[0].data[i];
-            const x = Math.min(bar.x + 6, chartArea.right - 6);
+
+            // Desenha após a barra, indo para a área de padding à direita
+            const xRaw = bar.x + 8;
+
+            // Garante que não sai do canvas
+            const x = Math.min(xRaw, chart.width - 8);
+
             ctx.fillText(String(val), x, bar.y);
           });
 
@@ -1400,19 +1435,44 @@
 
       chartTopProdutos = new Chart(ctx, {
         type: "bar",
-        data: { labels, datasets: [{ label: "Registros", data: values, backgroundColor: corBarra || "#A98AE8" }] },
+        data: {
+          labels,
+          datasets: [{
+            label: "Registros",
+            data: values,
+            backgroundColor: corBarra || "#A98AE8",
+            clip: false   // ✅ permite desenhar no padding sem “cortar”
+          }]
+        },
         options: {
           indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              right: 46  // ✅ espaço para os rótulos “externos” sem sumir
+            }
+          },
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } } },
           scales: {
-            /* ✅ AJUSTE SOLICITADO #4: ocultar escala numérica do eixo X (valores) */
-            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false } },
-            y: { ticks: { autoSkip: false }, grid: { display: false } }
+            x: {
+              beginAtZero: true,
+              ticks: { display: false },     // escala numérica oculta
+              grid: { display: false },
+              border: { display: false }     // ✅ AJUSTE SOLICITADO #3: remove a “linha” do eixo
+            },
+            y: {
+              ticks: {
+                autoSkip: false,
+                font: { size: 11 },          // ✅ “diminui um pouco” a coluna de rótulos
+                padding: 2
+              },
+              grid: { display: false },
+              border: { display: false }     // ✅ AJUSTE SOLICITADO #3
+            }
           }
         },
-        plugins: [valueAtEndPlugin]
+        plugins: [valueOutsidePlugin]
       });
     }
 
@@ -1476,14 +1536,10 @@
   <!-- Fontes (documentação confiável) -->
   <!-- input type="date" retorna yyyy-mm-dd: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
   <!-- Checkbox input: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox -->
-  <!-- transform: scale(): https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/scale -->
-  <!-- transform-origin: https://developer.mozilla.org/en-US/docs/Web/CSS/transform-origin -->
-  <!-- Date parsing (string->date): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date -->
-  <!-- Flex item min-width (por que min-width:0 resolve overflow): https://developer.mozilla.org/en-US/docs/Web/CSS/min-width -->
-  <!-- overflow-x: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
-  <!-- Canvas sizing (CSS width/height vs atributos): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas -->
-  <!-- Viewport meta: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
-  <!-- Chart.js scales ticks display (ocultar escala): https://www.chartjs.org/docs/latest/axes/styling.html#tick-configuration -->
-  <!-- Chart.js responsive: https://www.chartjs.org/docs/latest/configuration/responsive.html -->
+  <!-- CSS height/padding/box-sizing: https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing -->
+  <!-- Flex gap: https://developer.mozilla.org/en-US/docs/Web/CSS/gap -->
+  <!-- Chart.js axes styling (ticks/border): https://www.chartjs.org/docs/latest/axes/styling.html -->
+  <!-- Chart.js layout padding: https://www.chartjs.org/docs/latest/configuration/layout.html -->
+  <!-- Chart.js dataset clip: https://www.chartjs.org/docs/latest/charts/bar.html#dataset-properties -->
 </body>
 </html>
