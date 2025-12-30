@@ -70,9 +70,7 @@
       margin: 0;
       font-weight: 800;
       letter-spacing: 0.2px;
-
       font-size: clamp(16px, 2.2vw, 20px);
-
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -89,20 +87,19 @@
     }
 
     /* =========================================================
-       ✅ PADRÃO ÚNICO DE ALTURA (solicitado)
-       Todos os filtros e botões no mesmo padrão de altura
+       ✅ PADRÃO ÚNICO DE ALTURA
        ========================================================= */
     :root{
-      --ctrl-h: 38px;     /* altura padrão */
-      --ctrl-gap: 8px;    /* distância padrão entre controles */
-      --ctrl-r: 10px;     /* raio padrão */
+      --ctrl-h: 38px;
+      --ctrl-gap: 8px;
+      --ctrl-r: 10px;
     }
 
     .btn{
       border: none;
       border-radius: var(--ctrl-r);
       height: var(--ctrl-h);
-      padding: 0 12px;           /* altura vem do height */
+      padding: 0 12px;
       cursor: pointer;
       font-weight: 700;
       font-size: 13px;
@@ -130,7 +127,7 @@
       color: #111;
       border-radius: var(--ctrl-r);
       height: var(--ctrl-h);
-      padding: 0 10px;            /* altura vem do height */
+      padding: 0 10px;
       font-weight: 700;
       font-size: 13px;
       outline: none;
@@ -157,10 +154,9 @@
       justify-content: flex-end;
     }
 
-    /* Datas + Venda sempre em 1 linha */
     .filters-extra{
       display:flex;
-      gap: var(--ctrl-gap);   /* ✅ mesma distância entre os 3 */
+      gap: var(--ctrl-gap);
       align-items:center;
       flex-wrap: nowrap;
       justify-content: flex-end;
@@ -171,66 +167,55 @@
       background: #fff;
       color: #111;
       border-radius: var(--ctrl-r);
-
-      height: var(--ctrl-h);        /* ✅ mesma altura dos botões */
-      padding: 0 10px;              /* altura vem do height */
-
+      height: var(--ctrl-h);
+      padding: 0 10px;
       font-weight: 700;
       font-size: 13px;
       outline: none;
-
       box-sizing: border-box;
     }
 
-    /* =========================================================
-       ✅ AJUSTE SOLICITADO #1 (correção do entendimento):
-       - Datas 10% menor (LARGURA)
-       - Valor 40% menor (LARGURA)
-       - Altura igual aos filtros de data (já garantido pelo --ctrl-h)
-       - Mesma distância entre os três (gap único do container)
-       ========================================================= */
+    /* Datas 10% menor (largura) */
     .input-date{
-      width: 134px;          /* 148px - 10% ≈ 133,2 -> 134 */
+      width: 134px;
       min-width: 134px;
     }
 
+    /* Valor 40% menor (largura) */
     .input-money{
-      width: 102px;          /* 170px - 40% = 102px */
+      width: 102px;
       min-width: 102px;
       text-align: right;
     }
 
     /* =========================================================
-       Filtro de TURNO com checkboxes (dropdown)
+       Dropdown genérico (Turnos / Gravidade) - mesmo padrão visual
        ========================================================= */
-    .turno-wrap{
+    .dd-wrap{
       position: relative;
       display: inline-flex;
       align-items: center;
     }
 
-    .btn-turno{
+    .btn-dd{
       border: 1px solid #d6d6d6;
       background: #fff;
       color: #111;
       border-radius: var(--ctrl-r);
-
-      height: var(--ctrl-h);     /* ✅ mesma altura */
-      padding: 0 10px;           /* altura vem do height */
-
+      height: var(--ctrl-h);
+      padding: 0 10px;
       font-weight: 800;
       font-size: 13px;
       cursor: pointer;
       white-space: nowrap;
       line-height: 1;
-
       display: inline-flex;
       align-items: center;
       justify-content: center;
       box-sizing: border-box;
     }
 
-    .turno-panel{
+    .dd-panel{
       position: absolute;
       top: calc(100% + 6px);
       right: 0;
@@ -244,7 +229,7 @@
       display: none;
     }
 
-    .turno-panel .item{
+    .dd-panel .item{
       display: flex;
       align-items: center;
       gap: 8px;
@@ -254,23 +239,23 @@
       user-select: none;
     }
 
-    .turno-panel .item:hover{
+    .dd-panel .item:hover{
       background: #f4f4f4;
     }
 
-    .turno-panel input[type="checkbox"]{
+    .dd-panel input[type="checkbox"]{
       width: 16px;
       height: 16px;
       cursor: pointer;
     }
 
-    .turno-panel .lbl{
+    .dd-panel .lbl{
       font-size: 13px;
       font-weight: 800;
       color: #111;
     }
 
-    .turno-panel .hint{
+    .dd-panel .hint{
       font-size: 11px;
       color: #555;
       margin-top: 8px;
@@ -516,7 +501,6 @@
         flex-wrap: nowrap;
       }
 
-      /* No mobile, mantém os 3 na mesma distância e mesma altura, porém responsivos */
       .filters-extra .input-filter{
         flex: 1 1 0;
         min-width: 0 !important;
@@ -536,7 +520,6 @@
   </div>
 
   <div id="app" class="wrap" style="display:none;">
-
     <div class="grid">
 
       <!-- TOPO (span total do grid) -->
@@ -567,17 +550,18 @@
             <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
 
             <!-- =========================================================
-                 Filtro por turno com checkboxes
-                 ✅ AJUSTE SOLICITADO #2:
-                 - Se tiver mais de um turno marcado (e não todos): título = "Turnos"
-                 - Mantém caso especial "Todos os turnos"
+                 ✅ Filtro de TURNOS (checkbox dropdown)
+                 Regras do título (solicitado):
+                 - 2 OU 3 marcados: "Turnos"
+                 - 1 marcado: nome do turno
+                 - 0 marcado: "Nenhum"
                  ========================================================= -->
-            <div class="turno-wrap" id="turnoWrap">
-              <button type="button" class="btn-turno" id="btnTurno" aria-haspopup="true" aria-expanded="false">
-                Turno ▾
+            <div class="dd-wrap" id="turnoWrap">
+              <button type="button" class="btn-dd" id="btnTurno" aria-haspopup="true" aria-expanded="false">
+                Turnos ▾
               </button>
 
-              <div class="turno-panel" id="turnoPanel" role="menu" aria-label="Filtro de turno">
+              <div class="dd-panel" id="turnoPanel" role="menu" aria-label="Filtro de turnos">
                 <div class="item">
                   <input type="checkbox" id="ckManha" checked />
                   <label class="lbl" for="ckManha">Manhã</label>
@@ -597,6 +581,39 @@
                   Manhã: 07:00–14:00<br/>
                   Tarde: 14:01–22:00<br/>
                   Madrugada: 22:01–06:59
+                </div>
+              </div>
+            </div>
+
+            <!-- =========================================================
+                 ✅ NOVO: Filtro de GRAVIDADE (Leve/Média/Grave) - checkbox dropdown
+                 - Semelhante ao de turnos (solicitado)
+                 ========================================================= -->
+            <div class="dd-wrap" id="gravidadeWrap">
+              <button type="button" class="btn-dd" id="btnGravidade" aria-haspopup="true" aria-expanded="false">
+                Gravidade ▾
+              </button>
+
+              <div class="dd-panel" id="gravidadePanel" role="menu" aria-label="Filtro de gravidade">
+                <div class="item">
+                  <input type="checkbox" id="ckLeve" checked />
+                  <label class="lbl" for="ckLeve">Leve</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckMedia" checked />
+                  <label class="lbl" for="ckMedia">Média</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckGrave" checked />
+                  <label class="lbl" for="ckGrave">Grave</label>
+                </div>
+
+                <div class="hint">
+                  Leve: &lt; 100<br/>
+                  Média: 100–499,99<br/>
+                  Grave: ≥ 500
                 </div>
               </div>
             </div>
@@ -629,7 +646,9 @@
         </div>
       </div>
 
-      <!-- 2) Ocorrências por bandeira (COM FILTROS de datas/turnos) -->
+      <!-- 2) Ocorrências por bandeira
+           ✅ SOLICITADO: segue todos os filtros EXCETO o filtro "Bandeira" (BIG/ULT),
+           pois este cartão precisa sempre mostrar as duas bandeiras. -->
       <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
@@ -746,25 +765,23 @@
         });
       }
 
+      // ✅ Setup dos dropdowns (turnos + gravidade)
       setupFiltroTurno();
+      setupFiltroGravidade();
+
       carregar();
     });
 
     /* =================================================================================
-       Setup do filtro de turno (UI + eventos)
+       Dropdown helpers (abre/fecha + clique fora + clique na linha)
        ================================================================================= */
-    function setupFiltroTurno(){
-      const btn = document.getElementById("btnTurno");
-      const panel = document.getElementById("turnoPanel");
-      const wrap = document.getElementById("turnoWrap");
+    function setupDropdown({ btnId, panelId, wrapId, onChange }) {
+      const btn = document.getElementById(btnId);
+      const panel = document.getElementById(panelId);
+      const wrap = document.getElementById(wrapId);
+      if (!btn || !panel || !wrap) return;
 
-      const ckManha = document.getElementById("ckManha");
-      const ckTarde = document.getElementById("ckTarde");
-      const ckMadrugada = document.getElementById("ckMadrugada");
-
-      if (!btn || !panel || !wrap || !ckManha || !ckTarde || !ckMadrugada) return;
-
-      // Abre/fecha o dropdown
+      // Abre/fecha
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const aberto = panel.style.display === "block";
@@ -780,38 +797,53 @@
         }
       });
 
-      // Mudança em qualquer checkbox => recarrega + atualiza título
-      const onChange = () => {
-        atualizarTituloTurno();
-        carregar();
-      };
-      ckManha.addEventListener("change", onChange);
-      ckTarde.addEventListener("change", onChange);
-      ckMadrugada.addEventListener("change", onChange);
-
-      // Clique na linha toda (melhor usabilidade)
+      // Clique na linha toda (melhora usabilidade)
       panel.querySelectorAll(".item").forEach((row) => {
         row.addEventListener("click", (e) => {
           const input = row.querySelector('input[type="checkbox"]');
           const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : "";
           if (tag !== "INPUT" && tag !== "LABEL" && input) {
             input.checked = !input.checked;
-            atualizarTituloTurno();
-            carregar();
+            if (typeof onChange === "function") onChange();
           }
         });
       });
+    }
 
-      // Estado inicial do título
+    /* =================================================================================
+       ✅ Filtro de Turnos
+       ================================================================================= */
+    function setupFiltroTurno(){
+      const ckManha = document.getElementById("ckManha");
+      const ckTarde = document.getElementById("ckTarde");
+      const ckMadrugada = document.getElementById("ckMadrugada");
+
+      if (!ckManha || !ckTarde || !ckMadrugada) return;
+
+      const onAnyChange = () => {
+        atualizarTituloTurno();   // ✅ regra nova aplicada
+        carregar();
+      };
+
+      ckManha.addEventListener("change", onAnyChange);
+      ckTarde.addEventListener("change", onAnyChange);
+      ckMadrugada.addEventListener("change", onAnyChange);
+
+      setupDropdown({
+        btnId: "btnTurno",
+        panelId: "turnoPanel",
+        wrapId: "turnoWrap",
+        onChange: onAnyChange
+      });
+
       atualizarTituloTurno();
     }
 
     /* =================================================================================
-       ✅ AJUSTE SOLICITADO #2 (novo comportamento):
-       - Todos marcados: "Todos os turnos"
-       - Exatamente 1 marcado: "Manhã" (ou Tarde/Madrugada)
-       - Mais de 1 marcado (2 marcados): "Turnos"
-       - Nenhum marcado: "Nenhum turno"
+       ✅ SOLICITADO: título dos Turnos
+       - 2 OU 3 marcados => "Turnos"
+       - 1 marcado => nome
+       - 0 marcado => "Nenhum"
        ================================================================================= */
     function atualizarTituloTurno(){
       const btn = document.getElementById("btnTurno");
@@ -823,11 +855,61 @@
       if (sel.TARDE) nomes.push("Tarde");
       if (sel.MADRUGADA) nomes.push("Madrugada");
 
-      let titulo = "Turno";
-      if (sel.all) titulo = "Todos os turnos";
-      else if (nomes.length === 0) titulo = "Nenhum turno";
+      let titulo = "Turnos";
+      if (nomes.length === 0) titulo = "Nenhum";
       else if (nomes.length === 1) titulo = nomes[0];
-      else titulo = "Turnos";  // ✅ quando tiver mais de um turno marcado
+      else titulo = "Turnos";
+
+      btn.textContent = `${titulo} ▾`;
+    }
+
+    /* =================================================================================
+       ✅ NOVO: Filtro de Gravidade (Leve/Média/Grave)
+       ================================================================================= */
+    function setupFiltroGravidade(){
+      const ckLeve = document.getElementById("ckLeve");
+      const ckMedia = document.getElementById("ckMedia");
+      const ckGrave = document.getElementById("ckGrave");
+
+      if (!ckLeve || !ckMedia || !ckGrave) return;
+
+      const onAnyChange = () => {
+        atualizarTituloGravidade();
+        carregar();
+      };
+
+      ckLeve.addEventListener("change", onAnyChange);
+      ckMedia.addEventListener("change", onAnyChange);
+      ckGrave.addEventListener("change", onAnyChange);
+
+      setupDropdown({
+        btnId: "btnGravidade",
+        panelId: "gravidadePanel",
+        wrapId: "gravidadeWrap",
+        onChange: onAnyChange
+      });
+
+      atualizarTituloGravidade();
+    }
+
+    /* Título do filtro de gravidade (não foi especificado além de “semelhante”):
+       - 0: "Nenhuma"
+       - 1: "Leve"/"Média"/"Grave"
+       - 2 ou 3: "Gravidade" */
+    function atualizarTituloGravidade(){
+      const btn = document.getElementById("btnGravidade");
+      const sel = obterGravidadesSelecionadas();
+      if (!btn || !sel) return;
+
+      const nomes = [];
+      if (sel.LEVE) nomes.push("Leve");
+      if (sel.MEDIA) nomes.push("Média");
+      if (sel.GRAVE) nomes.push("Grave");
+
+      let titulo = "Gravidade";
+      if (nomes.length === 0) titulo = "Nenhuma";
+      else if (nomes.length === 1) titulo = nomes[0];
+      else titulo = "Gravidade";
 
       btn.textContent = `${titulo} ▾`;
     }
@@ -839,7 +921,7 @@
       const usuario = (r.usuario || "").trim();
       const loja = (r.loja || "").trim();
 
-      // Mantido: chave usa data do registro (coluna A) como antes
+      // Mantido: chave usa data do registro (coluna A)
       const dataStr = (r.dataHora || "").split(" ")[0] || "";
       return `${documento}||${usuario}||${loja}||${dataStr}`;
     }
@@ -854,7 +936,6 @@
 
     function abreviarLojaParaTop5(lojaStr) {
       const s = String(lojaStr || "").trim().toUpperCase();
-
       const m = s.match(/^(ULT|BIG)\s*(\d{1,2})\b/);
       if (m) {
         const sigla = m[1];
@@ -864,7 +945,6 @@
       return s.length > 10 ? (s.slice(0, 10) + "…") : s;
     }
 
-    /* Top 15 produtos: limitar para 30 caracteres (mantido) */
     function abreviarProduto(nome) {
       const s = String(nome || "").trim();
       if (!s) return "N/I";
@@ -903,7 +983,6 @@
         const dd = m[1], mm = m[2], yyyy = m[3];
         return `${yyyy}-${mm}-${dd}`;
       }
-
       return "";
     }
 
@@ -944,18 +1023,49 @@
       const ckTarde = document.getElementById("ckTarde");
       const ckMadrugada = document.getElementById("ckMadrugada");
 
+      // Fallback seguro
       if (!ckManha || !ckTarde || !ckMadrugada) {
-        return { MANHA: true, TARDE: true, MADRUGADA: true, all: true };
+        return { MANHA: true, TARDE: true, MADRUGADA: true };
       }
 
-      const sel = {
+      return {
         MANHA: !!ckManha.checked,
         TARDE: !!ckTarde.checked,
-        MADRUGADA: !!ckMadrugada.checked,
+        MADRUGADA: !!ckMadrugada.checked
       };
+    }
 
-      sel.all = (sel.MANHA && sel.TARDE && sel.MADRUGADA);
-      return sel;
+    function obterGravidadesSelecionadas() {
+      const ckLeve = document.getElementById("ckLeve");
+      const ckMedia = document.getElementById("ckMedia");
+      const ckGrave = document.getElementById("ckGrave");
+
+      // Fallback seguro
+      if (!ckLeve || !ckMedia || !ckGrave) {
+        return { LEVE: true, MEDIA: true, GRAVE: true };
+      }
+
+      return {
+        LEVE: !!ckLeve.checked,
+        MEDIA: !!ckMedia.checked,
+        GRAVE: !!ckGrave.checked
+      };
+    }
+
+    /* Classificação de gravidade (mantém a mesma regra do gráfico atual) */
+    function classificarGravidade(valorTotalOcorrencia){
+      const v = Number(valorTotalOcorrencia) || 0;
+      if (v >= 500) return "GRAVE";
+      if (v < 100) return "LEVE";
+      return "MEDIA";
+    }
+
+    function gravidadePassaFiltro(classif, gravSel){
+      if (!gravSel) return true;
+      if (classif === "LEVE") return !!gravSel.LEVE;
+      if (classif === "MEDIA") return !!gravSel.MEDIA;
+      if (classif === "GRAVE") return !!gravSel.GRAVE;
+      return true;
     }
 
     function formatarCampoMoeda(inputEl, opts = {}) {
@@ -1032,17 +1142,26 @@
 
         const registros = dados.registros;
 
-        const filtro = (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
+        const filtroBandeira = (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
         const dataInicio = (document.getElementById("dataInicio")?.value || "").trim();
         const dataFim = (document.getElementById("dataFim")?.value || "").trim();
 
         const turnosSel = obterTurnosSelecionados();
+        const gravSel = obterGravidadesSelecionadas();
 
-        const registrosFiltrados = registros.filter(r => {
-          if (filtro === "BIG" || filtro === "ULT") {
-            if (bandeiraPorLoja(r.loja) !== filtro) return false;
+        /* =================================================================================
+           BASE 1 (para os gráficos/contadores que DEVEM obedecer ao filtro de BANDEIRA):
+           - Bandeira (quando BIG/ULT)
+           - Datas
+           - Turnos
+           ================================================================================= */
+        const registrosBaseComBandeira = registros.filter(r => {
+          // (1) Bandeira (quando selecionado BIG/ULT)
+          if (filtroBandeira === "BIG" || filtroBandeira === "ULT") {
+            if (bandeiraPorLoja(r.loja) !== filtroBandeira) return false;
           }
 
+          // (2) Datas (coluna R)
           if (dataInicio || dataFim) {
             const iso = dataOcorridoParaISO(r);
             if (!iso) return false;
@@ -1050,7 +1169,8 @@
             if (dataFim && iso > dataFim) return false;
           }
 
-          if (!turnosSel.all) {
+          // (3) Turnos (coluna S)
+          {
             const min = horaOcorridoParaMinutos(r);
             if (min === null) return false;
 
@@ -1064,50 +1184,137 @@
           return true;
         });
 
-        // (A) OCORRÊNCIAS (COM FILTRO) + VALOR
-        const setOccFiltradoTotal = new Set();
-        const valorPorOcorrenciaFiltrada = new Map();
+        /* =================================================================================
+           BASE 2 (para o cartão "Ocorrências por Bandeira" que NÃO pode obedecer ao filtro de BANDEIRA):
+           - Datas
+           - Turnos
+           (sem filtroBandeira BIG/ULT)
+           ================================================================================= */
+        const registrosBaseSemBandeira = registros.filter(r => {
+          // (1) Datas (coluna R)
+          if (dataInicio || dataFim) {
+            const iso = dataOcorridoParaISO(r);
+            if (!iso) return false;
+            if (dataInicio && iso < dataInicio) return false;
+            if (dataFim && iso > dataFim) return false;
+          }
 
-        for (const r of registrosFiltrados) {
+          // (2) Turnos (coluna S)
+          {
+            const min = horaOcorridoParaMinutos(r);
+            if (min === null) return false;
+
+            const okManha = turnosSel.MANHA && minutoDentroDeTurno(min, "MANHA");
+            const okTarde = turnosSel.TARDE && minutoDentroDeTurno(min, "TARDE");
+            const okMadr = turnosSel.MADRUGADA && minutoDentroDeTurno(min, "MADRUGADA");
+
+            if (!(okManha || okTarde || okMadr)) return false;
+          }
+
+          return true;
+        });
+
+        /* =================================================================================
+           A) Calcula valor total por OCORRÊNCIA (para BASE COM BANDEIRA)
+              e aplica o filtro de GRAVIDADE em nível de ocorrência.
+           ================================================================================= */
+        const valorPorOcorrenciaComBandeira = new Map(); // chave => soma R$ (linhas)
+        for (const r of registrosBaseComBandeira) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
-
-          setOccFiltradoTotal.add(k);
 
           const qtd = parseNumeroBr(r.quantidade);
           const vUnit = parseNumeroBr(r.valorUnitario);
           const totalLinha = qtd * vUnit;
 
-          valorPorOcorrenciaFiltrada.set(
+          valorPorOcorrenciaComBandeira.set(
             k,
-            (valorPorOcorrenciaFiltrada.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
+            (valorPorOcorrenciaComBandeira.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
           );
+        }
+
+        // Conjunto de ocorrências que PASSAM no filtro de gravidade
+        const occAprovadasComBandeira = new Set();
+        for (const [k, vTot] of valorPorOcorrenciaComBandeira.entries()) {
+          const classe = classificarGravidade(vTot);
+          if (gravidadePassaFiltro(classe, gravSel)) occAprovadasComBandeira.add(k);
+        }
+
+        // Registros finais (com bandeira) após gravidade
+        const registrosFiltrados = registrosBaseComBandeira.filter(r => {
+          const k = chaveOcorrencia(r);
+          return k && occAprovadasComBandeira.has(k);
+        });
+
+        /* =================================================================================
+           B) OCORRÊNCIAS (COM FILTROS: bandeira + data + turno + gravidade)
+           ================================================================================= */
+        const setOccFiltradoTotal = new Set();
+        for (const r of registrosFiltrados) {
+          const k = chaveOcorrencia(r);
+          if (!k) continue;
+          setOccFiltradoTotal.add(k);
         }
 
         document.getElementById("totalOcorrencias").textContent = String(setOccFiltradoTotal.size);
 
         let somaValorOcorrenciasFiltradas = 0;
-        for (const v of valorPorOcorrenciaFiltrada.values()) somaValorOcorrenciasFiltradas += (Number(v) || 0);
+        for (const k of setOccFiltradoTotal.values()) {
+          somaValorOcorrenciasFiltradas += (Number(valorPorOcorrenciaComBandeira.get(k)) || 0);
+        }
 
         document.getElementById("totalValorOcorrencias").textContent = formatarBRL(somaValorOcorrenciasFiltradas);
         totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
         atualizarParticipacao();
 
-        // (B) OCORRÊNCIAS POR BANDEIRA (COM FILTROS) + VALOR
+        /* =================================================================================
+           C) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO DE BANDEIRA)
+              - segue datas + turnos + gravidade
+           ================================================================================= */
+        // 1) Valor total por ocorrência (na BASE SEM BANDEIRA)
+        const valorPorOcorrenciaSemBandeira = new Map();
+        for (const r of registrosBaseSemBandeira) {
+          const k = chaveOcorrencia(r);
+          if (!k) continue;
+
+          const qtd = parseNumeroBr(r.quantidade);
+          const vUnit = parseNumeroBr(r.valorUnitario);
+          const totalLinha = qtd * vUnit;
+
+          valorPorOcorrenciaSemBandeira.set(
+            k,
+            (valorPorOcorrenciaSemBandeira.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
+          );
+        }
+
+        // 2) Ocorrências aprovadas pelo filtro de gravidade
+        const occAprovadasSemBandeira = new Set();
+        for (const [k, vTot] of valorPorOcorrenciaSemBandeira.entries()) {
+          const classe = classificarGravidade(vTot);
+          if (gravidadePassaFiltro(classe, gravSel)) occAprovadasSemBandeira.add(k);
+        }
+
+        // 3) Conta por bandeira deduplicando por ocorrência
         const occPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
         const valorPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
 
-        const setOccFiltradoBandeira = new Set();
-        for (const r of registrosFiltrados) {
+        const setOccBandeira = new Set();
+        for (const r of registrosBaseSemBandeira) {
           const k = chaveOcorrencia(r);
-          if (!k || setOccFiltradoBandeira.has(k)) continue;
-          setOccFiltradoBandeira.add(k);
+          if (!k) continue;
+
+          // aplica gravidade em nível de ocorrência
+          if (!occAprovadasSemBandeira.has(k)) continue;
+
+          // dedup ocorrência
+          if (setOccBandeira.has(k)) continue;
+          setOccBandeira.add(k);
 
           const band = bandeiraPorLoja((r.loja || "").trim());
           if (band) {
             occPorBandeiraFiltrada[band] = (occPorBandeiraFiltrada[band] || 0) + 1;
             valorPorBandeiraFiltrada[band] =
-              (valorPorBandeiraFiltrada[band] || 0) + (valorPorOcorrenciaFiltrada.get(k) || 0);
+              (valorPorBandeiraFiltrada[band] || 0) + (Number(valorPorOcorrenciaSemBandeira.get(k)) || 0);
           }
         }
 
@@ -1117,9 +1324,10 @@
         document.getElementById("valorBIG").textContent = formatarBRL(valorPorBandeiraFiltrada.BIG || 0);
         document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeiraFiltrada.ULT || 0);
 
-        // (C) Percentual por bandeira (mantido sem filtro)
+        /* =================================================================================
+           D) Percentual por bandeira (mantido sem filtro)
+           ================================================================================= */
         const occPorBandeira = { BIG: 0, ULT: 0 };
-        const valorPorBandeira = { BIG: 0, ULT: 0 };
 
         const valorPorOcorrenciaAll = new Map();
         for (const r of registros) {
@@ -1143,24 +1351,31 @@
           setOccAll.add(k);
 
           const band = bandeiraPorLoja((r.loja || "").trim());
-          if (band) {
-            occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
-            valorPorBandeira[band] = (valorPorBandeira[band] || 0) + (valorPorOcorrenciaAll.get(k) || 0);
-          }
+          if (band) occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
         }
 
         renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
 
-        // (D) GRAVIDADE (COM FILTRO)
+        /* =================================================================================
+           E) GRAVIDADE (COM FILTROS: bandeira + data + turno + gravidade)
+              Obs: o gráfico deve refletir o conjunto filtrado atual.
+           ================================================================================= */
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
-        for (const v of valorPorOcorrenciaFiltrada.values()) {
-          if (v >= 500) qtdGrave++;
-          else if (v < 100) qtdLeve++;
-          else qtdMedia++;
+
+        // contamos por ocorrência (dedup) e usamos o valor total por ocorrência
+        for (const k of setOccFiltradoTotal.values()) {
+          const vTot = Number(valorPorOcorrenciaComBandeira.get(k)) || 0;
+          const classe = classificarGravidade(vTot);
+          if (classe === "LEVE") qtdLeve++;
+          else if (classe === "MEDIA") qtdMedia++;
+          else if (classe === "GRAVE") qtdGrave++;
         }
+
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
-        // (E) Top 5 lojas / Dept / Top produtos (COM FILTRO)
+        /* =================================================================================
+           F) Top 5 lojas / Dept / Top produtos (COM FILTROS: bandeira + data + turno + gravidade)
+           ================================================================================= */
         const occPorLoja = new Map();
         const setOccFiltrado = new Set();
 
@@ -1177,6 +1392,7 @@
         const topLabels = top.map(([loja]) => abreviarLojaParaTop5(loja));
         const topValues = top.map(([,qtd]) => qtd);
 
+        // Dept: conta "em quantas ocorrências o departamento aparece"
         const deptPorOcorrencia = new Map();
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
@@ -1195,6 +1411,7 @@
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
+        // Top produtos (por registro)
         const registrosPorProduto = new Map();
         for (const r of registrosFiltrados) {
           const prod = (r.produto || "N/I").toString().trim() || "N/I";
@@ -1207,7 +1424,7 @@
 
         const COR_DEPT_PADRAO = "#A98AE8";
         const COR_ULT = "#43A047";
-        const corDeptTopProd = (filtro === "ULT") ? COR_ULT : COR_DEPT_PADRAO;
+        const corDeptTopProd = (filtroBandeira === "ULT") ? COR_ULT : COR_DEPT_PADRAO;
 
         renderTopLojas(topLabels, topValues);
         renderDept(deptLabels, deptValues, corDeptTopProd);
@@ -1275,14 +1492,14 @@
             x: {
               ticks: { maxRotation: 0, minRotation: 0, autoSkip: false },
               grid: { display: false },
-              border: { display: false }  // ✅ AJUSTE SOLICITADO #3: remove a “linha” do eixo
+              border: { display: false }
             },
             y: {
               beginAtZero: true,
               suggestedMax,
-              ticks: { display: false },     // escala numérica oculta (já solicitado antes)
+              ticks: { display: false },
               grid: { display: false },
-              border: { display: false }     // ✅ AJUSTE SOLICITADO #3: remove a “linha” do eixo
+              border: { display: false }
             }
           }
         },
@@ -1294,10 +1511,16 @@
       const ctx = document.getElementById("chartDept");
       if (chartDept) chartDept.destroy();
 
+      /* =================================================================================
+         ✅ SOLICITADO: “dar uma margem maior” para não cortar rótulos (valores)
+         - adiciona padding à direita
+         - permite desenhar no padding (clip: false)
+         - clamp no limite do canvas
+         ================================================================================= */
       const valueAtEndPlugin = {
         id: "valueAtEndPlugin",
         afterDatasetsDraw(chart) {
-          const { ctx, chartArea } = chart;
+          const { ctx } = chart;
           const meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data) return;
 
@@ -1309,7 +1532,13 @@
 
           meta.data.forEach((bar, i) => {
             const val = chart.data.datasets[0].data[i];
-            const x = Math.min(bar.x + 6, chartArea.right - 6);
+
+            // desenha após a barra (pode cair no padding)
+            const xRaw = bar.x + 8;
+
+            // clamp para não “estourar” fora do canvas
+            const x = Math.min(xRaw, chart.width - 8);
+
             ctx.fillText(String(val), x, bar.y);
           });
 
@@ -1319,23 +1548,34 @@
 
       chartDept = new Chart(ctx, {
         type: "bar",
-        data: { labels, datasets: [{ label: "Ocorrências por departamento", data: values, backgroundColor: corBarra || "#A98AE8" }] },
+        data: {
+          labels,
+          datasets: [{
+            label: "Ocorrências por departamento",
+            data: values,
+            backgroundColor: corBarra || "#A98AE8",
+            clip: false // ✅ permite desenhar no padding sem cortar
+          }]
+        },
         options: {
           indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: { right: 46 } // ✅ margem maior para rótulos (solicitado)
+          },
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
             x: {
               beginAtZero: true,
               ticks: { display: false },
               grid: { display: false },
-              border: { display: false }  // ✅ AJUSTE SOLICITADO #3
+              border: { display: false }
             },
             y: {
               ticks: { autoSkip: false },
               grid: { display: false },
-              border: { display: false }  // ✅ AJUSTE SOLICITADO #3
+              border: { display: false }
             }
           }
         },
@@ -1347,14 +1587,22 @@
       const ctx = document.getElementById("chartPctBandeira");
       if (chartPctBandeira) chartPctBandeira.destroy();
 
-      const total = (qtdBIG || 0) + (qtdULT || 0);
-
       const pctLabelPlugin = {
         id: "pctLabelPlugin",
         afterDatasetsDraw(chart) {
           const { ctx } = chart;
           const meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data) return;
+
+          // ✅ SOLICITADO #5: ao ocultar item na legenda, rótulo também some
+          // E a % deve considerar apenas os itens visíveis.
+          const vis = [
+            chart.getDataVisibility(0),
+            chart.getDataVisibility(1)
+          ];
+
+          const dataArr = chart.data.datasets[0].data || [];
+          const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
 
           ctx.save();
           ctx.textAlign = "center";
@@ -1363,8 +1611,9 @@
           ctx.fillStyle = "#111";
 
           meta.data.forEach((arc, i) => {
-            const val = chart.data.datasets[0].data[i] || 0;
-            const pct = total > 0 ? (val * 100 / total) : 0;
+            if (!vis[i]) return; // ✅ não desenha rótulo do item oculto
+            const val = Number(dataArr[i] || 0);
+            const pct = totalVis > 0 ? (val * 100 / totalVis) : 0;
             const pos = arc.tooltipPosition();
             ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
           });
@@ -1375,18 +1624,39 @@
 
       chartPctBandeira = new Chart(ctx, {
         type: "doughnut",
-        data: { labels: ["BIG", "ULT"], datasets: [{ data: [qtdBIG || 0, qtdULT || 0], backgroundColor: ["#A98AE8", "#43A047"] }] },
+        data: {
+          labels: ["BIG", "ULT"],
+          datasets: [{
+            data: [qtdBIG || 0, qtdULT || 0],
+            backgroundColor: ["#A98AE8", "#43A047"]
+          }]
+        },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           cutout: "62%",
           plugins: {
             legend: { display: true, position: "bottom" },
-            tooltip: { callbacks: { label: (ctx) => {
-              const v = ctx.raw || 0;
-              const pct = total > 0 ? (v * 100 / total) : 0;
-              return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
-            }}}
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  // tooltip pode continuar como está; ele já segue a visibilidade do item
+                  const v = ctx.raw || 0;
+
+                  // total visível para coerência com as % desenhadas
+                  const chart = ctx.chart;
+                  const vis = [
+                    chart.getDataVisibility(0),
+                    chart.getDataVisibility(1)
+                  ];
+                  const dataArr = chart.data.datasets[0].data || [];
+                  const totalVis = dataArr.reduce((acc, x, i) => acc + (vis[i] ? (Number(x) || 0) : 0), 0);
+
+                  const pct = totalVis > 0 ? (Number(v) * 100 / totalVis) : 0;
+                  return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
+                }
+              }
+            }
           }
         },
         plugins: [pctLabelPlugin]
@@ -1397,17 +1667,10 @@
       const ctx = document.getElementById("chartTopProdutos");
       if (chartTopProdutos) chartTopProdutos.destroy();
 
-      /* =================================================================================
-         ✅ AJUSTE SOLICITADO #4:
-         - Valor do rótulo (número) na parte "externa" do gráfico (área de padding)
-         - Sem estourar / sem sumir (usa padding à direita e clamp no canvas)
-         - Se necessário, “diminui um pouco a primeira coluna”:
-           reduz fonte/padding do eixo Y (labels dos produtos)
-         ================================================================================= */
       const valueOutsidePlugin = {
         id: "valueOutsidePluginProdutos",
         afterDatasetsDraw(chart) {
-          const { ctx, chartArea } = chart;
+          const { ctx } = chart;
           const meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data) return;
 
@@ -1419,13 +1682,8 @@
 
           meta.data.forEach((bar, i) => {
             const val = chart.data.datasets[0].data[i];
-
-            // Desenha após a barra, indo para a área de padding à direita
             const xRaw = bar.x + 8;
-
-            // Garante que não sai do canvas
             const x = Math.min(xRaw, chart.width - 8);
-
             ctx.fillText(String(val), x, bar.y);
           });
 
@@ -1441,34 +1699,26 @@
             label: "Registros",
             data: values,
             backgroundColor: corBarra || "#A98AE8",
-            clip: false   // ✅ permite desenhar no padding sem “cortar”
+            clip: false
           }]
         },
         options: {
           indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: {
-              right: 46  // ✅ espaço para os rótulos “externos” sem sumir
-            }
-          },
+          layout: { padding: { right: 46 } },
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } } },
           scales: {
             x: {
               beginAtZero: true,
-              ticks: { display: false },     // escala numérica oculta
+              ticks: { display: false },
               grid: { display: false },
-              border: { display: false }     // ✅ AJUSTE SOLICITADO #3: remove a “linha” do eixo
+              border: { display: false }
             },
             y: {
-              ticks: {
-                autoSkip: false,
-                font: { size: 11 },          // ✅ “diminui um pouco” a coluna de rótulos
-                padding: 2
-              },
+              ticks: { autoSkip: false, font: { size: 11 }, padding: 2 },
               grid: { display: false },
-              border: { display: false }     // ✅ AJUSTE SOLICITADO #3
+              border: { display: false }
             }
           }
         },
@@ -1480,14 +1730,23 @@
       const ctx = document.getElementById("chartGravidade");
       if (chartGravidade) chartGravidade.destroy();
 
-      const total = (qtdLeve || 0) + (qtdMedia || 0) + (qtdGrave || 0);
-
       const pctLabelPlugin = {
         id: "pctLabelPluginGravidade",
         afterDatasetsDraw(chart) {
           const { ctx } = chart;
           const meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data) return;
+
+          // ✅ SOLICITADO #5: ao ocultar item na legenda, rótulo também some
+          // E a % deve considerar apenas os itens visíveis.
+          const vis = [
+            chart.getDataVisibility(0),
+            chart.getDataVisibility(1),
+            chart.getDataVisibility(2)
+          ];
+
+          const dataArr = chart.data.datasets[0].data || [];
+          const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
 
           ctx.save();
           ctx.textAlign = "center";
@@ -1496,8 +1755,9 @@
           ctx.fillStyle = "#fff";
 
           meta.data.forEach((arc, i) => {
-            const val = chart.data.datasets[0].data[i] || 0;
-            const pct = total > 0 ? (val * 100 / total) : 0;
+            if (!vis[i]) return; // ✅ não desenha rótulo do item oculto
+            const val = Number(dataArr[i] || 0);
+            const pct = totalVis > 0 ? (val * 100 / totalVis) : 0;
             const pos = arc.tooltipPosition();
             ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
           });
@@ -1521,11 +1781,24 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: true, position: "bottom" },
-            tooltip: { callbacks: { label: (ctx) => {
-              const v = ctx.raw || 0;
-              const pct = total > 0 ? (v * 100 / total) : 0;
-              return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
-            }}}
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const chart = ctx.chart;
+                  const dataArr = chart.data.datasets[0].data || [];
+                  const vis = [
+                    chart.getDataVisibility(0),
+                    chart.getDataVisibility(1),
+                    chart.getDataVisibility(2)
+                  ];
+                  const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
+
+                  const v = Number(ctx.raw || 0);
+                  const pct = totalVis > 0 ? (v * 100 / totalVis) : 0;
+                  return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
+                }
+              }
+            }
           }
         },
         plugins: [pctLabelPlugin]
@@ -1534,12 +1807,11 @@
   </script>
 
   <!-- Fontes (documentação confiável) -->
-  <!-- input type="date" retorna yyyy-mm-dd: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
-  <!-- Checkbox input: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox -->
-  <!-- CSS height/padding/box-sizing: https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing -->
-  <!-- Flex gap: https://developer.mozilla.org/en-US/docs/Web/CSS/gap -->
-  <!-- Chart.js axes styling (ticks/border): https://www.chartjs.org/docs/latest/axes/styling.html -->
+  <!-- Chart.js (legenda / visibilidade por índice): https://www.chartjs.org/docs/latest/configuration/legend.html -->
+  <!-- Chart.getDataVisibility (controle por item): https://www.chartjs.org/docs/latest/developers/api.html#getdatavisibilityindex -->
   <!-- Chart.js layout padding: https://www.chartjs.org/docs/latest/configuration/layout.html -->
-  <!-- Chart.js dataset clip: https://www.chartjs.org/docs/latest/charts/bar.html#dataset-properties -->
+  <!-- Dataset clip (desenhar no padding): https://www.chartjs.org/docs/latest/charts/bar.html#dataset-properties -->
+  <!-- input type="checkbox": https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox -->
+  <!-- input type="date": https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
 </body>
 </html>
