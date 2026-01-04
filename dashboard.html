@@ -624,10 +624,7 @@
 
             <!-- =========================================================
                  ✅ MODIFICADO: Filtro de LOJAS (checkbox dropdown)
-                 Agora inclui "BIG" e "ULT" no topo (select-all por bandeira)
-                 - Sem checkbox "Todas"
-                 - Ao marcar BIG/ULT marca todas as lojas da bandeira
-                 - Ao desmarcar 1 loja, desmarca o checkbox da bandeira
+                 Agora inclui "BIG" e "ULT" NO TOPO (um abaixo do outro)
                  ========================================================= -->
             <div class="dd-wrap" id="lojaWrap">
               <button type="button" class="btn-dd" id="btnLoja" aria-haspopup="true" aria-expanded="false">
@@ -638,9 +635,6 @@
                 <div class="hint">Carregando lojas...</div>
               </div>
             </div>
-
-            <!-- ✅ REMOVIDO: filtro de bandeira fora (agora está dentro do filtro de lojas) -->
-            <!-- <select id="filtroBandeira" class="select-filter" onchange="onBandeiraChange()"> ... </select> -->
 
             <button class="btn btn-back" onclick="voltar()">Voltar</button>
           </div>
@@ -984,28 +978,26 @@
     }
 
     /* =================================================================================
-       ✅ MODIFICADO: Filtro de Lojas com BIG/ULT no topo (select-all por bandeira)
+       ✅ MODIFICADO: Filtro de Lojas com BIG/ULT no topo (um abaixo do outro)
        Regras implementadas:
        - Sem "Todas"
+       - BIG/ULT no TOPO, um abaixo do outro
        - Marcar BIG => marca todas BIG
        - Marcar ULT => marca todas ULT
-       - Se desmarcar 1 loja => checkbox da bandeira fica desmarcado (sem mexer nas outras)
-       - Checkbox da bandeira só fica "checked" quando TODAS as lojas daquela bandeira estão marcadas
+       - Se desmarcar 1 loja => checkbox da bandeira fica desmarcado
+       - Checkbox de bandeira só fica checked quando TODAS as lojas daquela bandeira estão marcadas
        ================================================================================= */
     function setupFiltroLojas(){
       // Seleção inicial: todas as lojas marcadas (mantém a lógica original de evitar dashboard vazio)
       LOJAS_SELECIONADAS = new Set(LOJAS_LISTA.map(x => normLoja(x.label)));
 
-      // Monta o painel com BIG/ULT + lojas
       rebuildListaLojasComBandeira();
 
-      // Dropdown (abre/fecha/clique fora) reutilizando helper
       setupDropdown({
         btnId: "btnLoja",
         panelId: "lojaPanel",
         wrapId: "lojaWrap",
         onChange: () => {
-          // Quando clique na linha fizer toggle, sincroniza tudo
           sincronizarSelecaoLojasDoDOM();
           atualizarChecksBandeira();
           atualizarTituloLojas();
@@ -1016,7 +1008,9 @@
       atualizarTituloLojas();
     }
 
-    // Cria lista: [BIG checkbox] + lojas BIG + [ULT checkbox] + lojas ULT
+    // Cria lista:
+    // (TOPO) [BIG] (linha 1) + [ULT] (linha 2)
+    // Depois: lojas BIG, depois lojas ULT
     function rebuildListaLojasComBandeira(){
       const panel = document.getElementById("lojaPanel");
       if (!panel) return;
@@ -1026,15 +1020,23 @@
 
       const html = [];
 
-      // ======== Cabeçalho BIG (select-all) ========
+      // ======== TOPO: BIG e ULT um abaixo do outro ========
       html.push(`
-        <div class="item" style="position: sticky; top: 0; background: #fff; z-index: 1; border-bottom: 1px solid #eee;">
+        <div class="item" style="border-bottom: 1px solid #eee;">
           <input type="checkbox" id="ckBand_BIG" data-band="BIG" />
           <label class="lbl" for="ckBand_BIG">BIG</label>
         </div>
+        <div class="item" style="border-bottom: 1px solid #eee;">
+          <input type="checkbox" id="ckBand_ULT" data-band="ULT" />
+          <label class="lbl" for="ckBand_ULT">ULT</label>
+        </div>
       `);
 
+      // Pequeno separador visual (não altera comportamento)
+      html.push(`<div class="hint" style="margin-top:6px; margin-bottom:6px;">Selecione BIG/ULT para marcar/desmarcar todas as lojas da bandeira.</div>`);
+
       // Lojas BIG
+      html.push(`<div class="hint" style="margin-top:6px; font-weight:800;">Lojas BIG</div>`);
       big.forEach((loja, idx) => {
         const id = `ckLoja_BIG_${idx}`;
         const key = normLoja(loja.label);
@@ -1047,15 +1049,8 @@
         `);
       });
 
-      // ======== Cabeçalho ULT (select-all) ========
-      html.push(`
-        <div class="item" style="position: sticky; top: 0; background: #fff; z-index: 1; margin-top: 8px; border-top: 1px solid #eee;">
-          <input type="checkbox" id="ckBand_ULT" data-band="ULT" />
-          <label class="lbl" for="ckBand_ULT">ULT</label>
-        </div>
-      `);
-
       // Lojas ULT
+      html.push(`<div class="hint" style="margin-top:10px; font-weight:800;">Lojas ULT</div>`);
       ult.forEach((loja, idx) => {
         const id = `ckLoja_ULT_${idx}`;
         const key = normLoja(loja.label);
@@ -1071,7 +1066,7 @@
       html.push(`
         <div class="hint">
           BIG/ULT (no topo) seleciona/desseleciona todas as lojas da bandeira.<br/>
-          Se desmarcar uma loja, o checkbox da bandeira fica desmarcado (sem afetar as demais).
+          Se desmarcar uma loja, o checkbox da bandeira fica desmarcado.
         </div>
       `);
 
@@ -1086,7 +1081,6 @@
           if (ck.checked) LOJAS_SELECIONADAS.add(key);
           else LOJAS_SELECIONADAS.delete(key);
 
-          // Atualiza o estado do BIG/ULT conforme as lojas
           atualizarChecksBandeira();
           atualizarTituloLojas();
           carregar();
@@ -1099,7 +1093,6 @@
           const band = (ckBand.getAttribute("data-band") || "").toUpperCase().trim();
           if (!band) return;
 
-          // Marca/desmarca todas as lojas daquela bandeira
           panel.querySelectorAll(`input[type="checkbox"][data-loja][data-band="${band}"]`).forEach((ckLoja) => {
             ckLoja.checked = ckBand.checked;
 
@@ -1110,14 +1103,12 @@
             else LOJAS_SELECIONADAS.delete(key);
           });
 
-          // Regra: checkbox de bandeira reflete "todas marcadas" (aqui é exatamente isso)
           atualizarChecksBandeira();
           atualizarTituloLojas();
           carregar();
         });
       });
 
-      // Estado inicial dos checks BIG/ULT
       atualizarChecksBandeira();
       atualizarTituloLojas();
     }
@@ -1138,7 +1129,6 @@
         }
 
         const todasMarcadas = lojasBand.every(ck => ck.checked);
-        // Sem "indeterminate" (você pediu desmarcar quando qualquer loja desmarcar)
         ckBand.indeterminate = false;
         ckBand.checked = todasMarcadas;
       });
@@ -1181,7 +1171,6 @@
     }
 
     function obterLojasSelecionadas(){
-      // fallback seguro: se set estiver inválido, considera todas
       if (!LOJAS_SELECIONADAS || !(LOJAS_SELECIONADAS instanceof Set)) {
         return new Set(LOJAS_LISTA.map(x => normLoja(x.label)));
       }
@@ -1297,7 +1286,6 @@
       const ckTarde = document.getElementById("ckTarde");
       const ckMadrugada = document.getElementById("ckMadrugada");
 
-      // Fallback seguro
       if (!ckManha || !ckTarde || !ckMadrugada) {
         return { MANHA: true, TARDE: true, MADRUGADA: true };
       }
@@ -1314,7 +1302,6 @@
       const ckMedia = document.getElementById("ckMedia");
       const ckGrave = document.getElementById("ckGrave");
 
-      // Fallback seguro
       if (!ckLeve || !ckMedia || !ckGrave) {
         return { LEVE: true, MEDIA: true, GRAVE: true };
       }
@@ -1422,13 +1409,12 @@
         const turnosSel = obterTurnosSelecionados();
         const gravSel = obterGravidadesSelecionadas();
 
-        // ✅ Lojas selecionadas (agora o “filtro de bandeira” está embutido aqui)
+        // ✅ Lojas selecionadas (base principal do dashboard)
         const lojasSel = obterLojasSelecionadas();
 
         /* =================================================================================
-           BASE (antes havia duas bases por causa do select externo de Bandeira)
-           Agora: sem select externo, a base é apenas:
-           - Lojas (com BIG/ULT embutido)
+           BASE PRINCIPAL (COM filtro de lojas)
+           - Lojas
            - Datas
            - Turnos
            ================================================================================= */
@@ -1463,8 +1449,36 @@
         });
 
         /* =================================================================================
-           A) Calcula valor total por OCORRÊNCIA (para BASE)
-              e aplica o filtro de GRAVIDADE em nível de ocorrência.
+           BASE BANDEIRA (IGNORA filtro de lojas e bandeira)
+           - SOMENTE: Datas + Turnos
+           - Gravidade será aplicada em nível de ocorrência (com os dados dessa base)
+           ================================================================================= */
+        const registrosBaseBandeira = registros.filter(r => {
+          // (1) Datas (coluna R)
+          if (dataInicio || dataFim) {
+            const iso = dataOcorridoParaISO(r);
+            if (!iso) return false;
+            if (dataInicio && iso < dataInicio) return false;
+            if (dataFim && iso > dataFim) return false;
+          }
+
+          // (2) Turnos (coluna S)
+          {
+            const min = horaOcorridoParaMinutos(r);
+            if (min === null) return false;
+
+            const okManha = turnosSel.MANHA && minutoDentroDeTurno(min, "MANHA");
+            const okTarde = turnosSel.TARDE && minutoDentroDeTurno(min, "TARDE");
+            const okMadr = turnosSel.MADRUGADA && minutoDentroDeTurno(min, "MADRUGADA");
+
+            if (!(okManha || okTarde || okMadr)) return false;
+          }
+
+          return true;
+        });
+
+        /* =================================================================================
+           A) Valor total por OCORRÊNCIA (BASE PRINCIPAL) + filtro gravidade por ocorrência
            ================================================================================= */
         const valorPorOcorrencia = new Map(); // chave => soma R$ (linhas)
         for (const r of registrosBase) {
@@ -1481,14 +1495,12 @@
           );
         }
 
-        // Conjunto de ocorrências que PASSAM no filtro de gravidade
         const occAprovadas = new Set();
         for (const [k, vTot] of valorPorOcorrencia.entries()) {
           const classe = classificarGravidade(vTot);
           if (gravidadePassaFiltro(classe, gravSel)) occAprovadas.add(k);
         }
 
-        // Registros finais após gravidade
         const registrosFiltrados = registrosBase.filter(r => {
           const k = chaveOcorrencia(r);
           return k && occAprovadas.has(k);
@@ -1516,19 +1528,41 @@
         atualizarParticipacao();
 
         /* =================================================================================
-           C) OCORRÊNCIAS POR BANDEIRA
-              - segue os filtros de lojas/datas/turnos/gravidade
+           C) OCORRÊNCIAS POR BANDEIRA (IGNORA filtro de lojas/bandeira)
+              - base: registrosBaseBandeira
+              - aplica gravidade em nível de ocorrência (com valorPorOcorrenciaBandeira)
            ================================================================================= */
+        const valorPorOcorrenciaBandeira = new Map(); // chave => soma R$ (linhas)
+        for (const r of registrosBaseBandeira) {
+          const k = chaveOcorrencia(r);
+          if (!k) continue;
+
+          const qtd = parseNumeroBr(r.quantidade);
+          const vUnit = parseNumeroBr(r.valorUnitario);
+          const totalLinha = qtd * vUnit;
+
+          valorPorOcorrenciaBandeira.set(
+            k,
+            (valorPorOcorrenciaBandeira.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
+          );
+        }
+
+        const occAprovadasBandeira = new Set();
+        for (const [k, vTot] of valorPorOcorrenciaBandeira.entries()) {
+          const classe = classificarGravidade(vTot);
+          if (gravidadePassaFiltro(classe, gravSel)) occAprovadasBandeira.add(k);
+        }
+
         const occPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
         const valorPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
 
         const setOccBandeira = new Set();
-        for (const r of registrosBase) {
+        for (const r of registrosBaseBandeira) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
 
-          // aplica gravidade em nível de ocorrência
-          if (!occAprovadas.has(k)) continue;
+          // gravidade (pela base sem lojas)
+          if (!occAprovadasBandeira.has(k)) continue;
 
           // dedup ocorrência
           if (setOccBandeira.has(k)) continue;
@@ -1538,7 +1572,7 @@
           if (band) {
             occPorBandeiraFiltrada[band] = (occPorBandeiraFiltrada[band] || 0) + 1;
             valorPorBandeiraFiltrada[band] =
-              (valorPorBandeiraFiltrada[band] || 0) + (Number(valorPorOcorrencia.get(k)) || 0);
+              (valorPorBandeiraFiltrada[band] || 0) + (Number(valorPorOcorrenciaBandeira.get(k)) || 0);
           }
         }
 
@@ -1549,7 +1583,7 @@
         document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeiraFiltrada.ULT || 0);
 
         /* =================================================================================
-           D) Percentual por bandeira (segue o cartão)
+           D) Percentual por bandeira (segue EXATAMENTE o cartão)
            ================================================================================= */
         renderPctBandeira(occPorBandeiraFiltrada.BIG || 0, occPorBandeiraFiltrada.ULT || 0);
 
@@ -1994,5 +2028,6 @@
   <!-- Layout padding: https://www.chartjs.org/docs/latest/configuration/layout.html -->
   <!-- input checkbox: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox -->
   <!-- input date: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
+  <!-- Element.closest/contains (clique fora): https://developer.mozilla.org/en-US/docs/Web/API/Node/contains -->
 </body>
 </html>
