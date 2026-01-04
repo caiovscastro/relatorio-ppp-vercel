@@ -22,6 +22,7 @@
 // - SPREADSHEET_ID
 
 import { google } from "googleapis";
+import { requireSession } from "./_authUsuarios.js"; // ✅ NOVO: valida sessão
 
 const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
@@ -224,6 +225,10 @@ export default async function handler(req, res) {
       message: "Método não permitido. Use POST.",
     });
   }
+
+  // ✅ NOVO: exige sessão válida (8h via cookie)
+  const session = requireSession(req, res);
+  if (!session) return;
 
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
