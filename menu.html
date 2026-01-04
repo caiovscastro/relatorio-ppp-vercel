@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MENU PPP</title>
+
+  <style>
+    body{
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      margin:2;
+      color:#111;
+    }
+
+    .container{
+      width: 92%;
+      max-width: 520px;
+      background:#fff;
+      padding: 22px 22px 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      box-sizing: border-box;
+    }
+
+    .titulo{
+      text-align:center;
+      margin: 0 0 14px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .card-info{
+      background: #f7f7f7;
+      border: 1px solid #e6e6e6;
+      border-radius: 10px;
+      padding: 12px 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .linha{
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .k{ color:#555; font-weight:700; }
+    .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
+
+    .btn{
+      width:100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    .btn-prim{
+      background:#0066ff;
+      color:#fff;
+    }
+    .btn-prim:hover{ background:#0050cc; }
+
+    .btn-sec{
+      background:#e9e9e9;
+      color:#111;
+    }
+    .btn-sec:hover{ background:#dedede; }
+
+    .btn-danger{
+      background:#b30000;
+      color:#fff;
+    }
+    .btn-danger:hover{ background:#900000; }
+
+    .mensagem{
+      margin-top: 12px;
+      text-align:center;
+      font-weight:700;
+      font-size: 13px;
+      min-height: 18px;
+      color:#b30000;
+    }
+
+    .hidden{ display:none !important; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2 class="titulo">MENU PPP</h2>
+
+    <div class="card-info" id="cardInfo">
+      <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
+      <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
+      <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
+    </div>
+
+    <!-- Botões do menu -->
+    <button class="btn btn-prim" id="btnLancamento">Lançamento de ocorrências</button>
+    <button class="btn btn-sec"  id="btnGerencial">Gerencial PPP</button>
+    <button class="btn btn-sec"  id="btnDashboard">Dashboard ocorrências</button>
+
+    <button class="btn btn-danger" id="btnSair">Sair</button>
+
+    <div class="mensagem" id="msg"></div>
+  </div>
+
+  <script>
+    const SESSION_KEY = "pppSession";
+
+    // Ajuste aqui se seus caminhos forem diferentes
+    const ROTAS = {
+      lancamento: "/painel.html",
+      gerencial: "/painel-gestor.html",
+      dashboard: "/dashboard.html",
+      login: "/login.html"
+    };
+
+    function lerSessao() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (!obj || !obj.usuario || !obj.loja || !obj.perfil) return null;
+        return obj;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function aplicarPermissoes(perfil) {
+      // Regra solicitada:
+      // - GERENTE_PPP => todos visíveis
+      // - BASE_PPP => só Lançamento e Dashboard
+      // (opcional) ADMINISTRADOR => todos visíveis
+      const p = String(perfil || "").trim().toUpperCase();
+
+      const btnGerencial = document.getElementById("btnGerencial");
+      const btnLancamento = document.getElementById("btnLancamento");
+      const btnDashboard = document.getElementById("btnDashboard");
+
+      // Segurança: se perfil vier vazio, trava tudo
+      if (!p) {
+        btnLancamento.classList.add("hidden");
+        btnDashboard.classList.add("hidden");
+        btnGerencial.classList.add("hidden");
+        return;
+      }
+
+      const podeTudo = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
+      const podeBase = (p === "BASE_PPP");
+
+      if (podeTudo) {
+        btnLancamento.classList.remove("hidden");
+        btnDashboard.classList.remove("hidden");
+        btnGerencial.classList.remove("hidden");
+        return;
+      }
+
+      if (podeBase) {
+        btnLancamento.classList.remove("hidden");
+        btnDashboard.classList.remove("hidden");
+        btnGerencial.classList.add("hidden");
+        return;
+      }
+
+      // Qualquer outro perfil: oculta tudo por padrão
+      btnLancamento.classList.add("hidden");
+      btnDashboard.classList.add("hidden");
+      btnGerencial.classList.add("hidden");
+    }
+
+    function preencherInfo(sessao) {
+      document.getElementById("infoLoja").textContent = sessao.loja;
+      document.getElementById("infoUsuario").textContent = sessao.usuario;
+      document.getElementById("infoPerfil").textContent = sessao.perfil;
+    }
+
+    function redirecionarLogin() {
+      window.location.href = ROTAS.login;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const msg = document.getElementById("msg");
+
+      const sessao = lerSessao();
+      if (!sessao) {
+        msg.textContent = "Sessão inválida. Faça login novamente.";
+        setTimeout(redirecionarLogin, 400);
+        return;
+      }
+
+      // ✅ “traz os dados da aba USUARIOS”:
+      // o perfil/usuario/loja foram validados e retornados por /api/login (que lê USUARIOS),
+      // e agora são exibidos aqui.
+      preencherInfo(sessao);
+      aplicarPermissoes(sessao.perfil);
+
+      // Navegação
+      document.getElementById("btnLancamento").addEventListener("click", () => {
+        window.location.href = ROTAS.lancamento;
+      });
+
+      document.getElementById("btnGerencial").addEventListener("click", () => {
+        window.location.href = ROTAS.gerencial;
+      });
+
+      document.getElementById("btnDashboard").addEventListener("click", () => {
+        window.location.href = ROTAS.dashboard;
+      });
+
+      // Sair (limpa sessão e volta pro login)
+      document.getElementById("btnSair").addEventListener("click", () => {
+        try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+        redirecionarLogin();
+      });
+    });
+  </script>
+
+  <!-- Fontes confiáveis (documentação) -->
+  <!-- localStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage -->
+  <!-- JSON.parse/stringify: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON -->
+  <!-- location.href: https://developer.mozilla.org/en-US/docs/Web/API/Location/href -->
+</body>
+</html>
