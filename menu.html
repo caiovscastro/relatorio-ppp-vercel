@@ -122,10 +122,9 @@
   <script>
     const SESSION_KEY = "pppSession";
 
-    // ✅ NOVO (segurança): flag de origem para o dashboard
-    // O dashboard só abrirá se encontrar esta flag "1" na sessionStorage.
-    // Como sessionStorage é por ABA, reduz o risco de reutilização fora do fluxo.
-    const STORAGE_DASH_FROM_MENU = "PPP_DASH_FROM_MENU";
+    // ✅ Gate de acesso ao dashboard (mesmas chaves usadas no dashboard.html)
+    const STORAGE_DASH_OK = "PPP_DASH_OK";
+    const STORAGE_DASH_TS = "PPP_DASH_TS";
 
     // Ajuste aqui se seus caminhos forem diferentes
     const ROTAS = {
@@ -148,17 +147,12 @@
     }
 
     function aplicarPermissoes(perfil) {
-      // Regra solicitada:
-      // - GERENTE_PPP => todos visíveis
-      // - BASE_PPP => só Lançamento e Dashboard
-      // (opcional) ADMINISTRADOR => todos visíveis
       const p = String(perfil || "").trim().toUpperCase();
 
       const btnGerencial = document.getElementById("btnGerencial");
       const btnLancamento = document.getElementById("btnLancamento");
       const btnDashboard = document.getElementById("btnDashboard");
 
-      // Segurança: se perfil vier vazio, trava tudo
       if (!p) {
         btnLancamento.classList.add("hidden");
         btnDashboard.classList.add("hidden");
@@ -183,7 +177,6 @@
         return;
       }
 
-      // Qualquer outro perfil: oculta tudo por padrão
       btnLancamento.classList.add("hidden");
       btnDashboard.classList.add("hidden");
       btnGerencial.classList.add("hidden");
@@ -212,7 +205,6 @@
       preencherInfo(sessao);
       aplicarPermissoes(sessao.perfil);
 
-      // Navegação
       document.getElementById("btnLancamento").addEventListener("click", () => {
         window.location.href = ROTAS.lancamento;
       });
@@ -222,15 +214,19 @@
       });
 
       document.getElementById("btnDashboard").addEventListener("click", () => {
-        // ✅ NOVO (segurança):
-        // Marca explicitamente que o dashboard está sendo aberto pelo MENU.
-        // O dashboard irá "consumir" essa flag ao validar (one-shot).
-        try { sessionStorage.setItem(STORAGE_DASH_FROM_MENU, "1"); } catch(e){}
+        /* ============================================================
+           ✅ SOLICITADO: permitir dashboard somente se veio do clique do Menu
+           - Seta um marcador de origem + timestamp no sessionStorage
+           - dashboard.html valida TTL + sessão
+           ============================================================ */
+        try {
+          sessionStorage.setItem(STORAGE_DASH_OK, "MENU");
+          sessionStorage.setItem(STORAGE_DASH_TS, String(Date.now()));
+        } catch(e){}
 
         window.location.href = ROTAS.dashboard;
       });
 
-      // Sair (limpa sessão e volta pro login)
       document.getElementById("btnSair").addEventListener("click", () => {
         try { localStorage.removeItem(SESSION_KEY); } catch(e){}
         redirecionarLogin();
