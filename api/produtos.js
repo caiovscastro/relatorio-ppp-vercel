@@ -34,7 +34,6 @@ function getEnvVars() {
 function getAuthClient() {
   const { serviceAccountEmail, privateKeyRaw } = getEnvVars();
   const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
-
   return new google.auth.JWT(serviceAccountEmail, null, privateKey, SCOPES);
 }
 
@@ -45,8 +44,10 @@ export default async function handler(req, res) {
       .json({ sucesso: false, message: "Método não permitido. Use GET." });
   }
 
-  // ✅ NOVO: exige sessão válida
-  const session = requireSession(req, res);
+  // ✅ Exige sessão válida (cookie assinado recomendado, header permitido em compatibilidade)
+  const session = requireSession(req, res, {
+    allowedProfiles: ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP", "GESTOR"]
+  });
   if (!session) return;
 
   try {
@@ -66,9 +67,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       sucesso: true,
-      produtos: values,
-      // opcional: útil para debug controlado
-      // session: { usuario: session.usuario, loja: session.loja, perfil: session.perfil }
+      produtos: values
     });
   } catch (erro) {
     console.error("Erro na API /api/produtos:", erro);
