@@ -69,9 +69,7 @@
             font-weight: 600;
         }
 
-        button:hover {
-            background: #0050cc;
-        }
+        button:hover { background: #0050cc; }
 
         /* Mensagem de erro/sucesso abaixo do botão */
         .mensagem {
@@ -81,14 +79,8 @@
             font-size: 14px;
             min-height: 18px;
         }
-
-        .mensagem.erro {
-            color: #b30000;
-        }
-
-        .mensagem.sucesso {
-            color: #008000;
-        }
+        .mensagem.erro { color: #b30000; }
+        .mensagem.sucesso { color: #008000; }
     </style>
 </head>
 
@@ -108,64 +100,59 @@
         <label for="loja">Loja</label>
         <select id="loja">
             <option value="">Selecione...</option>
-            <!--
-                IMPORTANTE:
-                Os textos das opções precisam bater com o campo "loja"
-                usado na validação da API (/api/login).
-                Ex.: "ULT 01 - PLANALTINA" e "ULT 08 - ARAPOANGA".
-            -->
-    <!-- ===== BIG BOX ===== -->
-    <option>BIG 01 - 106 NORTE</option>
-    <option>BIG 02 - 402 NORTE</option>
-    <option>BIG 03 - 413 SUL</option>
-    <option>BIG 04 - 301 SW</option>
-    <option>BIG 05 - 408 NORTE</option>
-    <option>BIG 06 - SIBERIA</option>
-    <option>BIG 08 - 503 SUL</option>
-    <option>BIG 09 - PENÍNSULA</option>
-    <option>BIG 10 - PAINEIRAS</option>
-    <option>BIG 11 - 310 NORTE</option>
-    <option>BIG 12 - 208 NORTE</option>
-    <option>BIG 13 - QI-05 L. NORTE</option>
-    <option>BIG 14 - 508 SUL</option>
-    <option>BIG 15 - 105 SW</option>
-    <option>BIG 16 - 512 SUL</option>
-    <option>BIG 17 - QI-11 LAGO SUL</option>
-    <option>BIG 18 - 211 NORTE</option>
-    <option>BIG 19 - CASTANHEIRA</option>
-    <option>BIG 20 - TAGUATINGA C1</option>
-    <option>BIG 21 - CNB12</option>
-    <option>BIG 22 - 102 NOROESTE</option>
-    <option>BIG 23 - QI-23 LAGO SUL</option>
-    <option>BIG 24 - 314 NORTE</option>
-    <option>BIG 25 - 410 SUL</option>
 
-    <!-- ===== ULTRABOX ===== -->
-    <option>ULT 01 - PLANALTINA</option>
-    <option>ULT 02 - GAMA</option>
-    <option>ULT 03 - COLORADO</option>
-    <option>ULT 04 - CEI SUL</option>
-    <option>ULT 05 - POLO JK</option>
-    <option>ULT 06 - SOBRADINHO</option>
-    <option>ULT 07 - ADE</option>
-    <option>ULT 08 - ARAPOANGA</option>
-    <option>ULT 09 - CEI NORTE</option>
-    <option>ULT 10 - ESTRUTURAL</option>
-    <option>ULT 11 - ITAPOA</option>
-    <option>ULT 12 - SAO SEBASTIAO</option>
-    <option>ULT 13 - RECANTO</option>
-    <option>ULT 14 - AGUAS LINDAS</option>
-    <option>ULT 15 - SOL NASCENTE</option>
-    <option>ULT 16 - PARANOA PARK</option>
-    <option>ULT 17 - SAMAMBAIA</option>
-    <option>ULT 18 - BRAZLANDIA</option>
-    <option>ULT 19 - VIA PARK</option>
-    <option>ULT 20 - TAGUATINGA</option>
-    <option>ULT 22 - VICENTE PIRES</option>
-    <option>ULT 23 - SANTA MARIA</option>
-    <option>ULT 24 - PAU BRASIL</option>
-    <option>ULT 25 - BRASILINHA</option>
-</select>
+            <!-- ===== BIG BOX ===== -->
+            <option>BIG 01 - 106 NORTE</option>
+            <option>BIG 02 - 402 NORTE</option>
+            <option>BIG 03 - 413 SUL</option>
+            <option>BIG 04 - 301 SW</option>
+            <option>BIG 05 - 408 NORTE</option>
+            <option>BIG 06 - SIBERIA</option>
+            <option>BIG 08 - 503 SUL</option>
+            <option>BIG 09 - PENÍNSULA</option>
+            <option>BIG 10 - PAINEIRAS</option>
+            <option>BIG 11 - 310 NORTE</option>
+            <option>BIG 12 - 208 NORTE</option>
+            <option>BIG 13 - QI-05 L. NORTE</option>
+            <option>BIG 14 - 508 SUL</option>
+            <option>BIG 15 - 105 SW</option>
+            <option>BIG 16 - 512 SUL</option>
+            <option>BIG 17 - QI-11 LAGO SUL</option>
+            <option>BIG 18 - 211 NORTE</option>
+            <option>BIG 19 - CASTANHEIRA</option>
+            <option>BIG 20 - TAGUATINGA C1</option>
+            <option>BIG 21 - CNB12</option>
+            <option>BIG 22 - 102 NOROESTE</option>
+            <option>BIG 23 - QI-23 LAGO SUL</option>
+            <option>BIG 24 - 314 NORTE</option>
+            <option>BIG 25 - 410 SUL</option>
+
+            <!-- ===== ULTRABOX ===== -->
+            <option>ULT 01 - PLANALTINA</option>
+            <option>ULT 02 - GAMA</option>
+            <option>ULT 03 - COLORADO</option>
+            <option>ULT 04 - CEI SUL</option>
+            <option>ULT 05 - POLO JK</option>
+            <option>ULT 06 - SOBRADINHO</option>
+            <option>ULT 07 - ADE</option>
+            <option>ULT 08 - ARAPOANGA</option>
+            <option>ULT 09 - CEI NORTE</option>
+            <option>ULT 10 - ESTRUTURAL</option>
+            <option>ULT 11 - ITAPOA</option>
+            <option>ULT 12 - SAO SEBASTIAO</option>
+            <option>ULT 13 - RECANTO</option>
+            <option>ULT 14 - AGUAS LINDAS</option>
+            <option>ULT 15 - SOL NASCENTE</option>
+            <option>ULT 16 - PARANOA PARK</option>
+            <option>ULT 17 - SAMAMBAIA</option>
+            <option>ULT 18 - BRAZLANDIA</option>
+            <option>ULT 19 - VIA PARK</option>
+            <option>ULT 20 - TAGUATINGA</option>
+            <option>ULT 22 - VICENTE PIRES</option>
+            <option>ULT 23 - SANTA MARIA</option>
+            <option>ULT 24 - PAU BRASIL</option>
+            <option>ULT 25 - BRASILINHA</option>
+        </select>
 
         <!-- Botão de entrar -->
         <button id="btnEntrar">Entrar</button>
@@ -175,85 +162,78 @@
     </div>
 
     <script>
-        // ======== FUNÇÃO PRINCIPAL DE LOGIN ========
-// ======== FUNÇÃO PRINCIPAL DE LOGIN (AGORA COM SESSÃO) ========
-async function login() {
-    const usuario = document.getElementById("usuario").value.trim();
-    const senha   = document.getElementById("senha").value.trim();
-    const loja    = document.getElementById("loja").value;
+      // Nome da sessão (mantido, porém agora inclui PERFIL)
+      const SESSION_KEY = "pppSession";
 
-    const msg = document.getElementById("msg");
-    msg.textContent = "";
-    msg.className = "mensagem"; // limpa classes de erro/sucesso
+      async function login() {
+        const usuario = document.getElementById("usuario").value.trim();
+        const senha   = document.getElementById("senha").value.trim();
+        const loja    = document.getElementById("loja").value;
 
-    // Validação simples dos campos obrigatórios
-    if (!usuario || !senha || !loja) {
-        msg.textContent = "Preencha usuário, senha e loja.";
-        msg.classList.add("erro");
-        return;
-    }
+        const msg = document.getElementById("msg");
+        msg.textContent = "";
+        msg.className = "mensagem";
 
-    try {
-        // Chamada à API /api/login hospedada na Vercel
-        const resposta = await fetch("/api/login", {
+        if (!usuario || !senha || !loja) {
+          msg.textContent = "Preencha usuário, senha e loja.";
+          msg.classList.add("erro");
+          return;
+        }
+
+        try {
+          const resposta = await fetch("/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ usuario, senha, loja })
-        });
+          });
 
-        const dados = await resposta.json().catch(() => ({}));
+          const dados = await resposta.json().catch(() => ({}));
 
-        // Se o HTTP não for 2xx ou a API não retornar sucesso
-        if (!resposta.ok || !dados.sucesso) {
-            msg.textContent =
-                dados.message || "Usuário, senha ou loja inválidos.";
+          if (!resposta.ok || !dados.sucesso) {
+            msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
             msg.classList.add("erro");
             return;
-        }
+          }
 
-        // LOGIN OK
-        msg.textContent = "Login autorizado.";
-        msg.classList.add("sucesso");
+          // ✅ PERFIL vem da aba USUARIOS via API
+          const perfil = String(dados.perfil || "").trim().toUpperCase();
 
-        // ======== GRAVA SESSÃO NO LOCALSTORAGE ========
-        try {
+          msg.textContent = "Login autorizado.";
+          msg.classList.add("sucesso");
+
+          // ✅ Salva sessão completa para o menu decidir permissões
+          try {
             const sessao = {
-                usuario: dados.usuario || usuario,
-                loja: dados.loja || loja,
-                criadoEm: Date.now()
+              usuario: dados.usuario || usuario,
+              loja: dados.loja || loja,
+              perfil,              // <<<<<< AQUI
+              criadoEm: Date.now()
             };
-            localStorage.setItem("pppSession", JSON.stringify(sessao));
-        } catch (e) {
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessao));
+          } catch (e) {
             console.warn("Não foi possível salvar sessão no localStorage:", e);
+          }
+
+          // ✅ Agora abre a tela MENU
+          setTimeout(() => {
+            window.location.href = "/menu.html";
+          }, 300);
+
+        } catch (erro) {
+          console.error("Erro na requisição de login:", erro);
+          msg.textContent = "Erro de conexão com o servidor.";
+          msg.classList.add("erro");
         }
+      }
 
-        /*
-            Agora o painel NÃO depende mais de ?usuario=...&loja=...
-            Ele vai ler diretamente do localStorage (pppSession).
-        */
-        const destino = "/painel.html";
+      document.getElementById("btnEntrar").addEventListener("click", login);
 
-        setTimeout(() => {
-            window.location.href = destino;
-        }, 300);
-
-    } catch (erro) {
-        console.error("Erro na requisição de login:", erro);
-        msg.textContent = "Erro de conexão com o servidor.";
-        msg.classList.add("erro");
-    }
-}
-
-        // Associa o clique do botão à função de login
-        document.getElementById("btnEntrar").addEventListener("click", login);
-
-        // Opcional: permite enviar com Enter a partir de qualquer campo do formulário
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                login();
-            }
-        });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          login();
+        }
+      });
     </script>
 </body>
 </html>
