@@ -189,7 +189,7 @@
     }
 
     /* =========================================================
-       Dropdown genérico (Turnos / Gravidade) - mesmo padrão visual
+       Dropdown genérico (Turnos / Gravidade / Lojas)
        ========================================================= */
     .dd-wrap{
       position: relative;
@@ -260,6 +260,15 @@
       color: #555;
       margin-top: 8px;
       line-height: 1.35;
+    }
+
+    /* ============================
+       ✅ NOVO: painel de lojas maior e com scroll
+       ============================ */
+    .dd-panel.dd-lojas{
+      width: 320px;
+      max-height: 320px;
+      overflow: auto;
     }
 
     /* =========================================================
@@ -586,8 +595,7 @@
             </div>
 
             <!-- =========================================================
-                 ✅ NOVO: Filtro de GRAVIDADE (Leve/Média/Grave) - checkbox dropdown
-                 - Semelhante ao de turnos (solicitado)
+                 ✅ Filtro de GRAVIDADE (Leve/Média/Grave) - checkbox dropdown
                  ========================================================= -->
             <div class="dd-wrap" id="gravidadeWrap">
               <button type="button" class="btn-dd" id="btnGravidade" aria-haspopup="true" aria-expanded="false">
@@ -618,7 +626,26 @@
               </div>
             </div>
 
-            <select id="filtroBandeira" class="select-filter" onchange="carregar()">
+            <!-- =========================================================
+                 ✅ NOVO: Filtro de LOJAS (checkbox dropdown)
+                 Requisito:
+                 - Deve listar todas as lojas se Bandeira = TODOS
+                 - Deve listar apenas as lojas da bandeira se Bandeira = BIG ou ULT
+                 - Mesmo formato do filtro de Turnos
+                 ========================================================= -->
+            <div class="dd-wrap" id="lojaWrap">
+              <button type="button" class="btn-dd" id="btnLoja" aria-haspopup="true" aria-expanded="false">
+                Lojas ▾
+              </button>
+
+              <!-- Itens são montados dinamicamente em JS para obedecer ao filtro de bandeira -->
+              <div class="dd-panel dd-lojas" id="lojaPanel" role="menu" aria-label="Filtro de lojas">
+                <div class="hint">Carregando lojas...</div>
+              </div>
+            </div>
+
+            <!-- ✅ IMPORTANTE: trocar onchange direto por handler que também atualiza o filtro de lojas -->
+            <select id="filtroBandeira" class="select-filter" onchange="onBandeiraChange()">
               <option value="TODOS">Todos</option>
               <option value="BIG">BIG</option>
               <option value="ULT">ULT</option>
@@ -647,8 +674,7 @@
       </div>
 
       <!-- 2) Ocorrências por bandeira
-           ✅ SOLICITADO: segue todos os filtros EXCETO o filtro "Bandeira" (BIG/ULT),
-           pois este cartão precisa sempre mostrar as duas bandeiras. -->
+           ✅ segue todos os filtros EXCETO o filtro "Bandeira" (BIG/ULT) -->
       <div class="tile bandeira-tile">
         <h3>Ocorrências por bandeira</h3>
 
@@ -669,7 +695,9 @@
         </div>
       </div>
 
-      <!-- 3) Percentual por bandeira (mantido sem filtro) -->
+      <!-- 3) Percentual por bandeira
+           ✅ AGORA: deve seguir o número de "Ocorrências por bandeira"
+           => aceita todos os filtros, menos o filtro de bandeira -->
       <div class="tile">
         <h3>Percentual por bandeira</h3>
         <div class="canvas-wrap" style="height: 210px;">
@@ -725,6 +753,69 @@
     // Guarda o total em R$ das ocorrências filtradas para calcular participação
     let totalValorOcorrenciasAtual = 0;
 
+    /* =================================================================================
+       ✅ NOVO: Lista fixa de lojas (conforme você forneceu)
+       Observação: usamos "label" (texto exibido) e "bandeira" (BIG/ULT)
+       ================================================================================= */
+    const LOJAS_LISTA = [
+      { bandeira:"BIG", label:"BIG 01 - 106 NORTE" },
+      { bandeira:"BIG", label:"BIG 02 - 402 NORTE" },
+      { bandeira:"BIG", label:"BIG 03 - 413 SUL" },
+      { bandeira:"BIG", label:"BIG 04 - 301 SW" },
+      { bandeira:"BIG", label:"BIG 05 - 408 NORTE" },
+      { bandeira:"BIG", label:"BIG 06 - SIBERIA" },
+      { bandeira:"BIG", label:"BIG 08 - 503 SUL" },
+      { bandeira:"BIG", label:"BIG 09 - PENÍNSULA" },
+      { bandeira:"BIG", label:"BIG 10 - PAINEIRAS" },
+      { bandeira:"BIG", label:"BIG 11 - 310 NORTE" },
+      { bandeira:"BIG", label:"BIG 12 - 208 NORTE" },
+      { bandeira:"BIG", label:"BIG 13 - QI-05 L. NORTE" },
+      { bandeira:"BIG", label:"BIG 14 - 508 SUL" },
+      { bandeira:"BIG", label:"BIG 15 - 105 SW" },
+      { bandeira:"BIG", label:"BIG 16 - 512 SUL" },
+      { bandeira:"BIG", label:"BIG 17 - QI-11 LAGO SUL" },
+      { bandeira:"BIG", label:"BIG 18 - 211 NORTE" },
+      { bandeira:"BIG", label:"BIG 19 - CASTANHEIRA" },
+      { bandeira:"BIG", label:"BIG 20 - TAGUATINGA C1" },
+      { bandeira:"BIG", label:"BIG 21 - CNB12" },
+      { bandeira:"BIG", label:"BIG 22 - 102 NOROESTE" },
+      { bandeira:"BIG", label:"BIG 23 - QI-23 LAGO SUL" },
+      { bandeira:"BIG", label:"BIG 24 - 314 NORTE" },
+      { bandeira:"BIG", label:"BIG 25 - 410 SUL" },
+
+      { bandeira:"ULT", label:"ULT 01 - PLANALTINA" },
+      { bandeira:"ULT", label:"ULT 02 - GAMA" },
+      { bandeira:"ULT", label:"ULT 03 - COLORADO" },
+      { bandeira:"ULT", label:"ULT 04 - CEI SUL" },
+      { bandeira:"ULT", label:"ULT 05 - POLO JK" },
+      { bandeira:"ULT", label:"ULT 06 - SOBRADINHO" },
+      { bandeira:"ULT", label:"ULT 07 - ADE" },
+      { bandeira:"ULT", label:"ULT 08 - ARAPOANGA" },
+      { bandeira:"ULT", label:"ULT 09 - CEI NORTE" },
+      { bandeira:"ULT", label:"ULT 10 - ESTRUTURAL" },
+      { bandeira:"ULT", label:"ULT 11 - ITAPOA" },
+      { bandeira:"ULT", label:"ULT 12 - SAO SEBASTIAO" },
+      { bandeira:"ULT", label:"ULT 13 - RECANTO" },
+      { bandeira:"ULT", label:"ULT 14 - AGUAS LINDAS" },
+      { bandeira:"ULT", label:"ULT 15 - SOL NASCENTE" },
+      { bandeira:"ULT", label:"ULT 16 - PARANOA PARK" },
+      { bandeira:"ULT", label:"ULT 17 - SAMAMBAIA" },
+      { bandeira:"ULT", label:"ULT 18 - BRAZLANDIA" },
+      { bandeira:"ULT", label:"ULT 19 - VIA PARK" },
+      { bandeira:"ULT", label:"ULT 20 - TAGUATINGA" },
+      { bandeira:"ULT", label:"ULT 22 - VICENTE PIRES" },
+      { bandeira:"ULT", label:"ULT 23 - SANTA MARIA" },
+      { bandeira:"ULT", label:"ULT 25 - BRASILINHA" }
+    ];
+
+    // ✅ NOVO: guarda seleção das lojas (normalizadas em UPPER/TRIM)
+    let LOJAS_SELECIONADAS = new Set();
+
+    // Mapa de normalização para comparar com r.loja (tolerância simples)
+    function normLoja(s){
+      return String(s || "").trim().toUpperCase();
+    }
+
     function validarAcesso() {
       const dashOk = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim() === "1";
       const sessaoGestor = sessionStorage.getItem(STORAGE_KEY_GESTOR);
@@ -765,9 +856,10 @@
         });
       }
 
-      // ✅ Setup dos dropdowns (turnos + gravidade)
+      // ✅ Setup dos dropdowns (turnos + gravidade + lojas)
       setupFiltroTurno();
       setupFiltroGravidade();
+      setupFiltroLojas(); // ✅ NOVO
 
       carregar();
     });
@@ -821,7 +913,7 @@
       if (!ckManha || !ckTarde || !ckMadrugada) return;
 
       const onAnyChange = () => {
-        atualizarTituloTurno();   // ✅ regra nova aplicada
+        atualizarTituloTurno();
         carregar();
       };
 
@@ -839,12 +931,6 @@
       atualizarTituloTurno();
     }
 
-    /* =================================================================================
-       ✅ SOLICITADO: título dos Turnos
-       - 2 OU 3 marcados => "Turnos"
-       - 1 marcado => nome
-       - 0 marcado => "Nenhum"
-       ================================================================================= */
     function atualizarTituloTurno(){
       const btn = document.getElementById("btnTurno");
       const sel = obterTurnosSelecionados();
@@ -864,7 +950,7 @@
     }
 
     /* =================================================================================
-       ✅ NOVO: Filtro de Gravidade (Leve/Média/Grave)
+       ✅ Filtro de Gravidade
        ================================================================================= */
     function setupFiltroGravidade(){
       const ckLeve = document.getElementById("ckLeve");
@@ -892,10 +978,6 @@
       atualizarTituloGravidade();
     }
 
-    /* Título do filtro de gravidade (não foi especificado além de “semelhante”):
-       - 0: "Nenhuma"
-       - 1: "Leve"/"Média"/"Grave"
-       - 2 ou 3: "Gravidade" */
     function atualizarTituloGravidade(){
       const btn = document.getElementById("btnGravidade");
       const sel = obterGravidadesSelecionadas();
@@ -912,6 +994,157 @@
       else titulo = "Gravidade";
 
       btn.textContent = `${titulo} ▾`;
+    }
+
+    /* =================================================================================
+       ✅ NOVO: Filtro de Lojas (checkbox dropdown)
+       Regras:
+       - Se Bandeira = TODOS => lista completa (BIG + ULT)
+       - Se Bandeira = BIG/ULT => lista apenas daquela bandeira
+       - Seleção default: todas as lojas visíveis marcadas (evita “dashboard vazio” sem querer)
+       ================================================================================= */
+    function setupFiltroLojas(){
+      // monta lista inicial com base na bandeira atual (default "TODOS")
+      rebuildListaLojasPorBandeira({ keepSelection: false, selectAllVisible: true });
+
+      // dropdown (abre/fecha/clique fora) reutilizando helper
+      setupDropdown({
+        btnId: "btnLoja",
+        panelId: "lojaPanel",
+        wrapId: "lojaWrap",
+        onChange: () => {
+          // quando clicar na linha e togglar (helper), precisamos sincronizar seleção
+          sincronizarSelecaoLojasDoDOM();
+          atualizarTituloLojas();
+          carregar();
+        }
+      });
+
+      atualizarTituloLojas();
+    }
+
+    // handler chamado pelo onchange do select de bandeira
+    function onBandeiraChange(){
+      // 1) Rebuild do painel de lojas para obedecer à regra de visibilidade
+      // 2) Remove seleções invisíveis (evita “filtro fantasma”)
+      rebuildListaLojasPorBandeira({ keepSelection: true, selectAllVisible: false });
+
+      // 3) Recarrega dashboard
+      carregar();
+    }
+
+    function obterFiltroBandeiraAtual(){
+      return (document.getElementById("filtroBandeira")?.value || "TODOS").toUpperCase().trim();
+    }
+
+    function lojasVisiveisPelaBandeira(filtroBandeira){
+      if (filtroBandeira === "BIG") return LOJAS_LISTA.filter(x => x.bandeira === "BIG");
+      if (filtroBandeira === "ULT") return LOJAS_LISTA.filter(x => x.bandeira === "ULT");
+      return LOJAS_LISTA.slice(); // TODOS
+    }
+
+    function rebuildListaLojasPorBandeira({ keepSelection, selectAllVisible }){
+      const panel = document.getElementById("lojaPanel");
+      if (!panel) return;
+
+      const filtroB = obterFiltroBandeiraAtual();
+      const visiveis = lojasVisiveisPelaBandeira(filtroB);
+
+      // Se keepSelection, removemos do Set tudo o que não for mais visível
+      if (keepSelection) {
+        const setVis = new Set(visiveis.map(x => normLoja(x.label)));
+        LOJAS_SELECIONADAS = new Set([...LOJAS_SELECIONADAS].filter(k => setVis.has(k)));
+      }
+
+      // Se selectAllVisible, marca todas as visíveis
+      if (selectAllVisible) {
+        LOJAS_SELECIONADAS = new Set(visiveis.map(x => normLoja(x.label)));
+      }
+
+      // Monta HTML dos checkboxes
+      const html = [];
+      visiveis.forEach((loja, idx) => {
+        const id = `ckLoja_${loja.bandeira}_${idx}`;
+        const key = normLoja(loja.label);
+        const checked = LOJAS_SELECIONADAS.has(key) ? "checked" : "";
+        html.push(`
+          <div class="item">
+            <input type="checkbox" id="${id}" data-loja="${key}" ${checked} />
+            <label class="lbl" for="${id}">${loja.label}</label>
+          </div>
+        `);
+      });
+
+      html.push(`
+        <div class="hint">
+          Dica: este filtro respeita a Bandeira (TODOS/BIG/ULT).<br/>
+          Se desmarcar tudo, o dashboard ficará sem resultados.
+        </div>
+      `);
+
+      panel.innerHTML = html.join("");
+
+      // listeners de change nos checkboxes
+      panel.querySelectorAll('input[type="checkbox"][data-loja]').forEach((ck) => {
+        ck.addEventListener("change", () => {
+          const key = ck.getAttribute("data-loja");
+          if (!key) return;
+
+          if (ck.checked) LOJAS_SELECIONADAS.add(key);
+          else LOJAS_SELECIONADAS.delete(key);
+
+          atualizarTituloLojas();
+          carregar();
+        });
+      });
+
+      atualizarTituloLojas();
+    }
+
+    function sincronizarSelecaoLojasDoDOM(){
+      const panel = document.getElementById("lojaPanel");
+      if (!panel) return;
+      const set = new Set();
+      panel.querySelectorAll('input[type="checkbox"][data-loja]').forEach((ck) => {
+        const key = ck.getAttribute("data-loja");
+        if (key && ck.checked) set.add(key);
+      });
+      LOJAS_SELECIONADAS = set;
+    }
+
+    // Título do filtro de lojas, no padrão “turnos”:
+    // - 0 selecionadas => "Nenhuma"
+    // - 1 selecionada => abrevia (BIG 01 / ULT 01)
+    // - 2+ selecionadas => "Lojas"
+    function atualizarTituloLojas(){
+      const btn = document.getElementById("btnLoja");
+      if (!btn) return;
+
+      const sel = obterLojasSelecionadas();
+      const qtd = sel.size;
+
+      let titulo = "Lojas";
+      if (qtd === 0) titulo = "Nenhuma";
+      else if (qtd === 1) {
+        const unica = [...sel][0];
+        // tenta mostrar “BIG 01” / “ULT 01” se bater no padrão
+        const m = unica.match(/^(BIG|ULT)\s*(\d{1,2})\b/);
+        if (m) titulo = `${m[1]} ${String(parseInt(m[2],10)).padStart(2,"0")}`;
+        else titulo = "1 loja";
+      } else {
+        titulo = "Lojas";
+      }
+
+      btn.textContent = `${titulo} ▾`;
+    }
+
+    function obterLojasSelecionadas(){
+      // fallback seguro: se por algum motivo o set estiver vazio no init, considera visíveis todas
+      if (!LOJAS_SELECIONADAS || !(LOJAS_SELECIONADAS instanceof Set)) {
+        const vis = lojasVisiveisPelaBandeira(obterFiltroBandeiraAtual());
+        return new Set(vis.map(x => normLoja(x.label)));
+      }
+      return LOJAS_SELECIONADAS;
     }
 
     function chaveOcorrencia(r) {
@@ -1149,13 +1382,23 @@
         const turnosSel = obterTurnosSelecionados();
         const gravSel = obterGravidadesSelecionadas();
 
+        // ✅ NOVO: conjunto de lojas selecionadas (normalizadas)
+        const lojasSel = obterLojasSelecionadas();
+
         /* =================================================================================
            BASE 1 (para os gráficos/contadores que DEVEM obedecer ao filtro de BANDEIRA):
            - Bandeira (quando BIG/ULT)
+           - Lojas (novo)
            - Datas
            - Turnos
            ================================================================================= */
         const registrosBaseComBandeira = registros.filter(r => {
+          // (0) Lojas (novo)
+          {
+            const lojaKey = normLoja(r.loja);
+            if (!lojasSel.has(lojaKey)) return false;
+          }
+
           // (1) Bandeira (quando selecionado BIG/ULT)
           if (filtroBandeira === "BIG" || filtroBandeira === "ULT") {
             if (bandeiraPorLoja(r.loja) !== filtroBandeira) return false;
@@ -1185,12 +1428,20 @@
         });
 
         /* =================================================================================
-           BASE 2 (para o cartão "Ocorrências por Bandeira" que NÃO pode obedecer ao filtro de BANDEIRA):
+           BASE 2 (para o cartão "Ocorrências por Bandeira" e para o gráfico % por bandeira)
+           ✅ NÃO pode obedecer ao filtro de BANDEIRA
+           - Lojas (novo)
            - Datas
            - Turnos
            (sem filtroBandeira BIG/ULT)
            ================================================================================= */
         const registrosBaseSemBandeira = registros.filter(r => {
+          // (0) Lojas (novo)
+          {
+            const lojaKey = normLoja(r.loja);
+            if (!lojasSel.has(lojaKey)) return false;
+          }
+
           // (1) Datas (coluna R)
           if (dataInicio || dataFim) {
             const iso = dataOcorridoParaISO(r);
@@ -1247,7 +1498,7 @@
         });
 
         /* =================================================================================
-           B) OCORRÊNCIAS (COM FILTROS: bandeira + data + turno + gravidade)
+           B) OCORRÊNCIAS (COM FILTROS: lojas + bandeira + data + turno + gravidade)
            ================================================================================= */
         const setOccFiltradoTotal = new Set();
         for (const r of registrosFiltrados) {
@@ -1269,9 +1520,8 @@
 
         /* =================================================================================
            C) OCORRÊNCIAS POR BANDEIRA (SEM FILTRO DE BANDEIRA)
-              - segue datas + turnos + gravidade
+              - segue lojas + datas + turnos + gravidade
            ================================================================================= */
-        // 1) Valor total por ocorrência (na BASE SEM BANDEIRA)
         const valorPorOcorrenciaSemBandeira = new Map();
         for (const r of registrosBaseSemBandeira) {
           const k = chaveOcorrencia(r);
@@ -1287,14 +1537,14 @@
           );
         }
 
-        // 2) Ocorrências aprovadas pelo filtro de gravidade
+        // Ocorrências aprovadas pelo filtro de gravidade
         const occAprovadasSemBandeira = new Set();
         for (const [k, vTot] of valorPorOcorrenciaSemBandeira.entries()) {
           const classe = classificarGravidade(vTot);
           if (gravidadePassaFiltro(classe, gravSel)) occAprovadasSemBandeira.add(k);
         }
 
-        // 3) Conta por bandeira deduplicando por ocorrência
+        // Conta por bandeira deduplicando por ocorrência
         const occPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
         const valorPorBandeiraFiltrada = { BIG: 0, ULT: 0 };
 
@@ -1325,44 +1575,17 @@
         document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeiraFiltrada.ULT || 0);
 
         /* =================================================================================
-           D) Percentual por bandeira (mantido sem filtro)
+           D) Percentual por bandeira
+           ✅ SOLICITADO: deve seguir o número que está em "Ocorrências por bandeira"
+           => usa exatamente occPorBandeiraFiltrada (mesma base sem filtro de bandeira)
            ================================================================================= */
-        const occPorBandeira = { BIG: 0, ULT: 0 };
-
-        const valorPorOcorrenciaAll = new Map();
-        for (const r of registros) {
-          const k = chaveOcorrencia(r);
-          if (!k) continue;
-
-          const qtd = parseNumeroBr(r.quantidade);
-          const vUnit = parseNumeroBr(r.valorUnitario);
-          const totalLinha = qtd * vUnit;
-
-          valorPorOcorrenciaAll.set(
-            k,
-            (valorPorOcorrenciaAll.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
-          );
-        }
-
-        const setOccAll = new Set();
-        for (const r of registros) {
-          const k = chaveOcorrencia(r);
-          if (!k || setOccAll.has(k)) continue;
-          setOccAll.add(k);
-
-          const band = bandeiraPorLoja((r.loja || "").trim());
-          if (band) occPorBandeira[band] = (occPorBandeira[band] || 0) + 1;
-        }
-
-        renderPctBandeira(occPorBandeira.BIG || 0, occPorBandeira.ULT || 0);
+        renderPctBandeira(occPorBandeiraFiltrada.BIG || 0, occPorBandeiraFiltrada.ULT || 0);
 
         /* =================================================================================
-           E) GRAVIDADE (COM FILTROS: bandeira + data + turno + gravidade)
-              Obs: o gráfico deve refletir o conjunto filtrado atual.
+           E) GRAVIDADE (COM FILTROS: lojas + bandeira + data + turno + gravidade)
            ================================================================================= */
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
 
-        // contamos por ocorrência (dedup) e usamos o valor total por ocorrência
         for (const k of setOccFiltradoTotal.values()) {
           const vTot = Number(valorPorOcorrenciaComBandeira.get(k)) || 0;
           const classe = classificarGravidade(vTot);
@@ -1374,7 +1597,8 @@
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
         /* =================================================================================
-           F) Top 5 lojas / Dept / Top produtos (COM FILTROS: bandeira + data + turno + gravidade)
+           F) Top 5 lojas / Dept / Top produtos
+              (COM FILTROS: lojas + bandeira + data + turno + gravidade)
            ================================================================================= */
         const occPorLoja = new Map();
         const setOccFiltrado = new Set();
@@ -1511,12 +1735,6 @@
       const ctx = document.getElementById("chartDept");
       if (chartDept) chartDept.destroy();
 
-      /* =================================================================================
-         ✅ SOLICITADO: “dar uma margem maior” para não cortar rótulos (valores)
-         - adiciona padding à direita
-         - permite desenhar no padding (clip: false)
-         - clamp no limite do canvas
-         ================================================================================= */
       const valueAtEndPlugin = {
         id: "valueAtEndPlugin",
         afterDatasetsDraw(chart) {
@@ -1532,13 +1750,8 @@
 
           meta.data.forEach((bar, i) => {
             const val = chart.data.datasets[0].data[i];
-
-            // desenha após a barra (pode cair no padding)
             const xRaw = bar.x + 8;
-
-            // clamp para não “estourar” fora do canvas
             const x = Math.min(xRaw, chart.width - 8);
-
             ctx.fillText(String(val), x, bar.y);
           });
 
@@ -1554,16 +1767,14 @@
             label: "Ocorrências por departamento",
             data: values,
             backgroundColor: corBarra || "#A98AE8",
-            clip: false // ✅ permite desenhar no padding sem cortar
+            clip: false
           }]
         },
         options: {
           indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: { right: 46 } // ✅ margem maior para rótulos (solicitado)
-          },
+          layout: { padding: { right: 46 } },
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
             x: {
@@ -1594,8 +1805,6 @@
           const meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data) return;
 
-          // ✅ SOLICITADO #5: ao ocultar item na legenda, rótulo também some
-          // E a % deve considerar apenas os itens visíveis.
           const vis = [
             chart.getDataVisibility(0),
             chart.getDataVisibility(1)
@@ -1611,7 +1820,7 @@
           ctx.fillStyle = "#111";
 
           meta.data.forEach((arc, i) => {
-            if (!vis[i]) return; // ✅ não desenha rótulo do item oculto
+            if (!vis[i]) return;
             const val = Number(dataArr[i] || 0);
             const pct = totalVis > 0 ? (val * 100 / totalVis) : 0;
             const pos = arc.tooltipPosition();
@@ -1640,10 +1849,8 @@
             tooltip: {
               callbacks: {
                 label: (ctx) => {
-                  // tooltip pode continuar como está; ele já segue a visibilidade do item
                   const v = ctx.raw || 0;
 
-                  // total visível para coerência com as % desenhadas
                   const chart = ctx.chart;
                   const vis = [
                     chart.getDataVisibility(0),
@@ -1737,8 +1944,6 @@
           const meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data) return;
 
-          // ✅ SOLICITADO #5: ao ocultar item na legenda, rótulo também some
-          // E a % deve considerar apenas os itens visíveis.
           const vis = [
             chart.getDataVisibility(0),
             chart.getDataVisibility(1),
@@ -1755,7 +1960,7 @@
           ctx.fillStyle = "#fff";
 
           meta.data.forEach((arc, i) => {
-            if (!vis[i]) return; // ✅ não desenha rótulo do item oculto
+            if (!vis[i]) return;
             const val = Number(dataArr[i] || 0);
             const pct = totalVis > 0 ? (val * 100 / totalVis) : 0;
             const pos = arc.tooltipPosition();
