@@ -523,9 +523,9 @@
 <body>
   <div id="telaErro" class="tela-erro" style="display:none;">
     <h1>Acesso inválido</h1>
-    <!-- ✅ TEXTO AJUSTADO: agora aceita gestor OU menu -->
-    <p>Este dashboard só pode ser aberto pelo botão <b>Dashboard</b> no <b>Painel do Gestor</b> ou pelo botão <b>Dashboard ocorrências</b> no <b>Menu</b>.</p>
-    <p>Volte e tente novamente.</p>
+    <!-- ✅ AJUSTADO: agora permite Painel Gestor OU Menu -->
+    <p>Este dashboard só pode ser aberto pelo botão <b>Dashboard</b> dentro do <b>Painel do Gestor</b> ou pelo botão <b>Dashboard ocorrências</b> no <b>Menu</b>.</p>
+    <p>Volte para a tela correta e tente novamente.</p>
     <button class="btn btn-back" onclick="voltar()">Voltar</button>
   </div>
 
@@ -559,7 +559,9 @@
           <div class="filters-main">
             <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
 
-            <!-- ✅ Filtro de TURNOS (checkbox dropdown) -->
+            <!-- =========================================================
+                 ✅ Filtro de TURNOS (checkbox dropdown)
+                 ========================================================= -->
             <div class="dd-wrap" id="turnoWrap">
               <button type="button" class="btn-dd" id="btnTurno" aria-haspopup="true" aria-expanded="false">
                 Turnos ▾
@@ -589,7 +591,9 @@
               </div>
             </div>
 
-            <!-- ✅ Filtro de GRAVIDADE (Leve/Média/Grave) -->
+            <!-- =========================================================
+                 ✅ Filtro de GRAVIDADE (Leve/Média/Grave) - checkbox dropdown
+                 ========================================================= -->
             <div class="dd-wrap" id="gravidadeWrap">
               <button type="button" class="btn-dd" id="btnGravidade" aria-haspopup="true" aria-expanded="false">
                 Gravidade ▾
@@ -619,7 +623,10 @@
               </div>
             </div>
 
-            <!-- ✅ Filtro de LOJAS -->
+            <!-- =========================================================
+                 ✅ MODIFICADO: Filtro de LOJAS (checkbox dropdown)
+                 Agora inclui "BIG" e "ULT" NO TOPO (um abaixo do outro)
+                 ========================================================= -->
             <div class="dd-wrap" id="lojaWrap">
               <button type="button" class="btn-dd" id="btnLoja" aria-haspopup="true" aria-expanded="false">
                 Lojas ▾
@@ -720,12 +727,14 @@
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     const STORAGE_DASH_OK = "PPP_DASH_OK";
 
-    // ✅ NOVO: flag que permite abertura do dashboard via MENU
-    // (deve ser setada no clique do botão "Dashboard ocorrências" do menu)
-    const STORAGE_MENU_DASH_OK = "PPP_MENU_DASH_OK";
-
-    // ✅ Sessão do menu (já usada no seu projeto)
-    const LOCALSTORAGE_MENU_SESSION = "pppSession";
+    /* =============================================================================
+       ✅ NOVO (solicitado): suporte a entrada via MENU também
+       - Menu grava sessão em localStorage: "pppSession" (já existe no seu menu)
+       - Menu agora também setará PPP_DASH_OK = "MENU" e PPP_DASH_TS = Date.now()
+       ============================================================================= */
+    const STORAGE_KEY_MENU = "pppSession";    // localStorage (como no seu menu)
+    const STORAGE_DASH_TS  = "PPP_DASH_TS";   // sessionStorage (timestamp do clique)
+    const TTL_MS = 10 * 60 * 1000;            // 10 minutos de validade do clique (gate)
 
     let chartTopLojas = null;
     let chartDept = null;
@@ -798,48 +807,65 @@
       return String(s || "").trim().toUpperCase();
     }
 
-    /* =================================================================================
-       ✅ ALTERAÇÃO 1: VALIDAÇÃO DE ACESSO
-       Agora aceita:
-         A) Origem Painel Gestor: PPP_DASH_OK=1 + PPP_LOGIN_GESTOR com {usuario}
-         OU
-         B) Origem Menu: PPP_MENU_DASH_OK=1 + localStorage pppSession com {usuario, loja, perfil}
-       ================================================================================= */
+    /* =============================================================================
+       ✅ MODIFICADO (solicitado): validar acesso vindo de:
+       - Painel Gestor (fluxo antigo: PPP_DASH_OK = "1" e sessão PPP_LOGIN_GESTOR)
+       - Menu (novo: PPP_DASH_OK = "MENU" + PPP_DASH_TS e sessão localStorage pppSession)
+       Regras:
+       - PPP_DASH_OK precisa indicar "MENU" ou "1"/"GESTOR"
+       - PPP_DASH_TS precisa estar dentro do TTL (10 minutos) para liberar a primeira entrada
+       - Sessão correspondente precisa existir e ser válida
+       ============================================================================= */
     function validarAcesso() {
-      // --- Caminho A: veio do Painel do Gestor ---
-      const dashOkGestor = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim() === "1";
-      const sessaoGestorRaw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
+      const src = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim().toUpperCase();
+      const tsRaw = (sessionStorage.getItem(STORAGE_DASH_TS) || "").trim();
+      const ts = parseInt(tsRaw, 10);
 
-      let acessoGestor = false;
-      if (dashOkGestor && sessaoGestorRaw) {
+      // Gate temporal do clique (evita manter liberação indefinidamente)
+      const agora = Date.now();
+      const tsOk = Number.isFinite(ts) && ts > 0 && (agora - ts) <= TTL_MS;
+
+      // Se não tiver timestamp válido, nega (mais seguro).
+      // Observação: se o seu Painel Gestor ainda não seta PPP_DASH_TS, ajuste lá para setar.
+      if (!tsOk) return false;
+
+      // ---------- 1) Origem: Painel Gestor ----------
+      // Aceita "1" (compatibilidade) e "GESTOR" (caso você venha a usar depois)
+      if (src === "1" || src === "GESTOR") {
+        const sessaoGestor = sessionStorage.getItem(STORAGE_KEY_GESTOR);
+        if (!sessaoGestor) return false;
+
         try {
-          const obj = JSON.parse(sessaoGestorRaw);
-          acessoGestor = !!(obj && obj.usuario);
+          const obj = JSON.parse(sessaoGestor);
+          return !!(obj && obj.usuario);
         } catch (e) {
-          acessoGestor = false;
+          return false;
         }
       }
 
-      // --- Caminho B: veio do Menu ---
-      const dashOkMenu = (sessionStorage.getItem(STORAGE_MENU_DASH_OK) || "").trim() === "1";
-      const sessaoMenuRaw = localStorage.getItem(LOCALSTORAGE_MENU_SESSION);
-
-      let acessoMenu = false;
-      if (dashOkMenu && sessaoMenuRaw) {
+      // ---------- 2) Origem: Menu ----------
+      if (src === "MENU") {
         try {
-          const obj = JSON.parse(sessaoMenuRaw);
-          acessoMenu = !!(obj && obj.usuario && obj.loja && obj.perfil);
+          const raw = localStorage.getItem(STORAGE_KEY_MENU);
+          if (!raw) return false;
+          const obj = JSON.parse(raw);
+
+          // Mesma validação básica do menu
+          if (!obj || !obj.usuario || !obj.loja || !obj.perfil) return false;
+
+          // Mantém regra de perfis habilitados (coerente com seu menu)
+          const p = String(obj.perfil || "").trim().toUpperCase();
+          const permitido = (p === "GERENTE_PPP" || p === "ADMINISTRADOR" || p === "BASE_PPP");
+          return !!permitido;
         } catch (e) {
-          acessoMenu = false;
+          return false;
         }
       }
 
-      // ✅ Permitido se veio por QUALQUER UMA das duas origens autorizadas
-      return acessoGestor || acessoMenu;
+      return false;
     }
 
     function voltar() {
-      // Mantido: você não pediu para diferenciar "Voltar" por origem (menu/gestor)
       window.location.href = "/painel-gestor.html";
     }
 
@@ -869,7 +895,7 @@
       // Setup dos dropdowns (turnos + gravidade + lojas)
       setupFiltroTurno();
       setupFiltroGravidade();
-      setupFiltroLojas(); // ✅ MODIFICADO (mantido do seu código)
+      setupFiltroLojas(); // ✅ MODIFICADO
 
       carregar();
     });
@@ -1008,9 +1034,9 @@
 
     /* =================================================================================
        ✅ MODIFICADO: Filtro de Lojas com BIG/ULT no topo (um abaixo do outro)
-       (mantido exatamente como seu código atual)
        ================================================================================= */
     function setupFiltroLojas(){
+      // Seleção inicial: todas as lojas marcadas (mantém a lógica original de evitar dashboard vazio)
       LOJAS_SELECIONADAS = new Set(LOJAS_LISTA.map(x => normLoja(x.label)));
 
       rebuildListaLojasComBandeira();
@@ -1192,6 +1218,7 @@
       const usuario = (r.usuario || "").trim();
       const loja = (r.loja || "").trim();
 
+      // Mantido: chave usa data do registro (coluna A)
       const dataStr = (r.dataHora || "").split(" ")[0] || "";
       return `${documento}||${usuario}||${loja}||${dataStr}`;
     }
@@ -1762,10 +1789,6 @@
       });
     }
 
-    /* =================================================================================
-       ✅ ALTERAÇÃO 2 (parte A): remover rótulo quando fatia = 0
-       Aplica em "Percentual por bandeira"
-       ================================================================================= */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
       if (chartPctBandeira) chartPctBandeira.destroy();
@@ -1785,6 +1808,9 @@
           const dataArr = chart.data.datasets[0].data || [];
           const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
 
+          // ✅ SOLICITADO: se total for 0, não desenha nada
+          if (!(totalVis > 0)) return;
+
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -1796,14 +1822,10 @@
 
             const val = Number(dataArr[i] || 0);
 
-            // ✅ NOVO: se o valor for 0, não desenha rótulo
-            if (val <= 0) return;
+            // ✅ SOLICITADO: remove rótulo quando valor for 0
+            if (!(val > 0)) return;
 
-            const pct = totalVis > 0 ? (val * 100 / totalVis) : 0;
-
-            // (segurança adicional) se percent for 0, também não desenha
-            if (pct <= 0) return;
-
+            const pct = (val * 100 / totalVis);
             const pos = arc.tooltipPosition();
             ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
           });
@@ -1914,10 +1936,6 @@
       });
     }
 
-    /* =================================================================================
-       ✅ ALTERAÇÃO 2 (parte B): remover rótulo quando fatia = 0
-       Aplica no gráfico "Ocorrências" (Gravidade)
-       ================================================================================= */
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
       if (chartGravidade) chartGravidade.destroy();
@@ -1938,6 +1956,9 @@
           const dataArr = chart.data.datasets[0].data || [];
           const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
 
+          // ✅ SOLICITADO: se total for 0, não desenha nada
+          if (!(totalVis > 0)) return;
+
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -1949,14 +1970,10 @@
 
             const val = Number(dataArr[i] || 0);
 
-            // ✅ NOVO: se o valor for 0, não desenha rótulo
-            if (val <= 0) return;
+            // ✅ SOLICITADO: remove rótulo quando valor for 0
+            if (!(val > 0)) return;
 
-            const pct = totalVis > 0 ? (val * 100 / totalVis) : 0;
-
-            // (segurança adicional) se percent for 0, também não desenha
-            if (pct <= 0) return;
-
+            const pct = (val * 100 / totalVis);
             const pos = arc.tooltipPosition();
             ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
           });
@@ -2008,8 +2025,10 @@
   <!-- Fontes (documentação confiável) -->
   <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
   <!-- Chart.getDataVisibility: https://www.chartjs.org/docs/latest/developers/api.html#getdatavisibilityindex -->
-  <!-- Web Storage (sessionStorage/localStorage): https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API -->
-  <!-- localStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage -->
-  <!-- sessionStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage -->
+  <!-- Layout padding: https://www.chartjs.org/docs/latest/configuration/layout.html -->
+  <!-- input checkbox: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox -->
+  <!-- input date: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
+  <!-- Element.contains (clique fora): https://developer.mozilla.org/en-US/docs/Web/API/Node/contains -->
+  <!-- sessionStorage/localStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage -->
 </body>
 </html>
