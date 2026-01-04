@@ -623,9 +623,9 @@
   <div id="erroAcesso" class="tela-erro" style="display:none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
-      <p>Parâmetros de login do gerente não encontrados.</p>
-      <p>Volte para a tela inicial e realize o login novamente.</p>
-      <a href="/index.html" class="btn-voltar">Voltar</a>
+      <p>Você precisa fazer login para acessar o Painel Gerencial.</p>
+      <p>Clique em “Voltar para login” e realize o login novamente.</p>
+      <a href="/login.html" class="btn-voltar">Voltar para login</a>
     </div>
   </div>
 
@@ -1153,12 +1153,6 @@
             const vUnitNum = parseNumeroBr(r.valorUnitario);
             const totalNum = qtdNum * vUnitNum;
 
-            /* =========================================================
-               ✅ CORREÇÃO:
-               - Removido "_toggleDontCare = totalNum;"
-               Motivo: pode causar ReferenceError e/ou vazar variável global.
-               ========================================================= */
-
             totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -1167,11 +1161,6 @@
 
           const imageUrl = (r.imageUrl || r.imagemUrl || r.urlImagem || "").toString().trim();
 
-          /* =========================================================
-             ✅ SOLICITADO:
-             - Trocar o "Data/Hora" exibido para vir de R e S:
-               "DD/MM/AAAA HH:mm" (1 espaço).
-             ========================================================= */
           const dataHoraExibicao = dataHoraOcorridoConcatenada(r);
 
           return `
