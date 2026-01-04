@@ -4,17 +4,9 @@
 // - L (RELATORIO/OBSERVAÇÃO)
 // - M (QUANTIDADE)
 // - N (VALOR UNITARIO)
-//
-// ENV (mesmas do seu /api/relatorios):
-// GOOGLE_SERVICE_ACCOUNT_EMAIL
-// GOOGLE_PRIVATE_KEY
-// SPREADSHEET_ID
-//
-// Observação importante:
-// - A service account precisa ter permissão de "Editor" na planilha
-// - O escopo aqui é de ESCRITA (spreadsheets), não readonly.
 
 import { google } from "googleapis";
+import { requireSession } from "./_authUsuarios.js"; // ✅ NOVO
 
 const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
@@ -31,7 +23,6 @@ async function getSheetsClientWrite() {
   const auth = new google.auth.JWT({
     email: serviceAccountEmail,
     key: privateKey,
-    // ESCOPO DE ESCRITA:
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 
@@ -40,8 +31,6 @@ async function getSheetsClientWrite() {
 
 /**
  * Sanitiza valores que serão gravados.
- * - Mantém padrão "texto" para não mudar sua forma de armazenamento.
- * - Se você quiser gravar como número no Sheets, aí sim converteríamos para Number.
  */
 function limparTexto(v) {
   if (v === null || v === undefined) return "";
@@ -55,14 +44,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ sucesso: false, message: "Método não permitido." });
   }
 
+  // ✅ NOVO: exige sessão válida (8h via cookie)
+  const session = requireSession(req, res);
+  if (!session) return;
+
   try {
     const body = req.body || {};
 
-    // O front deve enviar:
-    // {
-    //   registroOriginal: { ... registro com id ... },
-    //   edicoes: { relatorio, quantidade, valorUnitario }
-    // }
     const registroOriginal = body.registroOriginal || null;
     const edicoes = body.edicoes || null;
 
@@ -70,8 +58,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ sucesso: false, message: "Payload inválido." });
     }
 
-    // Seu /api/relatorios expõe o ID como "id"
-    // então aceitamos: idRegistro | ID_REGISTRO | id
     const idRegistro =
       registroOriginal.idRegistro ||
       registroOriginal.ID_REGISTRO ||
@@ -85,15 +71,12 @@ export default async function handler(req, res) {
       });
     }
 
-    // Campos editáveis (somente estes)
     const novoRelatorio = limparTexto(edicoes.relatorio).trim();
     const novaQtd = limparTexto(edicoes.quantidade).trim();
     const novoValorUnit = limparTexto(edicoes.valorUnitario).trim();
 
     const sheets = await getSheetsClientWrite();
 
-    // 1) Ler coluna P (ID) para descobrir a linha exata
-    // P2:P (a partir da linha 2, pois linha 1 geralmente é cabeçalho)
     const rangeIds = "RELATORIO!P2:P";
     const respIds = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -101,13 +84,12 @@ export default async function handler(req, res) {
       valueRenderOption: "FORMATTED_VALUE",
     });
 
-    const rowsIds = respIds.data.values || []; // [[id1],[id2],...]
+    const rowsIds = respIds.data.values || [];
     let linhaPlanilha = null;
 
     for (let i = 0; i < rowsIds.length; i++) {
       const idNaLinha = (rowsIds[i]?.[0] ?? "").toString().trim();
       if (idNaLinha === String(idRegistro).trim()) {
-        // Linha real = 2 + i (porque P2 corresponde ao índice 0)
         linhaPlanilha = 2 + i;
         break;
       }
@@ -120,8 +102,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2) Atualizar L/M/N na linha encontrada
-    // L = Relatorio, M = Quantidade, N = Valor Unitario
     const rangeUpdate = `RELATORIO!L${linhaPlanilha}:N${linhaPlanilha}`;
 
     await sheets.spreadsheets.values.update({
