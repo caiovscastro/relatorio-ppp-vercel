@@ -6,7 +6,6 @@
   <title>PAINEL GERENTE PPP</title>
 
   <style>
-    /* ========= ESTILO GERAL DA PÁGINA ========= */
     body {
       background: #f3f3f3;
       font-family: Arial, sans-serif;
@@ -17,7 +16,6 @@
       align-items: center;
     }
 
-    /* ========= CARD PRINCIPAL (CONTAINER DO PAINEL) ========= */
     .container {
       width: 85%;
       max-width: 1100px;
@@ -27,7 +25,6 @@
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
     }
 
-    /* ========= CABEÇALHO ========= */
     .cabecalho {
       display: flex;
       justify-content: space-between;
@@ -44,7 +41,6 @@
       font-size: 22px;
     }
 
-    /* ========= CARDS DE RESUMO (QTD / VALOR / OCORRÊNCIAS) ========= */
     .resumo-cards {
       display: flex;
       flex-wrap: nowrap;
@@ -81,7 +77,6 @@
       color: #1a1a1a;
     }
 
-    /* ========= BLOCO DOS FILTROS ========= */
     .bloco-filtros {
       margin: 0 -4px 16px;
       padding: 14px;
@@ -135,12 +130,8 @@
     .campo-data-inicio { grid-area: dataInicio; }
     .campo-data-fim    { grid-area: dataFim; }
 
-    /* ========= BOTÕES DOS FILTROS ========= */
     .botoes-filtro {
       margin-top: 10px;
-
-      /* Mantém 4 colunas para:
-         Limpar | Dashboard | Exportar | Aplicar */
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px 10px;
@@ -157,11 +148,6 @@
       white-space: nowrap;
     }
 
-    /* =========================================================
-       PEDIDO #1:
-       - Diminuir o tamanho das fontes dos botões para caber no celular
-       (mantido exatamente como estava)
-       ========================================================= */
     .botoes-filtro .btn {
       width: 100%;
       font-size: 11px;
@@ -176,31 +162,12 @@
       }
     }
 
-    .btn-aplicar {
-      background: #0066ff;
-      color: #fff;
-    }
+    .btn-aplicar { background: #0066ff; color: #fff; }
+    .btn-limpar  { background: #e0e0e0; color: #333; }
+    .btn-exportar{ background: #4caf50; color: #fff; }
+    .btn-dashboard{ background: #6a5acd; color: #fff; }
+    .btn-dashboard:hover { filter: brightness(0.95); }
 
-    .btn-limpar {
-      background: #e0e0e0;
-      color: #333;
-    }
-
-    .btn-exportar {
-      background: #4caf50;
-      color: #fff;
-    }
-
-    .btn-dashboard {
-      background: #6a5acd;
-      color: #fff;
-    }
-
-    .btn-dashboard:hover {
-      filter: brightness(0.95);
-    }
-
-    /* ========= STATUS E LISTA DE CARTÕES ========= */
     .status {
       font-size: 13px;
       margin-bottom: 8px;
@@ -213,7 +180,6 @@
       overflow-y: auto;
     }
 
-    /* ========= CARTÃO DE CADA REGISTRO ========= */
     .cartao {
       background: #ffffff;
       border: 2px solid #3c9c46;
@@ -248,51 +214,27 @@
       min-width: 0;
     }
 
-    .cartao-pareado-loja {
-      grid-template-columns: 30% 70%;
-    }
+    .cartao-pareado-loja { grid-template-columns: 30% 70%; }
 
     .pareado-usuario { --gap-pareado: 1px; }
     .pareado-loja    { --gap-pareado: 1px; }
     .pareado-doc     { --gap-pareado: 0px; --doc-margin-left: 0px; }
 
-    .cartao-pareado:nth-child(2n) {
-      border-right: none;
-    }
+    .cartao-pareado:nth-child(2n) { border-right: none; }
 
     .cartao-pares-superior .cartao-pareado,
     .cartao-pares-inferior .cartao-pareado {
       background: #e9fbe9;
     }
 
-    .cartao-pares-superior .cartao-pareado {
-      padding: 6px 10px;
-    }
+    .cartao-pares-superior .cartao-pareado { padding: 6px 10px; }
+    .cartao-pares-inferior .cartao-pareado { padding: 4px 10px; }
+    .cartao-pares-inferior .pareado-doc { padding-left: 9px; }
 
-    .cartao-pares-inferior .cartao-pareado {
-      padding: 4px 10px;
-    }
+    .rotulo { font-weight: 700; color: #111; white-space: nowrap; }
+    .valor  { color: #111; word-break: break-word; }
 
-    .cartao-pares-inferior .pareado-doc {
-      padding-left: 9px;
-    }
-
-    .rotulo {
-      font-weight: 700;
-      color: #111;
-      white-space: nowrap;
-    }
-
-    .valor {
-      color: #111;
-      word-break: break-word;
-    }
-
-    .valor-compacto {
-      font-size: 10px;
-      white-space: nowrap;
-      line-height: 1.1;
-    }
+    .valor-compacto { font-size: 10px; white-space: nowrap; line-height: 1.1; }
 
     .valor-documento {
       margin-left: var(--doc-margin-left, 2px);
@@ -308,22 +250,15 @@
       cursor: default;
     }
 
-    .cartao-linha:last-of-type {
-      border-bottom: none;
-    }
+    .cartao-linha:last-of-type { border-bottom: none; }
 
     .cartao-linha-produto {
       background: #f5f5f5;
       font-weight: 700;
     }
 
-    .cartao-separador {
-      border-top: 1px solid #c7c7c7;
-    }
-
-    .cartao-divisoria {
-      border-top: 1px solid #c7c7c7;
-    }
+    .cartao-separador { border-top: 1px solid #c7c7c7; }
+    .cartao-divisoria { border-top: 1px solid #c7c7c7; }
 
     .cartao-observacao {
       padding: 10px 12px 10px;
@@ -333,16 +268,8 @@
       cursor: default;
     }
 
-    .cartao-observacao .obs-titulo {
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: #111;
-    }
-
-    .cartao-observacao .obs-texto {
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+    .cartao-observacao .obs-titulo { font-weight: 700; margin-bottom: 6px; color: #111; }
+    .cartao-observacao .obs-texto  { white-space: pre-wrap; word-break: break-word; }
 
     .cartao-actions {
       display: flex;
@@ -366,9 +293,7 @@
       cursor: pointer;
     }
 
-    .btn-excluir:hover {
-      background: #d32f2f;
-    }
+    .btn-excluir:hover { background: #d32f2f; }
 
     .btn-editar {
       padding: 5px 10px;
@@ -381,9 +306,7 @@
       cursor: pointer;
     }
 
-    .btn-editar:hover {
-      background: #e68900;
-    }
+    .btn-editar:hover { background: #e68900; }
 
     .valor-total-linha {
       margin-left: 18px;
@@ -393,7 +316,6 @@
       white-space: nowrap;
     }
 
-    /* ========= RODAPÉ DO PAINEL ========= */
     .rodape {
       margin-top: 12px;
       display: flex;
@@ -412,7 +334,6 @@
       font-weight: 600;
     }
 
-    /* ========= TELA DE ERRO (ACESSO SEM LOGIN) ========= */
     .tela-erro {
       display: flex;
       align-items: center;
@@ -431,12 +352,8 @@
       text-align: center;
     }
 
-    .card-erro h1 {
-      color: #c00000;
-      margin-top: 0;
-    }
+    .card-erro h1 { color: #c00000; margin-top: 0; }
 
-    /* ========= MODAIS ========= */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -458,16 +375,8 @@
       font-size: 14px;
     }
 
-    .modal-titulo {
-      font-weight: 600;
-      margin-bottom: 8px;
-      font-size: 16px;
-    }
-
-    .modal-texto {
-      margin-bottom: 18px;
-      color: #333;
-    }
+    .modal-titulo { font-weight: 600; margin-bottom: 8px; font-size: 16px; }
+    .modal-texto  { margin-bottom: 18px; color: #333; }
 
     .modal-botoes {
       display: flex;
@@ -489,17 +398,9 @@
       text-align: center;
     }
 
-    .btn-modal-sim {
-      background: #4caf50;
-      color: #fff;
-    }
+    .btn-modal-sim { background: #4caf50; color: #fff; }
+    .btn-modal-cancelar { background: #e0e0e0; color: #333; }
 
-    .btn-modal-cancelar {
-      background: #e0e0e0;
-      color: #333;
-    }
-
-    /* ========= OVERLAY DE CARREGAMENTO 0–100% ========= */
     #loadingOverlay {
       position: fixed;
       inset: 0;
@@ -535,16 +436,9 @@
       transition: width 0.15s linear;
     }
 
-    .loading-percent {
-      margin-top: 6px;
-      font-weight: 600;
-    }
+    .loading-percent { margin-top: 6px; font-weight: 600; }
 
-    /* ========= MODAL DE EDIÇÃO ========= */
-    .modal-form {
-      text-align: left;
-      margin-top: 10px;
-    }
+    .modal-form { text-align: left; margin-top: 10px; }
 
     .modal-form .form-group {
       display: flex;
@@ -554,10 +448,7 @@
       font-size: 13px;
     }
 
-    .modal-form label {
-      font-weight: 700;
-      color: #111;
-    }
+    .modal-form label { font-weight: 700; color: #111; }
 
     .modal-form input,
     .modal-form textarea {
@@ -576,17 +467,9 @@
       white-space: pre-wrap;
     }
 
-    .btn-modal-salvar {
-      background: #0066ff;
-      color: #fff;
-    }
+    .btn-modal-salvar { background: #0066ff; color: #fff; }
+    .btn-modal-descartar { background: #e0e0e0; color: #333; }
 
-    .btn-modal-descartar {
-      background: #e0e0e0;
-      color: #333;
-    }
-
-    /* ========= Miniatura + link Abrir imagem ========= */
     .imagem-mini-wrap {
       display: inline-flex;
       align-items: center;
@@ -619,7 +502,6 @@
 </head>
 
 <body>
-  <!-- ========= TELA DE ERRO SE ACESSAR SEM LOGIN DO GESTOR ========= -->
   <div id="erroAcesso" class="tela-erro" style="display:none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
@@ -629,7 +511,6 @@
     </div>
   </div>
 
-  <!-- ========= CONTEÚDO PRINCIPAL DO PAINEL ========= -->
   <div id="appRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
@@ -637,7 +518,6 @@
       </div>
     </div>
 
-    <!-- Cards de resumo: Qtd. Itens, Valor total e Ocorrências -->
     <div class="resumo-cards">
       <div class="card-resumo">
         <div class="resumo-titulo">Quantidade</div>
@@ -653,7 +533,6 @@
       </div>
     </div>
 
-    <!-- Bloco de filtros com inputs e botões -->
     <div class="bloco-filtros">
       <h3>Filtros</h3>
 
@@ -706,7 +585,6 @@
     </div>
 
     <div class="status" id="status">Carregando relatórios...</div>
-
     <div class="lista-cartoes" id="listaCartoes"></div>
 
     <div class="rodape">
@@ -715,7 +593,6 @@
     </div>
   </div>
 
-  <!-- ========= MODAL DE CONFIRMAÇÃO DO DOWNLOAD ========= -->
   <div id="modalDownload" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar download</div>
@@ -727,7 +604,6 @@
     </div>
   </div>
 
-  <!-- ========= MODAL DE CONFIRMAÇÃO DE EXCLUSÃO ========= -->
   <div id="modalExcluir" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar exclusão</div>
@@ -739,7 +615,6 @@
     </div>
   </div>
 
-  <!-- ========= MODAL DE CONFIRMAÇÃO DE EDIÇÃO ========= -->
   <div id="modalEditarConfirm" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar edição</div>
@@ -751,7 +626,6 @@
     </div>
   </div>
 
-  <!-- ========= MODAL FORMULÁRIO DE EDIÇÃO ========= -->
   <div id="modalEditarForm" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar registro</div>
@@ -780,7 +654,6 @@
     </div>
   </div>
 
-  <!-- ========= OVERLAY DE CARREGAMENTO 0–100% ========= -->
   <div id="loadingOverlay">
     <div class="loading-box">
       <div>Carregando relatórios...</div>
@@ -791,12 +664,12 @@
     </div>
   </div>
 
-  <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     const STORAGE_DASH_OK = "PPP_DASH_OK";
+    const STORAGE_DASH_TS  = "PPP_DASH_TS";
 
     let usuarioLogado = null;
     let registrosBase = [];
@@ -808,9 +681,29 @@
     let registroParaExcluir = null;
     let registroParaEditar = null;
 
-    /* =========================================================
-       Dashboard (mantido)
-       ========================================================= */
+    /* =============================================================================
+       ✅ NOVO: header X-PPP-Session + credentials para APIs
+       ============================================================================= */
+    function b64EncodeUnicode(str) {
+      try {
+        return btoa(unescape(encodeURIComponent(str)));
+      } catch (e) {
+        return btoa(str);
+      }
+    }
+
+    function getAuthHeaders() {
+      try {
+        const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
+        if (!raw) return {};
+        const obj = JSON.parse(raw);
+        if (!obj || !obj.usuario) return {};
+        return { "X-PPP-Session": b64EncodeUnicode(JSON.stringify(obj)) };
+      } catch (e) {
+        return {};
+      }
+    }
+
     function abrirDashboard() {
       const u = String(usuarioLogado || "").trim().toLowerCase();
 
@@ -826,12 +719,12 @@
 
       try {
         sessionStorage.setItem(STORAGE_DASH_OK, "1");
+        sessionStorage.setItem(STORAGE_DASH_TS, String(Date.now())); // ✅ CORREÇÃO: sem isso o dashboard bloqueia
       } catch (e) {}
 
       window.location.href = "/dashboard.html";
     }
 
-    /* ========= CONTROLE DO CARREGAMENTO (0–100%) ========= */
     function iniciarProgresso() {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
@@ -871,17 +764,6 @@
       }, 200);
     }
 
-    /* =========================================================
-       ✅ AJUSTE SOLICITADO:
-       - Data/Hora do painel NÃO vem mais da coluna A.
-       - Agora deve vir de R (dataOcorrido) e S (horaOcorrido),
-         concatenadas: "DD/MM/AAAA HH:mm" (apenas 1 espaço).
-       - Todos os filtros de data devem usar SOMENTE a data de R.
-       ========================================================= */
-
-    /**
-     * Converte "DD/MM/AAAA" (coluna R) -> "AAAA-MM-DD" (para comparar com input type="date").
-     */
     function dataBRParaISO(dataBR) {
       const s = String(dataBR || "").trim();
       if (!s) return "";
@@ -891,9 +773,6 @@
       return `${yyyy}-${mm}-${dd}`;
     }
 
-    /**
-     * Normaliza hora para "HH:mm" (se vier "HH:mm:ss", remove os segundos).
-     */
     function normalizarHoraHHMM(horaStr) {
       const s = String(horaStr || "").trim();
       if (!s) return "";
@@ -904,10 +783,6 @@
       return `${hh}:${mm}`;
     }
 
-    /**
-     * Retorna "DD/MM/AAAA HH:mm" usando R e S.
-     * (Se faltar algo, retorna "-" para não quebrar UI.)
-     */
     function dataHoraOcorridoConcatenada(reg) {
       const dataBR = String(reg?.dataOcorrido || "").trim();
       const hora = normalizarHoraHHMM(reg?.horaOcorrido || "");
@@ -917,14 +792,12 @@
       return `${dataBR} ${hora}`;
     }
 
-    /* ========= FILTRAGEM LOCAL ========= */
     function filtrarLocal() {
       const lojaFiltro = document.getElementById("filtroLoja").value.trim().toLowerCase();
       const usuarioFiltro = document.getElementById("filtroUsuario").value.trim().toLowerCase();
       const docFiltro = document.getElementById("filtroDocumento").value.trim();
       const depFiltro = document.getElementById("filtroDepartamento").value.trim().toUpperCase();
 
-      // inputs type="date" retornam "YYYY-MM-DD"
       const dataInicio = document.getElementById("dataInicio").value;
       const dataFim = document.getElementById("dataFim").value;
 
@@ -934,16 +807,9 @@
         if (docFiltro && reg.documento !== docFiltro) return false;
         if (depFiltro && reg.departamento.toUpperCase() !== depFiltro) return false;
 
-        /* =========================================================
-           ✅ SOLICITADO:
-           - Filtro de data usa SOMENTE coluna R (dataOcorrido).
-           Estratégia:
-           - converte "DD/MM/AAAA" -> "AAAA-MM-DD"
-           - compara como string, porque ISO ordena corretamente.
-           ========================================================= */
         if (dataInicio || dataFim) {
           const isoReg = dataBRParaISO(reg.dataOcorrido);
-          if (!isoReg) return false; // se não tem data_ocorrido, não entra no filtro
+          if (!isoReg) return false;
 
           if (dataInicio && isoReg < dataInicio) return false;
           if (dataFim && isoReg > dataFim) return false;
@@ -953,7 +819,6 @@
       });
     }
 
-    /* ========= INICIALIZAÇÃO ========= */
     document.addEventListener("DOMContentLoaded", () => {
       const raw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
@@ -985,9 +850,9 @@
     function logoutGestor() {
       sessionStorage.removeItem(STORAGE_KEY_GESTOR);
       try { sessionStorage.removeItem(STORAGE_DASH_OK); } catch (e) {}
+      try { sessionStorage.removeItem(STORAGE_DASH_TS); } catch (e) {}
     }
 
-    /* ========= PARSE DE NÚMERO BR ========= */
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined) return 0;
       let s = String(valor).trim();
@@ -1005,7 +870,13 @@
       iniciarProgresso();
       try {
         statusEl.textContent = "Carregando relatórios...";
-        const resp = await fetch("/api/relatorios");
+
+        const resp = await fetch("/api/relatorios", {
+          method: "GET",
+          headers: { ...getAuthHeaders() },
+          credentials: "include"
+        });
+
         const dados = await resp.json();
 
         if (!resp.ok || !dados.sucesso) {
@@ -1034,13 +905,7 @@
 
         const usuario = (r.usuario || "").trim();
         const loja = (r.loja || "").trim();
-
-        /* =========================================================
-           ✅ SOLICITADO:
-           - A “data” que entra na chave de ocorrência também deve vir de R
-             (para não ficar inconsistência com filtros/visual).
-           ========================================================= */
-        const dataStr = String(r.dataOcorrido || "").trim(); // R (DD/MM/AAAA) — sem hora
+        const dataStr = String(r.dataOcorrido || "").trim();
 
         const chave = `${documento}||${usuario}||${loja}||${dataStr}`;
         setOcorrencias.add(chave);
@@ -1160,7 +1025,6 @@
           }
 
           const imageUrl = (r.imageUrl || r.imagemUrl || r.urlImagem || "").toString().trim();
-
           const dataHoraExibicao = dataHoraOcorridoConcatenada(r);
 
           return `
@@ -1243,12 +1107,8 @@
                     : ``
                 }
 
-                <button class="btn-editar" onclick="event.stopPropagation(); abrirModalEditar(${index})">
-                  Editar
-                </button>
-                <button class="btn-excluir" onclick="event.stopPropagation(); abrirModalExcluir(${index})">
-                  Excluir
-                </button>
+                <button class="btn-editar" onclick="event.stopPropagation(); abrirModalEditar(${index})">Editar</button>
+                <button class="btn-excluir" onclick="event.stopPropagation(); abrirModalExcluir(${index})">Excluir</button>
               </div>
             </div>
           `;
@@ -1308,7 +1168,8 @@
         statusEl.textContent = "Excluindo registro...";
         const resp = await fetch("/api/relatorios-excluir", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+          credentials: "include",
           body: JSON.stringify(payload),
         });
 
@@ -1385,7 +1246,8 @@
 
         const resp = await fetch("/api/relatorios-editar", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+          credentials: "include",
           body: JSON.stringify(payload),
         });
 
@@ -1433,8 +1295,8 @@
         "Valor unitário",
         "Valor total (Qtd x Unit)",
         "Documento",
-        "Data ocorrido", // R
-        "Hora ocorrido"  // S
+        "Data ocorrido",
+        "Hora ocorrido"
       ];
 
       const linhas = registros.map((r) => {
@@ -1458,8 +1320,8 @@
           vUnitNum,
           totalNum || 0,
           r.documento || "",
-          r.dataOcorrido || "", // coluna R
-          r.horaOcorrido || ""  // coluna S
+          r.dataOcorrido || "",
+          r.horaOcorrido || ""
         ];
       });
 
