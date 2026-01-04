@@ -1,232 +1,249 @@
-// /api/_authUsuarios.js
-import { GoogleSpreadsheet } from "google-spreadsheet";
-import { JWT } from "google-auth-library";
+// api/_authUsuarios.js
+//
+// Objetivo: validação de sessão no backend.
+//
+// Modo recomendado (seguro):
+// - Defina a env SESSION_SECRET (string forte) para habilitar cookie assinado.
+// - Sua API de login deve setar o cookie ppp_session usando createSessionCookie() (opcional).
+//
+// Modo compatibilidade (não recomendado):
+// - Se você ainda não implementou cookie assinado no login,
+//   você pode permitir sessão via header "X-PPP-Session" (base64 do JSON),
+//   habilitando ALLOW_INSECURE_SESSION=true.
+//
+// Segurança (por que isso importa):
+// - Bloqueio em HTML (sessionStorage/localStorage) é fácil de burlar.
+// - Proteção correta: endpoints /api devem rejeitar chamadas sem sessão válida.
+
 import crypto from "crypto";
 
-// =============================================================================
-// 1) GOOGLE SHEETS - ENV (com fallback para seus nomes diferentes)
-// =============================================================================
-function getSheetsEnv() {
-  const serviceAccountEmail =
-    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
-    process.env.GOOGLE_SERVICE_EMAIL ||
-    process.env.GOOGLE_SERVICE_ACCOUNT ||
-    process.env.GOOGLE_EMAIL;
+const COOKIE_NAME = "ppp_session";
 
-  const privateKeyRaw =
-    process.env.GOOGLE_PRIVATE_KEY ||
-    process.env.GOOGLE_PRIVATE_KEY_RAW ||
-    process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-
-  const sheetId =
-    process.env.SPREADSHEET_ID ||
-    process.env.GOOGLE_SHEET_ID ||
-    process.env.GOOGLE_SHEETID ||
-    process.env.GOOGLE_PLANILHA_ID;
-
-  if (!serviceAccountEmail || !privateKeyRaw || !sheetId) {
-    throw new Error(
-      "ENV Google incompleta. Defina GOOGLE_SERVICE_ACCOUNT_EMAIL (ou GOOGLE_SERVICE_EMAIL), " +
-      "GOOGLE_PRIVATE_KEY e SPREADSHEET_ID (ou GOOGLE_SHEET_ID)."
-    );
-  }
-
-  const privateKey = String(privateKeyRaw).replace(/\\n/g, "\n");
-  return { serviceAccountEmail, privateKey, sheetId };
+function envBool(name, def = false) {
+  const v = String(process.env[name] || "").trim().toLowerCase();
+  if (!v) return def;
+  return v === "1" || v === "true" || v === "yes" || v === "on";
 }
-
-// =============================================================================
-// 2) SESSÃO - CONFIG
-// =============================================================================
-const SESSION_COOKIE_NAME = "ppp_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8; // 8 horas
 
 function getSessionSecret() {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret || String(secret).trim().length < 32) {
-    // 32+ recomendado para HMAC forte
-    throw new Error(
-      "SESSION_SECRET ausente/fraco. Crie uma env SESSION_SECRET com pelo menos 32 caracteres."
-    );
-  }
-  return String(secret);
+  const s = String(process.env.SESSION_SECRET || "").trim();
+  return s || null;
 }
 
-function base64urlEncode(input) {
-  const buf = Buffer.isBuffer(input) ? input : Buffer.from(String(input));
-  return buf
+function b64urlEncode(buf) {
+  return Buffer.from(buf)
     .toString("base64")
     .replace(/=/g, "")
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
 }
 
-function base64urlDecodeToString(b64url) {
-  const b64 = String(b64url).replace(/-/g, "+").replace(/_/g, "/");
-  const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
-  return Buffer.from(b64 + pad, "base64").toString("utf8");
+function b64urlDecode(str) {
+  const s = String(str || "").replace(/-/g, "+").replace(/_/g, "/");
+  const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
+  return Buffer.from(s + pad, "base64");
 }
 
-// Token assinado simples: payloadB64url + "." + sigB64url(HMAC(payloadB64url))
-function signToken(payloadObj) {
-  const secret = getSessionSecret();
-  const payloadJson = JSON.stringify(payloadObj);
-  const payloadB64 = base64urlEncode(payloadJson);
-
-  const sig = crypto
-    .createHmac("sha256", secret)
-    .update(payloadB64)
-    .digest();
-
-  const sigB64 = base64urlEncode(sig);
-  return `${payloadB64}.${sigB64}`;
-}
-
-function verifyToken(token) {
-  try {
-    const secret = getSessionSecret();
-    if (!token || typeof token !== "string") return null;
-
-    const parts = token.split(".");
-    if (parts.length !== 2) return null;
-
-    const [payloadB64, sigB64] = parts;
-
-    const expectedSig = crypto
-      .createHmac("sha256", secret)
-      .update(payloadB64)
-      .digest();
-
-    const expectedSigB64 = base64urlEncode(expectedSig);
-
-    // comparação resistente a timing attacks
-    const a = Buffer.from(sigB64);
-    const b = Buffer.from(expectedSigB64);
-    if (a.length !== b.length) return null;
-    if (!crypto.timingSafeEqual(a, b)) return null;
-
-    const payloadJson = base64urlDecodeToString(payloadB64);
-    const payload = JSON.parse(payloadJson);
-
-    // exp em segundos (epoch)
-    const now = Math.floor(Date.now() / 1000);
-    if (!payload?.exp || now >= payload.exp) return null;
-
-    return payload;
-  } catch (e) {
-    return null;
-  }
+function safeJsonParse(s) {
+  try { return JSON.parse(s); } catch (e) { return null; }
 }
 
 function parseCookies(req) {
-  const header = req.headers?.cookie;
+  const header = req?.headers?.cookie;
   const out = {};
   if (!header) return out;
 
-  header.split(";").forEach((pair) => {
-    const idx = pair.indexOf("=");
-    if (idx === -1) return;
-    const k = pair.slice(0, idx).trim();
-    const v = pair.slice(idx + 1).trim();
+  const parts = header.split(";");
+  for (const p of parts) {
+    const idx = p.indexOf("=");
+    if (idx === -1) continue;
+    const k = p.slice(0, idx).trim();
+    const v = p.slice(idx + 1).trim();
     out[k] = decodeURIComponent(v);
-  });
-
+  }
   return out;
 }
 
-function isProduction(req) {
-  // Em Vercel normalmente NODE_ENV=production.
-  if (process.env.NODE_ENV === "production") return true;
+function setCookie(res, name, value, opts = {}) {
+  const {
+    httpOnly = true,
+    secure = true,
+    sameSite = "Lax",
+    path = "/",
+    maxAgeSec = 60 * 60 * 8, // 8h
+    domain
+  } = opts;
 
-  // fallback
-  const proto = req.headers?.["x-forwarded-proto"];
-  return proto === "https";
-}
+  let cookie = `${name}=${encodeURIComponent(value)}; Path=${path}; Max-Age=${maxAgeSec}; SameSite=${sameSite}`;
+  if (httpOnly) cookie += "; HttpOnly";
+  if (secure) cookie += "; Secure";
+  if (domain) cookie += `; Domain=${domain}`;
 
-function buildSetCookie(value, req, maxAgeSeconds) {
-  const secure = isProduction(req) ? " Secure;" : "";
-  return (
-    `${SESSION_COOKIE_NAME}=${encodeURIComponent(value)};` +
-    ` Max-Age=${maxAgeSeconds};` +
-    ` Path=/;` +
-    ` HttpOnly;` +
-    ` SameSite=Lax;` +
-    secure
-  );
-}
-
-// =============================================================================
-// 3) EXPORTS - LEITURA DE USUÁRIOS
-// =============================================================================
-export async function lerUsuariosDaPlanilha() {
-  try {
-    const { serviceAccountEmail, privateKey, sheetId } = getSheetsEnv();
-
-    const serviceAccountAuth = new JWT({
-      email: serviceAccountEmail,
-      key: privateKey,
-      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-    });
-
-    const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
-    await doc.loadInfo();
-
-    const aba = doc.sheetsByTitle["USUARIOS"];
-    if (!aba) throw new Error("Aba 'USUARIOS' não encontrada");
-
-    const linhas = await aba.getRows();
-
-    return linhas.map((l) => ({
-      usuario: String(l["USUARIO"] || "").trim().toLowerCase(),
-      senha: String(l["SENHA"] || "").trim(),
-      loja: String(l["LOJAS"] || "").trim().toLowerCase(),
-      perfil: String(l["PERFIL"] || "").trim().toUpperCase(),
-    }));
-  } catch (e) {
-    console.error("Erro ao ler usuários:", e);
-    return [];
+  const prev = res.getHeader("Set-Cookie");
+  if (!prev) {
+    res.setHeader("Set-Cookie", cookie);
+  } else if (Array.isArray(prev)) {
+    res.setHeader("Set-Cookie", [...prev, cookie]);
+  } else {
+    res.setHeader("Set-Cookie", [prev, cookie]);
   }
 }
 
-// =============================================================================
-// 4) EXPORTS - SESSÃO
-// =============================================================================
-export function createSessionCookie(req, res, { usuario, loja, perfil }) {
-  const now = Math.floor(Date.now() / 1000);
-  const payload = {
-    usuario: String(usuario || "").trim(),
-    loja: String(loja || "").trim(),
-    perfil: String(perfil || "").trim(),
-    iat: now,
-    exp: now + SESSION_MAX_AGE_SECONDS,
-  };
+function clearCookie(res, name) {
+  const cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly; Secure`;
+  const prev = res.getHeader("Set-Cookie");
+  if (!prev) res.setHeader("Set-Cookie", cookie);
+  else if (Array.isArray(prev)) res.setHeader("Set-Cookie", [...prev, cookie]);
+  else res.setHeader("Set-Cookie", [prev, cookie]);
+}
 
-  const token = signToken(payload);
-  res.setHeader("Set-Cookie", buildSetCookie(token, req, SESSION_MAX_AGE_SECONDS));
+function signToken(payloadObj, secret) {
+  const header = { alg: "HS256", typ: "JWT" };
+  const headerB64 = b64urlEncode(Buffer.from(JSON.stringify(header)));
+  const payloadB64 = b64urlEncode(Buffer.from(JSON.stringify(payloadObj)));
+  const data = `${headerB64}.${payloadB64}`;
+  const sig = crypto.createHmac("sha256", secret).update(data).digest();
+  const sigB64 = b64urlEncode(sig);
+  return `${data}.${sigB64}`;
+}
+
+function verifyToken(token, secret) {
+  const t = String(token || "").trim();
+  const parts = t.split(".");
+  if (parts.length !== 3) return null;
+
+  const [h, p, s] = parts;
+  const data = `${h}.${p}`;
+  const sigExpected = crypto.createHmac("sha256", secret).update(data).digest();
+  const sigGot = b64urlDecode(s);
+
+  if (sigGot.length !== sigExpected.length) return null;
+  if (!crypto.timingSafeEqual(sigGot, sigExpected)) return null;
+
+  const payloadBuf = b64urlDecode(p);
+  const payload = safeJsonParse(payloadBuf.toString("utf8"));
+  if (!payload) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  if (payload.exp && Number(payload.exp) < now) return null;
+
   return payload;
 }
 
-export function clearSessionCookie(req, res) {
-  // expira agora
-  const expired = buildSetCookie("", req, 0);
-  res.setHeader("Set-Cookie", expired);
+function normalizeProfile(p) {
+  return String(p || "").trim().toUpperCase();
 }
 
-export function getSessionFromRequest(req) {
-  const cookies = parseCookies(req);
-  const token = cookies[SESSION_COOKIE_NAME];
-  return verifyToken(token);
-}
+function decodeHeaderSession(req) {
+  const raw =
+    req?.headers?.["x-ppp-session"] ||
+    req?.headers?.["X-PPP-Session"];
 
-// Guard padrão para APIs: se não tiver sessão -> 401
-export function requireSession(req, res) {
-  const session = getSessionFromRequest(req);
-  if (!session) {
-    res.status(401).json({
-      sucesso: false,
-      message: "Sessão inválida ou expirada. Efetue login novamente.",
-    });
-    return null;
+  if (!raw) return null;
+
+  // Pode vir base64 unicode do front
+  const s = String(raw).trim();
+  let jsonStr = "";
+
+  try {
+    jsonStr = Buffer.from(s, "base64").toString("utf8");
+  } catch (e) {
+    jsonStr = s;
   }
+
+  const obj = safeJsonParse(jsonStr);
+  if (!obj) return null;
+
+  // Normaliza campos esperados
+  const session = {
+    usuario: obj.usuario || obj.user || obj.login || "",
+    loja: obj.loja || obj.store || "",
+    perfil: obj.perfil || obj.profile || "",
+    origem: obj.origem || obj.source || ""
+  };
+
+  if (!session.usuario) return null;
   return session;
+}
+
+export function createSessionCookie(res, session, opts = {}) {
+  const secret = getSessionSecret();
+  if (!secret) throw new Error("SESSION_SECRET não configurado.");
+
+  const now = Math.floor(Date.now() / 1000);
+  const ttlSec = Number(opts.ttlSec || (60 * 60 * 8)); // 8h
+
+  const payload = {
+    usuario: session?.usuario || "",
+    loja: session?.loja || "",
+    perfil: normalizeProfile(session?.perfil || ""),
+    iat: now,
+    exp: now + ttlSec
+  };
+
+  if (!payload.usuario) throw new Error("Sessão inválida: usuario ausente.");
+
+  const token = signToken(payload, secret);
+
+  setCookie(res, COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Lax",
+    path: "/",
+    maxAgeSec: ttlSec
+  });
+
+  return payload;
+}
+
+export function destroySessionCookie(res) {
+  clearCookie(res, COOKIE_NAME);
+}
+
+export function requireSession(req, res, options = {}) {
+  const { allowedProfiles } = options;
+
+  // 1) Modo seguro: cookie assinado
+  const secret = getSessionSecret();
+  if (secret) {
+    const cookies = parseCookies(req);
+    const token = cookies[COOKIE_NAME];
+    if (token) {
+      const payload = verifyToken(token, secret);
+      if (payload && payload.usuario) {
+        if (Array.isArray(allowedProfiles) && allowedProfiles.length > 0) {
+          const p = normalizeProfile(payload.perfil);
+          const ok = allowedProfiles.map(normalizeProfile).includes(p);
+          if (!ok) {
+            res.status(403).json({ sucesso: false, message: "Sessão sem permissão para este acesso." });
+            return null;
+          }
+        }
+        return payload;
+      }
+    }
+  }
+
+  // 2) Modo compatibilidade: header X-PPP-Session
+  // Só permite se ALLOW_INSECURE_SESSION=true
+  if (envBool("ALLOW_INSECURE_SESSION", false)) {
+    const s = decodeHeaderSession(req);
+    if (s) {
+      if (Array.isArray(allowedProfiles) && allowedProfiles.length > 0) {
+        const p = normalizeProfile(s.perfil);
+        const ok = allowedProfiles.map(normalizeProfile).includes(p);
+        if (!ok) {
+          res.status(403).json({ sucesso: false, message: "Sessão sem permissão para este acesso." });
+          return null;
+        }
+      }
+      return s;
+    }
+  }
+
+  res.status(401).json({
+    sucesso: false,
+    message: "Sessão inválida ou ausente. Faça login novamente."
+  });
+  return null;
 }
