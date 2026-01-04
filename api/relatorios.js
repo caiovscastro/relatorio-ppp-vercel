@@ -1,42 +1,6 @@
-// API/relatorios.js
-// Lista os registros da aba RELATORIO com filtros opcionais.
-//
-// Variáveis de ambiente (Vercel):
-// GOOGLE_SERVICE_ACCOUNT_EMAIL
-// GOOGLE_PRIVATE_KEY
-// SPREADSHEET_ID
-//
-// Colunas esperadas em RELATORIO (A:S):
-// A  DATA/HORA REGISTRO
-// B  LOJA
-// C  USUARIO
-// D  EAN
-// E  COD CONSINCO
-// F  PRODUTO
-// G  DEPARTAMENTO
-// H  SECAO
-// I  GRUPO
-// J  SUBGRUPO
-// K  CATEGORIA
-// L  RELATORIO/OBSERVACAO
-// M  QUANTIDADE
-// N  VALOR UNITARIO
-// O  DOCUMENTO
-// P  ID
-// Q  IMAGEM_URL
-// R  DATA_OCORRIDO
-// S  HORA_OCORRIDO
-//
-// Ajustes aplicados (neste arquivo):
-// 1) Range A2:S (inclui R e S) - mantido.
-// 2) Retorna dataOcorrido (R) e horaOcorrido (S) - mantido.
-// 3) normalizarHoraHHMM - mantido.
-// 4) Filtro por dataInicio/dataFim usa DATA_OCORRIDO (R) - mantido.
-// 5) ✅ CORREÇÃO: filtro por data por comparação de strings ISO (YYYY-MM-DD),
-//    evitando bugs de timezone/parsing do Date em ambiente serverless.
-// 6) ✅ CORREÇÃO: se faltar env vars, retorna 500 (fail-fast) com mensagem clara.
-
+// api/relatorios.js
 import { google } from "googleapis";
+import { requireSession } from "./_authUsuarios.js"; // ✅ NOVO: valida sessão
 
 const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
@@ -89,6 +53,10 @@ export default async function handler(req, res) {
     res.setHeader("Allow", "GET");
     return res.status(405).json({ sucesso: false, message: "Método não permitido." });
   }
+
+  // ✅ NOVO: exige sessão válida (8h via cookie)
+  const session = requireSession(req, res);
+  if (!session) return;
 
   // ✅ Fail-fast de variáveis de ambiente
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
@@ -146,7 +114,6 @@ export default async function handler(req, res) {
       const horaOcorridoNorm = normalizarHoraHHMM(horaOcorridoCol);
 
       return {
-        // Mantém compatibilidade com seu front atual
         dataHora: dataHora || "",
         loja: lojaCol || "",
         usuario: usuarioCol || "",
@@ -168,20 +135,16 @@ export default async function handler(req, res) {
 
         imageUrl: imagemUrlCol || "",
 
-        // Novos campos
-        dataOcorrido: dataOcorridoCol || "",       // "DD/MM/AAAA"
-        horaOcorrido: horaOcorridoNorm || "",      // "HH:mm"
+        dataOcorrido: dataOcorridoCol || "",  // "DD/MM/AAAA"
+        horaOcorrido: horaOcorridoNorm || "", // "HH:mm"
       };
     });
 
-    // Filtros normalizados
     const lojaFiltro = String(loja).trim().toLowerCase();
     const usuarioFiltro = String(usuario).trim().toLowerCase();
     const docFiltro = String(documento).trim();
     const depFiltro = String(departamento).trim().toUpperCase();
 
-    // ✅ Datas vindas do querystring já são ISO (YYYY-MM-DD).
-    // Vamos comparar com ISO gerado a partir de R (DD/MM/AAAA).
     const iniISO = String(dataInicio || "").trim(); // "" ou "YYYY-MM-DD"
     const fimISO = String(dataFim || "").trim();    // "" ou "YYYY-MM-DD"
 
@@ -191,7 +154,6 @@ export default async function handler(req, res) {
       if (docFiltro && String(reg.documento || "") !== docFiltro) return false;
       if (depFiltro && String(reg.departamento || "").toUpperCase() !== depFiltro) return false;
 
-      // ✅ Filtro de datas por string ISO (estável e sem timezone)
       if (iniISO || fimISO) {
         const regISO = dataBRParaISO(reg.dataOcorrido); // "YYYY-MM-DD"
         if (!regISO) return false;
@@ -207,6 +169,7 @@ export default async function handler(req, res) {
       sucesso: true,
       total: filtrados.length,
       registros: filtrados,
+      // opcional (debug): session: { usuario: session.usuario, loja: session.loja, perfil: session.perfil }
     });
   } catch (erro) {
     console.error("Erro em /api/relatorios:", erro);
