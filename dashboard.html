@@ -523,8 +523,9 @@
 <body>
   <div id="telaErro" class="tela-erro" style="display:none;">
     <h1>Acesso inválido</h1>
-    <p>Este dashboard só pode ser aberto pelo botão <b>Dashboard</b> dentro do Painel do Gestor.</p>
-    <p>Volte para a tela do Gestor e tente novamente.</p>
+    <!-- ✅ TEXTO AJUSTADO: agora aceita gestor OU menu -->
+    <p>Este dashboard só pode ser aberto pelo botão <b>Dashboard</b> no <b>Painel do Gestor</b> ou pelo botão <b>Dashboard ocorrências</b> no <b>Menu</b>.</p>
+    <p>Volte e tente novamente.</p>
     <button class="btn btn-back" onclick="voltar()">Voltar</button>
   </div>
 
@@ -558,9 +559,7 @@
           <div class="filters-main">
             <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
 
-            <!-- =========================================================
-                 ✅ Filtro de TURNOS (checkbox dropdown)
-                 ========================================================= -->
+            <!-- ✅ Filtro de TURNOS (checkbox dropdown) -->
             <div class="dd-wrap" id="turnoWrap">
               <button type="button" class="btn-dd" id="btnTurno" aria-haspopup="true" aria-expanded="false">
                 Turnos ▾
@@ -590,9 +589,7 @@
               </div>
             </div>
 
-            <!-- =========================================================
-                 ✅ Filtro de GRAVIDADE (Leve/Média/Grave) - checkbox dropdown
-                 ========================================================= -->
+            <!-- ✅ Filtro de GRAVIDADE (Leve/Média/Grave) -->
             <div class="dd-wrap" id="gravidadeWrap">
               <button type="button" class="btn-dd" id="btnGravidade" aria-haspopup="true" aria-expanded="false">
                 Gravidade ▾
@@ -622,10 +619,7 @@
               </div>
             </div>
 
-            <!-- =========================================================
-                 ✅ MODIFICADO: Filtro de LOJAS (checkbox dropdown)
-                 Agora inclui "BIG" e "ULT" NO TOPO (um abaixo do outro)
-                 ========================================================= -->
+            <!-- ✅ Filtro de LOJAS -->
             <div class="dd-wrap" id="lojaWrap">
               <button type="button" class="btn-dd" id="btnLoja" aria-haspopup="true" aria-expanded="false">
                 Lojas ▾
@@ -726,6 +720,13 @@
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     const STORAGE_DASH_OK = "PPP_DASH_OK";
 
+    // ✅ NOVO: flag que permite abertura do dashboard via MENU
+    // (deve ser setada no clique do botão "Dashboard ocorrências" do menu)
+    const STORAGE_MENU_DASH_OK = "PPP_MENU_DASH_OK";
+
+    // ✅ Sessão do menu (já usada no seu projeto)
+    const LOCALSTORAGE_MENU_SESSION = "pppSession";
+
     let chartTopLojas = null;
     let chartDept = null;
     let chartPctBandeira = null;
@@ -797,20 +798,48 @@
       return String(s || "").trim().toUpperCase();
     }
 
+    /* =================================================================================
+       ✅ ALTERAÇÃO 1: VALIDAÇÃO DE ACESSO
+       Agora aceita:
+         A) Origem Painel Gestor: PPP_DASH_OK=1 + PPP_LOGIN_GESTOR com {usuario}
+         OU
+         B) Origem Menu: PPP_MENU_DASH_OK=1 + localStorage pppSession com {usuario, loja, perfil}
+       ================================================================================= */
     function validarAcesso() {
-      const dashOk = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim() === "1";
-      const sessaoGestor = sessionStorage.getItem(STORAGE_KEY_GESTOR);
-      if (!dashOk || !sessaoGestor) return false;
+      // --- Caminho A: veio do Painel do Gestor ---
+      const dashOkGestor = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim() === "1";
+      const sessaoGestorRaw = sessionStorage.getItem(STORAGE_KEY_GESTOR);
 
-      try {
-        const obj = JSON.parse(sessaoGestor);
-        return !!(obj && obj.usuario);
-      } catch (e) {
-        return false;
+      let acessoGestor = false;
+      if (dashOkGestor && sessaoGestorRaw) {
+        try {
+          const obj = JSON.parse(sessaoGestorRaw);
+          acessoGestor = !!(obj && obj.usuario);
+        } catch (e) {
+          acessoGestor = false;
+        }
       }
+
+      // --- Caminho B: veio do Menu ---
+      const dashOkMenu = (sessionStorage.getItem(STORAGE_MENU_DASH_OK) || "").trim() === "1";
+      const sessaoMenuRaw = localStorage.getItem(LOCALSTORAGE_MENU_SESSION);
+
+      let acessoMenu = false;
+      if (dashOkMenu && sessaoMenuRaw) {
+        try {
+          const obj = JSON.parse(sessaoMenuRaw);
+          acessoMenu = !!(obj && obj.usuario && obj.loja && obj.perfil);
+        } catch (e) {
+          acessoMenu = false;
+        }
+      }
+
+      // ✅ Permitido se veio por QUALQUER UMA das duas origens autorizadas
+      return acessoGestor || acessoMenu;
     }
 
     function voltar() {
+      // Mantido: você não pediu para diferenciar "Voltar" por origem (menu/gestor)
       window.location.href = "/painel-gestor.html";
     }
 
@@ -840,7 +869,7 @@
       // Setup dos dropdowns (turnos + gravidade + lojas)
       setupFiltroTurno();
       setupFiltroGravidade();
-      setupFiltroLojas(); // ✅ MODIFICADO
+      setupFiltroLojas(); // ✅ MODIFICADO (mantido do seu código)
 
       carregar();
     });
@@ -979,16 +1008,9 @@
 
     /* =================================================================================
        ✅ MODIFICADO: Filtro de Lojas com BIG/ULT no topo (um abaixo do outro)
-       Regras implementadas:
-       - Sem "Todas"
-       - BIG/ULT no TOPO, um abaixo do outro
-       - Marcar BIG => marca todas BIG
-       - Marcar ULT => marca todas ULT
-       - Se desmarcar 1 loja => checkbox da bandeira fica desmarcado
-       - Checkbox de bandeira só fica checked quando TODAS as lojas daquela bandeira estão marcadas
+       (mantido exatamente como seu código atual)
        ================================================================================= */
     function setupFiltroLojas(){
-      // Seleção inicial: todas as lojas marcadas (mantém a lógica original de evitar dashboard vazio)
       LOJAS_SELECIONADAS = new Set(LOJAS_LISTA.map(x => normLoja(x.label)));
 
       rebuildListaLojasComBandeira();
@@ -1008,9 +1030,6 @@
       atualizarTituloLojas();
     }
 
-    // Cria lista:
-    // (TOPO) [BIG] (linha 1) + [ULT] (linha 2)
-    // Depois: lojas BIG, depois lojas ULT
     function rebuildListaLojasComBandeira(){
       const panel = document.getElementById("lojaPanel");
       if (!panel) return;
@@ -1020,7 +1039,6 @@
 
       const html = [];
 
-      // ======== TOPO: BIG e ULT um abaixo do outro ========
       html.push(`
         <div class="item" style="border-bottom: 1px solid #eee;">
           <input type="checkbox" id="ckBand_BIG" data-band="BIG" />
@@ -1032,10 +1050,8 @@
         </div>
       `);
 
-      // Pequeno separador visual (não altera comportamento)
       html.push(`<div class="hint" style="margin-top:6px; margin-bottom:6px;">Selecione BIG/ULT para marcar/desmarcar todas as lojas da bandeira.</div>`);
 
-      // Lojas BIG
       html.push(`<div class="hint" style="margin-top:6px; font-weight:800;">Lojas BIG</div>`);
       big.forEach((loja, idx) => {
         const id = `ckLoja_BIG_${idx}`;
@@ -1049,7 +1065,6 @@
         `);
       });
 
-      // Lojas ULT
       html.push(`<div class="hint" style="margin-top:10px; font-weight:800;">Lojas ULT</div>`);
       ult.forEach((loja, idx) => {
         const id = `ckLoja_ULT_${idx}`;
@@ -1072,7 +1087,6 @@
 
       panel.innerHTML = html.join("");
 
-      // 1) Listener: change das lojas
       panel.querySelectorAll('input[type="checkbox"][data-loja]').forEach((ck) => {
         ck.addEventListener("change", () => {
           const key = ck.getAttribute("data-loja");
@@ -1087,7 +1101,6 @@
         });
       });
 
-      // 2) Listener: change do BIG/ULT (select-all por bandeira)
       panel.querySelectorAll('input[type="checkbox"][id^="ckBand_"]').forEach((ckBand) => {
         ckBand.addEventListener("change", () => {
           const band = (ckBand.getAttribute("data-band") || "").toUpperCase().trim();
@@ -1113,7 +1126,6 @@
       atualizarTituloLojas();
     }
 
-    // Atualiza BIG/ULT: checked somente quando TODAS as lojas da bandeira estão marcadas
     function atualizarChecksBandeira(){
       const panel = document.getElementById("lojaPanel");
       if (!panel) return;
@@ -1145,10 +1157,6 @@
       LOJAS_SELECIONADAS = set;
     }
 
-    // Título do filtro de lojas:
-    // - 0 selecionadas => "Nenhuma"
-    // - 1 selecionada => abrevia (BIG 01 / ULT 01)
-    // - 2+ selecionadas => "Lojas"
     function atualizarTituloLojas(){
       const btn = document.getElementById("btnLoja");
       if (!btn) return;
@@ -1184,7 +1192,6 @@
       const usuario = (r.usuario || "").trim();
       const loja = (r.loja || "").trim();
 
-      // Mantido: chave usa data do registro (coluna A)
       const dataStr = (r.dataHora || "").split(" ")[0] || "";
       return `${documento}||${usuario}||${loja}||${dataStr}`;
     }
@@ -1229,9 +1236,6 @@
       return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
-    /* =================================================================================
-       Filtro de datas considera a COLUNA R (DATA_OCORRIDO)
-       ================================================================================= */
     function dataOcorridoParaISO(r) {
       const raw =
         (r && (r.dataOcorrido || r.data_ocorrido || r.DATA_OCORRIDO || r["DATA_OCORRIDO"])) || "";
@@ -1249,9 +1253,6 @@
       return "";
     }
 
-    /* =================================================================================
-       Turnos pela COLUNA S (HORA_OCORRIDO)
-       ================================================================================= */
     function horaOcorridoParaMinutos(r) {
       const raw =
         (r && (r.horaOcorrido || r.hora_ocorrido || r.HORA_OCORRIDO || r["HORA_OCORRIDO"])) || "";
@@ -1313,7 +1314,6 @@
       };
     }
 
-    /* Classificação de gravidade (mantém a mesma regra do gráfico atual) */
     function classificarGravidade(valorTotalOcorrencia){
       const v = Number(valorTotalOcorrencia) || 0;
       if (v >= 500) return "GRAVE";
@@ -1409,23 +1409,14 @@
         const turnosSel = obterTurnosSelecionados();
         const gravSel = obterGravidadesSelecionadas();
 
-        // ✅ Lojas selecionadas (base principal do dashboard)
         const lojasSel = obterLojasSelecionadas();
 
-        /* =================================================================================
-           BASE PRINCIPAL (COM filtro de lojas)
-           - Lojas
-           - Datas
-           - Turnos
-           ================================================================================= */
         const registrosBase = registros.filter(r => {
-          // (0) Lojas
           {
             const lojaKey = normLoja(r.loja);
             if (!lojasSel.has(lojaKey)) return false;
           }
 
-          // (1) Datas (coluna R)
           if (dataInicio || dataFim) {
             const iso = dataOcorridoParaISO(r);
             if (!iso) return false;
@@ -1433,7 +1424,6 @@
             if (dataFim && iso > dataFim) return false;
           }
 
-          // (2) Turnos (coluna S)
           {
             const min = horaOcorridoParaMinutos(r);
             if (min === null) return false;
@@ -1448,13 +1438,7 @@
           return true;
         });
 
-        /* =================================================================================
-           BASE BANDEIRA (IGNORA filtro de lojas e bandeira)
-           - SOMENTE: Datas + Turnos
-           - Gravidade será aplicada em nível de ocorrência (com os dados dessa base)
-           ================================================================================= */
         const registrosBaseBandeira = registros.filter(r => {
-          // (1) Datas (coluna R)
           if (dataInicio || dataFim) {
             const iso = dataOcorridoParaISO(r);
             if (!iso) return false;
@@ -1462,7 +1446,6 @@
             if (dataFim && iso > dataFim) return false;
           }
 
-          // (2) Turnos (coluna S)
           {
             const min = horaOcorridoParaMinutos(r);
             if (min === null) return false;
@@ -1477,10 +1460,7 @@
           return true;
         });
 
-        /* =================================================================================
-           A) Valor total por OCORRÊNCIA (BASE PRINCIPAL) + filtro gravidade por ocorrência
-           ================================================================================= */
-        const valorPorOcorrencia = new Map(); // chave => soma R$ (linhas)
+        const valorPorOcorrencia = new Map();
         for (const r of registrosBase) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
@@ -1506,9 +1486,6 @@
           return k && occAprovadas.has(k);
         });
 
-        /* =================================================================================
-           B) OCORRÊNCIAS (COM FILTROS: lojas + data + turno + gravidade)
-           ================================================================================= */
         const setOccFiltradoTotal = new Set();
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
@@ -1527,12 +1504,7 @@
         totalValorOcorrenciasAtual = somaValorOcorrenciasFiltradas;
         atualizarParticipacao();
 
-        /* =================================================================================
-           C) OCORRÊNCIAS POR BANDEIRA (IGNORA filtro de lojas/bandeira)
-              - base: registrosBaseBandeira
-              - aplica gravidade em nível de ocorrência (com valorPorOcorrenciaBandeira)
-           ================================================================================= */
-        const valorPorOcorrenciaBandeira = new Map(); // chave => soma R$ (linhas)
+        const valorPorOcorrenciaBandeira = new Map();
         for (const r of registrosBaseBandeira) {
           const k = chaveOcorrencia(r);
           if (!k) continue;
@@ -1561,10 +1533,8 @@
           const k = chaveOcorrencia(r);
           if (!k) continue;
 
-          // gravidade (pela base sem lojas)
           if (!occAprovadasBandeira.has(k)) continue;
 
-          // dedup ocorrência
           if (setOccBandeira.has(k)) continue;
           setOccBandeira.add(k);
 
@@ -1582,14 +1552,8 @@
         document.getElementById("valorBIG").textContent = formatarBRL(valorPorBandeiraFiltrada.BIG || 0);
         document.getElementById("valorULT").textContent = formatarBRL(valorPorBandeiraFiltrada.ULT || 0);
 
-        /* =================================================================================
-           D) Percentual por bandeira (segue EXATAMENTE o cartão)
-           ================================================================================= */
         renderPctBandeira(occPorBandeiraFiltrada.BIG || 0, occPorBandeiraFiltrada.ULT || 0);
 
-        /* =================================================================================
-           E) GRAVIDADE (COM FILTROS: lojas + data + turno + gravidade)
-           ================================================================================= */
         let qtdLeve = 0, qtdMedia = 0, qtdGrave = 0;
 
         for (const k of setOccFiltradoTotal.values()) {
@@ -1602,10 +1566,6 @@
 
         renderGravidade(qtdLeve, qtdMedia, qtdGrave);
 
-        /* =================================================================================
-           F) Top 5 lojas / Dept / Top produtos
-              (COM FILTROS: lojas + data + turno + gravidade)
-           ================================================================================= */
         const occPorLoja = new Map();
         const setOccFiltrado = new Set();
 
@@ -1622,7 +1582,6 @@
         const topLabels = top.map(([loja]) => abreviarLojaParaTop5(loja));
         const topValues = top.map(([,qtd]) => qtd);
 
-        // Dept: conta "em quantas ocorrências o departamento aparece"
         const deptPorOcorrencia = new Map();
         for (const r of registrosFiltrados) {
           const k = chaveOcorrencia(r);
@@ -1641,7 +1600,6 @@
         const deptLabels = deptOrdenado.map(([d]) => d);
         const deptValues = deptOrdenado.map(([,q]) => q);
 
-        // Top produtos (por registro)
         const registrosPorProduto = new Map();
         for (const r of registrosFiltrados) {
           const prod = (r.produto || "N/I").toString().trim() || "N/I";
@@ -1652,7 +1610,6 @@
         const prodLabels = topProd.map(([p]) => abreviarProduto(p));
         const prodValues = topProd.map(([,q]) => q);
 
-        // ✅ Cor: se estiver "somente ULT" (nenhuma BIG selecionada), usa verde; senão mantém roxo
         const COR_DEPT_PADRAO = "#A98AE8";
         const COR_ULT = "#43A047";
 
@@ -1805,6 +1762,10 @@
       });
     }
 
+    /* =================================================================================
+       ✅ ALTERAÇÃO 2 (parte A): remover rótulo quando fatia = 0
+       Aplica em "Percentual por bandeira"
+       ================================================================================= */
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
       if (chartPctBandeira) chartPctBandeira.destroy();
@@ -1832,8 +1793,17 @@
 
           meta.data.forEach((arc, i) => {
             if (!vis[i]) return;
+
             const val = Number(dataArr[i] || 0);
+
+            // ✅ NOVO: se o valor for 0, não desenha rótulo
+            if (val <= 0) return;
+
             const pct = totalVis > 0 ? (val * 100 / totalVis) : 0;
+
+            // (segurança adicional) se percent for 0, também não desenha
+            if (pct <= 0) return;
+
             const pos = arc.tooltipPosition();
             ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
           });
@@ -1944,6 +1914,10 @@
       });
     }
 
+    /* =================================================================================
+       ✅ ALTERAÇÃO 2 (parte B): remover rótulo quando fatia = 0
+       Aplica no gráfico "Ocorrências" (Gravidade)
+       ================================================================================= */
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
       if (chartGravidade) chartGravidade.destroy();
@@ -1972,8 +1946,17 @@
 
           meta.data.forEach((arc, i) => {
             if (!vis[i]) return;
+
             const val = Number(dataArr[i] || 0);
+
+            // ✅ NOVO: se o valor for 0, não desenha rótulo
+            if (val <= 0) return;
+
             const pct = totalVis > 0 ? (val * 100 / totalVis) : 0;
+
+            // (segurança adicional) se percent for 0, também não desenha
+            if (pct <= 0) return;
+
             const pos = arc.tooltipPosition();
             ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
           });
@@ -2025,9 +2008,8 @@
   <!-- Fontes (documentação confiável) -->
   <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
   <!-- Chart.getDataVisibility: https://www.chartjs.org/docs/latest/developers/api.html#getdatavisibilityindex -->
-  <!-- Layout padding: https://www.chartjs.org/docs/latest/configuration/layout.html -->
-  <!-- input checkbox: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox -->
-  <!-- input date: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
-  <!-- Element.closest/contains (clique fora): https://developer.mozilla.org/en-US/docs/Web/API/Node/contains -->
+  <!-- Web Storage (sessionStorage/localStorage): https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API -->
+  <!-- localStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage -->
+  <!-- sessionStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage -->
 </body>
 </html>
