@@ -122,6 +122,11 @@
   <script>
     const SESSION_KEY = "pppSession";
 
+    // ✅ NOVO (segurança): flag de origem para o dashboard
+    // O dashboard só abrirá se encontrar esta flag "1" na sessionStorage.
+    // Como sessionStorage é por ABA, reduz o risco de reutilização fora do fluxo.
+    const STORAGE_DASH_FROM_MENU = "PPP_DASH_FROM_MENU";
+
     // Ajuste aqui se seus caminhos forem diferentes
     const ROTAS = {
       lancamento: "/painel.html",
@@ -204,9 +209,6 @@
         return;
       }
 
-      // ✅ “traz os dados da aba USUARIOS”:
-      // o perfil/usuario/loja foram validados e retornados por /api/login (que lê USUARIOS),
-      // e agora são exibidos aqui.
       preencherInfo(sessao);
       aplicarPermissoes(sessao.perfil);
 
@@ -220,6 +222,11 @@
       });
 
       document.getElementById("btnDashboard").addEventListener("click", () => {
+        // ✅ NOVO (segurança):
+        // Marca explicitamente que o dashboard está sendo aberto pelo MENU.
+        // O dashboard irá "consumir" essa flag ao validar (one-shot).
+        try { sessionStorage.setItem(STORAGE_DASH_FROM_MENU, "1"); } catch(e){}
+
         window.location.href = ROTAS.dashboard;
       });
 
@@ -233,6 +240,7 @@
 
   <!-- Fontes confiáveis (documentação) -->
   <!-- localStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage -->
+  <!-- sessionStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage -->
   <!-- JSON.parse/stringify: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON -->
   <!-- location.href: https://developer.mozilla.org/en-US/docs/Web/API/Location/href -->
 </body>
