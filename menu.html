@@ -122,9 +122,8 @@
   <script>
     const SESSION_KEY = "pppSession";
 
-    // ✅ Gate de acesso ao dashboard (mesmas chaves usadas no dashboard.html)
-    const STORAGE_DASH_OK = "PPP_DASH_OK";
-    const STORAGE_DASH_TS = "PPP_DASH_TS";
+    // ✅ chave exigida pelo painel do gestor
+    const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
 
     // Ajuste aqui se seus caminhos forem diferentes
     const ROTAS = {
@@ -147,12 +146,17 @@
     }
 
     function aplicarPermissoes(perfil) {
+      // Regra solicitada:
+      // - GERENTE_PPP => todos visíveis
+      // - BASE_PPP => só Lançamento e Dashboard
+      // (opcional) ADMINISTRADOR => todos visíveis
       const p = String(perfil || "").trim().toUpperCase();
 
       const btnGerencial = document.getElementById("btnGerencial");
       const btnLancamento = document.getElementById("btnLancamento");
       const btnDashboard = document.getElementById("btnDashboard");
 
+      // Segurança: se perfil vier vazio, trava tudo
       if (!p) {
         btnLancamento.classList.add("hidden");
         btnDashboard.classList.add("hidden");
@@ -177,6 +181,7 @@
         return;
       }
 
+      // Qualquer outro perfil: oculta tudo por padrão
       btnLancamento.classList.add("hidden");
       btnDashboard.classList.add("hidden");
       btnGerencial.classList.add("hidden");
@@ -192,6 +197,24 @@
       window.location.href = ROTAS.login;
     }
 
+    // ✅ cria a sessão exigida pelo painel do gestor
+    function setSessaoGestor(sessao) {
+      try {
+        const payload = {
+          usuario: sessao.usuario,
+          loja: sessao.loja,
+          perfil: sessao.perfil,
+          // opcional: timestamp para auditoria/expiração local
+          ts: Date.now()
+        };
+        sessionStorage.setItem(STORAGE_KEY_GESTOR, JSON.stringify(payload));
+      } catch (e) {
+        // se o browser bloquear sessionStorage (modo restrito), não deixa abrir
+        return false;
+      }
+      return true;
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       const msg = document.getElementById("msg");
 
@@ -205,39 +228,46 @@
       preencherInfo(sessao);
       aplicarPermissoes(sessao.perfil);
 
+      // Navegação
       document.getElementById("btnLancamento").addEventListener("click", () => {
         window.location.href = ROTAS.lancamento;
       });
 
+      // ✅ AJUSTE: Gerencial PPP só abre se for via clique E se perfil for permitido
       document.getElementById("btnGerencial").addEventListener("click", () => {
+        const p = String(sessao.perfil || "").trim().toUpperCase();
+        const permitido = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
+
+        if (!permitido) {
+          msg.textContent = "Acesso negado: seu perfil não tem permissão para o Gerencial PPP.";
+          return;
+        }
+
+        const ok = setSessaoGestor(sessao);
+        if (!ok) {
+          msg.textContent = "Não foi possível iniciar sessão do gestor. Faça login novamente.";
+          return;
+        }
+
         window.location.href = ROTAS.gerencial;
       });
 
       document.getElementById("btnDashboard").addEventListener("click", () => {
-        /* ============================================================
-           ✅ SOLICITADO: permitir dashboard somente se veio do clique do Menu
-           - Seta um marcador de origem + timestamp no sessionStorage
-           - dashboard.html valida TTL + sessão
-           ============================================================ */
-        try {
-          sessionStorage.setItem(STORAGE_DASH_OK, "MENU");
-          sessionStorage.setItem(STORAGE_DASH_TS, String(Date.now()));
-        } catch(e){}
-
         window.location.href = ROTAS.dashboard;
       });
 
+      // Sair (limpa sessão e volta pro login)
       document.getElementById("btnSair").addEventListener("click", () => {
         try { localStorage.removeItem(SESSION_KEY); } catch(e){}
+        try { sessionStorage.removeItem(STORAGE_KEY_GESTOR); } catch(e){}
         redirecionarLogin();
       });
     });
   </script>
 
-  <!-- Fontes confiáveis (documentação) -->
-  <!-- localStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage -->
+  <!-- Fontes confiáveis -->
   <!-- sessionStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage -->
-  <!-- JSON.parse/stringify: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON -->
-  <!-- location.href: https://developer.mozilla.org/en-US/docs/Web/API/Location/href -->
+  <!-- localStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage -->
+  <!-- Storage.setItem/getItem: https://developer.mozilla.org/en-US/docs/Web/API/Storage -->
 </body>
 </html>
