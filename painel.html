@@ -531,10 +531,8 @@
     }
 
     /* =====================================================================================
-       ALTERAÇÃO SOLICITADA (ÚNICA ANTERIOR):
        Botão visual para o input file: "Abrir câmera📸"
        ===================================================================================== */
-
     .input-file-hidden {
       position: absolute;
       left: -9999px;
@@ -570,9 +568,7 @@
     }
 
     /* =====================================================================================
-       ✅ ALTERAÇÃO SOLICITADA (NOVA):
-       Campos obrigatórios Data/Hora do ocorrido no popup finalização,
-       lado a lado, abaixo do relatório.
+       Campos obrigatórios Data/Hora do ocorrido no popup finalização
        ===================================================================================== */
     .finalizar-dtrow{
       display:flex;
@@ -609,11 +605,11 @@
 </head>
 
 <body>
+  <!-- Tela de sessão inválida/expirada -->
   <div id="erroAcesso" class="tela-erro" style="display: none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
-      <!-- ✅ Ajuste solicitado: não depende mais de parâmetros do localStorage -->
-      <p>Sessão expirada ou inexistente.</p>
+      <p id="erroAcessoMsg">Sessão expirada ou inexistente.</p>
       <p>Volte para a tela de acesso e realize o login novamente.</p>
       <a href="/login.html" class="btn-voltar">Voltar para o Login</a>
     </div>
@@ -656,7 +652,7 @@
 
   <div id="overlaySairConfirm" class="overlay-popup" style="z-index:10003;">
     <div class="confirm-box">
-      <p>Deseja mesmo fechar o aplicativo</p>
+      <p>Deseja mesmo voltar para o menu?</p>
       <div class="confirm-buttons">
         <button class="btnConfirmar" onclick="confirmarSair(true)">Sim</button>
         <button class="btnCancelar" onclick="confirmarSair(false)">Não</button>
@@ -679,14 +675,8 @@
 
   <div id="overlayFinalizar" class="overlay-popup" style="z-index:10005;">
     <div class="confirm-box">
-      <!-- Relatório (obrigatório) -->
       <textarea id="finalizarRelatorio" class="finalizar-textarea" placeholder="Relatório (obrigatório)"></textarea>
 
-      <!-- =================================================================================
-           ✅ ALTERAÇÃO SOLICITADA (NOVA):
-           Data ocorrido (obrigatório) + Hora ocorrido (obrigatório), lado a lado,
-           logo abaixo do relatório.
-           ================================================================================= -->
       <div class="finalizar-dtrow" aria-label="Data e Hora do ocorrido (obrigatórios)">
         <div class="finalizar-dtcol">
           <label for="dataOcorrido">Data do ocorrido (obrigatório):</label>
@@ -708,19 +698,9 @@
         <label for="fotoOcorrencia" class="btn-abrir-camera">Abrir câmera📸</label>
 
         <small>É possivel enviar apenas uma imagem por ocorrência.</small>
-
-        <!-- =================================================================================
-             ✅ ALTERAÇÃO SOLICITADA (NOVA):
-             Após tirar/selecionar a foto, mostrar o NOME DO ARQUIVO abaixo do botão.
-             Reaproveitei este mesmo campo (sem criar nova UI).
-             ================================================================================= -->
         <div id="fotoStatus" class="foto-status"></div>
       </div>
 
-      <!-- =================================================================================
-           ✅ Validação “igual ao relatório”:
-           usa o mesmo bloco de erro para relatório/data/hora.
-           ================================================================================= -->
       <div id="finalizarErro" class="finalizar-erro">Preencha o relatório para finalizar.</div>
 
       <p>Deseja msm Enviar a ocorrência?</p>
@@ -871,22 +851,48 @@
   let itensOcorrencia = [];
 
   /* =====================================================================================
-     ✅ AJUSTE SOLICITADO (PRINCIPAL):
-     NÃO usar mais localStorage para autenticar/validar sessão.
-     Agora o front valida pelo BACKEND via /api/session (cookie HttpOnly).
+     ✅ SESSÃO REAL (SEGURA) VIA BACKEND
+     - Sessão é cookie HttpOnly assinado e expira em até 8 horas.
+     - Front não controla autenticação, apenas consulta /api/session.
      ===================================================================================== */
 
+  let sessaoAtual = null;
+  let timerExpiracao = null;
+  let timerRevalidacao = null;
+
   /**
-   * Consulta o backend para validar sessão.
-   * - Se sessão existir e estiver válida: retorna {sucesso:true, usuario, loja, perfil, exp}
-   * - Se inválida/expirada: retorna null
+   * Wrapper seguro de fetch:
+   * - Sempre envia cookies (credentials: include)
+   * - Se backend responder 401/403, trava a UI e mostra tela de sessão inválida.
    */
+  async function fetchAuth(url, options = {}) {
+    const opt = {
+      method: options.method || "GET",
+      headers: options.headers || {},
+      body: options.body,
+      credentials: "include"
+    };
+
+    // Se for JSON e não setaram header, define
+    if (opt.body && !opt.headers["Content-Type"]) {
+      opt.headers["Content-Type"] = "application/json";
+    }
+
+    const resp = await fetch(url, opt);
+
+    // Se sessão morreu/sem permissão, mostra bloqueio imediatamente
+    if (resp.status === 401 || resp.status === 403) {
+      await mostrarTelaSessaoInvalida("Sua sessão expirou ou você não tem permissão. Faça login novamente.");
+      throw new Error("Sessão inválida (401/403).");
+    }
+
+    return resp;
+  }
+
   async function obterSessaoDoBackend() {
     try {
-      const resp = await fetch("/api/session", {
+      const resp = await fetchAuth("/api/session", {
         method: "GET",
-        // Mesmo sendo same-origin, deixar explícito evita dor de cabeça em cenários de deploy.
-        credentials: "include",
         headers: { "Accept": "application/json" }
       });
 
@@ -902,17 +908,90 @@
     }
   }
 
+  /**
+   * Agenda a expiração local baseada no "exp" (epoch seconds) vindo do token.
+   * - Isso faz o front “morrer” exatamente quando a sessão morrer.
+   * - Mesmo que o usuário fique com a tela aberta, a expiração respeita as 8h.
+   */
+  function agendarExpiracaoSessao(sessao) {
+    // Limpa timers anteriores
+    if (timerExpiracao) clearTimeout(timerExpiracao);
+    if (timerRevalidacao) clearInterval(timerRevalidacao);
+
+    // Se o backend não enviar exp, ainda assim vamos revalidar periodicamente
+    const expSec = Number(sessao?.exp || 0);
+    const agoraMs = Date.now();
+
+    if (expSec > 0) {
+      const expMs = expSec * 1000;
+      const msRestantes = expMs - agoraMs;
+
+      // Se já expirou (clock drift), bloqueia
+      if (msRestantes <= 0) {
+        mostrarTelaSessaoInvalida("Sessão expirada. Faça login novamente.");
+        return;
+      }
+
+      // Agenda expiração exata (+ pequena folga para drift)
+      timerExpiracao = setTimeout(() => {
+        mostrarTelaSessaoInvalida("Sessão expirada. Faça login novamente.");
+      }, msRestantes + 500);
+    }
+
+    // Revalidação periódica (defesa extra): a cada 2 minutos.
+    // Motivo: se o cookie for removido manualmente, ou backend invalidar por algum motivo,
+    // você descobre sem esperar o exp.
+    timerRevalidacao = setInterval(async () => {
+      const s = await obterSessaoDoBackend();
+      if (!s) {
+        mostrarTelaSessaoInvalida("Sessão inválida ou encerrada. Faça login novamente.");
+      }
+    }, 120000);
+  }
+
+  async function mostrarTelaSessaoInvalida(mensagem) {
+    try {
+      // Fecha overlays para não “travar” por cima
+      const overlays = [
+        "overlayCarregando",
+        "overlayProdutoDuplicado",
+        "confirmOverlayAdicionar",
+        "overlayOcorrenciaPendente",
+        "overlaySairConfirm",
+        "overlaySairPendente",
+        "overlayFinalizar"
+      ];
+      overlays.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = "none";
+      });
+
+      const msg = document.getElementById("erroAcessoMsg");
+      if (msg) msg.textContent = mensagem || "Sessão expirada ou inexistente.";
+
+      const app = document.getElementById("appRoot");
+      if (app) app.style.display = "none";
+
+      document.getElementById("erroAcesso").style.display = "flex";
+    } catch (e) {}
+  }
+
   document.addEventListener("DOMContentLoaded", async () => {
-    // ✅ Novo fluxo: valida sessão real no backend
+    // ✅ Valida sessão real no backend
     const sessao = await obterSessaoDoBackend();
 
-    // Se não houver sessão válida, bloqueia acesso
     if (!sessao) {
       document.getElementById("erroAcesso").style.display = "flex";
       return;
     }
 
-    // Sessão válida (backend decidiu)
+    // Guarda sessão em memória (não em localStorage)
+    sessaoAtual = sessao;
+
+    // Agenda expiração/revalidação (8 horas)
+    agendarExpiracaoSessao(sessaoAtual);
+
+    // Sessão válida
     usuarioLogado = sessao.usuario;
     lojaLogada    = sessao.loja;
 
@@ -921,25 +1000,18 @@
 
     document.getElementById("appRoot").style.display = "block";
 
-    /* =================================================================================
-       ✅ ALTERAÇÃO SOLICITADA (NOVA):
-       Ao selecionar/tirar foto, mostrar o NOME do arquivo abaixo do botão.
-       (Somente UI; não muda regra de 1 foto/ocorrência nem upload)
-       ================================================================================= */
+    // UI da foto: nome do arquivo
     const inputFoto = document.getElementById("fotoOcorrencia");
     if (inputFoto) {
       inputFoto.addEventListener("change", () => {
         const fotoStatus = document.getElementById("fotoStatus");
         const file = inputFoto.files && inputFoto.files[0] ? inputFoto.files[0] : null;
 
-        // Se não há arquivo, limpa apenas a parte “nome”
         if (!file) {
           if (fotoStatus) fotoStatus.textContent = "";
           return;
         }
 
-        // Se já existe imagem anexada (regra 1 por ocorrência), o input fica disabled.
-        // Mesmo assim, se por algum motivo disparar change, respeita a regra.
         const urlJaEnviada = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
         if (urlJaEnviada) {
           if (fotoStatus) fotoStatus.textContent = "Uma imagem já foi anexada nesta ocorrência.";
@@ -947,7 +1019,6 @@
           return;
         }
 
-        // Mostra somente o nome do arquivo abaixo do botão (pedido do usuário)
         if (fotoStatus) fotoStatus.textContent = `Arquivo selecionado: ${file.name}`;
       });
     }
@@ -1002,7 +1073,6 @@
       localStorage.setItem(STORAGE_OCORRENCIA_ATIVA, ocorrenciaAtiva ? "1" : "");
       localStorage.setItem(STORAGE_DOC_ATUAL, String(docAtual || ""));
       localStorage.setItem(STORAGE_ITENS_OCORRENCIA, JSON.stringify(itensOcorrencia || []));
-      // A imagem (PPP_IMG_URL) é gravada diretamente quando enviada.
     } catch (e) {
       console.warn("Falha ao persistir ocorrência:", e);
     }
@@ -1114,7 +1184,8 @@
     try {
       statusIniciar.textContent = "Carregando base de produtos...";
 
-      const resp = await fetch("/api/produtos");
+      // ✅ Protege com fetchAuth (se sessão cair, exibe tela de erro)
+      const resp = await fetchAuth("/api/produtos", { method: "GET" });
       const dados = await resp.json();
 
       if (!resp.ok || !dados.sucesso || !Array.isArray(dados.produtos)) {
@@ -1209,10 +1280,6 @@
     document.getElementById("finalizarRelatorio").value = "";
     document.getElementById("finalizarErro").style.display = "none";
 
-    /* =================================================================================
-       ✅ ALTERAÇÃO SOLICITADA (NOVA):
-       Zera data/hora do ocorrido ao abrir popup (exigidas antes do envio)
-       ================================================================================= */
     const dataEl = document.getElementById("dataOcorrido");
     const horaEl = document.getElementById("horaOcorrido");
     if (dataEl) dataEl.value = "";
@@ -1247,12 +1314,6 @@
     }
 
     const rel = document.getElementById("finalizarRelatorio").value.trim();
-
-    /* =================================================================================
-       ✅ ALTERAÇÃO SOLICITADA (NOVA):
-       Data e Hora do ocorrido obrigatórios, mesma “pegada” do relatório:
-       - se faltar, mostra o MESMO bloco #finalizarErro e bloqueia envio
-       ================================================================================= */
     const dataOcorrido = (document.getElementById("dataOcorrido")?.value || "").trim();
     const horaOcorrido = (document.getElementById("horaOcorrido")?.value || "").trim();
 
@@ -1285,14 +1346,13 @@
       }
     } catch (e) {
       console.error("Falha ao enviar foto:", e);
-      // Foto é opcional: segue sem imagem
+      // Foto é opcional
     }
 
     enviarLoteFinalizacao(rel, imagemUrl, dataOcorrido, horaOcorrido);
   }
 
   /* ===================== Upload de imagem ===================== */
-
   function comprimirImagemParaBase64(file, opts = {}) {
     const {
       maxWidth = 1280,
@@ -1350,7 +1410,8 @@
       usuario: usuarioLogado || "",
     };
 
-    const resp = await fetch("/api/upload-imagem", {
+    // ✅ Protege com fetchAuth
+    const resp = await fetchAuth("/api/upload-imagem", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -1389,14 +1450,11 @@
       produto: item.produto,
       loja: item.loja,
       usuario: item.usuario,
-
       observacao: (idx === itensOcorrencia.length - 1) ? relatorioTexto : "",
       imagemUrl: (idx === itensOcorrencia.length - 1) ? (imagemUrl || "") : "",
-
       quantidade: item.quantidade,
       valorUnitario: item.valorUnitario,
       numeroDocumento: item.numeroDocumento,
-
       dataOcorrido: dataOcorrido,
       horaOcorrido: horaOcorrido,
     }));
@@ -1404,7 +1462,8 @@
     try {
       if (status) status.textContent = "Finalizando ocorrência... enviando registros em lote.";
 
-      const resp = await fetch("/api/relatorio", {
+      // ✅ Protege com fetchAuth
+      const resp = await fetchAuth("/api/relatorio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lote }),
@@ -1807,26 +1866,26 @@
     }
 
     if (acao === "descartar") {
+      // Descarta a ocorrência (estado operacional), MAS NÃO faz logout
       descartarOcorrencia();
       sairDoApp();
     }
   }
 
   function sairDoApp() {
-    // ✅ Mantive seu comportamento (redirect), sem inventar endpoint de logout
-    limparSessao();
+    /**
+     * ✅ AJUSTE PRINCIPAL DO SEU BUG:
+     * "Sair" aqui significa VOLTAR AO MENU mantendo a sessão.
+     * Não apaga cookie, não chama /api/logout e não limpa pppSession.
+     *
+     * Por que?
+     * - Seu menu provavelmente decide se redireciona pro login lendo localStorage.
+     * - Se você limpar localStorage, o menu te manda pro login (o bug que você descreveu).
+     *
+     * Logout real deve ser feito em um botão separado (no menu),
+     * chamando /api/logout e então redirect para /login.html.
+     */
     window.location.href = "/menu.html";
-  }
-
-  /* ===================== Logout / sessão ===================== */
-  function limparSessao() {
-    // ✅ Ajuste solicitado: não usamos mais pppSession para autenticação,
-    // mas manter esta limpeza NÃO quebra nada (só remove um resíduo antigo).
-    try {
-      localStorage.removeItem("pppSession");
-    } catch (e) {
-      console.warn("Não foi possível limpar a sessão:", e);
-    }
   }
 </script>
 </body>
