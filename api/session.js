@@ -1,24 +1,24 @@
-// /api/session.js
-//
-// Retorna 200 se houver sessão válida, senão 401.
-// Usado pelas telas para bloquear acesso direto por URL.
-
+// api/session.js
 import { requireSession } from "./_authUsuarios.js";
 
-export default async function handler(req, res) {
+export default function handler(req, res) {
   if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-    return res.status(405).json({ sucesso: false, message: "Método não permitido." });
+    res.status(405).json({ sucesso: false, message: "Método não permitido." });
+    return;
   }
 
-  const session = requireSession(req, res);
-  if (!session) return;
+  // Se quiser restringir perfil, passe allowedProfiles:
+  // const s = requireSession(req, res, { allowedProfiles: ["ADMINISTRADOR","GERENTE_PPP","BASE_PPP"] });
+  const s = requireSession(req, res);
 
-  return res.status(200).json({
+  // requireSession já respondeu 401/403 se falhar
+  if (!s) return;
+
+  res.status(200).json({
     sucesso: true,
-    usuario: session.usuario,
-    loja: session.loja,
-    perfil: session.perfil,
-    exp: session.exp, // útil para o front saber quando expira
+    usuario: s.usuario,
+    loja: s.loja || "",
+    perfil: s.perfil || "",
+    exp: s.exp || null
   });
 }
