@@ -68,22 +68,13 @@
       margin-top: 10px;
     }
 
-    .btn-prim{
-      background:#0066ff;
-      color:#fff;
-    }
+    .btn-prim{ background:#0066ff; color:#fff; }
     .btn-prim:hover{ background:#0050cc; }
 
-    .btn-sec{
-      background:#e9e9e9;
-      color:#111;
-    }
+    .btn-sec{ background:#e9e9e9; color:#111; }
     .btn-sec:hover{ background:#dedede; }
 
-    .btn-danger{
-      background:#b30000;
-      color:#fff;
-    }
+    .btn-danger{ background:#b30000; color:#fff; }
     .btn-danger:hover{ background:#900000; }
 
     .mensagem{
@@ -103,6 +94,7 @@
   <div class="container">
     <h2 class="titulo">MENU PPP</h2>
 
+    <!-- Card só faz sentido LOGADO (vai ficar oculto quando deslogado) -->
     <div class="card-info" id="cardInfo">
       <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
       <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
@@ -110,7 +102,7 @@
     </div>
 
     <!-- =================================================================================
-      BOTÕES DO MENU
+      BOTÕES DO MENU (aparecem conforme sessão/perfil)
       ================================================================================= -->
 
     <!-- PPP Ocorrências -->
@@ -118,7 +110,7 @@
     <button class="btn btn-sec"  id="btnGerencial">Gerencial PPP</button>
     <button class="btn btn-sec"  id="btnDashboard">Dashboard ocorrências</button>
 
-    <!-- ✅ NOVOS BOTÕES (visíveis para GERENTE_PPP e BASE_PPP) -->
+    <!-- Carrinhos (visíveis para GERENTE_PPP e BASE_PPP) -->
     <button class="btn btn-sec"  id="btnContagemCarrinhos">Contagem de carrinhos</button>
     <button class="btn btn-sec"  id="btnDashboardCarrinhos">Dashboard carrinhos</button>
 
@@ -131,49 +123,32 @@
 
   <script>
     /* =====================================================================================
-       OBJETIVO DOS AJUSTES (o que você pediu):
-       1) "Ficar realmente seguro" -> Menu não confia em localStorage p/ autenticação.
-          Valida sessão REAL no backend via /api/session (cookie HttpOnly).
-       2) "Só ativo durante 8 horas" -> respeita expiração (exp) retornada pelo backend.
-          Quando expirar, o menu NÃO faz redirect automático (para não “pular” pro login).
-          Ele apenas entra em “modo deslogado” e oferece botão “Ir para o Login”.
-       3) Corrigir o comportamento: ao sair do painel e voltar ao menu, não ir pro login
-          em 1 segundo. Isso acontecia porque o menu redirecionava quando não via sessão.
-          Agora, se não houver sessão, ele permanece no menu (modo deslogado).
-       4) Adicionar 2 botões: “Contagem de carrinhos” e “Dashboard carrinhos”
-          visíveis para GERENTE_PPP e BASE_PPP.
-       ===================================================================================== */
+      PRINCÍPIO DE SEGURANÇA:
+      - O MENU NÃO confia em localStorage/sessionStorage para autenticar.
+      - Ele consulta /api/session (cookie HttpOnly) e só então libera botões.
+      ===================================================================================== */
 
-    // ✅ chave exigida pelo painel do gestor (mantido)
+    // ✅ usado apenas para “ponte” do painel-gestor (não é autenticação do backend)
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
 
-    // Ajuste aqui se seus caminhos forem diferentes
     const ROTAS = {
       lancamento: "/painel.html",
       gerencial: "/painel-gestor.html",
       dashboard: "/dashboard.html",
 
-      // ✅ novas telas (ainda vamos criar)
+      // telas futuras
       contagemCarrinhos: "/contagem-carrinhos.html",
       dashboardCarrinhos: "/dashboard-carrinhos.html",
 
       login: "/login.html",
-      // (opcional) endpoint de logout no backend (recomendado)
       logoutApi: "/api/logout"
     };
 
     // Estado em memória
-    let sessaoAtual = null;      // {usuario, loja, perfil, exp?}
-    let expTimerId = null;       // timer para “virar deslogado” quando expirar
+    let sessaoAtual = null;   // {usuario, loja, perfil, exp}
+    let expTimerId = null;
 
-    /* =====================================================================================
-       1) Sessão REAL via backend (cookie HttpOnly)
-       -------------------------------------------------------------------------------------
-       - /api/session deve retornar algo tipo:
-         { sucesso:true, usuario:"...", loja:"...", perfil:"...", exp: 1234567890 }
-         Onde exp é epoch (ms) OU epoch (s). Aqui tratamos os dois.
-       - Se inválida/expirada => retorna 401/403 ou {sucesso:false}
-       ===================================================================================== */
+    /* ===================== Sessão real via backend ===================== */
     async function obterSessaoDoBackend() {
       try {
         const resp = await fetch("/api/session", {
@@ -181,12 +156,10 @@
           credentials: "include",
           headers: { "Accept": "application/json" }
         });
-
         if (!resp.ok) return null;
 
         const dados = await resp.json().catch(() => null);
         if (!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
-
         return dados;
       } catch (e) {
         console.error("[MENU] Falha ao consultar /api/session:", e);
@@ -194,17 +167,11 @@
       }
     }
 
-    /* =====================================================================================
-       Helpers: expiração
-       - Alguns backends retornam exp em segundos (JWT “exp”), outros em ms.
-       - Esta função normaliza para “ms epoch”.
-       ===================================================================================== */
+    /* ===================== Expiração (opcional; UX) ===================== */
     function normalizarExpParaMs(exp) {
       const n = Number(exp);
       if (!Number.isFinite(n) || n <= 0) return null;
-
-      // Heurística: se for muito pequeno, provavelmente está em segundos.
-      // (Epoch em ms hoje é 13 dígitos; em segundos é 10 dígitos.)
+      // exp JWT normalmente vem em segundos (10 dígitos). Em ms seria 13 dígitos.
       if (n < 10_000_000_000) return n * 1000;
       return n;
     }
@@ -220,143 +187,110 @@
       limparTimerExpiracao();
       if (!expMs) return;
 
-      const agora = Date.now();
-      const msRestante = expMs - agora;
-
-      // Já expirou: vira deslogado imediatamente
+      const msRestante = expMs - Date.now();
       if (msRestante <= 0) {
         entrarModoDeslogado("Sessão expirada. Faça login novamente.");
         return;
       }
 
-      // Agenda virar deslogado quando expirar
       expTimerId = setTimeout(() => {
         entrarModoDeslogado("Sessão expirada. Faça login novamente.");
       }, msRestante);
     }
 
-    /* =====================================================================================
-       2) Modo logado vs deslogado (evita redirect automático)
-       -------------------------------------------------------------------------------------
-       - Isso é o “conserto” do seu bug: ao voltar pro menu depois do Sair no painel,
-         o menu NÃO deve redirecionar pro login automaticamente.
-       ===================================================================================== */
+    /* ===================== UI: logado x deslogado ===================== */
+
+    function setTexto(id, txt) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    }
+
+    function esconderTodosBotoesPrivados() {
+      ["btnLancamento","btnGerencial","btnDashboard","btnContagemCarrinhos","btnDashboardCarrinhos"]
+        .forEach((id) => document.getElementById(id).classList.add("hidden"));
+    }
+
     function entrarModoDeslogado(mensagem) {
       sessaoAtual = null;
       limparTimerExpiracao();
 
-      // Card “—”
-      document.getElementById("infoLoja").textContent = "—";
-      document.getElementById("infoUsuario").textContent = "—";
-      document.getElementById("infoPerfil").textContent = "—";
+      // 1) Esconde card-info para não ficar “Loja/Usuário/Perfil — — —”
+      document.getElementById("cardInfo").classList.add("hidden");
 
-      // Esconde todos os botões restritos
+      // 2) Esconde botões privados
       esconderTodosBotoesPrivados();
 
-      // Mostra botão “Login”
+      // 3) Botão “Sair” NÃO faz sentido deslogado -> some
+      document.getElementById("btnSair").classList.add("hidden");
+
+      // 4) Mostra “Ir para o Login”
       document.getElementById("btnLogin").classList.remove("hidden");
 
-      // Mensagem
-      const msg = document.getElementById("msg");
-      msg.textContent = mensagem || "Você não está logado.";
+      // 5) Mensagem clara
+      setTexto("msg", mensagem || "Sessão encerrada. Se precisar, faça login novamente.");
     }
 
     function entrarModoLogado(sessao) {
       sessaoAtual = sessao;
 
-      // Preenche card
-      preencherInfo(sessao);
+      // Card-info faz sentido logado
+      document.getElementById("cardInfo").classList.remove("hidden");
 
-      // Aplica permissões (mostra/esconde botões)
+      setTexto("infoLoja", sessao.loja || "—");
+      setTexto("infoUsuario", sessao.usuario || "—");
+      setTexto("infoPerfil", sessao.perfil || "—");
+
       aplicarPermissoes(sessao.perfil);
 
-      // Esconde botão “Login”
+      // Sair aparece logado
+      document.getElementById("btnSair").classList.remove("hidden");
+
+      // Login some logado
       document.getElementById("btnLogin").classList.add("hidden");
 
-      // Mensagem limpa
-      document.getElementById("msg").textContent = "";
+      // limpa msg
+      setTexto("msg", "");
 
-      // Agenda expiração (se o backend mandou exp)
+      // agenda expiração (se veio exp)
       const expMs = normalizarExpParaMs(sessao.exp);
       if (expMs) agendarModoDeslogadoNaExpiracao(expMs);
     }
 
-    function esconderTodosBotoesPrivados() {
-      const ids = [
-        "btnLancamento",
-        "btnGerencial",
-        "btnDashboard",
-        "btnContagemCarrinhos",
-        "btnDashboardCarrinhos"
-      ];
-      ids.forEach((id) => document.getElementById(id).classList.add("hidden"));
-    }
-
-    /* =====================================================================================
-       Permissões
-       - Mantém sua regra original:
-         * GERENTE_PPP e ADMINISTRADOR: tudo
-         * BASE_PPP: lançamento + dashboards
-       - ✅ NOVO: carrinhos (2 botões) visíveis para GERENTE_PPP e BASE_PPP
-       ===================================================================================== */
+    /* ===================== Permissões ===================== */
     function aplicarPermissoes(perfil) {
       const p = String(perfil || "").trim().toUpperCase();
 
-      const btnLancamento        = document.getElementById("btnLancamento");
-      const btnGerencial         = document.getElementById("btnGerencial");
-      const btnDashboard         = document.getElementById("btnDashboard");
-      const btnContagemCarrinhos = document.getElementById("btnContagemCarrinhos");
-      const btnDashboardCarrinhos= document.getElementById("btnDashboardCarrinhos");
+      const btnLancamento         = document.getElementById("btnLancamento");
+      const btnGerencial          = document.getElementById("btnGerencial");
+      const btnDashboard          = document.getElementById("btnDashboard");
+      const btnContagemCarrinhos  = document.getElementById("btnContagemCarrinhos");
+      const btnDashboardCarrinhos = document.getElementById("btnDashboardCarrinhos");
 
-      // Segurança: se perfil vier vazio, trava tudo
-      if (!p) {
-        esconderTodosBotoesPrivados();
-        return;
-      }
+      // default: esconde tudo e libera conforme regra
+      esconderTodosBotoesPrivados();
 
       const podeTudo = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
       const podeBase = (p === "BASE_PPP");
 
+      // Lançamento e Dashboard ocorrências
+      if (podeTudo || podeBase) {
+        btnLancamento.classList.remove("hidden");
+        btnDashboard.classList.remove("hidden");
+      }
+
+      // Gerencial: só gerente/admin
       if (podeTudo) {
-        btnLancamento.classList.remove("hidden");
-        btnDashboard.classList.remove("hidden");
         btnGerencial.classList.remove("hidden");
-
-        // ✅ carrinhos: permitido
-        btnContagemCarrinhos.classList.remove("hidden");
-        btnDashboardCarrinhos.classList.remove("hidden");
-        return;
       }
 
-      if (podeBase) {
-        btnLancamento.classList.remove("hidden");
-        btnDashboard.classList.remove("hidden");
-        btnGerencial.classList.add("hidden");
-
-        // ✅ carrinhos: permitido
+      // Carrinhos: GERENTE_PPP e BASE_PPP (pedido)
+      if (podeTudo || podeBase) {
         btnContagemCarrinhos.classList.remove("hidden");
         btnDashboardCarrinhos.classList.remove("hidden");
-        return;
       }
-
-      // Qualquer outro perfil: oculta tudo por padrão
-      esconderTodosBotoesPrivados();
     }
 
-    function preencherInfo(sessao) {
-      document.getElementById("infoLoja").textContent = sessao.loja || "—";
-      document.getElementById("infoUsuario").textContent = sessao.usuario || "—";
-      document.getElementById("infoPerfil").textContent = sessao.perfil || "—";
-    }
-
-    function irParaLogin() {
-      window.location.href = ROTAS.login;
-    }
-
-    /* =====================================================================================
-       Sessão do Gestor (mantida)
-       - Só prepara o sessionStorage quando o usuário clicar.
-       ===================================================================================== */
+    /* ===================== Sessão do Gestor (mantida) ===================== */
     function setSessaoGestor(sessao) {
       try {
         const payload = {
@@ -366,17 +300,13 @@
           ts: Date.now()
         };
         sessionStorage.setItem(STORAGE_KEY_GESTOR, JSON.stringify(payload));
+        return true;
       } catch (e) {
         return false;
       }
-      return true;
     }
 
-    /* =====================================================================================
-       Logout “de verdade” (recomendado)
-       - Chama /api/logout para o backend limpar cookie HttpOnly.
-       - Se não existir ainda, não quebra: seguimos para modo deslogado.
-       ===================================================================================== */
+    /* ===================== Logout backend (cookie HttpOnly) ===================== */
     async function logoutBackendSeguro() {
       try {
         await fetch(ROTAS.logoutApi, {
@@ -384,27 +314,26 @@
           credentials: "include",
           headers: { "Accept": "application/json" }
         }).catch(() => null);
-      } catch(e) {
-        // ignora: a prioridade é não quebrar fluxo
+      } catch (e) {
+        // não quebra fluxo
       }
     }
 
+    /* ===================== DOM Ready ===================== */
     document.addEventListener("DOMContentLoaded", async () => {
-      // Botão “Login” sempre disponível quando deslogado
-      document.getElementById("btnLogin").addEventListener("click", irParaLogin);
+      // Botão Login (quando deslogado)
+      document.getElementById("btnLogin").addEventListener("click", () => {
+        window.location.href = ROTAS.login;
+      });
 
-      // 1) Consulta sessão no backend
+      // 1) Carrega sessão real
       const sessao = await obterSessaoDoBackend();
 
-      // 2) Se NÃO há sessão, NÃO redireciona automaticamente.
-      //    Isso corrige o “volta pro menu e em 1s vai pro login”.
-      if (!sessao) {
-        entrarModoDeslogado("Você está no menu, mas sem sessão ativa.");
-      } else {
-        entrarModoLogado(sessao);
-      }
+      // 2) Se não tiver sessão: NÃO redireciona. Fica no menu (modo deslogado).
+      if (!sessao) entrarModoDeslogado("Você está no menu, mas sem sessão ativa.");
+      else entrarModoLogado(sessao);
 
-      // Navegação (só funciona se estiver logado; caso contrário, informa)
+      // Navegação (protegida: só funciona se estiver logado)
       document.getElementById("btnLancamento").addEventListener("click", () => {
         if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
         window.location.href = ROTAS.lancamento;
@@ -415,7 +344,6 @@
         window.location.href = ROTAS.dashboard;
       });
 
-      // ✅ NOVOS: carrinhos
       document.getElementById("btnContagemCarrinhos").addEventListener("click", () => {
         if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
         window.location.href = ROTAS.contagemCarrinhos;
@@ -426,18 +354,14 @@
         window.location.href = ROTAS.dashboardCarrinhos;
       });
 
-      // Gerencial: só abre se perfil permitido
+      // Gerencial (somente GERENTE_PPP/ADMIN)
       document.getElementById("btnGerencial").addEventListener("click", () => {
         const msg = document.getElementById("msg");
 
-        if (!sessaoAtual) {
-          entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
-          return;
-        }
+        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
 
         const p = String(sessaoAtual.perfil || "").trim().toUpperCase();
         const permitido = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
-
         if (!permitido) {
           msg.textContent = "Acesso negado: seu perfil não tem permissão para o Gerencial PPP.";
           return;
@@ -452,25 +376,18 @@
         window.location.href = ROTAS.gerencial;
       });
 
-      // Sair:
-      // - faz logout no backend (cookie HttpOnly)
-      // - limpa sessão do gestor (sessionStorage)
-      // - permanece no MENU (modo deslogado) e oferece botão de login
+      // Sair (somente logado)
       document.getElementById("btnSair").addEventListener("click", async () => {
+        // limpa ponte do gestor
         try { sessionStorage.removeItem(STORAGE_KEY_GESTOR); } catch(e) {}
 
-        // Recomendado: invalidar cookie da sessão
+        // derruba cookie HttpOnly no backend
         await logoutBackendSeguro();
 
-        // Não redireciona para login automaticamente (evita o “pulo”)
+        // fica no menu, porém em modo deslogado (sem botão Sair, sem card-info)
         entrarModoDeslogado("Sessão encerrada. Se precisar, faça login novamente.");
       });
     });
   </script>
-
-  <!-- Fontes confiáveis (documentação oficial) -->
-  <!-- fetch + credentials: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
-  <!-- cookies + HttpOnly/SameSite (conceitos): https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies -->
-  <!-- sessionStorage: https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage -->
 </body>
 </html>
