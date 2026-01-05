@@ -523,8 +523,8 @@
 <body>
   <div id="telaErro" class="tela-erro" style="display:none;">
     <h1>Acesso inválido</h1>
-    <p>Este dashboard só pode ser aberto pelo botão <b>Dashboard</b> dentro do <b>Painel do Gestor</b> ou pelo botão <b>Dashboard ocorrências</b> no <b>Menu</b>.</p>
-    <p>Volte para a tela correta e tente novamente.</p>
+    <p>Este dashboard só pode ser aberto após login.</p>
+    <p>Volte para o <b>Menu</b> e tente novamente.</p>
     <button class="btn btn-back" onclick="voltar()">Voltar</button>
   </div>
 
@@ -717,12 +717,9 @@
 
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
-    const STORAGE_DASH_OK = "PPP_DASH_OK";
 
     // MENU
     const STORAGE_KEY_MENU = "pppSession";
-    const STORAGE_DASH_TS  = "PPP_DASH_TS";
-    const TTL_MS = 10 * 60 * 1000;
 
     let chartTopLojas = null;
     let chartDept = null;
@@ -790,7 +787,9 @@
     }
 
     /* =============================================================================
-       ✅ NOVO: sessão para APIs (header X-PPP-Session) + credentials cookies
+       ✅ Sessão para APIs:
+       - Mantém header X-PPP-Session (compatibilidade)
+       - Mantém credentials: "include" (cookie HttpOnly do backend)
        ============================================================================= */
     function b64EncodeUnicode(str) {
       try {
@@ -801,7 +800,7 @@
     }
 
     function obterSessaoAtual() {
-      // 1) Gestor
+      // 1) Gestor (sessionStorage)
       try {
         const rawG = sessionStorage.getItem(STORAGE_KEY_GESTOR);
         if (rawG) {
@@ -810,7 +809,7 @@
         }
       } catch (e) {}
 
-      // 2) Menu
+      // 2) Menu (localStorage)
       try {
         const rawM = localStorage.getItem(STORAGE_KEY_MENU);
         if (rawM) {
@@ -828,55 +827,26 @@
       return { "X-PPP-Session": b64EncodeUnicode(JSON.stringify(s)) };
     }
 
+    /* =============================================================================
+       ✅ CORREÇÃO DO PROBLEMA:
+       O dashboard estava bloqueando por depender de chaves temporárias (PPP_DASH_OK/TS)
+       que não estão sendo setadas no seu fluxo atual.
+       Agora a validação é: "tem sessão válida no navegador?".
+       ============================================================================= */
     function validarAcesso() {
-      const src = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim().toUpperCase();
-      const tsRaw = (sessionStorage.getItem(STORAGE_DASH_TS) || "").trim();
-      const ts = parseInt(tsRaw, 10);
+      const s = obterSessaoAtual();
+      if (!s) return false;
 
-      const agora = Date.now();
-      const tsOk = Number.isFinite(ts) && ts > 0 && (agora - ts) <= TTL_MS;
-
-      if (!tsOk) return false;
-
-      // Origem: Gestor
-      if (src === "1" || src === "GESTOR") {
-        try {
-          const sessaoGestor = sessionStorage.getItem(STORAGE_KEY_GESTOR);
-          if (!sessaoGestor) return false;
-          const obj = JSON.parse(sessaoGestor);
-          return !!(obj && obj.usuario);
-        } catch (e) {
-          return false;
-        }
-      }
-
-      // Origem: Menu
-      if (src === "MENU") {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY_MENU);
-          if (!raw) return false;
-          const obj = JSON.parse(raw);
-
-          if (!obj || !obj.usuario || !obj.loja || !obj.perfil) return false;
-
-          const p = String(obj.perfil || "").trim().toUpperCase();
-          const permitido = (p === "GERENTE_PPP" || p === "ADMINISTRADOR" || p === "BASE_PPP");
-          return !!permitido;
-        } catch (e) {
-          return false;
-        }
-      }
-
-      return false;
+      const perfil = String(s.perfil || "").trim().toUpperCase();
+      const permitido = (perfil === "GERENTE_PPP" || perfil === "ADMINISTRADOR" || perfil === "BASE_PPP");
+      return !!permitido;
     }
 
+    /* =============================================================================
+       ✅ VOLTAR deve ir para o MENU (conforme você pediu)
+       ============================================================================= */
     function voltar() {
-      const src = (sessionStorage.getItem(STORAGE_DASH_OK) || "").trim().toUpperCase();
-      if (src === "MENU") {
-        window.location.href = "/index.html";
-      } else {
-        window.location.href = "/painel-gestor.html";
-      }
+      window.location.href = "/menu.html";
     }
 
     document.addEventListener("DOMContentLoaded", () => {
