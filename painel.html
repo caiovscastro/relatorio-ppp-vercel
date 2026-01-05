@@ -612,7 +612,8 @@
   <div id="erroAcesso" class="tela-erro" style="display: none;">
     <div class="card-erro">
       <h1>Acesso inválido</h1>
-      <p>Parâmetros do login não encontrados.</p>
+      <!-- ✅ Ajuste solicitado: não depende mais de parâmetros do localStorage -->
+      <p>Sessão expirada ou inexistente.</p>
       <p>Volte para a tela de acesso e realize o login novamente.</p>
       <a href="/login.html" class="btn-voltar">Voltar para o Login</a>
     </div>
@@ -856,7 +857,7 @@
   let streamAtual = null;
   let lendo = false;
 
-  /* ========= CHAVES DO localStorage ========= */
+  /* ========= CHAVES DO localStorage (APENAS para estado da ocorrência) ========= */
   const STORAGE_OCORRENCIA_ATIVA = "PPP_OCORRENCIA_ATIVA";
   const STORAGE_DOC_ATUAL        = "PPP_DOC_ATUAL";
   const STORAGE_ITENS_OCORRENCIA = "PPP_ITENS_OCORRENCIA";
@@ -869,21 +870,49 @@
   let docAtual = "";
   let itensOcorrencia = [];
 
-  document.addEventListener("DOMContentLoaded", () => {
-    let sessao = null;
+  /* =====================================================================================
+     ✅ AJUSTE SOLICITADO (PRINCIPAL):
+     NÃO usar mais localStorage para autenticar/validar sessão.
+     Agora o front valida pelo BACKEND via /api/session (cookie HttpOnly).
+     ===================================================================================== */
 
+  /**
+   * Consulta o backend para validar sessão.
+   * - Se sessão existir e estiver válida: retorna {sucesso:true, usuario, loja, perfil, exp}
+   * - Se inválida/expirada: retorna null
+   */
+  async function obterSessaoDoBackend() {
     try {
-      const raw = localStorage.getItem("pppSession");
-      if (raw) sessao = JSON.parse(raw);
-    } catch (e) {
-      console.error("Erro ao ler sessão do localStorage:", e);
-    }
+      const resp = await fetch("/api/session", {
+        method: "GET",
+        // Mesmo sendo same-origin, deixar explícito evita dor de cabeça em cenários de deploy.
+        credentials: "include",
+        headers: { "Accept": "application/json" }
+      });
 
-    if (!sessao || !sessao.usuario || !sessao.loja) {
+      if (!resp.ok) return null;
+
+      const dados = await resp.json().catch(() => null);
+      if (!dados || !dados.sucesso || !dados.usuario || !dados.loja) return null;
+
+      return dados;
+    } catch (e) {
+      console.error("Falha ao validar sessão via /api/session:", e);
+      return null;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    // ✅ Novo fluxo: valida sessão real no backend
+    const sessao = await obterSessaoDoBackend();
+
+    // Se não houver sessão válida, bloqueia acesso
+    if (!sessao) {
       document.getElementById("erroAcesso").style.display = "flex";
       return;
     }
 
+    // Sessão válida (backend decidiu)
     usuarioLogado = sessao.usuario;
     lojaLogada    = sessao.loja;
 
@@ -1228,8 +1257,6 @@
     const horaOcorrido = (document.getElementById("horaOcorrido")?.value || "").trim();
 
     if (!rel || !dataOcorrido || !horaOcorrido) {
-      // Mantém comportamento: exibe erro no mesmo lugar e não fecha popup.
-      // Ajusta mensagem sem criar novo mecanismo.
       if (erroEl) {
         if (!rel && (!dataOcorrido || !horaOcorrido)) {
           erroEl.textContent = "Preencha o relatório e selecione a data e a hora do ocorrido para finalizar.";
@@ -1261,10 +1288,6 @@
       // Foto é opcional: segue sem imagem
     }
 
-    /* =================================================================================
-       ✅ ALTERAÇÃO SOLICITADA (NOVA):
-       Envia data/hora para o lote e repete em cada produto.
-       ================================================================================= */
     enviarLoteFinalizacao(rel, imagemUrl, dataOcorrido, horaOcorrido);
   }
 
@@ -1359,11 +1382,6 @@
     return String(dados.imageUrl || "");
   }
 
-  /* =================================================================================
-     ✅ ALTERAÇÃO SOLICITADA (NOVA):
-     Agora recebe data/hora do ocorrido e repete em cada item do lote.
-     - Esses campos precisam ser gravados na planilha nas colunas R e S pela API.
-     ================================================================================= */
   async function enviarLoteFinalizacao(relatorioTexto, imagemUrl, dataOcorrido, horaOcorrido) {
     const status = document.getElementById("status");
 
@@ -1372,7 +1390,6 @@
       loja: item.loja,
       usuario: item.usuario,
 
-      // Mantém regra atual: relatório e imagem apenas no último item
       observacao: (idx === itensOcorrencia.length - 1) ? relatorioTexto : "",
       imagemUrl: (idx === itensOcorrencia.length - 1) ? (imagemUrl || "") : "",
 
@@ -1380,9 +1397,8 @@
       valorUnitario: item.valorUnitario,
       numeroDocumento: item.numeroDocumento,
 
-      // ✅ NOVO: repetir data/hora para cada produto do lote
-      dataOcorrido: dataOcorrido, // -> coluna R (API deve mapear)
-      horaOcorrido: horaOcorrido, // -> coluna S (API deve mapear)
+      dataOcorrido: dataOcorrido,
+      horaOcorrido: horaOcorrido,
     }));
 
     try {
@@ -1797,12 +1813,15 @@
   }
 
   function sairDoApp() {
+    // ✅ Mantive seu comportamento (redirect), sem inventar endpoint de logout
     limparSessao();
-    window.location.href = "/index.html";
+    window.location.href = "/menu.html";
   }
 
   /* ===================== Logout / sessão ===================== */
   function limparSessao() {
+    // ✅ Ajuste solicitado: não usamos mais pppSession para autenticação,
+    // mas manter esta limpeza NÃO quebra nada (só remove um resíduo antigo).
     try {
       localStorage.removeItem("pppSession");
     } catch (e) {
