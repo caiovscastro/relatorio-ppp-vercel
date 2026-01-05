@@ -1,8 +1,15 @@
 // api/upload-imagem.js
+//
+// Upload imagem (Firebase Storage)
+// ✅ Segurança:
+// - Exige sessão válida (cookie HttpOnly)
+// - Não confia em loja/usuario do body; usa a sessão (fonte de verdade)
+// - Não cachear resposta (no-store)
+
 import admin from "firebase-admin";
 import { Buffer } from "buffer";
 import crypto from "crypto";
-import { requireSession } from "./_authUsuarios.js"; // ✅ NOVO
+import { requireSession } from "./_authUsuarios.js";
 
 function env(...names) {
   for (const n of names) {
@@ -61,7 +68,11 @@ export default async function handler(req, res) {
     });
   }
 
-  // ✅ NOVO: exige sessão válida (8h via cookie)
+  // ✅ não cachear
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+
+  // ✅ exige sessão válida
   const session = requireSession(req, res);
   if (!session) return;
 
@@ -98,9 +109,7 @@ export default async function handler(req, res) {
 
     const doc = String(body.doc || "").trim();
 
-    // ⚠️ PONTO CEGO corrigido:
-    // Não confiamos em loja/usuario vindos do body (podem ser forjados).
-    // A fonte de verdade é a sessão validada.
+    // ✅ fonte de verdade: sessão
     const loja = String(session.loja || "").trim();
     const usuario = String(session.usuario || "").trim();
 
@@ -192,7 +201,7 @@ export default async function handler(req, res) {
         path: filePath,
         contentType: mimeType,
         size: buffer.length,
-        filename, // mantido (pode ajudar debug do front)
+        filename,
       },
     });
   } catch (erro) {
