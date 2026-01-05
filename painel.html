@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel PPP</title>
 
+  <!-- ✅ Ajuda a evitar cache em navegação (não substitui headers do servidor, mas melhora UX) -->
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <style>
     /* ======== ESTILO GERAL DA PÁGINA ======== */
     body {
@@ -611,6 +616,7 @@
       <h1>Acesso inválido</h1>
       <p id="erroAcessoMsg">Sessão expirada ou inexistente.</p>
       <p>Volte para a tela de acesso e realize o login novamente.</p>
+      <!-- ✅ Mantém layout: 1 botão como estava -->
       <a href="/login.html" class="btn-voltar">Voltar para o Login</a>
     </div>
   </div>
@@ -852,8 +858,6 @@
 
   /* =====================================================================================
      ✅ SESSÃO REAL (SEGURA) VIA BACKEND
-     - Sessão é cookie HttpOnly assinado e expira em até 8 horas.
-     - Front não controla autenticação, apenas consulta /api/session.
      ===================================================================================== */
 
   let sessaoAtual = null;
@@ -861,16 +865,17 @@
   let timerRevalidacao = null;
 
   /**
-   * Wrapper seguro de fetch:
+   * ✅ Ajuste: fetch seguro
    * - Sempre envia cookies (credentials: include)
-   * - Se backend responder 401/403, trava a UI e mostra tela de sessão inválida.
+   * - Se backend responder 401/403, trava UI e mostra tela de sessão inválida.
    */
   async function fetchAuth(url, options = {}) {
     const opt = {
       method: options.method || "GET",
-      headers: options.headers || {},
+      headers: { ...(options.headers || {}) },
       body: options.body,
-      credentials: "include"
+      credentials: "include",
+      cache: "no-store"
     };
 
     // Se for JSON e não setaram header, define
@@ -878,9 +883,11 @@
       opt.headers["Content-Type"] = "application/json";
     }
 
+    // Aceita JSON por padrão
+    if (!opt.headers["Accept"]) opt.headers["Accept"] = "application/json";
+
     const resp = await fetch(url, opt);
 
-    // Se sessão morreu/sem permissão, mostra bloqueio imediatamente
     if (resp.status === 401 || resp.status === 403) {
       await mostrarTelaSessaoInvalida("Sua sessão expirou ou você não tem permissão. Faça login novamente.");
       throw new Error("Sessão inválida (401/403).");
@@ -891,11 +898,7 @@
 
   async function obterSessaoDoBackend() {
     try {
-      const resp = await fetchAuth("/api/session", {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-      });
-
+      const resp = await fetchAuth("/api/session", { method: "GET" });
       if (!resp.ok) return null;
 
       const dados = await resp.json().catch(() => null);
@@ -908,17 +911,14 @@
     }
   }
 
-  /**
-   * Agenda a expiração local baseada no "exp" (epoch seconds) vindo do token.
-   * - Isso faz o front “morrer” exatamente quando a sessão morrer.
-   * - Mesmo que o usuário fique com a tela aberta, a expiração respeita as 8h.
-   */
-  function agendarExpiracaoSessao(sessao) {
-    // Limpa timers anteriores
-    if (timerExpiracao) clearTimeout(timerExpiracao);
-    if (timerRevalidacao) clearInterval(timerRevalidacao);
+  function limparTimersSessao() {
+    if (timerExpiracao) { clearTimeout(timerExpiracao); timerExpiracao = null; }
+    if (timerRevalidacao) { clearInterval(timerRevalidacao); timerRevalidacao = null; }
+  }
 
-    // Se o backend não enviar exp, ainda assim vamos revalidar periodicamente
+  function agendarExpiracaoSessao(sessao) {
+    limparTimersSessao();
+
     const expSec = Number(sessao?.exp || 0);
     const agoraMs = Date.now();
 
@@ -926,21 +926,17 @@
       const expMs = expSec * 1000;
       const msRestantes = expMs - agoraMs;
 
-      // Se já expirou (clock drift), bloqueia
       if (msRestantes <= 0) {
         mostrarTelaSessaoInvalida("Sessão expirada. Faça login novamente.");
         return;
       }
 
-      // Agenda expiração exata (+ pequena folga para drift)
       timerExpiracao = setTimeout(() => {
         mostrarTelaSessaoInvalida("Sessão expirada. Faça login novamente.");
       }, msRestantes + 500);
     }
 
-    // Revalidação periódica (defesa extra): a cada 2 minutos.
-    // Motivo: se o cookie for removido manualmente, ou backend invalidar por algum motivo,
-    // você descobre sem esperar o exp.
+    // Revalidação periódica (defesa extra): a cada 2 minutos
     timerRevalidacao = setInterval(async () => {
       const s = await obterSessaoDoBackend();
       if (!s) {
@@ -951,7 +947,9 @@
 
   async function mostrarTelaSessaoInvalida(mensagem) {
     try {
-      // Fecha overlays para não “travar” por cima
+      limparTimersSessao();
+
+      // Fecha overlays
       const overlays = [
         "overlayCarregando",
         "overlayProdutoDuplicado",
@@ -985,13 +983,9 @@
       return;
     }
 
-    // Guarda sessão em memória (não em localStorage)
     sessaoAtual = sessao;
-
-    // Agenda expiração/revalidação (8 horas)
     agendarExpiracaoSessao(sessaoAtual);
 
-    // Sessão válida
     usuarioLogado = sessao.usuario;
     lojaLogada    = sessao.loja;
 
@@ -1397,20 +1391,18 @@
     const fotoStatus = document.getElementById("fotoStatus");
     const status = document.getElementById("status");
 
-    if (fotoStatus) fotoStatus.textContent = "Enviando foto para o Drive...";
+    if (fotoStatus) fotoStatus.textContent = "Enviando foto...";
 
     const { base64, mimeType, filename } = await comprimirImagemParaBase64(file);
 
+    // ✅ Ajuste: não enviar loja/usuario no body (backend usa sessão como fonte de verdade)
     const payload = {
       base64,
       mimeType,
       filename,
-      doc: docAtual || "",
-      loja: lojaLogada || "",
-      usuario: usuarioLogado || "",
+      doc: docAtual || ""
     };
 
-    // ✅ Protege com fetchAuth
     const resp = await fetchAuth("/api/upload-imagem", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1433,11 +1425,8 @@
     }
 
     if (status) {
-      const webViewLink = dados.webViewLink || "";
       const fileId = dados.fileId || "";
-      status.innerHTML =
-        `Foto enviada. ID: <b>${fileId}</b>` +
-        (webViewLink ? ` — <a href="${webViewLink}" target="_blank" rel="noopener">Abrir no Drive</a>` : "");
+      status.innerHTML = `Foto enviada. ID: <b>${fileId}</b>`;
     }
 
     return String(dados.imageUrl || "");
@@ -1462,7 +1451,6 @@
     try {
       if (status) status.textContent = "Finalizando ocorrência... enviando registros em lote.";
 
-      // ✅ Protege com fetchAuth
       const resp = await fetchAuth("/api/relatorio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1529,11 +1517,7 @@
         const consinco = String(linha[1] ?? "").toLowerCase();
         const produto  = String(linha[2] ?? "").toLowerCase();
 
-        return (
-          ean === termo ||
-          consinco === termo ||
-          produto.includes(termo)
-        );
+        return (ean === termo || consinco === termo || produto.includes(termo));
       });
 
       mostrarResultados(resultados);
@@ -1874,16 +1858,9 @@
 
   function sairDoApp() {
     /**
-     * ✅ AJUSTE PRINCIPAL DO SEU BUG:
-     * "Sair" aqui significa VOLTAR AO MENU mantendo a sessão.
-     * Não apaga cookie, não chama /api/logout e não limpa pppSession.
-     *
-     * Por que?
-     * - Seu menu provavelmente decide se redireciona pro login lendo localStorage.
-     * - Se você limpar localStorage, o menu te manda pro login (o bug que você descreveu).
-     *
-     * Logout real deve ser feito em um botão separado (no menu),
-     * chamando /api/logout e então redirect para /login.html.
+     * ✅ Ajuste mantido:
+     * "Sair" aqui = VOLTAR AO MENU mantendo sessão (não é logout).
+     * Não chama /api/logout, não apaga cookie.
      */
     window.location.href = "/menu.html";
   }
