@@ -3,16 +3,16 @@
 // Objetivo: validação de sessão no backend.
 //
 // Modo recomendado (seguro):
-// - Defina a env SESSION_SECRET (string forte) para habilitar cookie assinado.
-// - Sua API de login deve setar o cookie ppp_session usando createSessionCookie() (opcional).
+// - Defina SESSION_SECRET (string forte) para habilitar cookie assinado.
+// - Sua API de login seta o cookie ppp_session via createSessionCookie().
 //
 // Modo compatibilidade (não recomendado):
 // - Se você ainda não implementou cookie assinado no login,
 //   você pode permitir sessão via header "X-PPP-Session" (base64 do JSON),
 //   habilitando ALLOW_INSECURE_SESSION=true.
 //
-// Segurança (por que isso importa):
-// - Bloqueio em HTML (sessionStorage/localStorage) é fácil de burlar.
+// Segurança:
+// - Bloqueio em HTML (localStorage/sessionStorage) é fácil de burlar.
 // - Proteção correta: endpoints /api devem rejeitar chamadas sem sessão válida.
 
 import crypto from "crypto";
@@ -28,6 +28,10 @@ function envBool(name, def = false) {
 function getSessionSecret() {
   const s = String(process.env.SESSION_SECRET || "").trim();
   return s || null;
+}
+
+function isProdEnv() {
+  return String(process.env.NODE_ENV || "").toLowerCase() === "production";
 }
 
 function b64urlEncode(buf) {
@@ -70,7 +74,7 @@ function setCookie(res, name, value, opts = {}) {
     secure = true,
     sameSite = "Lax",
     path = "/",
-    maxAgeSec = 60 * 60 * 8, // 8h
+    maxAgeSec = 60 * 60 * 8,
     domain
   } = opts;
 
@@ -89,8 +93,19 @@ function setCookie(res, name, value, opts = {}) {
   }
 }
 
-function clearCookie(res, name) {
-  const cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly; Secure`;
+function clearCookie(res, name, opts = {}) {
+  // Importante: atributos precisam combinar com os usados no setCookie
+  const {
+    secure = true,
+    sameSite = "Lax",
+    path = "/",
+    domain
+  } = opts;
+
+  let cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=${sameSite}; HttpOnly`;
+  if (secure) cookie += "; Secure";
+  if (domain) cookie += `; Domain=${domain}`;
+
   const prev = res.getHeader("Set-Cookie");
   if (!prev) res.setHeader("Set-Cookie", cookie);
   else if (Array.isArray(prev)) res.setHeader("Set-Cookie", [...prev, cookie]);
@@ -141,7 +156,6 @@ function decodeHeaderSession(req) {
 
   if (!raw) return null;
 
-  // Pode vir base64 unicode do front
   const s = String(raw).trim();
   let jsonStr = "";
 
@@ -154,7 +168,6 @@ function decodeHeaderSession(req) {
   const obj = safeJsonParse(jsonStr);
   if (!obj) return null;
 
-  // Normaliza campos esperados
   const session = {
     usuario: obj.usuario || obj.user || obj.login || "",
     loja: obj.loja || obj.store || "",
@@ -171,7 +184,7 @@ export function createSessionCookie(res, session, opts = {}) {
   if (!secret) throw new Error("SESSION_SECRET não configurado.");
 
   const now = Math.floor(Date.now() / 1000);
-  const ttlSec = Number(opts.ttlSec || (60 * 60 * 8)); // 8h
+  const ttlSec = Number(opts.ttlSec || (60 * 60 * 8));
 
   const payload = {
     usuario: session?.usuario || "",
@@ -185,9 +198,12 @@ export function createSessionCookie(res, session, opts = {}) {
 
   const token = signToken(payload, secret);
 
+  // ✅ Ajuste necessário: Secure só em produção (evita falha em HTTP local)
+  const secure = isProdEnv();
+
   setCookie(res, COOKIE_NAME, token, {
     httpOnly: true,
-    secure: true,
+    secure,
     sameSite: "Lax",
     path: "/",
     maxAgeSec: ttlSec
@@ -197,7 +213,14 @@ export function createSessionCookie(res, session, opts = {}) {
 }
 
 export function destroySessionCookie(res) {
-  clearCookie(res, COOKIE_NAME);
+  // ✅ Mesma lógica do Secure do create (para realmente remover no browser)
+  const secure = isProdEnv();
+
+  clearCookie(res, COOKIE_NAME, {
+    secure,
+    sameSite: "Lax",
+    path: "/"
+  });
 }
 
 export function requireSession(req, res, options = {}) {
@@ -224,8 +247,7 @@ export function requireSession(req, res, options = {}) {
     }
   }
 
-  // 2) Modo compatibilidade: header X-PPP-Session
-  // Só permite se ALLOW_INSECURE_SESSION=true
+  // 2) Modo compatibilidade: header X-PPP-Session (inseguro)
   if (envBool("ALLOW_INSECURE_SESSION", false)) {
     const s = decodeHeaderSession(req);
     if (s) {
