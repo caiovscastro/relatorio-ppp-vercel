@@ -1,44 +1,37 @@
 // api/relatorios.js
+//
+// Lista registros da aba RELATORIO com filtros opcionais.
+// ✅ Segurança:
+// - Exige sessão válida via cookie (requireSession)
+// - BASE_PPP fica restrito à própria loja (evita consultar outras lojas via query)
+// - Não cachear resposta (no-store)
+
 import { google } from "googleapis";
-import { requireSession } from "./_authUsuarios.js"; // ✅ NOVO: valida sessão
+import { requireSession } from "./_authUsuarios.js";
 
 const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
-/**
- * Cria cliente autenticado do Google Sheets (somente leitura).
- */
 async function getSheetsClient() {
   const auth = new google.auth.JWT({
     email: serviceAccountEmail,
     key: privateKey,
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
-
   return google.sheets({ version: "v4", auth });
 }
 
-/**
- * Normaliza hora para "HH:mm".
- * Aceita: "HH:mm", "HH:mm:ss", "H:mm", "H:mm:ss"
- */
 function normalizarHoraHHMM(horaStr) {
   const s = String(horaStr || "").trim();
   if (!s) return "";
-
   const m = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (!m) return s;
-
   const hh = String(parseInt(m[1], 10)).padStart(2, "0");
   const mm = String(parseInt(m[2], 10)).padStart(2, "0");
   return `${hh}:${mm}`;
 }
 
-/**
- * Converte "DD/MM/AAAA" -> "AAAA-MM-DD" (ISO de data).
- * Se não bater o padrão, retorna "".
- */
 function dataBRParaISO(dataBR) {
   const s = String(dataBR || "").trim();
   if (!s) return "";
@@ -48,17 +41,24 @@ function dataBRParaISO(dataBR) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function upperTrim(x){ return String(x || "").trim().toUpperCase(); }
+function lowerTrim(x){ return String(x || "").trim().toLowerCase(); }
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return res.status(405).json({ sucesso: false, message: "Método não permitido." });
   }
 
-  // ✅ NOVO: exige sessão válida (8h via cookie)
+  // ✅ não cachear
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+
+  // ✅ exige sessão válida
   const session = requireSession(req, res);
   if (!session) return;
 
-  // ✅ Fail-fast de variáveis de ambiente
+  // ✅ fail-fast env
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     console.error("Variáveis de ambiente do Google não configuradas corretamente.");
     return res.status(500).json({
@@ -73,9 +73,16 @@ export default async function handler(req, res) {
       usuario = "",
       documento = "",
       departamento = "",
-      dataInicio = "", // esperado: "YYYY-MM-DD"
-      dataFim = "",    // esperado: "YYYY-MM-DD"
+      dataInicio = "", // "YYYY-MM-DD"
+      dataFim = "",    // "YYYY-MM-DD"
     } = req.query;
+
+    const perfil = upperTrim(session.perfil);
+    const lojaSessao = String(session.loja || "").trim();
+
+    // ✅ Regra de segurança:
+    // BASE_PPP não pode “trocar loja” pela URL. Força a loja da sessão.
+    const lojaEfetiva = (perfil === "BASE_PPP") ? lojaSessao : String(loja || "").trim();
 
     const sheets = await getSheetsClient();
 
@@ -90,28 +97,10 @@ export default async function handler(req, res) {
 
     const registros = rows.map((row) => {
       const [
-        dataHora,          // A
-        lojaCol,           // B
-        usuarioCol,        // C
-        ean,               // D
-        codConsinco,       // E
-        produto,           // F
-        departamentoCol,   // G
-        secao,             // H
-        grupo,             // I
-        subgrupo,          // J
-        categoria,         // K
-        relatorioObs,      // L
-        quantidade,        // M
-        valorUnitario,     // N
-        documentoCol,      // O
-        idCol,             // P
-        imagemUrlCol,      // Q
-        dataOcorridoCol,   // R
-        horaOcorridoCol,   // S
+        dataHora, lojaCol, usuarioCol, ean, codConsinco, produto, departamentoCol,
+        secao, grupo, subgrupo, categoria, relatorioObs, quantidade, valorUnitario,
+        documentoCol, idCol, imagemUrlCol, dataOcorridoCol, horaOcorridoCol,
       ] = row;
-
-      const horaOcorridoNorm = normalizarHoraHHMM(horaOcorridoCol);
 
       return {
         dataHora: dataHora || "",
@@ -129,35 +118,31 @@ export default async function handler(req, res) {
         quantidade: quantidade || "",
         valorUnitario: valorUnitario || "",
         documento: documentoCol || "",
-
         id: idCol || "",
         idRegistro: idCol || "",
-
         imageUrl: imagemUrlCol || "",
-
-        dataOcorrido: dataOcorridoCol || "",  // "DD/MM/AAAA"
-        horaOcorrido: horaOcorridoNorm || "", // "HH:mm"
+        dataOcorrido: dataOcorridoCol || "",         // "DD/MM/AAAA"
+        horaOcorrido: normalizarHoraHHMM(horaOcorridoCol) || "", // "HH:mm"
       };
     });
 
-    const lojaFiltro = String(loja).trim().toLowerCase();
-    const usuarioFiltro = String(usuario).trim().toLowerCase();
-    const docFiltro = String(documento).trim();
-    const depFiltro = String(departamento).trim().toUpperCase();
+    const lojaFiltro = lowerTrim(lojaEfetiva);
+    const usuarioFiltro = lowerTrim(usuario);
+    const docFiltro = String(documento || "").trim();
+    const depFiltro = upperTrim(departamento);
 
-    const iniISO = String(dataInicio || "").trim(); // "" ou "YYYY-MM-DD"
-    const fimISO = String(dataFim || "").trim();    // "" ou "YYYY-MM-DD"
+    const iniISO = String(dataInicio || "").trim();
+    const fimISO = String(dataFim || "").trim();
 
     const filtrados = registros.filter((reg) => {
-      if (lojaFiltro && !String(reg.loja || "").toLowerCase().includes(lojaFiltro)) return false;
-      if (usuarioFiltro && !String(reg.usuario || "").toLowerCase().includes(usuarioFiltro)) return false;
+      if (lojaFiltro && !lowerTrim(reg.loja).includes(lojaFiltro)) return false;
+      if (usuarioFiltro && !lowerTrim(reg.usuario).includes(usuarioFiltro)) return false;
       if (docFiltro && String(reg.documento || "") !== docFiltro) return false;
-      if (depFiltro && String(reg.departamento || "").toUpperCase() !== depFiltro) return false;
+      if (depFiltro && upperTrim(reg.departamento) !== depFiltro) return false;
 
       if (iniISO || fimISO) {
-        const regISO = dataBRParaISO(reg.dataOcorrido); // "YYYY-MM-DD"
+        const regISO = dataBRParaISO(reg.dataOcorrido);
         if (!regISO) return false;
-
         if (iniISO && regISO < iniISO) return false;
         if (fimISO && regISO > fimISO) return false;
       }
@@ -169,7 +154,8 @@ export default async function handler(req, res) {
       sucesso: true,
       total: filtrados.length,
       registros: filtrados,
-      // opcional (debug): session: { usuario: session.usuario, loja: session.loja, perfil: session.perfil }
+      // debug opcional:
+      // restricao: { perfil, lojaSessao, lojaEfetiva }
     });
   } catch (erro) {
     console.error("Erro em /api/relatorios:", erro);
