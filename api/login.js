@@ -3,13 +3,16 @@
 // Login PPP
 // - Valida usuário, senha e loja na aba USUARIOS
 // - Valida perfil permitido
-// - ✅ NOVO: cria sessão (cookie HttpOnly) com expiração em 8 horas
+// - ✅ Cria sessão (cookie HttpOnly) com expiração em 8 horas
 //
-// Requer ENV adicional:
-// - SESSION_SECRET (>= 32 chars)  ✅ você já configurou
+// Requer ENV:
+// - GOOGLE_SERVICE_ACCOUNT_EMAIL
+// - GOOGLE_PRIVATE_KEY
+// - SPREADSHEET_ID
+// - SESSION_SECRET  (>= 32 chars)
 
 import { google } from "googleapis";
-import { createSessionCookie } from "./_authUsuarios.js"; // ✅ NOVO
+import { createSessionCookie } from "./_authUsuarios.js"; // ✅ usa o arquivo que você mandou
 
 // ====== LEITURA DAS VARIÁVEIS DE AMBIENTE ======
 const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -91,9 +94,9 @@ export default async function handler(req, res) {
     const usuarios = await carregarUsuarios();
 
     const encontrado = usuarios.find((u) => {
-      const lojaPlanilha = u.loja.trim().toLowerCase();
-      const usuarioPlanilha = u.usuario.trim().toLowerCase();
-      const senhaPlanilha = u.senha.trim();
+      const lojaPlanilha = (u.loja || "").trim().toLowerCase();
+      const usuarioPlanilha = (u.usuario || "").trim().toLowerCase();
+      const senhaPlanilha = (u.senha || "").trim();
 
       return (
         usuarioPlanilha === usuarioInput &&
@@ -109,7 +112,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const perfil = (encontrado.perfil || "").toUpperCase();
+    const perfil = String(encontrado.perfil || "").trim().toUpperCase();
     const perfisPermitidos = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
 
     if (!perfisPermitidos.includes(perfil)) {
@@ -119,12 +122,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ NOVO: cria cookie de sessão (8h) - HttpOnly/SameSite/Secure em produção
-    createSessionCookie(req, res, {
-      usuario: encontrado.usuario,
-      loja: encontrado.loja,
-      perfil,
-    });
+    // ✅ CRÍTICO: seu createSessionCookie(res, session, opts) recebe (res, session)
+    // Você estava chamando createSessionCookie(req, res, {...}) e isso quebra (500).
+    createSessionCookie(
+      res,
+      {
+        usuario: encontrado.usuario,
+        loja: encontrado.loja,
+        perfil,
+      },
+      { ttlSec: 60 * 60 * 8 } // 8h
+    );
 
     return res.status(200).json({
       sucesso: true,
@@ -138,7 +146,7 @@ export default async function handler(req, res) {
     return res.status(500).json({
       sucesso: false,
       message: "Erro interno ao validar login.",
-      detalhe: erro.message || String(erro),
+      detalhe: erro?.message || String(erro),
     });
   }
 }
