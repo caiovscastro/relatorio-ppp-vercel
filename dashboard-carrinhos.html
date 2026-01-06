@@ -10,7 +10,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <!-- Chart.js (pizza) + plugin datalabels (mostrar quantidade no rótulo) -->
+  <!-- Chart.js + plugin datalabels -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
@@ -28,12 +28,18 @@
       --tileBorder:#e0e3ff;
     }
 
+    html, body{
+      max-width: 100%;
+      overflow-x: hidden; /* (1) evita “estouro” horizontal no mobile */
+    }
+
     body{
       background:var(--bg);
       font-family: Arial, sans-serif;
       margin:0;
       min-height:100vh;
       color:#111;
+      -webkit-text-size-adjust: 100%; /* (1) evita zoom estranho em iOS */
     }
 
     .container{
@@ -51,6 +57,7 @@
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
       box-sizing:border-box;
+      max-width: 100%;
     }
 
     .titulo{
@@ -70,6 +77,7 @@
       border-bottom: 1px solid var(--border);
       padding-bottom: 12px;
       margin-bottom: 12px;
+      max-width: 100%;
     }
 
     .card-info{
@@ -81,6 +89,8 @@
       font-size: 13px;
       line-height: 1.45;
       min-width: 280px;
+      box-sizing: border-box;
+      max-width: 100%;
     }
 
     .linha{
@@ -101,6 +111,8 @@
       gap:10px;
       justify-content: center;
       min-width: 240px;
+      box-sizing: border-box;
+      max-width: 100%;
     }
 
     .btn{
@@ -144,6 +156,7 @@
       grid-template-columns: 380px 1fr;
       gap: 12px;
       align-items: start;
+      max-width: 100%;
     }
     @media (max-width: 980px){
       .grid{ grid-template-columns: 1fr; }
@@ -154,6 +167,8 @@
       border: 1px solid var(--tileBorder);
       border-radius: 12px;
       padding: 12px;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .painel h3{
@@ -168,6 +183,8 @@
       border-radius: 10px;
       padding: 10px;
       margin-bottom: 10px;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .grupo-titulo{
@@ -221,6 +238,16 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
+    @media (max-width: 520px){
+      /* (1) No celular, evitar “estouro” por min-width e textos longos */
+      .container{ padding: 10px; }
+      .shell{ padding: 14px; }
+      .card-info, .acoes{ min-width: 0; flex: 1 1 100%; }
+      .linha{ white-space: normal; }
+      .k, .v{ white-space: normal; }
+      .subgrid{ grid-template-columns: 1fr; }
+      .check{ white-space: normal; }
+    }
 
     .campo{
       display:flex;
@@ -242,6 +269,7 @@
       font-size: 14px;
       background:#fff;
       outline:none;
+      max-width: 100%;
     }
     .input:focus{
       border-color:var(--primary);
@@ -262,6 +290,8 @@
       border:1px solid var(--border);
       border-radius: 12px;
       padding: 12px;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     .card h3{
       margin: 0 0 10px;
@@ -279,6 +309,8 @@
       border-radius: 12px;
       padding: 12px;
       margin-bottom: 10px;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     .kpi .label{ font-weight: 900; color:#111; font-size: 13px; }
     .kpi .value{ font-weight: 900; font-size: 28px; color: var(--primary); line-height:1; }
@@ -316,6 +348,7 @@
       overflow:auto;
       border:1px solid #eee;
       border-radius: 10px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .nota{
@@ -326,15 +359,14 @@
       font-weight: 700;
     }
 
-    /* (1) Diferença por loja: verde positivo, vermelho negativo */
     .diff-pos{ color: var(--ok); font-weight: 900; }
     .diff-neg{ color: var(--danger); font-weight: 900; }
     .diff-zero{ color:#333; font-weight: 900; }
 
-    /* (4) Ajuste do canvas da pizza: menor */
-    .canvas-pizza-wrap{
+    /* (3) Área do gráfico de barras (mantém comportamento bom no desktop; responsivo no mobile) */
+    .chart-wrap{
       width:100%;
-      max-width: 360px; /* reduz um pouco o tamanho visual */
+      max-width: 760px;
       margin: 0 auto;
     }
   </style>
@@ -374,7 +406,6 @@
           <div class="painel">
             <h3>Filtros (Checkbox)</h3>
 
-            <!-- (1) Data Referência + Data Final (dashboard filtra pela Final) -->
             <div class="grupo">
               <div class="grupo-titulo">Datas</div>
               <div class="subgrid">
@@ -404,7 +435,7 @@
               <div class="lista" id="listaTipos"></div>
             </div>
 
-            <!-- (3) Bandeira e Lojas: remover botões Tudo/Nada -->
+            <!-- Bandeira e Lojas (sem botões Tudo/Nada) -->
             <div class="grupo">
               <div class="grupo-titulo">
                 <span>Bandeira</span>
@@ -436,18 +467,18 @@
             </div>
 
             <div class="cards">
-              <!-- (4) Pizza menor e rótulo mais destacado -->
+              <!-- (3) Barras horizontais no lugar da pizza -->
               <div class="card">
                 <h3>Distribuição por tipo</h3>
-                <div class="canvas-pizza-wrap">
-                  <canvas id="pieTipos" height="170"></canvas>
+                <div class="chart-wrap">
+                  <canvas id="barTipos" height="220"></canvas>
                 </div>
                 <div class="nota">
                   O rótulo no gráfico mostra a <b>quantidade</b> por tipo (não percentual).
                 </div>
               </div>
 
-              <!-- (1) Total por loja na data + diferença Ref x Final -->
+              <!-- (2) Total por loja: Total Final + Total Ref + Diferença -->
               <div class="card">
                 <h3>Total por Loja na data</h3>
                 <div class="table-wrap">
@@ -456,6 +487,7 @@
                       <tr>
                         <th>Loja</th>
                         <th>Total (Final)</th>
+                        <th>Total (Ref)</th>
                         <th>Diferença (Final - Ref)</th>
                       </tr>
                     </thead>
@@ -468,7 +500,6 @@
               </div>
             </div>
 
-            <!-- (5) Registros: remover Data Contagem e adicionar Total -->
             <div class="card" style="margin-top:12px;">
               <h3>Registros de Carrinhos</h3>
               <div class="table-wrap">
@@ -500,9 +531,6 @@
   </div>
 
 <script>
-  /* =====================================================================================
-     ROTAS / SEGURANÇA
-     ===================================================================================== */
   const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
@@ -516,6 +544,18 @@
     { key: "compraKids",      label: "Compra Kids" },
     { key: "bebeJipinho",     label: "Bebê Jipinho" },
   ];
+
+  /* (3) Símbolo por tipo (vai no rótulo do eixo Y, “após o nome”) */
+  const TIPO_ICONE = {
+    duplocar120: "🛒",
+    grande160: "🛒",
+    bebeConforto160: "👶",
+    maxcar200: "🛒",
+    macrocar300: "🛒",
+    mini: "🧺",
+    compraKids: "🧸",
+    bebeJipinho: "👶"
+  };
 
   const LOJAS = [
     "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE",
@@ -532,7 +572,7 @@
 
   let sessaoAtual = null;
   let registros = [];
-  let chartPie = null;
+  let chartBar = null;
 
   function setMsg(texto, ok=false){
     const el = document.getElementById("msg");
@@ -594,7 +634,7 @@
       registros = dados.registros;
 
       montarFiltros();
-      sugerirDatasMaisRecentes(); // seta dataFinal e dataRef automaticamente se vazias
+      sugerirDatasMaisRecentes();
 
       aplicarFiltrosEAtualizarTudo();
       setMsg(`Dados carregados: ${registros.length} registro(s).`, true);
@@ -607,9 +647,6 @@
     }
   }
 
-  /* =========================
-     Helpers
-     ========================= */
   function brParaISO(br){
     const s = String(br||"").trim();
     const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -642,11 +679,7 @@
     }[m]));
   }
 
-  /* =========================
-     UI: filtros
-     ========================= */
   function montarFiltros(){
-    // Tipos
     const listaTipos = document.getElementById("listaTipos");
     listaTipos.innerHTML = "";
     TIPOS.forEach((t, i)=>{
@@ -660,7 +693,6 @@
       listaTipos.appendChild(row);
     });
 
-    // Lojas
     const listaLojas = document.getElementById("listaLojas");
     listaLojas.innerHTML = "";
     LOJAS.forEach((l, i)=>{
@@ -674,12 +706,11 @@
       listaLojas.appendChild(row);
     });
 
-    // listeners checkbox (tipo/loja)
     document.querySelectorAll('input[type="checkbox"][data-tipo]').forEach(cb=>{
       cb.addEventListener("change", aplicarFiltrosEAtualizarTudo);
     });
 
-    // (2) Bandeiras: ao marcar/desmarcar, MARCA/DESMARCA todas as lojas daquela bandeira
+    // Bandeiras: marca/desmarca lojas da bandeira
     document.getElementById("bandBIG").addEventListener("change", ()=>{
       aplicarBandeiraNasLojas("BIG", document.getElementById("bandBIG").checked);
       aplicarFiltrosEAtualizarTudo();
@@ -689,15 +720,12 @@
       aplicarFiltrosEAtualizarTudo();
     });
 
-    // (3) Removidos botões Tudo/Nada de bandeira/lojas — mantém apenas para Tipos
     document.getElementById("btnTiposTudo").onclick = ()=> setChecks("tipo", true);
     document.getElementById("btnTiposNada").onclick = ()=> setChecks("tipo", false);
 
-    // Datas: mudança recalcula
     document.getElementById("dataRef").addEventListener("change", aplicarFiltrosEAtualizarTudo);
     document.getElementById("dataFinal").addEventListener("change", aplicarFiltrosEAtualizarTudo);
 
-    // garante coerência inicial (se por algum motivo bandeira estiver desmarcada, aplica na lista)
     aplicarBandeiraNasLojas("BIG", document.getElementById("bandBIG").checked);
     aplicarBandeiraNasLojas("ULT", document.getElementById("bandULT").checked);
   }
@@ -729,18 +757,13 @@
     const elFinal = document.getElementById("dataFinal");
     const elRef   = document.getElementById("dataRef");
 
-    // data final: mais recente
     const maisRecente = datasISO[datasISO.length - 1];
     if(!elFinal.value) elFinal.value = maisRecente;
 
-    // data ref: a imediatamente anterior, se existir; senão, igual à final
     const anterior = datasISO.length >= 2 ? datasISO[datasISO.length - 2] : maisRecente;
     if(!elRef.value) elRef.value = anterior;
   }
 
-  /* =========================
-     Aplicar filtros + atualizar tudo
-     ========================= */
   function getSelecionados(tipo){
     const set = new Set();
     document.querySelectorAll(`input[type="checkbox"][data-tipo="${tipo}"]`).forEach(cb=>{
@@ -757,43 +780,35 @@
     const dataFinalISO = (document.getElementById("dataFinal").value || "").trim();
     if(!dataFinalISO){
       document.getElementById("kpiTotal").textContent = "0";
-      renderTabelaRegistros([]);
+      renderTabelaRegistros([], new Set());
       renderTabelaPorLoja({}, {});
-      desenharPizza({}, new Set());
+      desenharBarrasTipos({}, new Set());
       setMsg("Selecione a Data Final para exibir os dados.");
       return;
     }
 
     const dataRefISO = (document.getElementById("dataRef").value || "").trim();
     const dataFinalBR = isoParaBR(dataFinalISO);
-    const dataRefBR   = dataRefISO ? isoParaBR(dataRefISO) : ""; // referência pode ficar vazia
+    const dataRefBR   = dataRefISO ? isoParaBR(dataRefISO) : "";
 
     const tiposSel = getSelecionados("tipo");
     const lojasSel = getSelecionados("loja");
 
-    // Reforço: se BIG/ULT desmarcado, as lojas já foram desmarcadas pela função aplicarBandeiraNasLojas
-    // então aqui basta respeitar lojasSel.
-
-    // Base FINAL (dashboard)
     const baseFinal = registros.filter(r=>{
       const loja = String(r.loja || "").trim();
       if(lojasSel.size && !lojasSel.has(loja)) return false;
       if(String(r.dataContagem || "").trim() !== dataFinalBR) return false;
 
-      // filtro por tipo: mantém a linha se pelo menos 1 tipo selecionado tiver valor > 0
       if(tiposSel.size){
         let ok = false;
         for(const t of TIPOS){
-          if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0){
-            ok = true; break;
-          }
+          if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0){ ok = true; break; }
         }
         if(!ok) return false;
       }
       return true;
     });
 
-    // Base REF (somente para diferença por loja)
     const baseRef = (dataRefBR ? registros.filter(r=>{
       const loja = String(r.loja || "").trim();
       if(lojasSel.size && !lojasSel.has(loja)) return false;
@@ -802,40 +817,27 @@
       if(tiposSel.size){
         let ok = false;
         for(const t of TIPOS){
-          if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0){
-            ok = true; break;
-          }
+          if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0){ ok = true; break; }
         }
         if(!ok) return false;
       }
       return true;
     }) : []);
 
-    // Acumulados por loja
     const porLojaFinal = acumularPorLoja(baseFinal, tiposSel);
     const porLojaRef   = acumularPorLoja(baseRef, tiposSel);
 
-    // Totais por tipo (final)
     const totaisPorTipo = somarTiposDoMapa(porLojaFinal, tiposSel);
     const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
     document.getElementById("kpiTotal").textContent = String(totalGeral);
 
-    // Pizza
-    desenharPizza(totaisPorTipo, tiposSel);
-
-    // (1) Total por loja + diferença
+    desenharBarrasTipos(totaisPorTipo, tiposSel);
     renderTabelaPorLoja(porLojaFinal, porLojaRef);
-
-    // (5) Registros: usa baseFinal e formata total por linha
     renderTabelaRegistros(baseFinal, tiposSel);
   }
 
-  /* =========================
-     Acúmulo por loja
-     ========================= */
   function acumularPorLoja(listaRegistros, tiposSel){
     const mapa = {};
-
     for(const r of listaRegistros){
       const loja = String(r.loja||"").trim();
       if(!mapa[loja]){
@@ -845,7 +847,6 @@
           mapa[loja][t.key] = 0;
         }
       }
-
       for(const t of TIPOS){
         if(tiposSel.size && !tiposSel.has(t.key)) continue;
         const v = asInt(r.contagens?.[t.key]);
@@ -862,7 +863,6 @@
       if(tiposSel.size && !tiposSel.has(t.key)) continue;
       out[t.key] = 0;
     }
-
     for(const loja in porLoja){
       const obj = porLoja[loja];
       for(const t of TIPOS){
@@ -873,22 +873,30 @@
     return out;
   }
 
-  /* =========================
-     (4) Pizza menor + rótulo mais destacado
-     ========================= */
-  function desenharPizza(totaisPorTipo, tiposSel){
-    // Sem tipos selecionados
+  /* (3) Gráfico de barras horizontais */
+  function desenharBarrasTipos(totaisPorTipo, tiposSel){
+    const ctx = document.getElementById("barTipos").getContext("2d");
+
+    // nenhum tipo selecionado
     if(tiposSel.size === 0){
-      const ctx0 = document.getElementById("pieTipos").getContext("2d");
-      if(chartPie){ chartPie.destroy(); chartPie = null; }
-      chartPie = new Chart(ctx0, {
-        type:"pie",
-        data:{ labels:["Sem tipos selecionados"], datasets:[{ data:[1] }] },
+      if(chartBar){ chartBar.destroy(); chartBar = null; }
+      chartBar = new Chart(ctx, {
+        type:"bar",
+        data:{
+          labels:["Sem tipos selecionados"],
+          datasets:[{ data:[0] }]
+        },
         options:{
+          indexAxis:"y",
+          responsive:true,
           plugins:{
-            legend:{ position:"bottom" },
-            datalabels:{ formatter: ()=>"" },
-            tooltip:{ enabled:false }
+            legend:{ display:false },
+            tooltip:{ enabled:false },
+            datalabels:{ formatter: ()=>"" }
+          },
+          scales:{
+            x:{ beginAtZero:true },
+            y:{ ticks:{ font:{ weight:"900" } } }
           }
         },
         plugins:[ChartDataLabels]
@@ -896,62 +904,86 @@
       return;
     }
 
+    // monta labels com ícone “após o nome”
     const labels = [];
     const data = [];
+
     TIPOS.forEach(t=>{
       if(tiposSel.size && !tiposSel.has(t.key)) return;
-      labels.push(t.label);
+      const icon = TIPO_ICONE[t.key] || "🛒";
+      labels.push(`${t.label} ${icon}`);
       data.push(asInt(totaisPorTipo[t.key]));
     });
 
-    const ctx = document.getElementById("pieTipos").getContext("2d");
+    // (extra) opcional: ordenar por valor desc para leitura melhor
+    const zipped = labels.map((l,i)=>({ l, v:data[i] }))
+      .sort((a,b)=>b.v - a.v);
+    const labelsOrd = zipped.map(x=>x.l);
+    const dataOrd = zipped.map(x=>x.v);
 
-    const config = {
-      type: "pie",
-      data: { labels, datasets: [{ data }] },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "bottom" },
-          tooltip: {
-            callbacks: {
-              label: (context) => {
-                const v = context.parsed || 0;
-                return ` ${context.label}: ${v}`;
-              }
+    if(chartBar){ chartBar.destroy(); }
+
+    chartBar = new Chart(ctx, {
+      type:"bar",
+      data:{
+        labels: labelsOrd,
+        datasets:[{
+          data: dataOrd,
+          borderWidth: 1,
+          borderColor: "rgba(0,0,0,0.08)"
+        }]
+      },
+      options:{
+        indexAxis:"y",
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            callbacks:{
+              label:(c)=>` ${c.label}: ${c.parsed.x || 0}`
             }
           },
-          datalabels: {
-            formatter: (value) => value ? String(value) : "",
-            font: { weight: "900", size: 13 },     // mais destaque
-            textStrokeColor: "#ffffff",            // contorno (melhora contraste)
-            textStrokeWidth: 3,
-            textShadowBlur: 6,                     // sombra leve
-            textShadowColor: "rgba(0,0,0,0.35)"
+          datalabels:{
+            formatter:(v)=> (v ? String(v) : ""),
+            anchor:"end",
+            align:"right",
+            clamp:true,
+            offset: 6,
+            font:{ weight:"900" },
+            textStrokeColor:"#ffffff",
+            textStrokeWidth: 3
+          }
+        },
+        scales:{
+          x:{
+            beginAtZero:true,
+            ticks:{ precision:0 },
+            grid:{ color:"rgba(0,0,0,0.05)" }
+          },
+          y:{
+            ticks:{
+              font:{ weight:"900" }
+            },
+            grid:{ display:false }
           }
         }
       },
-      plugins: [ChartDataLabels]
-    };
-
-    if(chartPie){ chartPie.destroy(); }
-    chartPie = new Chart(ctx, config);
+      plugins:[ChartDataLabels]
+    });
   }
 
-  /* =========================
-     (1) Tabela por loja com diferença (Final - Ref)
-     ========================= */
+  /* (2) Tabela por loja com Total Final + Total Ref + Diferença */
   function renderTabelaPorLoja(porLojaFinal, porLojaRef){
     const tbody = document.getElementById("tbodyPorLoja");
     tbody.innerHTML = "";
 
     const entries = Object.entries(porLojaFinal || {});
     if(!entries.length){
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
       return;
     }
 
-    // Ordena por total final desc
     entries.sort((a,b)=> (asInt(b[1].__total) - asInt(a[1].__total)));
 
     for(const [loja, objFinal] of entries){
@@ -966,15 +998,13 @@
       tr.innerHTML = `
         <td>${esc(loja)}</td>
         <td style="font-weight:900;">${finalTotal}</td>
+        <td style="font-weight:900;">${refTotal}</td>
         <td class="${cls}">${txt}</td>
       `;
       tbody.appendChild(tr);
     }
   }
 
-  /* =========================
-     (5) Registros: remover Data Contagem e adicionar Total no fim
-     ========================= */
   function renderTabelaRegistros(lista, tiposSel){
     const tbody = document.getElementById("tbodyRegistros");
     tbody.innerHTML = "";
@@ -984,7 +1014,6 @@
       return;
     }
 
-    // Ordena por loja e usuário
     const ord = [...lista].sort((a,b)=>{
       const la = String(a.loja||"").localeCompare(String(b.loja||""));
       if(la !== 0) return la;
@@ -993,8 +1022,6 @@
 
     for(const r of ord){
       const c = r.contagens || {};
-
-      // total da linha considerando os tipos selecionados (coerência com filtros)
       let totalLinha = 0;
       for(const t of TIPOS){
         if(tiposSel.size && !tiposSel.has(t.key)) continue;
@@ -1019,9 +1046,6 @@
     }
   }
 
-  /* =====================================================================================
-     BOOTSTRAP
-     ===================================================================================== */
   document.addEventListener("DOMContentLoaded", async ()=>{
     document.getElementById("btnIrLogin").onclick = ()=> window.location.href = ROTAS.login;
     document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
@@ -1047,7 +1071,6 @@
 
     sessaoAtual = s;
     mostrarApp();
-
     document.getElementById("infoLoja").textContent = s.loja;
     document.getElementById("infoUsuario").textContent = s.usuario;
     document.getElementById("infoPerfil").textContent = s.perfil;
@@ -1059,7 +1082,7 @@
 <!-- Fontes confiáveis -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
-<!-- MDN fetch credentials: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
+<!-- MDN viewport/zoom mobile: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
 <!-- OWASP Session Management: https://owasp.org/www-project-cheat-sheets/cheatsheets/Session_Management_Cheat_Sheet.html -->
 </body>
 </html>
