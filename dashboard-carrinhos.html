@@ -31,24 +31,19 @@
     body{
       background:var(--bg);
       font-family: Arial, sans-serif;
-      margin:0; /* IMPORTANTE: antes estava margin:2 (valor estranho). Agora padronizado */
+      margin:0;
       min-height:100vh;
       color:#111;
     }
 
-    /* ====== MUDANÇA 3: ocupar largura total ======
-       Antes: container com max-width 1100 e centralizado.
-       Agora: container usa 100% com padding lateral para respirar.
-    */
     .container{
       width: 100%;
-      max-width: none;          /* remove limite */
-      background: transparent;  /* fundo fica no body; cards são brancos */
-      padding: 16px;            /* respiro lateral */
+      max-width: none;
+      background: transparent;
+      padding: 16px;
       box-sizing:border-box;
     }
 
-    /* Card principal para manter aparência consistente e ocupar toda a largura */
     .shell{
       width:100%;
       background:var(--card);
@@ -123,7 +118,6 @@
     .btn-sec{ background:#e9e9e9; color:#111; }
     .btn-sec:hover{ background:#dedede; }
 
-    /* Tela sem sessão */
     .tela-erro{
       width:100%;
       min-height: 65vh;
@@ -145,7 +139,6 @@
 
     .hidden{ display:none !important; }
 
-    /* Layout: painel + conteúdo */
     .grid{
       display:grid;
       grid-template-columns: 380px 1fr;
@@ -319,7 +312,7 @@
       z-index: 1;
     }
     .table-wrap{
-      max-height: 420px; /* um pouco maior, já que agora a tela é larga */
+      max-height: 420px;
       overflow:auto;
       border:1px solid #eee;
       border-radius: 10px;
@@ -331,6 +324,18 @@
       line-height: 1.35;
       margin-top: 8px;
       font-weight: 700;
+    }
+
+    /* (1) Diferença por loja: verde positivo, vermelho negativo */
+    .diff-pos{ color: var(--ok); font-weight: 900; }
+    .diff-neg{ color: var(--danger); font-weight: 900; }
+    .diff-zero{ color:#333; font-weight: 900; }
+
+    /* (4) Ajuste do canvas da pizza: menor */
+    .canvas-pizza-wrap{
+      width:100%;
+      max-width: 360px; /* reduz um pouco o tamanho visual */
+      margin: 0 auto;
     }
   </style>
 </head>
@@ -369,23 +374,25 @@
           <div class="painel">
             <h3>Filtros (Checkbox)</h3>
 
-            <!-- ====== MUDANÇA 1: remover checkbox de datas e manter SOMENTE data final ======
-                 Agora o recorte temporal é feito APENAS pela Data Final.
-                 A lógica recomendada é: considerar registros com dataContagem == dataFinal (BR).
-                 Se você queria "até a data final" (<=), isso muda o conceito de "contagem".
-            -->
+            <!-- (1) Data Referência + Data Final (dashboard filtra pela Final) -->
             <div class="grupo">
-              <div class="grupo-titulo">Data Final (obrigatória)</div>
-              <div class="campo">
-                <label for="dataFinal">Selecione a data final</label>
-                <input id="dataFinal" class="input" type="date" />
+              <div class="grupo-titulo">Datas</div>
+              <div class="subgrid">
+                <div class="campo">
+                  <label for="dataRef">Data Referência</label>
+                  <input id="dataRef" class="input" type="date" />
+                </div>
+                <div class="campo">
+                  <label for="dataFinal">Data Final (dashboard)</label>
+                  <input id="dataFinal" class="input" type="date" />
+                </div>
               </div>
               <div class="nota">
-                Este dashboard considera <b>apenas</b> registros cuja <b>Data Contagem</b> seja igual à <b>Data Final</b>.
+                O dashboard usa a <b>Data Final</b>. A <b>Data Referência</b> é usada apenas para calcular a <b>diferença por loja</b> na tabela “Total por Loja na data”.
               </div>
             </div>
 
-            <!-- Filtro de tipos (checkbox) -->
+            <!-- Tipos (mantém botões Tudo/Nada) -->
             <div class="grupo">
               <div class="grupo-titulo">
                 <span>Tipo de carrinho</span>
@@ -397,17 +404,12 @@
               <div class="lista" id="listaTipos"></div>
             </div>
 
-            <!-- Filtro de bandeira e lojas (checkbox) -->
+            <!-- (3) Bandeira e Lojas: remover botões Tudo/Nada -->
             <div class="grupo">
               <div class="grupo-titulo">
                 <span>Bandeira</span>
-                <span class="grupo-acoes">
-                  <button class="mini-btn" id="btnBandTudo">Tudo</button>
-                  <button class="mini-btn" id="btnBandNada">Nada</button>
-                </span>
               </div>
 
-              <!-- Bandeira padrão (BIG/ULT) -->
               <div class="check">
                 <input type="checkbox" id="bandBIG" checked />
                 <label for="bandBIG"><b>BIG</b></label>
@@ -419,15 +421,8 @@
 
               <div class="grupo-titulo" style="margin-top:10px;">
                 <span>Lojas</span>
-                <span class="grupo-acoes">
-                  <button class="mini-btn" id="btnLojasTudo">Tudo</button>
-                  <button class="mini-btn" id="btnLojasNada">Nada</button>
-                </span>
               </div>
               <div class="lista" id="listaLojas"></div>
-
-              <div class="nota">
-              </div>
             </div>
 
             <div class="msg" id="msg"></div>
@@ -441,16 +436,18 @@
             </div>
 
             <div class="cards">
-              <!-- Pizza -->
+              <!-- (4) Pizza menor e rótulo mais destacado -->
               <div class="card">
                 <h3>Distribuição por tipo</h3>
-                <canvas id="pieTipos" height="210"></canvas>
+                <div class="canvas-pizza-wrap">
+                  <canvas id="pieTipos" height="170"></canvas>
+                </div>
                 <div class="nota">
                   O rótulo no gráfico mostra a <b>quantidade</b> por tipo (não percentual).
                 </div>
               </div>
 
-              <!-- Tabela por loja (acumulado por loja) -->
+              <!-- (1) Total por loja na data + diferença Ref x Final -->
               <div class="card">
                 <h3>Total por Loja na data</h3>
                 <div class="table-wrap">
@@ -458,19 +455,20 @@
                     <thead>
                       <tr>
                         <th>Loja</th>
-                        <th>Total</th>
+                        <th>Total (Final)</th>
+                        <th>Diferença (Final - Ref)</th>
                       </tr>
                     </thead>
                     <tbody id="tbodyPorLoja"></tbody>
                   </table>
                 </div>
                 <div class="nota">
-                  Visão difereça de contagem.
+                  Diferença positiva: sobrou a mais (verde). Diferença negativa: faltou (vermelho).
                 </div>
               </div>
             </div>
 
-            <!-- ====== MUDANÇA 2: tabela de registros sem Data/Hora Rede e com novo título ====== -->
+            <!-- (5) Registros: remover Data Contagem e adicionar Total -->
             <div class="card" style="margin-top:12px;">
               <h3>Registros de Carrinhos</h3>
               <div class="table-wrap">
@@ -479,7 +477,6 @@
                     <tr>
                       <th>Loja</th>
                       <th>Usuário</th>
-                      <th>Data Contagem</th>
                       <th>Duplocar 120L</th>
                       <th>Grande 160L</th>
                       <th>Bebê conforto 160L</th>
@@ -488,6 +485,7 @@
                       <th>Mini</th>
                       <th>Compra Kids</th>
                       <th>Bebê Jipinho</th>
+                      <th>Total</th>
                     </tr>
                   </thead>
                   <tbody id="tbodyRegistros"></tbody>
@@ -504,19 +502,10 @@
 <script>
   /* =====================================================================================
      ROTAS / SEGURANÇA
-     - Esta tela só abre se /api/session retornar sucesso (cookie HttpOnly válido).
-     - A API de dados (/api/carrinhos-listar) também valida sessão no backend.
      ===================================================================================== */
-
-  const ROTAS = {
-    login: "/login.html",
-    menu: "/menu.html"
-  };
-
-  // Perfis permitidos na tela
+  const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-  // Tipos (colunas E..L)
   const TIPOS = [
     { key: "duplocar120",     label: "Duplocar 120L" },
     { key: "grande160",       label: "Grande 160L" },
@@ -528,7 +517,6 @@
     { key: "bebeJipinho",     label: "Bebê Jipinho" },
   ];
 
-  // Lista fixa de lojas
   const LOJAS = [
     "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE",
     "BIG 06 - SIBERIA","BIG 08 - 503 SUL","BIG 09 - PENÍNSULA","BIG 10 - PAINEIRAS","BIG 11 - 310 NORTE",
@@ -542,9 +530,8 @@
     "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 25 - BRASILINHA",
   ];
 
-  // Estado
   let sessaoAtual = null;
-  let registros = [];   // registros brutos vindos do backend
+  let registros = [];
   let chartPie = null;
 
   function setMsg(texto, ok=false){
@@ -563,7 +550,6 @@
     document.getElementById("app").classList.remove("hidden");
   }
 
-  // Session check (front)
   async function obterSessaoDoBackend(){
     try{
       const resp = await fetch("/api/session", {
@@ -581,7 +567,6 @@
     }
   }
 
-  // Dados (backend seguro)
   async function carregarRegistros(){
     setMsg("");
     const btn = document.getElementById("btnAtualizar");
@@ -608,11 +593,8 @@
 
       registros = dados.registros;
 
-      // monta filtros (agora sem datas checkbox)
       montarFiltros();
-
-      // DICA: se quiser facilitar, setar dataFinal automaticamente para a data mais recente encontrada.
-      sugerirDataFinalMaisRecente();
+      sugerirDatasMaisRecentes(); // seta dataFinal e dataRef automaticamente se vazias
 
       aplicarFiltrosEAtualizarTudo();
       setMsg(`Dados carregados: ${registros.length} registro(s).`, true);
@@ -626,7 +608,7 @@
   }
 
   /* =========================
-     Helpers de data BR <-> ISO
+     Helpers
      ========================= */
   function brParaISO(br){
     const s = String(br||"").trim();
@@ -661,7 +643,7 @@
   }
 
   /* =========================
-     UI: montar filtros (SEM datas checkbox)
+     UI: filtros
      ========================= */
   function montarFiltros(){
     // Tipos
@@ -692,44 +674,32 @@
       listaLojas.appendChild(row);
     });
 
-    // listeners gerais: qualquer checkbox muda tudo
+    // listeners checkbox (tipo/loja)
     document.querySelectorAll('input[type="checkbox"][data-tipo]').forEach(cb=>{
       cb.addEventListener("change", aplicarFiltrosEAtualizarTudo);
     });
 
-    // Bandeiras (BIG/ULT)
+    // (2) Bandeiras: ao marcar/desmarcar, MARCA/DESMARCA todas as lojas daquela bandeira
     document.getElementById("bandBIG").addEventListener("change", ()=>{
-      sincronizarLojasComBandeira();
+      aplicarBandeiraNasLojas("BIG", document.getElementById("bandBIG").checked);
       aplicarFiltrosEAtualizarTudo();
     });
     document.getElementById("bandULT").addEventListener("change", ()=>{
-      sincronizarLojasComBandeira();
+      aplicarBandeiraNasLojas("ULT", document.getElementById("bandULT").checked);
       aplicarFiltrosEAtualizarTudo();
     });
 
-    // Ações rápidas
+    // (3) Removidos botões Tudo/Nada de bandeira/lojas — mantém apenas para Tipos
     document.getElementById("btnTiposTudo").onclick = ()=> setChecks("tipo", true);
     document.getElementById("btnTiposNada").onclick = ()=> setChecks("tipo", false);
-    document.getElementById("btnLojasTudo").onclick = ()=> setChecks("loja", true);
-    document.getElementById("btnLojasNada").onclick = ()=> setChecks("loja", false);
-    document.getElementById("btnBandTudo").onclick = ()=>{
-      document.getElementById("bandBIG").checked = true;
-      document.getElementById("bandULT").checked = true;
-      sincronizarLojasComBandeira();
-      aplicarFiltrosEAtualizarTudo();
-    };
-    document.getElementById("btnBandNada").onclick = ()=>{
-      document.getElementById("bandBIG").checked = false;
-      document.getElementById("bandULT").checked = false;
-      sincronizarLojasComBandeira();
-      aplicarFiltrosEAtualizarTudo();
-    };
 
-    // Data Final: quando muda, recalcula tudo
+    // Datas: mudança recalcula
+    document.getElementById("dataRef").addEventListener("change", aplicarFiltrosEAtualizarTudo);
     document.getElementById("dataFinal").addEventListener("change", aplicarFiltrosEAtualizarTudo);
 
-    // Após montar filtros, sincroniza lojas conforme bandeira inicial
-    sincronizarLojasComBandeira();
+    // garante coerência inicial (se por algum motivo bandeira estiver desmarcada, aplica na lista)
+    aplicarBandeiraNasLojas("BIG", document.getElementById("bandBIG").checked);
+    aplicarBandeiraNasLojas("ULT", document.getElementById("bandULT").checked);
   }
 
   function setChecks(tipo, valor){
@@ -739,40 +709,37 @@
     aplicarFiltrosEAtualizarTudo();
   }
 
-  // Mantém coerência: se BIG desmarcado, desmarca lojas BIG; se marcado, não força marcar
-  function sincronizarLojasComBandeira(){
-    const bigOn = document.getElementById("bandBIG").checked;
-    const ultOn = document.getElementById("bandULT").checked;
-
+  function aplicarBandeiraNasLojas(bandeira, marcar){
     document.querySelectorAll('input[type="checkbox"][data-tipo="loja"]').forEach(cb=>{
       const loja = cb.getAttribute("data-valor") || "";
-      const band = bandeiraDaLoja(loja);
-      if(band === "BIG" && !bigOn) cb.checked = false;
-      if(band === "ULT" && !ultOn) cb.checked = false;
+      if(bandeiraDaLoja(loja) === bandeira){
+        cb.checked = !!marcar;
+      }
     });
   }
 
-  /* =========================
-     Lógica: sugerir data final mais recente encontrada
-     - Útil para evitar tela vazia quando o usuário ainda não escolheu a data
-     ========================= */
-  function sugerirDataFinalMaisRecente(){
+  function sugerirDatasMaisRecentes(){
     const datasISO = registros
       .map(r => brParaISO(String(r.dataContagem||"").trim()))
       .filter(Boolean)
-      .sort(); // yyyy-mm-dd ordena lexicograficamente correto
+      .sort();
 
     if(!datasISO.length) return;
 
+    const elFinal = document.getElementById("dataFinal");
+    const elRef   = document.getElementById("dataRef");
+
+    // data final: mais recente
     const maisRecente = datasISO[datasISO.length - 1];
-    const el = document.getElementById("dataFinal");
-    if(!el.value){
-      el.value = maisRecente;
-    }
+    if(!elFinal.value) elFinal.value = maisRecente;
+
+    // data ref: a imediatamente anterior, se existir; senão, igual à final
+    const anterior = datasISO.length >= 2 ? datasISO[datasISO.length - 2] : maisRecente;
+    if(!elRef.value) elRef.value = anterior;
   }
 
   /* =========================
-     Aplicar filtros + atualizar cards/gráfico/tabelas
+     Aplicar filtros + atualizar tudo
      ========================= */
   function getSelecionados(tipo){
     const set = new Set();
@@ -789,39 +756,28 @@
 
     const dataFinalISO = (document.getElementById("dataFinal").value || "").trim();
     if(!dataFinalISO){
-      // Sem data final, não calcula
       document.getElementById("kpiTotal").textContent = "0";
       renderTabelaRegistros([]);
-      renderTabelaPorLoja({});
-      desenharPizza({}, new Set()); // vazio
+      renderTabelaPorLoja({}, {});
+      desenharPizza({}, new Set());
       setMsg("Selecione a Data Final para exibir os dados.");
       return;
     }
 
+    const dataRefISO = (document.getElementById("dataRef").value || "").trim();
     const dataFinalBR = isoParaBR(dataFinalISO);
+    const dataRefBR   = dataRefISO ? isoParaBR(dataRefISO) : ""; // referência pode ficar vazia
 
-    // filtros checkbox
-    const tiposSel = getSelecionados("tipo"); // keys
-    const lojasSel = getSelecionados("loja"); // nomes
+    const tiposSel = getSelecionados("tipo");
+    const lojasSel = getSelecionados("loja");
 
-    // bandeiras (reforço)
-    const bigOn = document.getElementById("bandBIG").checked;
-    const ultOn = document.getElementById("bandULT").checked;
+    // Reforço: se BIG/ULT desmarcado, as lojas já foram desmarcadas pela função aplicarBandeiraNasLojas
+    // então aqui basta respeitar lojasSel.
 
-    /* ====== MUDANÇA 1 (essencial):
-       - remove filtro por "listaDatas"
-       - agora filtra por dataContagem == Data Final
-       - e acumula por loja (vamos criar um mapa por loja)
-    */
-    const baseDataFinal = registros.filter(r=>{
+    // Base FINAL (dashboard)
+    const baseFinal = registros.filter(r=>{
       const loja = String(r.loja || "").trim();
-      const band = bandeiraDaLoja(loja);
-      if(band === "BIG" && !bigOn) return false;
-      if(band === "ULT" && !ultOn) return false;
-
       if(lojasSel.size && !lojasSel.has(loja)) return false;
-
-      // recorte temporal: SOMENTE data final
       if(String(r.dataContagem || "").trim() !== dataFinalBR) return false;
 
       // filtro por tipo: mantém a linha se pelo menos 1 tipo selecionado tiver valor > 0
@@ -834,35 +790,48 @@
         }
         if(!ok) return false;
       }
-
       return true;
     });
 
-    // Acumulado por loja (mapa)
-    const porLoja = acumularPorLoja(baseDataFinal, tiposSel);
+    // Base REF (somente para diferença por loja)
+    const baseRef = (dataRefBR ? registros.filter(r=>{
+      const loja = String(r.loja || "").trim();
+      if(lojasSel.size && !lojasSel.has(loja)) return false;
+      if(String(r.dataContagem || "").trim() !== dataRefBR) return false;
 
-    // Totais por tipo (derivado do acumulado por loja para garantir consistência)
-    const totaisPorTipo = somarTiposDoMapa(porLoja, tiposSel);
+      if(tiposSel.size){
+        let ok = false;
+        for(const t of TIPOS){
+          if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0){
+            ok = true; break;
+          }
+        }
+        if(!ok) return false;
+      }
+      return true;
+    }) : []);
+
+    // Acumulados por loja
+    const porLojaFinal = acumularPorLoja(baseFinal, tiposSel);
+    const porLojaRef   = acumularPorLoja(baseRef, tiposSel);
+
+    // Totais por tipo (final)
+    const totaisPorTipo = somarTiposDoMapa(porLojaFinal, tiposSel);
     const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
     document.getElementById("kpiTotal").textContent = String(totalGeral);
 
     // Pizza
     desenharPizza(totaisPorTipo, tiposSel);
 
-    // Tabela por loja
-    renderTabelaPorLoja(porLoja);
+    // (1) Total por loja + diferença
+    renderTabelaPorLoja(porLojaFinal, porLojaRef);
 
-    // Tabela registros (linhas) — sem Data/Hora Rede
-    renderTabelaRegistros(baseDataFinal);
+    // (5) Registros: usa baseFinal e formata total por linha
+    renderTabelaRegistros(baseFinal, tiposSel);
   }
 
   /* =========================
-     Acumular por loja
-     - Resultado:
-       {
-         "BIG 01 ...": { duplocar120: 10, ... , __total: 55 },
-         ...
-       }
+     Acúmulo por loja
      ========================= */
   function acumularPorLoja(listaRegistros, tiposSel){
     const mapa = {};
@@ -871,7 +840,6 @@
       const loja = String(r.loja||"").trim();
       if(!mapa[loja]){
         mapa[loja] = { __total: 0 };
-        // inicia chaves de tipos selecionados
         for(const t of TIPOS){
           if(tiposSel.size && !tiposSel.has(t.key)) continue;
           mapa[loja][t.key] = 0;
@@ -885,7 +853,6 @@
         mapa[loja].__total += v;
       }
     }
-
     return mapa;
   }
 
@@ -906,11 +873,11 @@
     return out;
   }
 
+  /* =========================
+     (4) Pizza menor + rótulo mais destacado
+     ========================= */
   function desenharPizza(totaisPorTipo, tiposSel){
-    const labels = [];
-    const data = [];
-
-    // Se tiposSel estiver vazio, significa "nenhum tipo selecionado" => pizza vazia
+    // Sem tipos selecionados
     if(tiposSel.size === 0){
       const ctx0 = document.getElementById("pieTipos").getContext("2d");
       if(chartPie){ chartPie.destroy(); chartPie = null; }
@@ -929,6 +896,8 @@
       return;
     }
 
+    const labels = [];
+    const data = [];
     TIPOS.forEach(t=>{
       if(tiposSel.size && !tiposSel.has(t.key)) return;
       labels.push(t.label);
@@ -954,7 +923,11 @@
           },
           datalabels: {
             formatter: (value) => value ? String(value) : "",
-            font: { weight: "bold" }
+            font: { weight: "900", size: 13 },     // mais destaque
+            textStrokeColor: "#ffffff",            // contorno (melhora contraste)
+            textStrokeWidth: 3,
+            textShadowBlur: 6,                     // sombra leve
+            textShadowColor: "rgba(0,0,0,0.35)"
           }
         }
       },
@@ -966,34 +939,43 @@
   }
 
   /* =========================
-     Tabela por loja (ordenada por total desc)
+     (1) Tabela por loja com diferença (Final - Ref)
      ========================= */
-  function renderTabelaPorLoja(porLoja){
+  function renderTabelaPorLoja(porLojaFinal, porLojaRef){
     const tbody = document.getElementById("tbodyPorLoja");
     tbody.innerHTML = "";
 
-    const entries = Object.entries(porLoja || {});
+    const entries = Object.entries(porLojaFinal || {});
     if(!entries.length){
-      tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
       return;
     }
 
+    // Ordena por total final desc
     entries.sort((a,b)=> (asInt(b[1].__total) - asInt(a[1].__total)));
 
-    for(const [loja, obj] of entries){
+    for(const [loja, objFinal] of entries){
+      const finalTotal = asInt(objFinal.__total);
+      const refTotal = asInt((porLojaRef && porLojaRef[loja] ? porLojaRef[loja].__total : 0));
+      const diff = finalTotal - refTotal;
+
+      const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
+      const txt = diff > 0 ? `+${diff}` : String(diff);
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${esc(loja)}</td>
-        <td style="font-weight:900;">${asInt(obj.__total)}</td>
+        <td style="font-weight:900;">${finalTotal}</td>
+        <td class="${cls}">${txt}</td>
       `;
       tbody.appendChild(tr);
     }
   }
 
   /* =========================
-     Tabela de registros (sem Data/Hora Rede)
+     (5) Registros: remover Data Contagem e adicionar Total no fim
      ========================= */
-  function renderTabelaRegistros(lista){
+  function renderTabelaRegistros(lista, tiposSel){
     const tbody = document.getElementById("tbodyRegistros");
     tbody.innerHTML = "";
 
@@ -1002,7 +984,7 @@
       return;
     }
 
-    // Ordena por loja e usuário (e data contagem já é a data final)
+    // Ordena por loja e usuário
     const ord = [...lista].sort((a,b)=>{
       const la = String(a.loja||"").localeCompare(String(b.loja||""));
       if(la !== 0) return la;
@@ -1011,11 +993,18 @@
 
     for(const r of ord){
       const c = r.contagens || {};
+
+      // total da linha considerando os tipos selecionados (coerência com filtros)
+      let totalLinha = 0;
+      for(const t of TIPOS){
+        if(tiposSel.size && !tiposSel.has(t.key)) continue;
+        totalLinha += asInt(c[t.key]);
+      }
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${esc(r.loja)}</td>
         <td>${esc(r.usuario)}</td>
-        <td>${esc(r.dataContagem)}</td>
         <td>${asInt(c.duplocar120)}</td>
         <td>${asInt(c.grande160)}</td>
         <td>${asInt(c.bebeConforto160)}</td>
@@ -1024,6 +1013,7 @@
         <td>${asInt(c.mini)}</td>
         <td>${asInt(c.compraKids)}</td>
         <td>${asInt(c.bebeJipinho)}</td>
+        <td style="font-weight:900;">${totalLinha}</td>
       `;
       tbody.appendChild(tr);
     }
@@ -1033,12 +1023,10 @@
      BOOTSTRAP
      ===================================================================================== */
   document.addEventListener("DOMContentLoaded", async ()=>{
-    // botões navegação
     document.getElementById("btnIrLogin").onclick = ()=> window.location.href = ROTAS.login;
     document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
     document.getElementById("btnAtualizar").onclick = carregarRegistros;
 
-    // valida sessão
     const s = await obterSessaoDoBackend();
     if(!s){
       mostrarSemSessao();
