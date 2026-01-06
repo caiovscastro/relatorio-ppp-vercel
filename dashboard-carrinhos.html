@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Carrinhos</title>
+
+  <!-- UX: evita cache enganoso ao voltar -->
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <!-- Chart.js (pizza) + plugin datalabels (mostrar quantidade no rótulo) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+  <style>
+    :root{
+      --bg:#f3f3f3;
+      --card:#ffffff;
+      --muted:#666;
+      --border:#e6e6e6;
+      --primary:#0066ff;
+      --primary2:#0050cc;
+      --ok:#1b5e20;
+      --danger:#b30000;
+      --tile:#f7f8ff;
+      --tileBorder:#e0e3ff;
+    }
+
+    body{
+      background:var(--bg);
+      font-family: Arial, sans-serif;
+      margin:2;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      color:#111;
+    }
+
+    .container{
+      width: 95%;
+      max-width: 1100px;
+      background:var(--card);
+      padding: 18px 18px 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      box-sizing:border-box;
+      margin-top: 16px;
+    }
+
+    .titulo{
+      text-align:center;
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+
+    .topbar{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      align-items: stretch;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-info{
+      flex: 1 1 320px;
+      background:#f7f7f7;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      min-width: 280px;
+    }
+
+    .linha{
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .k{ color:var(--muted); font-weight:800; }
+    .v{ font-weight:900; overflow:hidden; text-overflow:ellipsis; }
+
+    .acoes{
+      flex: 0 1 280px;
+      display:flex;
+      flex-direction: column;
+      gap:10px;
+      justify-content: center;
+      min-width: 240px;
+    }
+
+    .btn{
+      width:100%;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 900;
+      user-select:none;
+    }
+    .btn-prim{ background:var(--primary); color:#fff; }
+    .btn-prim:hover{ background:var(--primary2); }
+    .btn-sec{ background:#e9e9e9; color:#111; }
+    .btn-sec:hover{ background:#dedede; }
+
+    /* Tela sem sessão */
+    .tela-erro{
+      width:100%;
+      min-height: 65vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .card-erro{
+      background:#fff;
+      padding: 22px 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      max-width: 560px;
+      width: 95%;
+      text-align:center;
+    }
+    .card-erro h2{ margin: 0 0 8px; color:#c00000; }
+    .card-erro p{ margin: 0 0 12px; color:#333; font-weight:800; }
+
+    .hidden{ display:none !important; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .painel{
+      background: var(--tile);
+      border: 1px solid var(--tileBorder);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .painel h3{
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .grupo{
+      background:#fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .grupo-titulo{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+      margin-bottom: 8px;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .grupo-acoes{
+      display:flex;
+      gap:8px;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn{
+      border:none;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-weight: 900;
+      cursor:pointer;
+      background:#eee;
+      color:#111;
+      font-size: 12px;
+    }
+    .mini-btn:hover{ background:#e0e0e0; }
+
+    .lista{
+      max-height: 220px;
+      overflow:auto;
+      border-top: 1px dashed #ddd;
+      padding-top: 8px;
+    }
+
+    .check{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 0;
+      font-size: 13px;
+      user-select:none;
+      white-space: nowrap;
+    }
+    .check input{ transform: scale(1.05); }
+
+    .subgrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .campo{
+      display:flex;
+      flex-direction: column;
+      gap:6px;
+      min-width: 0;
+    }
+    .campo label{
+      font-weight: 900;
+      font-size: 13px;
+      color:#111;
+    }
+    .input{
+      width:100%;
+      box-sizing:border-box;
+      border-radius: 10px;
+      border: 1px solid #c3c3c3;
+      padding: 10px 12px;
+      font-size: 14px;
+      background:#fff;
+      outline:none;
+    }
+    .input:focus{
+      border-color:var(--primary);
+      box-shadow: 0 0 0 1px #0066ff33;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 980px){
+      .cards{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .card h3{
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .kpi{
+      display:flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap:10px;
+      background: var(--tile);
+      border: 1px solid var(--tileBorder);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .kpi .label{ font-weight: 900; color:#111; font-size: 13px; }
+    .kpi .value{ font-weight: 900; font-size: 28px; color: var(--primary); line-height:1; }
+
+    .msg{
+      margin-top: 10px;
+      text-align:center;
+      font-weight:900;
+      font-size: 13px;
+      min-height: 18px;
+      color: var(--danger);
+    }
+    .ok{ color: var(--ok); }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td{
+      border-bottom: 1px solid #eee;
+      padding: 8px 6px;
+      text-align:left;
+      vertical-align: top;
+    }
+    th{
+      font-weight: 900;
+      background:#fafafa;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .table-wrap{
+      max-height: 360px;
+      overflow:auto;
+      border:1px solid #eee;
+      border-radius: 10px;
+    }
+
+    .diff-pos{ color: var(--ok); font-weight: 900; }
+    .diff-neg{ color: var(--danger); font-weight: 900; }
+    .diff-zero{ color: #333; font-weight: 900; }
+
+    .nota{
+      font-size: 12px;
+      color:#444;
+      line-height: 1.35;
+      margin-top: 8px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="card-info">
+        <div class="linha"><span class="k">Loja (sessão):</span> <span class="v" id="infoLoja">—</span></div>
+        <div class="linha"><span class="k">Usuário (sessão):</span> <span class="v" id="infoUsuario">—</span></div>
+        <div class="linha"><span class="k">Perfil (sessão):</span> <span class="v" id="infoPerfil">—</span></div>
+      </div>
+
+      <div class="acoes">
+        <button class="btn btn-prim" id="btnAtualizar">Atualizar dados</button>
+        <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao Menu</button>
+      </div>
+    </div>
+
+    <h2 class="titulo">DASHBOARD — CARRINHOS</h2>
+
+    <!-- Sem sessão -->
+    <div id="telaSemSessao" class="tela-erro hidden">
+      <div class="card-erro">
+        <h2>Login necessário</h2>
+        <p>Você precisa estar logado para acessar esta página.</p>
+        <button class="btn btn-prim" id="btnIrLogin">Ir para o Login</button>
+      </div>
+    </div>
+
+    <!-- App -->
+    <div id="app" class="hidden">
+      <div class="grid">
+        <!-- Painel filtros -->
+        <div class="painel">
+          <h3>Filtros (Checkbox)</h3>
+
+          <!-- Comparação: data referência x data final -->
+          <div class="grupo">
+            <div class="grupo-titulo">Comparação de datas</div>
+            <div class="subgrid">
+              <div class="campo">
+                <label for="dataRef">Data Referência</label>
+                <input id="dataRef" class="input" type="date" />
+              </div>
+              <div class="campo">
+                <label for="dataFinal">Data Final</label>
+                <input id="dataFinal" class="input" type="date" />
+              </div>
+            </div>
+            <div class="nota">
+              A comparação usa os filtros de <b>Tipo</b> e <b>Loja/Bandeira</b>.
+              As datas acima servem só para comparar as quantidades por tipo (Ref x Final).
+            </div>
+          </div>
+
+          <!-- Filtro de data (checkbox) -->
+          <div class="grupo">
+            <div class="grupo-titulo">
+              <span>Data da contagem</span>
+              <span class="grupo-acoes">
+                <button class="mini-btn" id="btnDatasTudo">Tudo</button>
+                <button class="mini-btn" id="btnDatasNada">Nada</button>
+              </span>
+            </div>
+            <div class="lista" id="listaDatas"></div>
+          </div>
+
+          <!-- Filtro de tipos (checkbox) -->
+          <div class="grupo">
+            <div class="grupo-titulo">
+              <span>Tipo de carrinho</span>
+              <span class="grupo-acoes">
+                <button class="mini-btn" id="btnTiposTudo">Tudo</button>
+                <button class="mini-btn" id="btnTiposNada">Nada</button>
+              </span>
+            </div>
+            <div class="lista" id="listaTipos"></div>
+          </div>
+
+          <!-- Filtro de bandeira e lojas (checkbox) -->
+          <div class="grupo">
+            <div class="grupo-titulo">
+              <span>Bandeira</span>
+              <span class="grupo-acoes">
+                <button class="mini-btn" id="btnBandTudo">Tudo</button>
+                <button class="mini-btn" id="btnBandNada">Nada</button>
+              </span>
+            </div>
+
+            <!-- Bandeira igual ao padrão do dashboard de ocorrências: checkbox BIG/ULT -->
+            <div class="check">
+              <input type="checkbox" id="bandBIG" checked />
+              <label for="bandBIG"><b>BIG</b></label>
+            </div>
+            <div class="check">
+              <input type="checkbox" id="bandULT" checked />
+              <label for="bandULT"><b>ULT</b></label>
+            </div>
+
+            <div class="grupo-titulo" style="margin-top:10px;">
+              <span>Lojas</span>
+              <span class="grupo-acoes">
+                <button class="mini-btn" id="btnLojasTudo">Tudo</button>
+                <button class="mini-btn" id="btnLojasNada">Nada</button>
+              </span>
+            </div>
+            <div class="lista" id="listaLojas"></div>
+          </div>
+
+          <div class="msg" id="msg"></div>
+        </div>
+
+        <!-- Conteúdo -->
+        <div>
+          <div class="kpi">
+            <div class="label">Total (após filtros)</div>
+            <div class="value" id="kpiTotal">0</div>
+          </div>
+
+          <div class="cards">
+            <!-- Pizza -->
+            <div class="card">
+              <h3>Distribuição por tipo (Pizza)</h3>
+              <canvas id="pieTipos" height="210"></canvas>
+              <div class="nota">
+                O rótulo no gráfico mostra a <b>quantidade</b> por tipo (não percentual).
+              </div>
+            </div>
+
+            <!-- Comparação -->
+            <div class="card">
+              <h3>Comparação: Referência x Final (por tipo)</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Ref</th>
+                      <th>Final</th>
+                      <th>Diferença</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyComparacao"></tbody>
+                </table>
+              </div>
+              <div class="nota">
+                Diferença = <b>Final - Ref</b>. Positivo: “sobrou a mais” no final. Negativo: “faltou” no final.
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabela de registros -->
+          <div class="card" style="margin-top:12px;">
+            <h3>Registros (CARRINHOS A:L)</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data/Hora Rede</th>
+                    <th>Loja</th>
+                    <th>Usuário</th>
+                    <th>Data Contagem</th>
+                    <th>Duplocar 120L</th>
+                    <th>Grande 160L</th>
+                    <th>Bebê conforto 160L</th>
+                    <th>Maxcar 200L</th>
+                    <th>Macrocar 300L</th>
+                    <th>Mini</th>
+                    <th>Compra Kids</th>
+                    <th>Bebê Jipinho</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyRegistros"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /* =====================================================================================
+     ROTAS / SEGURANÇA
+     - Esta tela só abre se /api/session retornar sucesso (cookie HttpOnly válido).
+     - A API de dados (/api/carrinhos-listar) também valida sessão no backend.
+     ===================================================================================== */
+
+  const ROTAS = {
+    login: "/login.html",
+    menu: "/menu.html"
+  };
+
+  // Perfis permitidos na tela (mesma lógica das outras telas)
+  const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
+
+  // Tipos (colunas E..L)
+  const TIPOS = [
+    { key: "duplocar120",     label: "Duplocar 120L" },
+    { key: "grande160",       label: "Grande 160L" },
+    { key: "bebeConforto160", label: "Bebê conforto 160L" },
+    { key: "maxcar200",       label: "Maxcar 200L" },
+    { key: "macrocar300",     label: "Macrocar 300L" },
+    { key: "mini",            label: "Mini" },
+    { key: "compraKids",      label: "Compra Kids" },
+    { key: "bebeJipinho",     label: "Bebê Jipinho" },
+  ];
+
+  // Lista fixa de lojas (como você forneceu)
+  const LOJAS = [
+    "BIG 01 - 106 NORTE",
+    "BIG 02 - 402 NORTE",
+    "BIG 03 - 413 SUL",
+    "BIG 04 - 301 SW",
+    "BIG 05 - 408 NORTE",
+    "BIG 06 - SIBERIA",
+    "BIG 08 - 503 SUL",
+    "BIG 09 - PENÍNSULA",
+    "BIG 10 - PAINEIRAS",
+    "BIG 11 - 310 NORTE",
+    "BIG 12 - 208 NORTE",
+    "BIG 13 - QI-05 L. NORTE",
+    "BIG 14 - 508 SUL",
+    "BIG 15 - 105 SW",
+    "BIG 16 - 512 SUL",
+    "BIG 17 - QI-11 LAGO SUL",
+    "BIG 18 - 211 NORTE",
+    "BIG 19 - CASTANHEIRA",
+    "BIG 20 - TAGUATINGA C1",
+    "BIG 21 - CNB12",
+    "BIG 22 - 102 NOROESTE",
+    "BIG 23 - QI-23 LAGO SUL",
+    "BIG 24 - 314 NORTE",
+    "BIG 25 - 410 SUL",
+    "ULT 01 - PLANALTINA",
+    "ULT 02 - GAMA",
+    "ULT 03 - COLORADO",
+    "ULT 04 - CEI SUL",
+    "ULT 05 - POLO JK",
+    "ULT 06 - SOBRADINHO",
+    "ULT 07 - ADE",
+    "ULT 08 - ARAPOANGA",
+    "ULT 09 - CEI NORTE",
+    "ULT 10 - ESTRUTURAL",
+    "ULT 11 - ITAPOA",
+    "ULT 12 - SAO SEBASTIAO",
+    "ULT 13 - RECANTO",
+    "ULT 14 - AGUAS LINDAS",
+    "ULT 15 - SOL NASCENTE",
+    "ULT 16 - PARANOA PARK",
+    "ULT 17 - SAMAMBAIA",
+    "ULT 18 - BRAZLANDIA",
+    "ULT 19 - VIA PARK",
+    "ULT 20 - TAGUATINGA",
+    "ULT 22 - VICENTE PIRES",
+    "ULT 23 - SANTA MARIA",
+    "ULT 25 - BRASILINHA",
+  ];
+
+  // Estado
+  let sessaoAtual = null;
+  let registros = [];          // registros brutos vindos do backend
+  let datasUnicas = [];        // datas distintas encontradas
+  let chartPie = null;
+
+  function setMsg(texto, ok=false){
+    const el = document.getElementById("msg");
+    el.classList.toggle("ok", !!ok);
+    el.textContent = texto || "";
+  }
+
+  function mostrarSemSessao(){
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("telaSemSessao").classList.remove("hidden");
+  }
+
+  function mostrarApp(){
+    document.getElementById("telaSemSessao").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+  }
+
+  // Session check (front)
+  async function obterSessaoDoBackend(){
+    try{
+      const resp = await fetch("/api/session", {
+        method:"GET",
+        credentials:"include",
+        headers:{ "Accept":"application/json" }
+      });
+      if(!resp.ok) return null;
+      const dados = await resp.json().catch(()=>null);
+      if(!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
+      return dados;
+    }catch(e){
+      console.error("[DASH-CARRINHOS] erro /api/session:", e);
+      return null;
+    }
+  }
+
+  // Dados (backend seguro)
+  async function carregarRegistros(){
+    setMsg("");
+    const btn = document.getElementById("btnAtualizar");
+    btn.disabled = true;
+
+    try{
+      const resp = await fetch("/api/carrinhos-listar", {
+        method:"GET",
+        credentials:"include",
+        headers:{ "Accept":"application/json" }
+      });
+
+      if(resp.status === 401 || resp.status === 403){
+        mostrarSemSessao();
+        setMsg("Sessão inválida/expirada. Faça login novamente.");
+        return;
+      }
+
+      const dados = await resp.json().catch(()=>({}));
+      if(!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)){
+        setMsg(dados.message || "Erro ao carregar registros.");
+        return;
+      }
+
+      registros = dados.registros;
+
+      // datas únicas (DD/MM/AAAA)
+      const setDatas = new Set(registros.map(r => String(r.dataContagem || "").trim()).filter(Boolean));
+      datasUnicas = Array.from(setDatas).sort((a,b)=>{
+        // sort por yyyy-mm-dd interno (conversão simples)
+        const pa = brParaISO(a);
+        const pb = brParaISO(b);
+        return pa.localeCompare(pb);
+      });
+
+      montarFiltros();
+      aplicarFiltrosEAtualizarTudo();
+      setMsg(`Dados carregados: ${registros.length} registro(s).`, true);
+
+    }catch(e){
+      console.error(e);
+      setMsg("Erro de conexão ao carregar dados.");
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  /* =========================
+     Helpers de data BR <-> ISO
+     ========================= */
+  function brParaISO(br){
+    const s = String(br||"").trim();
+    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if(!m) return "";
+    return `${m[3]}-${m[2]}-${m[1]}`;
+  }
+
+  function isoParaBR(iso){
+    const s = String(iso||"").trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return "";
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+
+  function asInt(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0;
+  }
+
+  function bandeiraDaLoja(loja){
+    const s = String(loja||"").trim().toUpperCase();
+    if(s.startsWith("BIG")) return "BIG";
+    if(s.startsWith("ULT")) return "ULT";
+    return "OUTRA";
+  }
+
+  /* =========================
+     UI: montar filtros
+     ========================= */
+  function montarFiltros(){
+    // Datas
+    const listaDatas = document.getElementById("listaDatas");
+    listaDatas.innerHTML = "";
+    datasUnicas.forEach((d, i)=>{
+      const id = `dt_${i}`;
+      const row = document.createElement("div");
+      row.className = "check";
+      row.innerHTML = `
+        <input type="checkbox" id="${id}" data-tipo="data" data-valor="${d}" checked />
+        <label for="${id}">${d}</label>
+      `;
+      listaDatas.appendChild(row);
+    });
+
+    // Tipos
+    const listaTipos = document.getElementById("listaTipos");
+    listaTipos.innerHTML = "";
+    TIPOS.forEach((t, i)=>{
+      const id = `tp_${i}`;
+      const row = document.createElement("div");
+      row.className = "check";
+      row.innerHTML = `
+        <input type="checkbox" id="${id}" data-tipo="tipo" data-valor="${t.key}" checked />
+        <label for="${id}">${t.label}</label>
+      `;
+      listaTipos.appendChild(row);
+    });
+
+    // Lojas
+    const listaLojas = document.getElementById("listaLojas");
+    listaLojas.innerHTML = "";
+    LOJAS.forEach((l, i)=>{
+      const id = `lj_${i}`;
+      const row = document.createElement("div");
+      row.className = "check";
+      row.innerHTML = `
+        <input type="checkbox" id="${id}" data-tipo="loja" data-valor="${l}" checked />
+        <label for="${id}">${l}</label>
+      `;
+      listaLojas.appendChild(row);
+    });
+
+    // listeners gerais: qualquer checkbox muda tudo
+    document.querySelectorAll('input[type="checkbox"][data-tipo]').forEach(cb=>{
+      cb.addEventListener("change", aplicarFiltrosEAtualizarTudo);
+    });
+
+    // Bandeiras (BIG/ULT)
+    document.getElementById("bandBIG").addEventListener("change", ()=>{
+      sincronizarLojasComBandeira();
+      aplicarFiltrosEAtualizarTudo();
+    });
+    document.getElementById("bandULT").addEventListener("change", ()=>{
+      sincronizarLojasComBandeira();
+      aplicarFiltrosEAtualizarTudo();
+    });
+
+    // Ações rápidas
+    document.getElementById("btnDatasTudo").onclick = ()=> setChecks("data", true);
+    document.getElementById("btnDatasNada").onclick = ()=> setChecks("data", false);
+    document.getElementById("btnTiposTudo").onclick = ()=> setChecks("tipo", true);
+    document.getElementById("btnTiposNada").onclick = ()=> setChecks("tipo", false);
+    document.getElementById("btnLojasTudo").onclick = ()=> setChecks("loja", true);
+    document.getElementById("btnLojasNada").onclick = ()=> setChecks("loja", false);
+    document.getElementById("btnBandTudo").onclick = ()=>{
+      document.getElementById("bandBIG").checked = true;
+      document.getElementById("bandULT").checked = true;
+      sincronizarLojasComBandeira();
+      aplicarFiltrosEAtualizarTudo();
+    };
+    document.getElementById("btnBandNada").onclick = ()=>{
+      document.getElementById("bandBIG").checked = false;
+      document.getElementById("bandULT").checked = false;
+      sincronizarLojasComBandeira();
+      aplicarFiltrosEAtualizarTudo();
+    };
+
+    // Datas de comparação: quando muda, recalcula a comparação
+    document.getElementById("dataRef").addEventListener("change", aplicarFiltrosEAtualizarTudo);
+    document.getElementById("dataFinal").addEventListener("change", aplicarFiltrosEAtualizarTudo);
+
+    // Após montar filtros, sincroniza lojas conforme bandeira inicial
+    sincronizarLojasComBandeira();
+  }
+
+  function setChecks(tipo, valor){
+    document.querySelectorAll(`input[type="checkbox"][data-tipo="${tipo}"]`).forEach(cb=>{
+      cb.checked = !!valor;
+    });
+    aplicarFiltrosEAtualizarTudo();
+  }
+
+  // Mantém coerência: se BIG desmarcado, desmarca lojas BIG; se marcado, não força marcar (só não bloqueia)
+  function sincronizarLojasComBandeira(){
+    const bigOn = document.getElementById("bandBIG").checked;
+    const ultOn = document.getElementById("bandULT").checked;
+
+    document.querySelectorAll('input[type="checkbox"][data-tipo="loja"]').forEach(cb=>{
+      const loja = cb.getAttribute("data-valor") || "";
+      const band = bandeiraDaLoja(loja);
+      if(band === "BIG" && !bigOn) cb.checked = false;
+      if(band === "ULT" && !ultOn) cb.checked = false;
+    });
+  }
+
+  /* =========================
+     Aplicar filtros + atualizar cards/gráfico/tabelas
+     ========================= */
+  function getSelecionados(tipo){
+    const set = new Set();
+    document.querySelectorAll(`input[type="checkbox"][data-tipo="${tipo}"]`).forEach(cb=>{
+      if(cb.checked){
+        set.add(cb.getAttribute("data-valor"));
+      }
+    });
+    return set;
+  }
+
+  function aplicarFiltrosEAtualizarTudo(){
+    setMsg("");
+
+    // filtros checkbox
+    const datasSel = getSelecionados("data"); // valores DD/MM/AAAA
+    const tiposSel = getSelecionados("tipo"); // keys
+    const lojasSel = getSelecionados("loja"); // nomes
+
+    // bandeiras (para reforçar em caso de inconsistência)
+    const bigOn = document.getElementById("bandBIG").checked;
+    const ultOn = document.getElementById("bandULT").checked;
+
+    const registrosFiltrados = registros.filter(r=>{
+      const loja = String(r.loja || "").trim();
+      const band = bandeiraDaLoja(loja);
+      if(band === "BIG" && !bigOn) return false;
+      if(band === "ULT" && !ultOn) return false;
+
+      if(datasSel.size && !datasSel.has(String(r.dataContagem || "").trim())) return false;
+      if(lojasSel.size && !lojasSel.has(loja)) return false;
+
+      // filtro por tipo: mantém a linha se pelo menos 1 tipo selecionado tiver valor > 0
+      if(tiposSel.size){
+        let ok = false;
+        for(const t of TIPOS){
+          if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0){
+            ok = true; break;
+          }
+        }
+        if(!ok) return false;
+      }
+
+      return true;
+    });
+
+    // KPIs / Totais
+    const totaisPorTipo = somarPorTipo(registrosFiltrados, tiposSel);
+    const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
+    document.getElementById("kpiTotal").textContent = String(totalGeral);
+
+    // Pizza
+    desenharPizza(totaisPorTipo, tiposSel);
+
+    // Tabela registros
+    renderTabelaRegistros(registrosFiltrados);
+
+    // Comparação referência x final
+    renderComparacao(tiposSel, lojasSel, bigOn, ultOn);
+  }
+
+  function somarPorTipo(listaRegistros, tiposSel){
+    const out = {};
+    TIPOS.forEach(t=>{
+      if(tiposSel.size && !tiposSel.has(t.key)) return;
+      out[t.key] = 0;
+    });
+
+    listaRegistros.forEach(r=>{
+      TIPOS.forEach(t=>{
+        if(tiposSel.size && !tiposSel.has(t.key)) return;
+        out[t.key] = (out[t.key] || 0) + asInt(r.contagens?.[t.key]);
+      });
+    });
+
+    return out;
+  }
+
+  function desenharPizza(totaisPorTipo, tiposSel){
+    const labels = [];
+    const data = [];
+
+    TIPOS.forEach(t=>{
+      if(tiposSel.size && !tiposSel.has(t.key)) return;
+      labels.push(t.label);
+      data.push(asInt(totaisPorTipo[t.key]));
+    });
+
+    const ctx = document.getElementById("pieTipos").getContext("2d");
+
+    // Datalabels: mostrar QUANTIDADE (não percent)
+    const config = {
+      type: "pie",
+      data: {
+        labels,
+        datasets: [{
+          data
+          // sem cor fixa (Chart.js escolhe cores padrão)
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const v = context.parsed || 0;
+                return ` ${context.label}: ${v}`;
+              }
+            }
+          },
+          datalabels: {
+            formatter: (value) => value ? String(value) : "",
+            font: { weight: "bold" }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    };
+
+    if(chartPie){
+      chartPie.destroy();
+    }
+    chartPie = new Chart(ctx, config);
+  }
+
+  function renderTabelaRegistros(lista){
+    const tbody = document.getElementById("tbodyRegistros");
+    tbody.innerHTML = "";
+
+    if(!lista.length){
+      tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      return;
+    }
+
+    // Ordena por Data Contagem (iso) e depois DataHoraRede (string)
+    const ord = [...lista].sort((a,b)=>{
+      const ia = brParaISO(a.dataContagem);
+      const ib = brParaISO(b.dataContagem);
+      if(ia !== ib) return ia.localeCompare(ib);
+      return String(a.dataHoraRede||"").localeCompare(String(b.dataHoraRede||""));
+    });
+
+    for(const r of ord){
+      const c = r.contagens || {};
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(r.dataHoraRede)}</td>
+        <td>${esc(r.loja)}</td>
+        <td>${esc(r.usuario)}</td>
+        <td>${esc(r.dataContagem)}</td>
+        <td>${asInt(c.duplocar120)}</td>
+        <td>${asInt(c.grande160)}</td>
+        <td>${asInt(c.bebeConforto160)}</td>
+        <td>${asInt(c.maxcar200)}</td>
+        <td>${asInt(c.macrocar300)}</td>
+        <td>${asInt(c.mini)}</td>
+        <td>${asInt(c.compraKids)}</td>
+        <td>${asInt(c.bebeJipinho)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, (m)=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  /* =========================
+     Comparação Ref x Final
+     - Usa filtros de Tipo e Loja/Bandeira
+     - As datas vêm dos inputs date (ISO), mas os registros são DD/MM/AAAA
+     ========================= */
+  function renderComparacao(tiposSel, lojasSel, bigOn, ultOn){
+    const tbody = document.getElementById("tbodyComparacao");
+    tbody.innerHTML = "";
+
+    const refISO = (document.getElementById("dataRef").value || "").trim();     // yyyy-mm-dd
+    const finISO = (document.getElementById("dataFinal").value || "").trim();   // yyyy-mm-dd
+
+    if(!refISO || !finISO){
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; font-weight:900; color:#444;">Selecione Data Referência e Data Final.</td></tr>`;
+      return;
+    }
+
+    const refBR = isoParaBR(refISO);
+    const finBR = isoParaBR(finISO);
+
+    const base = registros.filter(r=>{
+      const loja = String(r.loja || "").trim();
+      const band = bandeiraDaLoja(loja);
+      if(band === "BIG" && !bigOn) return false;
+      if(band === "ULT" && !ultOn) return false;
+
+      if(lojasSel.size && !lojasSel.has(loja)) return false;
+
+      // aqui NÃO usamos o filtro de datas checkbox, porque a comparação é específica (Ref/Final)
+      return (String(r.dataContagem||"").trim() === refBR || String(r.dataContagem||"").trim() === finBR);
+    });
+
+    // soma por tipo em cada data
+    const somaRef = {};
+    const somaFin = {};
+    TIPOS.forEach(t=>{
+      if(tiposSel.size && !tiposSel.has(t.key)) return;
+      somaRef[t.key] = 0;
+      somaFin[t.key] = 0;
+    });
+
+    for(const r of base){
+      const d = String(r.dataContagem||"").trim();
+      const c = r.contagens || {};
+      TIPOS.forEach(t=>{
+        if(tiposSel.size && !tiposSel.has(t.key)) return;
+        const v = asInt(c[t.key]);
+        if(d === refBR) somaRef[t.key] += v;
+        if(d === finBR) somaFin[t.key] += v;
+      });
+    }
+
+    // render
+    let temLinha = false;
+
+    TIPOS.forEach(t=>{
+      if(tiposSel.size && !tiposSel.has(t.key)) return;
+
+      const a = asInt(somaRef[t.key]);
+      const b = asInt(somaFin[t.key]);
+      const diff = b - a;
+
+      const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
+      const txt = diff > 0 ? `+${diff}` : String(diff);
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(t.label)}</td>
+        <td>${a}</td>
+        <td>${b}</td>
+        <td class="${cls}">${txt}</td>
+      `;
+      tbody.appendChild(tr);
+      temLinha = true;
+    });
+
+    if(!temLinha){
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; font-weight:900; color:#444;">Selecione ao menos 1 tipo no filtro.</td></tr>`;
+    }
+  }
+
+  /* =====================================================================================
+     BOOTSTRAP
+     ===================================================================================== */
+  document.addEventListener("DOMContentLoaded", async ()=>{
+    // botões navegação
+    document.getElementById("btnIrLogin").onclick = ()=> window.location.href = ROTAS.login;
+    document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
+    document.getElementById("btnAtualizar").onclick = carregarRegistros;
+
+    // valida sessão
+    const s = await obterSessaoDoBackend();
+    if(!s){
+      mostrarSemSessao();
+      return;
+    }
+
+    const perfil = String(s.perfil||"").trim().toUpperCase();
+    if(!PERFIS_PERMITIDOS.includes(perfil)){
+      // mostra app mas bloqueia (melhor que “sumir” sem explicar)
+      sessaoAtual = s;
+      mostrarApp();
+      document.getElementById("infoLoja").textContent = s.loja;
+      document.getElementById("infoUsuario").textContent = s.usuario;
+      document.getElementById("infoPerfil").textContent = s.perfil;
+      setMsg("Acesso negado: seu perfil não tem permissão para esta tela.");
+      document.getElementById("btnAtualizar").disabled = true;
+      return;
+    }
+
+    sessaoAtual = s;
+    mostrarApp();
+
+    document.getElementById("infoLoja").textContent = s.loja;
+    document.getElementById("infoUsuario").textContent = s.usuario;
+    document.getElementById("infoPerfil").textContent = s.perfil;
+
+    // carrega dados
+    await carregarRegistros();
+  });
+</script>
+
+<!-- Fontes confiáveis -->
+<!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
+<!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
+<!-- MDN fetch credentials: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
+<!-- OWASP Session Management: https://owasp.org/www-project-cheat-sheets/cheatsheets/Session_Management_Cheat_Sheet.html -->
+</body>
+</html>
