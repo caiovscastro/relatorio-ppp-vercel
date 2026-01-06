@@ -365,6 +365,15 @@
       return "";
     }
 
+    // ✅ NOVO (única alteração solicitada):
+    // Converte "YYYY-MM-DD" (input type=date) para "DD/MM/AAAA"
+    function isoParaBR(iso) {
+      const s = String(iso || "").trim();
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return s;
+      return `${m[3]}/${m[2]}/${m[1]}`;
+    }
+
     async function enviar() {
       setMsg("");
 
@@ -389,8 +398,11 @@
       btn.disabled = true;
 
       try {
+        const dataISO = (document.getElementById("dataLancamento").value || "").trim();
+
         const payload = {
-          dataLancamento: (document.getElementById("dataLancamento").value || "").trim(),
+          // ✅ agora vai em "DD/MM/AAAA"
+          dataLancamento: isoParaBR(dataISO),
           contagens: CAMPOS.reduce((acc, c) => {
             acc[c.key] = toInt(document.getElementById(c.id).value);
             return acc;
