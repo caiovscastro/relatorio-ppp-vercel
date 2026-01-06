@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contagem de Carrinhos</title>
+
+  <!-- Evita cache “enganoso” ao voltar (não é segurança, é UX) -->
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <style>
+    body{
+      background:#f3f3f3;
+      font-family: Arial, sans-serif;
+      margin:2;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      color:#111;
+    }
+
+    .container{
+      width: 95%;
+      max-width: 720px;
+      background:#fff;
+      padding: 22px 22px 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      box-sizing:border-box;
+      margin-top: 18px;
+    }
+
+    .titulo{
+      text-align:center;
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .card-info{
+      background: #f7f7f7;
+      border: 1px solid #e6e6e6;
+      border-radius: 10px;
+      padding: 12px 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .linha{
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .k{ color:#555; font-weight:700; }
+    .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
+
+    .card-total{
+      background:#f7f8ff;
+      border: 1px solid #e0e3ff;
+      border-radius: 10px;
+      padding: 14px 12px;
+      margin-bottom: 14px;
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+    }
+
+    .total-label{
+      font-weight: 800;
+      color:#111;
+      font-size: 13px;
+    }
+
+    .total-valor{
+      font-weight: 900;
+      font-size: 24px;
+      color:#0066ff;
+      line-height: 1;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .campo{
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .campo label{
+      font-weight: 800;
+      font-size: 13px;
+      color:#111;
+    }
+
+    .input{
+      width:100%;
+      box-sizing:border-box;
+      border-radius: 8px;
+      border: 1px solid #c3c3c3;
+      padding: 10px 12px;
+      font-size: 14px;
+      background:#fff;
+      outline:none;
+    }
+
+    .input:focus{
+      border-color:#0066ff;
+      box-shadow: 0 0 0 1px #0066ff33;
+    }
+
+    .linha-1{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .linha-1 .campo{ flex:1 1 240px; }
+
+    .btn{
+      width:100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 800;
+      margin-top: 12px;
+    }
+
+    .btn-prim{
+      background:#0066ff;
+      color:#fff;
+    }
+    .btn-prim:hover{ background:#0050cc; }
+
+    .btn-sec{
+      background:#e9e9e9;
+      color:#111;
+    }
+    .btn-sec:hover{ background:#dedede; }
+
+    .mensagem{
+      margin-top: 10px;
+      text-align:center;
+      font-weight:800;
+      font-size: 13px;
+      min-height: 18px;
+      color:#b30000;
+    }
+
+    .ok{ color:#1b5e20; }
+
+    .hidden{ display:none !important; }
+
+    /* Tela “sem sessão” */
+    .tela-erro{
+      width:100%;
+      min-height: 70vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .card-erro{
+      background:#fff;
+      padding: 20px 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      max-width: 520px;
+      width: 95%;
+      text-align:center;
+    }
+    .card-erro h2{ margin: 0 0 8px; color:#c00000; }
+    .card-erro p{ margin: 0 0 12px; color:#333; font-weight:700; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2 class="titulo">CONTAGEM DE CARRINHOS</h2>
+
+    <!-- Modo SEM sessão -->
+    <div id="telaSemSessao" class="tela-erro hidden">
+      <div class="card-erro">
+        <h2>Login necessário</h2>
+        <p>Você precisa estar logado para acessar esta página.</p>
+        <button class="btn btn-prim" id="btnIrLogin">Ir para o Login</button>
+      </div>
+    </div>
+
+    <!-- App -->
+    <div id="app" class="hidden">
+      <div class="card-info">
+        <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
+        <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
+        <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
+      </div>
+
+      <div class="card-total">
+        <div class="total-label">Soma total de carrinhos</div>
+        <div class="total-valor" id="totalCarrinhos">0</div>
+      </div>
+
+      <!-- Data de lançamento (coluna D) -->
+      <div class="linha-1">
+        <div class="campo">
+          <label for="dataLancamento">Data Lançamento (obrigatório):</label>
+          <input id="dataLancamento" class="input" type="date" required />
+        </div>
+      </div>
+
+      <!-- Contagens (colunas E a L) -->
+      <div class="grid" aria-label="Contagem por tipo de carrinho">
+        <div class="campo">
+          <label for="duplocar120">Duplocar 120L (obrigatório):</label>
+          <input id="duplocar120" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <div class="campo">
+          <label for="grande160">Grande 160L (obrigatório):</label>
+          <input id="grande160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <div class="campo">
+          <label for="bebeConforto160">Bebê conforto 160L (obrigatório):</label>
+          <input id="bebeConforto160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <div class="campo">
+          <label for="maxcar200">Maxcar 200L (obrigatório):</label>
+          <input id="maxcar200" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <div class="campo">
+          <label for="macrocar300">Macrocar 300L (obrigatório):</label>
+          <input id="macrocar300" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <div class="campo">
+          <label for="mini">Mini (obrigatório):</label>
+          <input id="mini" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <div class="campo">
+          <label for="compraKids">Compra Kids (obrigatório):</label>
+          <input id="compraKids" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <div class="campo">
+          <label for="bebeJipinho">Bebê Jipinho (obrigatório):</label>
+          <input id="bebeJipinho" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+      </div>
+
+      <button class="btn btn-prim" id="btnEnviar">Enviar</button>
+      <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao Menu</button>
+
+      <div class="mensagem" id="msg"></div>
+    </div>
+  </div>
+
+  <script>
+    const ROTAS = {
+      login: "/login.html",
+      menu: "/menu.html"
+    };
+
+    // Perfis que podem acessar esta tela (conforme sua regra de visibilidade do menu)
+    const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
+
+    // Mapeamento -> colunas E..L
+    const CAMPOS = [
+      { id: "duplocar120",      label: "Duplocar 120L",       key: "duplocar120" },
+      { id: "grande160",        label: "Grande 160L",         key: "grande160" },
+      { id: "bebeConforto160",  label: "Bebê conforto 160L",  key: "bebeConforto160" },
+      { id: "maxcar200",        label: "Maxcar 200L",         key: "maxcar200" },
+      { id: "macrocar300",      label: "Macrocar 300L",       key: "macrocar300" },
+      { id: "mini",             label: "Mini",               key: "mini" },
+      { id: "compraKids",       label: "Compra Kids",        key: "compraKids" },
+      { id: "bebeJipinho",      label: "Bebê Jipinho",        key: "bebeJipinho" },
+    ];
+
+    let sessaoAtual = null;
+
+    function soDigitos(str) {
+      return String(str || "").replace(/[^\d]/g, "");
+    }
+
+    function toInt(str) {
+      const s = soDigitos(str);
+      return s ? parseInt(s, 10) : 0;
+    }
+
+    function atualizarTotal() {
+      const total = CAMPOS.reduce((acc, c) => acc + toInt(document.getElementById(c.id).value), 0);
+      document.getElementById("totalCarrinhos").textContent = String(total);
+    }
+
+    function aplicarMascaraSomenteNumero(inputEl) {
+      inputEl.value = soDigitos(inputEl.value);
+      atualizarTotal();
+    }
+
+    async function obterSessaoDoBackend() {
+      try {
+        const resp = await fetch("/api/session", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Accept": "application/json" }
+        });
+
+        if (!resp.ok) return null;
+
+        const dados = await resp.json().catch(() => null);
+        if (!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
+        return dados;
+      } catch (e) {
+        console.error("[CARRINHOS] Falha ao consultar /api/session:", e);
+        return null;
+      }
+    }
+
+    function mostrarSemSessao() {
+      document.getElementById("app").classList.add("hidden");
+      document.getElementById("telaSemSessao").classList.remove("hidden");
+    }
+
+    function mostrarApp() {
+      document.getElementById("telaSemSessao").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+    }
+
+    function setMsg(texto, ok=false) {
+      const el = document.getElementById("msg");
+      el.classList.toggle("ok", !!ok);
+      el.textContent = texto || "";
+    }
+
+    function validarFormulario() {
+      const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
+      if (!dataLanc) return "Selecione a Data Lançamento.";
+
+      for (const c of CAMPOS) {
+        const v = (document.getElementById(c.id).value || "").trim();
+        if (!v) return `Preencha: ${c.label}.`;
+        if (!/^\d+$/.test(v)) return `Use somente números em: ${c.label}.`;
+      }
+
+      return "";
+    }
+
+    async function enviar() {
+      setMsg("");
+
+      if (!sessaoAtual) {
+        mostrarSemSessao();
+        return;
+      }
+
+      const perfil = String(sessaoAtual.perfil || "").trim().toUpperCase();
+      if (!PERFIS_PERMITIDOS.includes(perfil)) {
+        setMsg("Acesso negado: seu perfil não tem permissão para esta tela.");
+        return;
+      }
+
+      const erro = validarFormulario();
+      if (erro) {
+        setMsg(erro);
+        return;
+      }
+
+      const btn = document.getElementById("btnEnviar");
+      btn.disabled = true;
+
+      try {
+        const payload = {
+          dataLancamento: (document.getElementById("dataLancamento").value || "").trim(),
+          contagens: CAMPOS.reduce((acc, c) => {
+            acc[c.key] = toInt(document.getElementById(c.id).value);
+            return acc;
+          }, {})
+        };
+
+        const resp = await fetch("/api/carrinhos", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const dados = await resp.json().catch(() => ({}));
+
+        if (resp.status === 401 || resp.status === 403) {
+          mostrarSemSessao();
+          setMsg("Sessão inválida/expirada. Faça login novamente.");
+          return;
+        }
+
+        if (!resp.ok || !dados.sucesso) {
+          setMsg(dados.message || "Erro ao enviar contagem.");
+          return;
+        }
+
+        setMsg(dados.message || "Contagem enviada com sucesso.", true);
+
+        // Limpa campos (mantém data, se você quiser)
+        CAMPOS.forEach(c => document.getElementById(c.id).value = "");
+        atualizarTotal();
+      } catch (e) {
+        console.error(e);
+        setMsg("Erro de conexão ao enviar. Tente novamente.");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      document.getElementById("btnIrLogin").addEventListener("click", () => {
+        window.location.href = ROTAS.login;
+      });
+
+      document.getElementById("btnVoltarMenu").addEventListener("click", () => {
+        window.location.href = ROTAS.menu;
+      });
+
+      document.getElementById("btnEnviar").addEventListener("click", enviar);
+
+      // Inputs: só números, sem ponto/virgula
+      CAMPOS.forEach(c => {
+        const el = document.getElementById(c.id);
+        el.addEventListener("input", () => aplicarMascaraSomenteNumero(el));
+      });
+
+      // Total inicial
+      atualizarTotal();
+
+      // Valida sessão
+      const s = await obterSessaoDoBackend();
+      if (!s) {
+        mostrarSemSessao();
+        return;
+      }
+
+      const perfil = String(s.perfil || "").trim().toUpperCase();
+      if (!PERFIS_PERMITIDOS.includes(perfil)) {
+        // Você não pediu tela “acesso negado”, mas é melhor do que deixar enviar.
+        mostrarApp();
+        document.getElementById("infoLoja").textContent = s.loja;
+        document.getElementById("infoUsuario").textContent = s.usuario;
+        document.getElementById("infoPerfil").textContent = s.perfil;
+        setMsg("Acesso negado: seu perfil não tem permissão para esta tela.");
+        document.getElementById("btnEnviar").disabled = true;
+        return;
+      }
+
+      sessaoAtual = s;
+      mostrarApp();
+
+      document.getElementById("infoLoja").textContent = s.loja;
+      document.getElementById("infoUsuario").textContent = s.usuario;
+      document.getElementById("infoPerfil").textContent = s.perfil;
+    });
+  </script>
+
+  <!-- Fontes confiáveis -->
+  <!-- fetch + credentials/cookies: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
+  <!-- input date: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
+</body>
+</html>
