@@ -468,12 +468,12 @@
                   <input id="dataRef" class="input" type="date" />
                 </div>
                 <div class="campo">
-                  <label for="dataFinal">Data Final (dashboard)</label>
+                  <label for="dataFinal">Data de Filtro</label>
                   <input id="dataFinal" class="input" type="date" />
                 </div>
               </div>
               <div class="nota">
-                O dashboard usa a <b>Data Final</b>. A <b>Data Referência</b> é usada apenas para calcular a <b>diferença por loja</b> na tabela “Total por Loja na data”.
+                O dashboard usa a <b>Data de filtro</b>. A <b>Data Referência</b> é usada apenas para calcular a <b>diferença </b> na tabela “Total por Loja”.
               </div>
             </div>
 
@@ -521,7 +521,7 @@
                 </div>
 
                 <div class="card chart-card">
-                  <h3>Distribuição por tipo</h3>
+                  <h3>Quantidade por Modelo</h3>
                   <div class="chart-wrap">
                     <canvas id="barTipos"></canvas>
                   </div>
@@ -533,14 +533,14 @@
 
               <div class="right-col">
                 <div class="card table-card">
-                  <h3>Total por Loja na data</h3>
+                  <h3>Total por Loja</h3>
                   <div class="table-wrap">
                     <table class="table-lojas">
                       <thead>
                         <tr>
                           <th>Loja</th>
-                          <th>Total (Final)</th>
-                          <th>Total (Ref)</th>
+                          <th>Total</th>
+                          <th>Total Ref.</th>
                           <th>Diferença</th>
                         </tr>
                       </thead>
@@ -548,7 +548,7 @@
                     </table>
                   </div>
                   <div class="nota">
-                    Diferença positiva: sobrou a mais (verde). Diferença negativa: faltou (vermelho).
+        //            Diferença positiva: sobrou a mais (verde). Diferença negativa: faltou (vermelho).
                   </div>
                 </div>
               </div>
@@ -835,7 +835,7 @@
       renderTabelaRegistros([], new Set());
       renderTabelaPorLoja({}, {});
       desenharBarrasTipos({}, new Set());
-      setMsg("Selecione a Data Final para exibir os dados.");
+      setMsg("Selecione a Data de filtro para exibir os dados.");
       return;
     }
 
