@@ -6,7 +6,7 @@
 // A: Data/Hora da rede (servidor - São Paulo)
 // B: Loja (da sessão)
 // C: Usuário (da sessão)
-// D: Data Lançamento (do input date)
+// D: Data Contagem (formato "DD/MM/AAAA")
 // E: Duplocar 120L
 // F: Grande 160L
 // G: Bebê conforto 160L
@@ -40,8 +40,23 @@ function formatarDataHoraBR(d) {
   return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
 
-function isISODateYYYYMMDD(s) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(String(s || "").trim());
+// ✅ ALTERAÇÃO (única): agora valida "DD/MM/AAAA"
+function isBRDateDDMMAAAA(s) {
+  const str = String(s || "").trim();
+  const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return false;
+
+  const dd = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+  const yyyy = parseInt(m[3], 10);
+
+  if (yyyy < 2000 || yyyy > 2100) return false;
+  if (mm < 1 || mm > 12) return false;
+
+  const maxDia = new Date(yyyy, mm, 0).getDate(); // último dia do mês
+  if (dd < 1 || dd > maxDia) return false;
+
+  return true;
 }
 
 function asIntObrigatorio(v) {
@@ -80,8 +95,9 @@ export default async function handler(req, res) {
     const dataLancamento = String(body.dataLancamento || "").trim();
     const contagens = body.contagens || {};
 
-    if (!isISODateYYYYMMDD(dataLancamento)) {
-      return res.status(400).json({ sucesso: false, message: "Data Lançamento inválida." });
+    // ✅ agora espera "DD/MM/AAAA"
+    if (!isBRDateDDMMAAAA(dataLancamento)) {
+      return res.status(400).json({ sucesso: false, message: "Data Contagem inválida. Use DD/MM/AAAA." });
     }
 
     const duplocar120     = asIntObrigatorio(contagens.duplocar120);
@@ -120,7 +136,7 @@ export default async function handler(req, res) {
       dataHoraRede,   // A
       loja,           // B
       usuario,        // C
-      dataLancamento, // D (ISO yyyy-mm-dd)
+      dataLancamento, // D (DD/MM/AAAA)
       duplocar120,    // E
       grande160,      // F
       bebeConforto160,// G
