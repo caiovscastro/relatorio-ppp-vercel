@@ -88,6 +88,7 @@
       line-height: 1;
     }
 
+    /* ===== GRID (2 colunas) ===== */
     .grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -102,10 +103,27 @@
       min-width: 0;
     }
 
+    /* ===== Label com imagem ao lado (conforme solicitado) ===== */
     .campo label{
       font-weight: 800;
       font-size: 13px;
       color:#111;
+
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.2;
+    }
+
+    /* Imagem 1:1 ~ 1,5 cm (aprox). Usamos cm para ser explícito. */
+    .campo label img{
+      width: 1.5cm;
+      height: 1.5cm;
+      object-fit: cover;   /* mantém o 1:1 sem distorcer */
+      border-radius: 8px;  /* leve arredondamento para ficar “clean” */
+      border: 1px solid #e6e6e6;
+      background: #fff;
+      flex: 0 0 auto;
     }
 
     .input{
@@ -217,7 +235,7 @@
         <div class="total-valor" id="totalCarrinhos">0</div>
       </div>
 
-      <!-- Data de lançamento (coluna D) -->
+      <!-- Data de contagem (coluna D) -->
       <div class="linha-1">
         <div class="campo">
           <label for="dataLancamento">Data Contagem:</label>
@@ -225,46 +243,87 @@
         </div>
       </div>
 
-      <!-- Contagens (colunas E a L) -->
+      <!-- Contagens (colunas E a M) - 2 colunas -->
       <div class="grid" aria-label="Contagem por tipo de carrinho">
+        <!-- Coluna E -->
         <div class="campo">
-          <label for="duplocar120">Duplocar 120L:</label>
+          <label for="duplocar120">
+            <img src="https://i.ibb.co/zHG5pgJx/SAVE-20260107-131849.jpg" alt="Duplocar 120L" loading="lazy" />
+            Duplocar 120L:
+          </label>
           <input id="duplocar120" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
+        <!-- Coluna F -->
         <div class="campo">
-          <label for="grande160">Grande 160L:</label>
+          <label for="grande160">
+            <img src="https://i.ibb.co/wZYw1WKt/SAVE-20260107-131727.jpg" alt="Grande 160L" loading="lazy" />
+            Grande 160L:
+          </label>
           <input id="grande160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
+        <!-- Coluna G -->
         <div class="campo">
-          <label for="bebeConforto160">Bebê conforto 160L:</label>
+          <label for="bebeConforto160">
+            <img src="https://i.ibb.co/Ps456g78/SAVE-20260107-132011.jpg" alt="Bebê conforto 160L" loading="lazy" />
+            Bebê conforto 160L:
+          </label>
           <input id="bebeConforto160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
+        <!-- Coluna H -->
         <div class="campo">
-          <label for="maxcar200">Maxcar 200L:</label>
+          <label for="maxcar200">
+            <img src="https://i.ibb.co/2Y603KFw/SAVE-20260107-132118.jpg" alt="Maxcar 200L" loading="lazy" />
+            Maxcar 200L:
+          </label>
           <input id="maxcar200" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
+        <!-- Coluna I -->
         <div class="campo">
-          <label for="macrocar300">Macrocar 300L:</label>
+          <label for="macrocar300">
+            <img src="https://i.ibb.co/x8Hk31yd/SAVE-20260107-132214.jpg" alt="Macrocar 300L" loading="lazy" />
+            Macrocar 300L:
+          </label>
           <input id="macrocar300" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
+        <!-- Coluna J -->
         <div class="campo">
-          <label for="mini">Mini:</label>
-          <input id="mini" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          <label for="pranchaJacare">
+            <img src="https://i.ibb.co/WpBV6GPx/SAVE-20260107-132332.jpg" alt="Prancha Jacaré" loading="lazy" />
+            Prancha Jacaré:
+          </label>
+          <input id="pranchaJacare" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
+        <!-- Coluna K -->
         <div class="campo">
-          <label for="compraKids">Compra Kids:</label>
+          <label for="compraKids">
+            <img src="https://i.ibb.co/k2Rz14Wh/SAVE-20260107-132741.jpg" alt="Compra Kids" loading="lazy" />
+            Compra Kids:
+          </label>
           <input id="compraKids" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
+        <!-- Coluna L -->
         <div class="campo">
-          <label for="bebeJipinho">Bebê Jipinho:</label>
+          <label for="bebeJipinho">
+            <img src="https://i.ibb.co/hJGdW6SP/SAVE-20260107-132325.jpg" alt="Bebê Jipinho" loading="lazy" />
+            Bebê Jipinho:
+          </label>
           <input id="bebeJipinho" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- Coluna M -->
+        <div class="campo">
+          <label for="cestinha">
+            <img src="https://i.ibb.co/Q40c8y7/SAVE-20260107-132900.jpg" alt="Cestinha" loading="lazy" />
+            Cestinha:
+          </label>
+          <input id="cestinha" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
       </div>
 
@@ -284,39 +343,57 @@
     // Perfis que podem acessar esta tela (conforme sua regra de visibilidade do menu)
     const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-    // Mapeamento -> colunas E..L
+    /*
+      ✅ NOVO: agora os dados vão até a coluna "M".
+      Mapeamento de campos -> colunas E..M (ordem conforme sua solicitação):
+      E  Duplocar 120L
+      F  Grande 160L
+      G  Bebê conforto 160L
+      H  Maxcar 200L
+      I  Macrocar 300L
+      J  Prancha Jacaré
+      K  Compra Kids
+      L  Bebê Jipinho
+      M  Cestinha
+    */
     const CAMPOS = [
-      { id: "duplocar120",      label: "Duplocar 120L",       key: "duplocar120" },
-      { id: "grande160",        label: "Grande 160L",         key: "grande160" },
-      { id: "bebeConforto160",  label: "Bebê conforto 160L",  key: "bebeConforto160" },
-      { id: "maxcar200",        label: "Maxcar 200L",         key: "maxcar200" },
-      { id: "macrocar300",      label: "Macrocar 300L",       key: "macrocar300" },
-      { id: "mini",             label: "Mini",               key: "mini" },
-      { id: "compraKids",       label: "Compra Kids",        key: "compraKids" },
-      { id: "bebeJipinho",      label: "Bebê Jipinho",        key: "bebeJipinho" },
+      { id: "duplocar120",      label: "Duplocar 120L",        key: "duplocar120" },
+      { id: "grande160",        label: "Grande 160L",          key: "grande160" },
+      { id: "bebeConforto160",  label: "Bebê conforto 160L",   key: "bebeConforto160" },
+      { id: "maxcar200",        label: "Maxcar 200L",          key: "maxcar200" },
+      { id: "macrocar300",      label: "Macrocar 300L",        key: "macrocar300" },
+      { id: "pranchaJacare",    label: "Prancha Jacaré",       key: "pranchaJacare" },
+      { id: "compraKids",       label: "Compra Kids",          key: "compraKids" },
+      { id: "bebeJipinho",      label: "Bebê Jipinho",         key: "bebeJipinho" },
+      { id: "cestinha",         label: "Cestinha",             key: "cestinha" },
     ];
 
     let sessaoAtual = null;
 
+    // Remove tudo que não for dígito (0-9)
     function soDigitos(str) {
       return String(str || "").replace(/[^\d]/g, "");
     }
 
+    // Converte string para inteiro (default 0)
     function toInt(str) {
       const s = soDigitos(str);
       return s ? parseInt(s, 10) : 0;
     }
 
+    // Soma total (card)
     function atualizarTotal() {
       const total = CAMPOS.reduce((acc, c) => acc + toInt(document.getElementById(c.id).value), 0);
       document.getElementById("totalCarrinhos").textContent = String(total);
     }
 
+    // Aplica máscara "somente números" em tempo real
     function aplicarMascaraSomenteNumero(inputEl) {
       inputEl.value = soDigitos(inputEl.value);
       atualizarTotal();
     }
 
+    // Busca sessão do backend (/api/session) para validar login e permissões
     async function obterSessaoDoBackend() {
       try {
         const resp = await fetch("/api/session", {
@@ -352,9 +429,10 @@
       el.textContent = texto || "";
     }
 
+    // ✅ Validação: todos os campos obrigatórios (incluindo os 9 tipos)
     function validarFormulario() {
       const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
-      if (!dataLanc) return "Selecione a Data Lançamento.";
+      if (!dataLanc) return "Selecione a Data Contagem.";
 
       for (const c of CAMPOS) {
         const v = (document.getElementById(c.id).value || "").trim();
@@ -365,7 +443,6 @@
       return "";
     }
 
-    // ✅ NOVO (única alteração solicitada):
     // Converte "YYYY-MM-DD" (input type=date) para "DD/MM/AAAA"
     function isoParaBR(iso) {
       const s = String(iso || "").trim();
@@ -400,9 +477,9 @@
       try {
         const dataISO = (document.getElementById("dataLancamento").value || "").trim();
 
+        // Payload enviado ao backend (/api/carrinhos)
         const payload = {
-          // ✅ agora vai em "DD/MM/AAAA"
-          dataLancamento: isoParaBR(dataISO),
+          dataLancamento: isoParaBR(dataISO), // "DD/MM/AAAA"
           contagens: CAMPOS.reduce((acc, c) => {
             acc[c.key] = toInt(document.getElementById(c.id).value);
             return acc;
@@ -431,7 +508,7 @@
 
         setMsg(dados.message || "Contagem enviada com sucesso.", true);
 
-        // Limpa campos (mantém data, se você quiser)
+        // Limpa campos (mantém data)
         CAMPOS.forEach(c => document.getElementById(c.id).value = "");
         atualizarTotal();
       } catch (e) {
@@ -471,7 +548,6 @@
 
       const perfil = String(s.perfil || "").trim().toUpperCase();
       if (!PERFIS_PERMITIDOS.includes(perfil)) {
-        // Você não pediu tela “acesso negado”, mas é melhor do que deixar enviar.
         mostrarApp();
         document.getElementById("infoLoja").textContent = s.loja;
         document.getElementById("infoUsuario").textContent = s.usuario;
@@ -493,5 +569,7 @@
   <!-- Fontes confiáveis -->
   <!-- fetch + credentials/cookies: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
   <!-- input date: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
+  <!-- CSS cm units: https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units -->
+  <!-- img loading=lazy: https://developer.mozilla.org/en-US/docs/Web/Performance/Lazy_loading -->
 </body>
 </html>
