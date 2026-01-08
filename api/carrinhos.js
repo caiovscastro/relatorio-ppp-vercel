@@ -12,9 +12,10 @@
 // G: Bebê conforto 160L
 // H: Maxcar 200L
 // I: Macrocar 300L
-// J: Mini
+// J: Prancha Jacaré
 // K: Compra Kids
 // L: Bebê Jipinho
+// M: Cestinha
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -40,7 +41,7 @@ function formatarDataHoraBR(d) {
   return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
 
-// ✅ ALTERAÇÃO (única): agora valida "DD/MM/AAAA"
+// Valida "DD/MM/AAAA"
 function isBRDateDDMMAAAA(s) {
   const str = String(s || "").trim();
   const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -59,6 +60,7 @@ function isBRDateDDMMAAAA(s) {
   return true;
 }
 
+// Converte e valida inteiro obrigatório (>=0, sem decimal)
 function asIntObrigatorio(v) {
   const n = Number(v);
   if (!Number.isFinite(n) || n < 0 || !Number.isInteger(n)) return null;
@@ -80,6 +82,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ sucesso: false, message: "Método não permitido. Use POST." });
   }
 
+  // Sessão + perfis permitidos
   const session = requireSession(req, res, { allowedProfiles: PERFIS_PERMITIDOS });
   if (!session) return; // requireSession já responde 401/403
 
@@ -95,28 +98,54 @@ export default async function handler(req, res) {
     const dataLancamento = String(body.dataLancamento || "").trim();
     const contagens = body.contagens || {};
 
-    // ✅ agora espera "DD/MM/AAAA"
+    // Data Contagem precisa estar em "DD/MM/AAAA"
     if (!isBRDateDDMMAAAA(dataLancamento)) {
       return res.status(400).json({ sucesso: false, message: "Data Contagem inválida. Use DD/MM/AAAA." });
     }
 
+    /*
+      ✅ NOVO MAPEAMENTO (E..M) - todos obrigatórios
+      E  duplocar120
+      F  grande160
+      G  bebeConforto160
+      H  maxcar200
+      I  macrocar300
+      J  pranchaJacare
+      K  compraKids
+      L  bebeJipinho
+      M  cestinha
+    */
     const duplocar120     = asIntObrigatorio(contagens.duplocar120);
     const grande160       = asIntObrigatorio(contagens.grande160);
     const bebeConforto160 = asIntObrigatorio(contagens.bebeConforto160);
     const maxcar200       = asIntObrigatorio(contagens.maxcar200);
     const macrocar300     = asIntObrigatorio(contagens.macrocar300);
-    const mini            = asIntObrigatorio(contagens.mini);
+    const pranchaJacare   = asIntObrigatorio(contagens.pranchaJacare);
     const compraKids      = asIntObrigatorio(contagens.compraKids);
     const bebeJipinho     = asIntObrigatorio(contagens.bebeJipinho);
+    const cestinha        = asIntObrigatorio(contagens.cestinha);
 
-    const obrigatorios = [duplocar120, grande160, bebeConforto160, maxcar200, macrocar300, mini, compraKids, bebeJipinho];
-    if (obrigatorios.some(v => v === null)) {
+    // Todos obrigatórios
+    const obrigatorios = [
+      duplocar120,
+      grande160,
+      bebeConforto160,
+      maxcar200,
+      macrocar300,
+      pranchaJacare,
+      compraKids,
+      bebeJipinho,
+      cestinha,
+    ];
+
+    if (obrigatorios.some((v) => v === null)) {
       return res.status(400).json({
         sucesso: false,
         message: "Preencha todas as contagens com números inteiros (sem ponto e sem vírgula).",
       });
     }
 
+    // Dados de sessão (não confiar no front)
     const loja = String(session.loja || "").trim();
     const usuario = String(session.usuario || "").trim();
     const perfil = String(session.perfil || "").trim().toUpperCase();
@@ -129,29 +158,33 @@ export default async function handler(req, res) {
       return res.status(403).json({ sucesso: false, message: "Perfil sem permissão para esta operação." });
     }
 
+    // Data/hora do servidor (SP)
     const dtRede = nowSaoPaulo();
     const dataHoraRede = formatarDataHoraBR(dtRede);
 
+    // Linha a gravar (A..M)
     const values = [[
-      dataHoraRede,   // A
-      loja,           // B
-      usuario,        // C
-      dataLancamento, // D (DD/MM/AAAA)
-      duplocar120,    // E
-      grande160,      // F
-      bebeConforto160,// G
-      maxcar200,      // H
-      macrocar300,    // I
-      mini,           // J
-      compraKids,     // K
-      bebeJipinho     // L
+      dataHoraRede,    // A
+      loja,            // B
+      usuario,         // C
+      dataLancamento,  // D (DD/MM/AAAA)
+      duplocar120,     // E
+      grande160,       // F
+      bebeConforto160, // G
+      maxcar200,       // H
+      macrocar300,     // I
+      pranchaJacare,   // J
+      compraKids,      // K
+      bebeJipinho,     // L
+      cestinha         // M
     ]];
 
     const sheets = await getSheetsClient();
 
+    // ✅ Range atualizado para A:M
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "CARRINHOS!A:L",
+      range: "CARRINHOS!A:M",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values },
@@ -170,3 +203,10 @@ export default async function handler(req, res) {
     });
   }
 }
+
+/*
+  Fontes confiáveis:
+  - Google Sheets API (append values): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+  - JWT auth googleapis: https://github.com/googleapis/google-api-nodejs-client
+  - Date + timeZone: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
+*/
