@@ -142,9 +142,10 @@
 
     .hidden{ display:none !important; }
 
+    /* ✅ (2) Painel de filtros mais estreito para dar folga ao gráfico/tabelas */
     .grid{
       display:grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 320px 1fr; /* antes 380px */
       gap: 12px;
       align-items: start;
       max-width: 100%;
@@ -468,7 +469,6 @@
 
               <div class="right-col">
                 <div class="card table-card">
-                  <!-- ✅ (5) Título alterado -->
                   <h3>Carrinhos ativos</h3>
                   <div class="table-wrap">
                     <table class="table-lojas">
@@ -489,8 +489,6 @@
 
             <div class="card" style="margin-top:12px;">
               <h3>Registros de Carrinhos</h3>
-
-              <!-- Observação: aqui é a tabela “detalhada” por registro -->
               <div class="table-wrap" style="max-height:420px;">
                 <table>
                   <thead>
@@ -499,14 +497,12 @@
                       <th>Usuário</th>
                       <th>Duplocar 120L</th>
                       <th>Grande 160L</th>
-                      <!-- ✅ (4) Título reduzido -->
                       <th>Bebê 160L</th>
                       <th>Maxcar 200L</th>
                       <th>Macrocar 300L</th>
                       <th>Prancha Jacaré</th>
                       <th>Compra Kids</th>
                       <th>Bebê Jipinho</th>
-                      <!-- ✅ (2) novos itens -->
                       <th>Cestinha</th>
                       <th>Cadeira Rodas</th>
                       <th>Carrinhos Quebrados</th>
@@ -528,25 +524,10 @@
   const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-  /*
-    ✅ (1) A:O
-    Este dashboard agora considera que os registros já vêm do backend com contagens até:
-    - M: cestinha
-    - N: cadeiraRodas
-    - O: carrinhosQuebrados
-    (Ou seja, o dataset está alinhado com a gravação A:O no /api/carrinhos.js)
-  */
-
-  /*
-    ✅ (2) TIPOS atualizados conforme tela de lançamento:
-    - Remove "mini"
-    - Renomeia label "Bebê conforto 160L" -> "Bebê 160L" (mantendo key)
-    - Adiciona cestinha, cadeiraRodas, carrinhosQuebrados
-  */
   const TIPOS = [
     { key: "duplocar120",        label: "Duplocar 120L" },
     { key: "grande160",          label: "Grande 160L" },
-    { key: "bebeConforto160",    label: "Bebê 160L" },          // ✅ (4)
+    { key: "bebeConforto160",    label: "Bebê 160L" },
     { key: "maxcar200",          label: "Maxcar 200L" },
     { key: "macrocar300",        label: "Macrocar 300L" },
     { key: "pranchaJacare",      label: "Prancha Jacaré" },
@@ -557,11 +538,6 @@
     { key: "carrinhosQuebrados", label: "Carrinhos Quebrados" }
   ];
 
-  /*
-    ✅ (5) “Carrinhos ativos” deve ignorar quebrados.
-    E (por conceito) também ignorar cadeiraRodas no total de carrinhos.
-    Então definimos um conjunto FIXO do que é "ativo".
-  */
   const ACTIVE_KEYS = new Set([
     "duplocar120",
     "grande160",
@@ -574,7 +550,6 @@
     "cestinha"
   ]);
 
-  // Ícones apenas para rótulo do gráfico (opcional)
   const TIPO_ICONE = {
     duplocar120: "🛒",
     grande160: "🛒",
@@ -711,10 +686,10 @@
     }[m]));
   }
 
-  // ✅ (3) loja curta para tabela "Registros de Carrinhos"
-  function lojaCurta5(loja){
+  // ✅ (1) Loja curta com os 6 primeiros caracteres (ex: "BIG 01" / "ULT 08")
+  function lojaCurta6(loja){
     const s = String(loja || "").trim();
-    return s.length >= 5 ? s.slice(0,5) : s; // ex: "BIG 01"
+    return s.length >= 6 ? s.slice(0,6) : s;
   }
 
   function montarFiltros(){
@@ -836,7 +811,6 @@
       if(lojasSel.size && !lojasSel.has(loja)) return false;
       if(String(r.dataContagem || "").trim() !== dataFinalBR) return false;
 
-      // Mantém regra: se tipos filtrados, o registro precisa ter >0 em algum tipo selecionado
       if(tiposSel.size){
         let ok = false;
         for(const t of TIPOS){
@@ -862,23 +836,15 @@
       return true;
     }) : []);
 
-    // ✅ Por loja: agora guardamos 2 totais:
-    // - __totalAll (para KPI + gráfico quando quiser somar “tudo selecionado”)
-    // - __totalAtivo (para a tabela “Carrinhos ativos” ignorar quebrados e cadeira de rodas)
     const porLojaFinal = acumularPorLoja(baseFinal, tiposSel);
     const porLojaRef   = acumularPorLoja(baseRef, tiposSel);
 
-    // KPI e gráfico continuam seguindo os TIPOS selecionados (inclui quebrados/cadeira se selecionado)
     const totaisPorTipo = somarTiposDoMapa(porLojaFinal, tiposSel);
     const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
     document.getElementById("kpiTotal").textContent = String(totalGeral);
 
     desenharBarrasTipos(totaisPorTipo, tiposSel);
-
-    // ✅ (5) Tabela “Carrinhos ativos” usa SOMENTE __totalAtivo
     renderTabelaPorLoja(porLojaFinal, porLojaRef);
-
-    // ✅ (2)(3)(4) Tabela registros atualizada
     renderTabelaRegistros(baseFinal, tiposSel);
   }
 
@@ -887,12 +853,7 @@
     for(const r of listaRegistros){
       const loja = String(r.loja||"").trim();
       if(!mapa[loja]){
-        mapa[loja] = {
-          __totalAll: 0,   // soma do que estiver sendo acumulado (tiposSel)
-          __totalAtivo: 0  // soma apenas dos “ativos” (ACTIVE_KEYS)
-        };
-
-        // inicializa campos por tipo (apenas os selecionados, se houver seleção)
+        mapa[loja] = { __totalAll: 0, __totalAtivo: 0 };
         for(const t of TIPOS){
           if(tiposSel.size && !tiposSel.has(t.key)) continue;
           mapa[loja][t.key] = 0;
@@ -901,14 +862,11 @@
 
       for(const t of TIPOS){
         if(tiposSel.size && !tiposSel.has(t.key)) continue;
-
         const v = asInt(r.contagens?.[t.key]);
-        mapa[loja][t.key] = (mapa[loja][t.key] || 0) + v;
 
-        // Total “geral” (selecionados)
+        mapa[loja][t.key] = (mapa[loja][t.key] || 0) + v;
         mapa[loja].__totalAll += v;
 
-        // ✅ Total “ativo” fixo (ignora quebrados e cadeira rodas)
         if(ACTIVE_KEYS.has(t.key)){
           mapa[loja].__totalAtivo += v;
         }
@@ -1025,7 +983,6 @@
     });
   }
 
-  // ✅ (5) tabela “Carrinhos ativos” usa __totalAtivo
   function renderTabelaPorLoja(porLojaFinal, porLojaRef){
     const tbody = document.getElementById("tbodyPorLoja");
     tbody.innerHTML = "";
@@ -1036,7 +993,6 @@
       return;
     }
 
-    // Ordena por total ATIVO (desc)
     entries.sort((a,b)=> (asInt(b[1].__totalAtivo) - asInt(a[1].__totalAtivo)));
 
     for(const [loja, objFinal] of entries){
@@ -1058,13 +1014,10 @@
     }
   }
 
-  // ✅ (2)(3)(4) tabela “Registros de Carrinhos” atualizada
   function renderTabelaRegistros(lista, tiposSel){
     const tbody = document.getElementById("tbodyRegistros");
     tbody.innerHTML = "";
 
-    // Agora o colspan precisa bater com a nova quantidade de colunas da tabela:
-    // Loja + Usuário + 11 tipos (sem Mini) + Total = 14 colunas
     if(!lista.length){
       tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
       return;
@@ -1079,7 +1032,6 @@
     for(const r of ord){
       const c = r.contagens || {};
 
-      // Total da linha segue os TIPOS selecionados (igual antes)
       let totalLinha = 0;
       for(const t of TIPOS){
         if(tiposSel.size && !tiposSel.has(t.key)) continue;
@@ -1088,23 +1040,18 @@
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <!-- ✅ (3) loja curta (BIG 01 / ULT 08 etc.) -->
-        <td>${esc(lojaCurta5(r.loja))}</td>
+        <!-- ✅ (1) Loja com 6 primeiros caracteres -->
+        <td>${esc(lojaCurta6(r.loja))}</td>
         <td>${esc(r.usuario)}</td>
 
         <td>${asInt(c.duplocar120)}</td>
         <td>${asInt(c.grande160)}</td>
-
-        <!-- ✅ (4) Bebê 160L -->
         <td>${asInt(c.bebeConforto160)}</td>
-
         <td>${asInt(c.maxcar200)}</td>
         <td>${asInt(c.macrocar300)}</td>
         <td>${asInt(c.pranchaJacare)}</td>
         <td>${asInt(c.compraKids)}</td>
         <td>${asInt(c.bebeJipinho)}</td>
-
-        <!-- ✅ (2) novos campos -->
         <td>${asInt(c.cestinha)}</td>
         <td>${asInt(c.cadeiraRodas)}</td>
         <td>${asInt(c.carrinhosQuebrados)}</td>
@@ -1151,7 +1098,7 @@
 <!-- Fontes confiáveis -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
-<!-- MDN String.slice (para BIG 01): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice -->
-<!-- MDN overflow-wrap: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-wrap -->
+<!-- MDN String.slice (para 6 primeiros caracteres): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice -->
+<!-- CSS Grid (grid-template-columns): https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-columns -->
 </body>
 </html>
