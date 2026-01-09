@@ -103,7 +103,7 @@
       min-width: 0;
     }
 
-    /* ===== Label com imagem ao lado (conforme solicitado) ===== */
+    /* ===== Label com imagem ao lado ===== */
     .campo label{
       font-weight: 800;
       font-size: 13px;
@@ -115,12 +115,15 @@
       line-height: 1.2;
     }
 
-    /* Imagem 1:1 ~ 1,5 cm (aprox). Usamos cm para ser explícito. */
+    /*
+      ✅ ALTERAÇÃO: tamanho da imagem agora 1,7cm (mantém 1:1).
+      Observação: object-fit: cover mantém o quadrado sem distorcer.
+    */
     .campo label img{
-      width: 1.5cm;
-      height: 1.5cm;
-      object-fit: cover;   /* mantém o 1:1 sem distorcer */
-      border-radius: 8px;  /* leve arredondamento para ficar “clean” */
+      width: 1.7cm;
+      height: 1.7cm;
+      object-fit: cover;
+      border-radius: 8px;
       border: 1px solid #e6e6e6;
       background: #fff;
       flex: 0 0 auto;
@@ -243,7 +246,7 @@
         </div>
       </div>
 
-      <!-- Contagens (colunas E a M) - 2 colunas -->
+      <!-- Contagens (colunas E a O) - 2 colunas -->
       <div class="grid" aria-label="Contagem por tipo de carrinho">
         <!-- Coluna E -->
         <div class="campo">
@@ -325,6 +328,24 @@
           </label>
           <input id="cestinha" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
+
+        <!-- ✅ NOVO - Coluna N -->
+        <div class="campo">
+          <label for="cadeiraRodas">
+            <img src="https://i.ibb.co/sdp6hPzN/file-00000000b954720ea6b9b2e95516ed0a.png" alt="Cadeira de rodas" loading="lazy" />
+            Cadeira de rodas:
+          </label>
+          <input id="cadeiraRodas" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- ✅ NOVO - Coluna O -->
+        <div class="campo">
+          <label for="carrinhosQuebrados">
+            <img src="https://i.ibb.co/ZpwFJf5H/file-0000000062a0720e86cbcca63bfd8b64.png" alt="Carrinhos Quebrados" loading="lazy" />
+            Carrinhos Quebrados:
+          </label>
+          <input id="carrinhosQuebrados" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
       </div>
 
       <button class="btn btn-prim" id="btnEnviar">Enviar</button>
@@ -344,8 +365,8 @@
     const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
     /*
-      ✅ NOVO: agora os dados vão até a coluna "M".
-      Mapeamento de campos -> colunas E..M (ordem conforme sua solicitação):
+      ✅ ATUALIZADO: agora os dados vão até a coluna "O".
+      Mapeamento de campos -> colunas E..O (ordem conforme sua solicitação):
       E  Duplocar 120L
       F  Grande 160L
       G  Bebê conforto 160L
@@ -355,17 +376,23 @@
       K  Compra Kids
       L  Bebê Jipinho
       M  Cestinha
+      N  Cadeira de rodas
+      O  Carrinhos Quebrados
     */
     const CAMPOS = [
-      { id: "duplocar120",      label: "Duplocar 120L",        key: "duplocar120" },
-      { id: "grande160",        label: "Grande 160L",          key: "grande160" },
-      { id: "bebeConforto160",  label: "Bebê conforto 160L",   key: "bebeConforto160" },
-      { id: "maxcar200",        label: "Maxcar 200L",          key: "maxcar200" },
-      { id: "macrocar300",      label: "Macrocar 300L",        key: "macrocar300" },
-      { id: "pranchaJacare",    label: "Prancha Jacaré",       key: "pranchaJacare" },
-      { id: "compraKids",       label: "Compra Kids",          key: "compraKids" },
-      { id: "bebeJipinho",      label: "Bebê Jipinho",         key: "bebeJipinho" },
-      { id: "cestinha",         label: "Cestinha",             key: "cestinha" },
+      { id: "duplocar120",        label: "Duplocar 120L",        key: "duplocar120" },
+      { id: "grande160",          label: "Grande 160L",          key: "grande160" },
+      { id: "bebeConforto160",    label: "Bebê conforto 160L",   key: "bebeConforto160" },
+      { id: "maxcar200",          label: "Maxcar 200L",          key: "maxcar200" },
+      { id: "macrocar300",        label: "Macrocar 300L",        key: "macrocar300" },
+      { id: "pranchaJacare",      label: "Prancha Jacaré",       key: "pranchaJacare" },
+      { id: "compraKids",         label: "Compra Kids",          key: "compraKids" },
+      { id: "bebeJipinho",        label: "Bebê Jipinho",         key: "bebeJipinho" },
+      { id: "cestinha",           label: "Cestinha",             key: "cestinha" },
+
+      // ✅ NOVOS (N e O)
+      { id: "cadeiraRodas",       label: "Cadeira de rodas",     key: "cadeiraRodas" },
+      { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",  key: "carrinhosQuebrados" },
     ];
 
     let sessaoAtual = null;
@@ -381,7 +408,7 @@
       return s ? parseInt(s, 10) : 0;
     }
 
-    // Soma total (card)
+    // Soma total (card) - soma TODOS os campos listados em CAMPOS
     function atualizarTotal() {
       const total = CAMPOS.reduce((acc, c) => acc + toInt(document.getElementById(c.id).value), 0);
       document.getElementById("totalCarrinhos").textContent = String(total);
@@ -429,7 +456,7 @@
       el.textContent = texto || "";
     }
 
-    // ✅ Validação: todos os campos obrigatórios (incluindo os 9 tipos)
+    // ✅ Validação: todos os campos obrigatórios (incluindo os NOVOS)
     function validarFormulario() {
       const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
       if (!dataLanc) return "Selecione a Data Contagem.";
