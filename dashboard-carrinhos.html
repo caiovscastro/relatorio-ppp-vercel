@@ -142,10 +142,14 @@
 
     .hidden{ display:none !important; }
 
-    /* ✅ (2) Painel de filtros mais estreito para dar folga ao gráfico/tabelas */
+    /* =========================================================
+       ✅ (4) Filtros 40% mais estreito (somente em telas grandes)
+       Antes: 320px | Agora: 192px (~40% menor)
+       Obs.: em telas pequenas continua 1 coluna
+       ========================================================= */
     .grid{
       display:grid;
-      grid-template-columns: 320px 1fr; /* antes 380px */
+      grid-template-columns: 192px 1fr; /* 320px -> 192px */
       gap: 12px;
       align-items: start;
       max-width: 100%;
@@ -339,6 +343,15 @@
       min-width: 0;
     }
 
+    /* =========================================================
+       ✅ (6) Registros rolável na horizontal no celular
+       - força uma largura mínima na tabela para existir scroll-x
+       ========================================================= */
+    .table-wrap.hscroll table{ min-width: 980px; } /* ajuste de “largura mínima” da grade */
+    @media (max-width: 520px){
+      .table-wrap.hscroll table{ min-width: 980px; }
+    }
+
     .table-lojas th:first-child,
     .table-lojas td:first-child{ white-space: normal; }
 
@@ -353,6 +366,11 @@
     .diff-pos{ color: var(--ok); font-weight: 900; }
     .diff-neg{ color: var(--danger); font-weight: 900; }
     .diff-zero{ color:#333; font-weight: 900; }
+
+    /* ✅ (8) Movimentação com cor (positivo verde / negativo vermelho) */
+    .mov-pos{ color: var(--ok); font-weight: 900; }
+    .mov-neg{ color: var(--danger); font-weight: 900; }
+    .mov-zero{ color:#333; font-weight: 900; }
 
     .chart-wrap{
       width:100%;
@@ -402,18 +420,22 @@
 
             <div class="grupo">
               <div class="grupo-titulo">Datas</div>
+
               <div class="subgrid">
                 <div class="campo">
-                  <label for="dataRef">Data Referência</label>
+                  <!-- ✅ (1) Título alterado: Data Referência -> Data Anterior -->
+                  <label for="dataRef">Data Anterior</label>
                   <input id="dataRef" class="input" type="date" />
                 </div>
+
                 <div class="campo">
                   <label for="dataFinal">Data de Filtro</label>
                   <input id="dataFinal" class="input" type="date" />
                 </div>
               </div>
+
               <div class="nota">
-                O dashboard usa a <b>Data de filtro</b>. A <b>Data Referência</b> é usada apenas para calcular a <b>diferença</b> na tabela “Carrinhos ativos”.
+                O dashboard usa a <b>Data de filtro</b>. A <b>Data Anterior</b> é sempre <b>1 dia antes</b> e é usada para calcular a <b>diferença</b> em “Carrinhos ativos”.
               </div>
             </div>
 
@@ -476,8 +498,13 @@
                         <tr>
                           <th>Loja</th>
                           <th>Total</th>
-                          <th>Total Ref.</th>
+                          <!-- ✅ (1) "Total Ref." -> "Total Anterior" -->
+                          <th>Total Anterior</th>
                           <th>Diferença</th>
+
+                          <!-- ✅ (8) Novas colunas: Movimentação (R) + Motivo (S) -->
+                          <th>Mov.</th>
+                          <th>Motivo</th>
                         </tr>
                       </thead>
                       <tbody id="tbodyPorLoja"></tbody>
@@ -487,9 +514,12 @@
               </div>
             </div>
 
+            <!-- ✅ (3) Registros: removidas colunas Cestinha, Cadeira Rodas, Quebrados -->
             <div class="card" style="margin-top:12px;">
               <h3>Registros de Carrinhos</h3>
-              <div class="table-wrap" style="max-height:420px;">
+
+              <!-- ✅ (6) Wrapper com scroll horizontal no celular -->
+              <div class="table-wrap hscroll" style="max-height:420px;">
                 <table>
                   <thead>
                     <tr>
@@ -503,13 +533,32 @@
                       <th>Prancha Jacaré</th>
                       <th>Compra Kids</th>
                       <th>Bebê Jipinho</th>
-                      <th>Cestinha</th>
-                      <th>Cadeira Rodas</th>
-                      <th>Carrinhos Quebrados</th>
                       <th>Total</th>
                     </tr>
                   </thead>
                   <tbody id="tbodyRegistros"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- ✅ (7) Novo cartão abaixo: Especiais/Reservas por registro -->
+            <div class="card" style="margin-top:12px;">
+              <h3>Especiais e Reservas (por registro)</h3>
+
+              <div class="table-wrap hscroll" style="max-height:420px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Loja</th>
+                      <th>Usuário</th>
+                      <th>Carrinhos reserva</th>
+                      <th>Carrinhos Quebrados</th>
+                      <th>Cestinhas</th>
+                      <th>Cestinhas reserva</th>
+                      <th>Cadeira de rodas</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbodyEspeciais"></tbody>
                 </table>
               </div>
             </div>
@@ -524,6 +573,15 @@
   const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
+  /* =========================================================
+     ✅ (5) Modelo novo (E..Q) + Movimentação (R) + Motivo (S)
+     Observação: o /api/carrinhos-listar precisa entregar isso
+     no objeto de registro. Este front é tolerante a variações:
+     - contagens.movCarrinhos OU movCarrinhos direto no registro
+     - movCategoria OU motivo OU motivoMov (coluna S)
+     ========================================================= */
+
+  // Tipos usados em gráfico/filtro "Tipo de carrinho" (inclui especiais)
   const TIPOS = [
     { key: "duplocar120",        label: "Duplocar 120L" },
     { key: "grande160",          label: "Grande 160L" },
@@ -533,11 +591,14 @@
     { key: "pranchaJacare",      label: "Prancha Jacaré" },
     { key: "compraKids",         label: "Compra Kids" },
     { key: "bebeJipinho",        label: "Bebê Jipinho" },
+
+    // Itens especiais (M, N, O)
     { key: "cestinha",           label: "Cestinha" },
-    { key: "cadeiraRodas",       label: "Cadeira Rodas" },
+    { key: "cadeiraRodas",       label: "Cadeira de rodas" },
     { key: "carrinhosQuebrados", label: "Carrinhos Quebrados" }
   ];
 
+  // ✅ (2) Carrinhos ativos = APENAS os 8 carrinhos (sem cestinha/cadeira/quebrados)
   const ACTIVE_KEYS = new Set([
     "duplocar120",
     "grande160",
@@ -546,8 +607,7 @@
     "macrocar300",
     "pranchaJacare",
     "compraKids",
-    "bebeJipinho",
-    "cestinha"
+    "bebeJipinho"
   ]);
 
   const TIPO_ICONE = {
@@ -668,9 +728,16 @@
     return `${m[3]}/${m[2]}/${m[1]}`;
   }
 
+  // Inteiro não-negativo (para contagens)
   function asInt(v){
     const n = Number(v);
     return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0;
+  }
+
+  // Inteiro com sinal (para movimentação)
+  function asIntSigned(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.trunc(n) : 0;
   }
 
   function bandeiraDaLoja(loja){
@@ -686,10 +753,52 @@
     }[m]));
   }
 
-  // ✅ (1) Loja curta com os 6 primeiros caracteres (ex: "BIG 01" / "ULT 08")
+  // Loja curta com os 6 primeiros caracteres (ex: "BIG 01" / "ULT 08")
   function lojaCurta6(loja){
     const s = String(loja || "").trim();
     return s.length >= 6 ? s.slice(0,6) : s;
+  }
+
+  /* =========================================================
+     ✅ (1) Data Anterior sempre = Data de Filtro - 1 dia
+     - Não aceita igual ou posterior
+     - Atualiza automaticamente quando a data de filtro muda
+     ========================================================= */
+  function addDaysISO(iso, deltaDays){
+    const m = String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return "";
+    const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+    d.setDate(d.getDate() + Number(deltaDays || 0));
+    const pad2 = (n)=> String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+
+  function syncDataAnteriorComDataFinal(){
+    const elFinal = document.getElementById("dataFinal");
+    const elRef   = document.getElementById("dataRef");
+
+    const finalISO = (elFinal.value || "").trim();
+    if(!finalISO){
+      // sem dataFinal, não tenta forçar data anterior
+      elRef.removeAttribute("max");
+      return;
+    }
+
+    const anteriorISO = addDaysISO(finalISO, -1);
+
+    // trava: Data Anterior deve ser NO MÁXIMO (dataFinal - 1)
+    elRef.max = anteriorISO;
+
+    // Se vazio OU inválido (>= dataFinal), forçar para dataFinal-1
+    const refISO = (elRef.value || "").trim();
+    if(!refISO || refISO >= finalISO){
+      elRef.value = anteriorISO;
+    }
+
+    // Se alguém tentar setar manualmente algo >= finalISO, corrige
+    if(elRef.value >= finalISO){
+      elRef.value = anteriorISO;
+    }
   }
 
   function montarFiltros(){
@@ -735,8 +844,17 @@
     document.getElementById("btnTiposTudo").onclick = ()=> setChecks("tipo", true);
     document.getElementById("btnTiposNada").onclick = ()=> setChecks("tipo", false);
 
-    document.getElementById("dataRef").addEventListener("change", aplicarFiltrosEAtualizarTudo);
-    document.getElementById("dataFinal").addEventListener("change", aplicarFiltrosEAtualizarTudo);
+    // ✅ (1) Ao mudar Data de Filtro, recalcula Data Anterior e valida
+    document.getElementById("dataFinal").addEventListener("change", ()=>{
+      syncDataAnteriorComDataFinal();
+      aplicarFiltrosEAtualizarTudo();
+    });
+
+    // ✅ (1) Ao mudar Data Anterior, não permite >= DataFinal
+    document.getElementById("dataRef").addEventListener("change", ()=>{
+      syncDataAnteriorComDataFinal();
+      aplicarFiltrosEAtualizarTudo();
+    });
 
     aplicarBandeiraNasLojas("BIG", document.getElementById("bandBIG").checked);
     aplicarBandeiraNasLojas("ULT", document.getElementById("bandULT").checked);
@@ -759,6 +877,7 @@
   }
 
   function sugerirDatasMaisRecentes(){
+    // pega a mais recente por registro (dataContagem em BR -> ISO) e sugere no filtro
     const datasISO = registros
       .map(r => brParaISO(String(r.dataContagem||"").trim()))
       .filter(Boolean)
@@ -767,13 +886,12 @@
     if(!datasISO.length) return;
 
     const elFinal = document.getElementById("dataFinal");
-    const elRef   = document.getElementById("dataRef");
-
     const maisRecente = datasISO[datasISO.length - 1];
+
     if(!elFinal.value) elFinal.value = maisRecente;
 
-    const anterior = datasISO.length >= 2 ? datasISO[datasISO.length - 2] : maisRecente;
-    if(!elRef.value) elRef.value = anterior;
+    // ✅ (1) Data Anterior SEMPRE = (Data de Filtro - 1 dia)
+    syncDataAnteriorComDataFinal();
   }
 
   function getSelecionados(tipo){
@@ -786,6 +904,24 @@
     return set;
   }
 
+  // Movimentação (R) e motivo (S) — tolerante a variações do backend
+  function getMovimentoSigned(reg){
+    // preferir contagens.movCarrinhos se existir
+    const c = reg?.contagens || {};
+    const v = (c.movCarrinhos !== undefined) ? c.movCarrinhos : (reg.movCarrinhos ?? reg.movimento ?? reg.mov ?? 0);
+    return asIntSigned(v);
+  }
+
+  function getMotivo(reg){
+    return String(
+      reg?.movCategoria ??
+      reg?.motivo ??
+      reg?.motivoMov ??
+      reg?.categoriaMov ??
+      ""
+    ).trim();
+  }
+
   function aplicarFiltrosEAtualizarTudo(){
     setMsg("");
 
@@ -793,11 +929,15 @@
     if(!dataFinalISO){
       document.getElementById("kpiTotal").textContent = "0";
       renderTabelaRegistros([], new Set());
-      renderTabelaPorLoja({}, {});
+      renderTabelaPorLoja({}, {}, {});
+      renderTabelaEspeciais([]);
       desenharBarrasTipos({}, new Set());
       setMsg("Selecione a Data de filtro para exibir os dados.");
       return;
     }
+
+    // ✅ (1) Garante Data Anterior consistente antes de processar
+    syncDataAnteriorComDataFinal();
 
     const dataRefISO = (document.getElementById("dataRef").value || "").trim();
     const dataFinalBR = isoParaBR(dataFinalISO);
@@ -806,18 +946,20 @@
     const tiposSel = getSelecionados("tipo");
     const lojasSel = getSelecionados("loja");
 
+    const passaFiltroTipo = (r)=>{
+      if(!tiposSel.size) return true;
+      // passa se algum tipo selecionado tiver valor > 0 no registro
+      for(const t of TIPOS){
+        if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0) return true;
+      }
+      return false;
+    };
+
     const baseFinal = registros.filter(r=>{
       const loja = String(r.loja || "").trim();
       if(lojasSel.size && !lojasSel.has(loja)) return false;
       if(String(r.dataContagem || "").trim() !== dataFinalBR) return false;
-
-      if(tiposSel.size){
-        let ok = false;
-        for(const t of TIPOS){
-          if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0){ ok = true; break; }
-        }
-        if(!ok) return false;
-      }
+      if(!passaFiltroTipo(r)) return false;
       return true;
     });
 
@@ -825,27 +967,24 @@
       const loja = String(r.loja || "").trim();
       if(lojasSel.size && !lojasSel.has(loja)) return false;
       if(String(r.dataContagem || "").trim() !== dataRefBR) return false;
-
-      if(tiposSel.size){
-        let ok = false;
-        for(const t of TIPOS){
-          if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0){ ok = true; break; }
-        }
-        if(!ok) return false;
-      }
+      if(!passaFiltroTipo(r)) return false;
       return true;
     }) : []);
 
     const porLojaFinal = acumularPorLoja(baseFinal, tiposSel);
     const porLojaRef   = acumularPorLoja(baseRef, tiposSel);
 
+    // ✅ (8) Movimentação/motivo por loja considerando Data de Filtro (baseFinal)
+    const movPorLoja = acumularMovPorLoja(baseFinal);
+
     const totaisPorTipo = somarTiposDoMapa(porLojaFinal, tiposSel);
     const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
     document.getElementById("kpiTotal").textContent = String(totalGeral);
 
     desenharBarrasTipos(totaisPorTipo, tiposSel);
-    renderTabelaPorLoja(porLojaFinal, porLojaRef);
+    renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja);
     renderTabelaRegistros(baseFinal, tiposSel);
+    renderTabelaEspeciais(baseFinal);
   }
 
   function acumularPorLoja(listaRegistros, tiposSel){
@@ -867,12 +1006,33 @@
         mapa[loja][t.key] = (mapa[loja][t.key] || 0) + v;
         mapa[loja].__totalAll += v;
 
+        // ✅ (2) Ativo só considera os 8 carrinhos (sem especiais)
         if(ACTIVE_KEYS.has(t.key)){
           mapa[loja].__totalAtivo += v;
         }
       }
     }
     return mapa;
+  }
+
+  function acumularMovPorLoja(listaRegistros){
+    const out = {};
+    for(const r of listaRegistros){
+      const loja = String(r.loja||"").trim();
+      if(!out[loja]) out[loja] = { movSum: 0, motivos: new Set() };
+
+      const mov = getMovimentoSigned(r); // R
+      out[loja].movSum += mov;
+
+      const motivo = getMotivo(r); // S
+      if(motivo) out[loja].motivos.add(motivo);
+    }
+
+    // converte Set -> string pronta
+    for(const loja in out){
+      out[loja].motivoTxt = Array.from(out[loja].motivos).join(", ");
+    }
+    return out;
   }
 
   function somarTiposDoMapa(porLoja, tiposSel){
@@ -983,25 +1143,35 @@
     });
   }
 
-  function renderTabelaPorLoja(porLojaFinal, porLojaRef){
+  function renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja){
     const tbody = document.getElementById("tbodyPorLoja");
     tbody.innerHTML = "";
 
     const entries = Object.entries(porLojaFinal || {});
     if(!entries.length){
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
       return;
     }
 
+    // ordena por total ativo (os 8 carrinhos)
     entries.sort((a,b)=> (asInt(b[1].__totalAtivo) - asInt(a[1].__totalAtivo)));
 
     for(const [loja, objFinal] of entries){
       const finalTotal = asInt(objFinal.__totalAtivo);
+
       const refTotal = asInt((porLojaRef && porLojaRef[loja] ? porLojaRef[loja].__totalAtivo : 0));
       const diff = finalTotal - refTotal;
 
       const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
       const txt = diff > 0 ? `+${diff}` : String(diff);
+
+      // ✅ (8) Movimentação + motivo
+      const movObj = movPorLoja?.[loja];
+      const mov = movObj ? asIntSigned(movObj.movSum) : 0;
+      const motivoTxt = movObj ? (movObj.motivoTxt || "") : "";
+
+      const movCls = mov > 0 ? "mov-pos" : mov < 0 ? "mov-neg" : "mov-zero";
+      const movTxt = mov > 0 ? `+${mov}` : String(mov);
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -1009,17 +1179,24 @@
         <td style="font-weight:900;">${finalTotal}</td>
         <td style="font-weight:900;">${refTotal}</td>
         <td class="${cls}">${txt}</td>
+
+        <td class="${movCls}">${movTxt}</td>
+        <td>${esc(motivoTxt)}</td>
       `;
       tbody.appendChild(tr);
     }
   }
 
+  /* =========================================================
+     ✅ (3) Registros: remove colunas de especiais
+     (mantém somente os 8 carrinhos + total)
+     ========================================================= */
   function renderTabelaRegistros(lista, tiposSel){
     const tbody = document.getElementById("tbodyRegistros");
     tbody.innerHTML = "";
 
     if(!lista.length){
-      tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
       return;
     }
 
@@ -1032,15 +1209,16 @@
     for(const r of ord){
       const c = r.contagens || {};
 
+      // total da linha: somente os 8 carrinhos (ativos)
       let totalLinha = 0;
-      for(const t of TIPOS){
-        if(tiposSel.size && !tiposSel.has(t.key)) continue;
-        totalLinha += asInt(c[t.key]);
+      for(const key of ACTIVE_KEYS){
+        // se existir filtro de tipo e ele estiver “desligando” esses carrinhos,
+        // o registro só chega aqui se passou no filtro; ainda assim o total deve ser coerente com o conceito de “carrinhos”
+        totalLinha += asInt(c[key]);
       }
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <!-- ✅ (1) Loja com 6 primeiros caracteres -->
         <td>${esc(lojaCurta6(r.loja))}</td>
         <td>${esc(r.usuario)}</td>
 
@@ -1052,11 +1230,54 @@
         <td>${asInt(c.pranchaJacare)}</td>
         <td>${asInt(c.compraKids)}</td>
         <td>${asInt(c.bebeJipinho)}</td>
-        <td>${asInt(c.cestinha)}</td>
-        <td>${asInt(c.cadeiraRodas)}</td>
-        <td>${asInt(c.carrinhosQuebrados)}</td>
 
         <td style="font-weight:900;">${totalLinha}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  /* =========================================================
+     ✅ (7) Novo cartão: Loja, Usuário, Reservas e especiais
+     Colunas:
+     B loja, C usuário, P carrinhosReserva, O quebrados, M cestinha,
+     Q cestinhasReserva, N cadeira rodas
+     ========================================================= */
+  function renderTabelaEspeciais(lista){
+    const tbody = document.getElementById("tbodyEspeciais");
+    tbody.innerHTML = "";
+
+    if(!lista.length){
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      return;
+    }
+
+    const ord = [...lista].sort((a,b)=>{
+      const la = String(a.loja||"").localeCompare(String(b.loja||""));
+      if(la !== 0) return la;
+      return String(a.usuario||"").localeCompare(String(b.usuario||""));
+    });
+
+    for(const r of ord){
+      const c = r.contagens || {};
+
+      // P, O, M, Q, N
+      const carrinhosReserva   = asInt(c.carrinhosReserva);
+      const carrinhosQuebrados = asInt(c.carrinhosQuebrados);
+      const cestinha           = asInt(c.cestinha);
+      const cestinhasReserva   = asInt(c.cestinhasReserva);
+      const cadeiraRodas       = asInt(c.cadeiraRodas);
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(lojaCurta6(r.loja))}</td>
+        <td>${esc(r.usuario)}</td>
+
+        <td>${carrinhosReserva}</td>
+        <td>${carrinhosQuebrados}</td>
+        <td>${cestinha}</td>
+        <td>${cestinhasReserva}</td>
+        <td>${cadeiraRodas}</td>
       `;
       tbody.appendChild(tr);
     }
@@ -1098,7 +1319,9 @@
 <!-- Fontes confiáveis -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
-<!-- MDN String.slice (para 6 primeiros caracteres): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice -->
+<!-- Input type="date" (atributos min/max): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
+<!-- Date (manipulação de dias): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date -->
 <!-- CSS Grid (grid-template-columns): https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-columns -->
+<!-- Overflow/scroll (rolagem horizontal): https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
 </body>
 </html>
