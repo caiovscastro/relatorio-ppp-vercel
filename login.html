@@ -27,10 +27,15 @@
             box-shadow: 0 6px 18px rgba(0,0,0,0.12);
         }
 
+        /* ✅ AJUSTE AQUI: Título do login mais profissional + fonte menor
+           - Antes: "Acesse com as credenciais" (menos profissional e grande)
+           - Agora: "Acesso ao Sistema" (mais corporativo) + fonte reduzida */
         .titulo {
             text-align: center;
-            font-size: 26px;
+            font-size: 20px; /* <-- DIMINUI A FONTE DO TÍTULO AQUI */
             margin: 0 0 20px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
         }
 
         label {
@@ -86,7 +91,8 @@
 
 <body>
     <div class="container">
-        <h2 class="titulo">Acesse com as credenciais</h2>
+        <!-- ✅ Título alterado para um nome mais profissional -->
+        <h2 class="titulo">Acesso ao Sistema</h2>
 
         <!-- Campo Usuário -->
         <label for="usuario">Usuário</label>
