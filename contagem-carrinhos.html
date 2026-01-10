@@ -115,10 +115,6 @@
       line-height: 1.2;
     }
 
-    /*
-      ✅ ALTERAÇÃO: tamanho da imagem agora 1,7cm (mantém 1:1).
-      Observação: object-fit: cover mantém o quadrado sem distorcer.
-    */
     .campo label img{
       width: 1.7cm;
       height: 1.7cm;
@@ -234,7 +230,7 @@
       </div>
 
       <div class="card-total">
-        <div class="total-label">Soma total de carrinhos</div>
+        <div class="total-label">Soma total (todos os campos)</div>
         <div class="total-valor" id="totalCarrinhos">0</div>
       </div>
 
@@ -246,9 +242,9 @@
         </div>
       </div>
 
-      <!-- Contagens (colunas E a O) - 2 colunas -->
+      <!-- Contagens (colunas E em diante) - 2 colunas -->
       <div class="grid" aria-label="Contagem por tipo de carrinho">
-        <!-- Coluna E -->
+        <!-- E -->
         <div class="campo">
           <label for="duplocar120">
             <img src="https://i.ibb.co/zHG5pgJx/SAVE-20260107-131849.jpg" alt="Duplocar 120L" loading="lazy" />
@@ -257,7 +253,7 @@
           <input id="duplocar120" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Coluna F -->
+        <!-- F -->
         <div class="campo">
           <label for="grande160">
             <img src="https://i.ibb.co/wZYw1WKt/SAVE-20260107-131727.jpg" alt="Grande 160L" loading="lazy" />
@@ -266,7 +262,7 @@
           <input id="grande160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Coluna G -->
+        <!-- G -->
         <div class="campo">
           <label for="bebeConforto160">
             <img src="https://i.ibb.co/Ps456g78/SAVE-20260107-132011.jpg" alt="Bebê conforto 160L" loading="lazy" />
@@ -275,7 +271,7 @@
           <input id="bebeConforto160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Coluna H -->
+        <!-- H -->
         <div class="campo">
           <label for="maxcar200">
             <img src="https://i.ibb.co/2Y603KFw/SAVE-20260107-132118.jpg" alt="Maxcar 200L" loading="lazy" />
@@ -284,7 +280,7 @@
           <input id="maxcar200" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Coluna I -->
+        <!-- I -->
         <div class="campo">
           <label for="macrocar300">
             <img src="https://i.ibb.co/x8Hk31yd/SAVE-20260107-132214.jpg" alt="Macrocar 300L" loading="lazy" />
@@ -293,7 +289,7 @@
           <input id="macrocar300" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Coluna J -->
+        <!-- J -->
         <div class="campo">
           <label for="pranchaJacare">
             <img src="https://i.ibb.co/WpBV6GPx/SAVE-20260107-132332.jpg" alt="Prancha Jacaré" loading="lazy" />
@@ -302,7 +298,7 @@
           <input id="pranchaJacare" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Coluna K -->
+        <!-- K -->
         <div class="campo">
           <label for="compraKids">
             <img src="https://i.ibb.co/k2Rz14Wh/SAVE-20260107-132741.jpg" alt="Compra Kids" loading="lazy" />
@@ -311,7 +307,7 @@
           <input id="compraKids" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Coluna L -->
+        <!-- L -->
         <div class="campo">
           <label for="bebeJipinho">
             <img src="https://i.ibb.co/hJGdW6SP/SAVE-20260107-132325.jpg" alt="Bebê Jipinho" loading="lazy" />
@@ -320,7 +316,7 @@
           <input id="bebeJipinho" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Coluna M -->
+        <!-- M -->
         <div class="campo">
           <label for="cestinha">
             <img src="https://i.ibb.co/Q40c8y7/SAVE-20260107-132900.jpg" alt="Cestinha" loading="lazy" />
@@ -329,7 +325,7 @@
           <input id="cestinha" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- ✅ NOVO - Coluna N -->
+        <!-- N -->
         <div class="campo">
           <label for="cadeiraRodas">
             <img src="https://i.ibb.co/sdp6hPzN/file-00000000b954720ea6b9b2e95516ed0a.png" alt="Cadeira de rodas" loading="lazy" />
@@ -338,13 +334,55 @@
           <input id="cadeiraRodas" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- ✅ NOVO - Coluna O -->
+        <!-- O -->
         <div class="campo">
           <label for="carrinhosQuebrados">
             <img src="https://i.ibb.co/ZpwFJf5H/file-0000000062a0720e86cbcca63bfd8b64.png" alt="Carrinhos Quebrados" loading="lazy" />
             Carrinhos Quebrados:
           </label>
           <input id="carrinhosQuebrados" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- =========================
+             ✅ NOVOS CAMPOS (a partir da última coluna em uso)
+             Última em uso: O
+             Então seguimos: P, Q, R, S
+             ========================= -->
+
+        <!-- P: Carrinhos reserva -->
+        <div class="campo">
+          <label for="carrinhosReserva">
+            <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
+            Carrinhos de reserva:
+          </label>
+          <input id="carrinhosReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- Q: Cestinhas reserva -->
+        <div class="campo">
+          <label for="cestinhasReserva">
+            <img id="imgCestinhasReserva" alt="Cestinhas de reserva" loading="lazy" />
+            Cestinhas de reserva:
+          </label>
+          <input id="cestinhasReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- R: Carrinhos reservados (separado do disponível ao cliente) -->
+        <div class="campo">
+          <label for="carrinhosReservados">
+            <img id="imgCarrinhosReservados" alt="Carrinhos reservados" loading="lazy" />
+            Carrinhos reservados:
+          </label>
+          <input id="carrinhosReservados" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- S: Cestinhas reservadas (separado do disponível ao cliente) -->
+        <div class="campo">
+          <label for="cestinhasReservadas">
+            <img id="imgCestinhasReservadas" alt="Cestinhas reservadas" loading="lazy" />
+            Cestinhas reservadas:
+          </label>
+          <input id="cestinhasReservadas" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
       </div>
 
@@ -356,17 +394,14 @@
   </div>
 
   <script>
-    const ROTAS = {
-      login: "/login.html",
-      menu: "/menu.html"
-    };
+    const ROTAS = { login: "/login.html", menu: "/menu.html" };
 
-    // Perfis que podem acessar esta tela (conforme sua regra de visibilidade do menu)
+    // Perfis que podem acessar esta tela
     const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
     /*
-      ✅ ATUALIZADO: agora os dados vão até a coluna "O".
-      Mapeamento de campos -> colunas E..O (ordem conforme sua solicitação):
+      ✅ ATUALIZADO: NOVOS CAMPOS (seguindo a partir da última coluna em uso: O).
+      Colunas já existentes:
       E  Duplocar 120L
       F  Grande 160L
       G  Bebê conforto 160L
@@ -378,21 +413,38 @@
       M  Cestinha
       N  Cadeira de rodas
       O  Carrinhos Quebrados
-    */
-    const CAMPOS = [
-      { id: "duplocar120",        label: "Duplocar 120L",        key: "duplocar120" },
-      { id: "grande160",          label: "Grande 160L",          key: "grande160" },
-      { id: "bebeConforto160",    label: "Bebê conforto 160L",   key: "bebeConforto160" },
-      { id: "maxcar200",          label: "Maxcar 200L",          key: "maxcar200" },
-      { id: "macrocar300",        label: "Macrocar 300L",        key: "macrocar300" },
-      { id: "pranchaJacare",      label: "Prancha Jacaré",       key: "pranchaJacare" },
-      { id: "compraKids",         label: "Compra Kids",          key: "compraKids" },
-      { id: "bebeJipinho",        label: "Bebê Jipinho",         key: "bebeJipinho" },
-      { id: "cestinha",           label: "Cestinha",             key: "cestinha" },
 
-      // ✅ NOVOS (N e O)
-      { id: "cadeiraRodas",       label: "Cadeira de rodas",     key: "cadeiraRodas" },
-      { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",  key: "carrinhosQuebrados" },
+      ✅ Novos campos (baseado nas melhorias solicitadas - reservas e reservados):
+      P  Carrinhos de reserva
+      Q  Cestinhas de reserva
+      R  Carrinhos reservados (contados separadamente do disponível ao cliente)
+      S  Cestinhas reservadas (contadas separadamente do disponível ao cliente)
+
+      Observação importante (pra você não cair em armadilha de dado ruim):
+      - “Reserva” e “Reservado” não são a mesma coisa.
+        Reserva = estoque/backup
+        Reservado = separado na loja (não disponível pro cliente)
+      Se você misturar, o indicador perde sentido operacional.
+    */
+
+    const CAMPOS = [
+      { id: "duplocar120",        label: "Duplocar 120L",          key: "duplocar120" },
+      { id: "grande160",          label: "Grande 160L",            key: "grande160" },
+      { id: "bebeConforto160",    label: "Bebê conforto 160L",     key: "bebeConforto160" },
+      { id: "maxcar200",          label: "Maxcar 200L",            key: "maxcar200" },
+      { id: "macrocar300",        label: "Macrocar 300L",          key: "macrocar300" },
+      { id: "pranchaJacare",      label: "Prancha Jacaré",         key: "pranchaJacare" },
+      { id: "compraKids",         label: "Compra Kids",            key: "compraKids" },
+      { id: "bebeJipinho",        label: "Bebê Jipinho",           key: "bebeJipinho" },
+      { id: "cestinha",           label: "Cestinha",               key: "cestinha" },
+      { id: "cadeiraRodas",       label: "Cadeira de rodas",       key: "cadeiraRodas" },
+      { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",    key: "carrinhosQuebrados" },
+
+      // ✅ NOVOS (P..S)
+      { id: "carrinhosReserva",     label: "Carrinhos de reserva",   key: "carrinhosReserva" },
+      { id: "cestinhasReserva",     label: "Cestinhas de reserva",   key: "cestinhasReserva" },
+      { id: "carrinhosReservados",  label: "Carrinhos reservados",   key: "carrinhosReservados" },
+      { id: "cestinhasReservadas",  label: "Cestinhas reservadas",   key: "cestinhasReservadas" },
     ];
 
     let sessaoAtual = null;
@@ -420,7 +472,7 @@
       atualizarTotal();
     }
 
-    // Busca sessão do backend (/api/session) para validar login e permissões
+    // Busca sessão do backend (/api/session)
     async function obterSessaoDoBackend() {
       try {
         const resp = await fetch("/api/session", {
@@ -463,14 +515,14 @@
 
       for (const c of CAMPOS) {
         const v = (document.getElementById(c.id).value || "").trim();
-        if (!v) return `Preencha: ${c.label}.`;
+        if (v === "") return `Preencha: ${c.label}.`;
         if (!/^\d+$/.test(v)) return `Use somente números em: ${c.label}.`;
       }
 
       return "";
     }
 
-    // Converte "YYYY-MM-DD" (input type=date) para "DD/MM/AAAA"
+    // Converte "YYYY-MM-DD" para "DD/MM/AAAA"
     function isoParaBR(iso) {
       const s = String(iso || "").trim();
       const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -504,9 +556,9 @@
       try {
         const dataISO = (document.getElementById("dataLancamento").value || "").trim();
 
-        // Payload enviado ao backend (/api/carrinhos)
+        // Payload (/api/carrinhos)
         const payload = {
-          dataLancamento: isoParaBR(dataISO), // "DD/MM/AAAA"
+          dataLancamento: isoParaBR(dataISO),
           contagens: CAMPOS.reduce((acc, c) => {
             acc[c.key] = toInt(document.getElementById(c.id).value);
             return acc;
@@ -546,6 +598,46 @@
       }
     }
 
+    /* =========================
+       ✅ IMAGENS (sem depender de link externo)
+       - data URI SVG simples para os NOVOS campos
+       - fica estável, rápido e não quebra se link cair
+       ========================= */
+
+    function svgDataUri(svg) {
+      return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+    }
+
+    function setNewFieldImages() {
+      const baseStyle = (emoji, title) => `
+        <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f7f8ff"/>
+              <stop offset="1" stop-color="#e0e3ff"/>
+            </linearGradient>
+          </defs>
+          <rect x="6" y="6" width="116" height="116" rx="18" fill="url(#g)" stroke="#e6e6e6" stroke-width="3"/>
+          <text x="64" y="74" text-anchor="middle" font-size="56">${emoji}</text>
+          <text x="64" y="104" text-anchor="middle" font-size="14" font-family="Arial" font-weight="700" fill="#111">${title}</text>
+        </svg>
+      `;
+
+      // P: Carrinhos reserva
+      const svgCarrinhosReserva = baseStyle("🛒", "Reserva");
+      // Q: Cestinhas reserva
+      const svgCestinhasReserva = baseStyle("🧺", "Reserva");
+      // R: Carrinhos reservados
+      const svgCarrinhosReservados = baseStyle("🔒", "Reservado");
+      // S: Cestinhas reservadas
+      const svgCestinhasReservadas = baseStyle("🔒", "Reservado");
+
+      document.getElementById("imgCarrinhosReserva").src = svgDataUri(svgCarrinhosReserva);
+      document.getElementById("imgCestinhasReserva").src = svgDataUri(svgCestinhasReserva);
+      document.getElementById("imgCarrinhosReservados").src = svgDataUri(svgCarrinhosReservados);
+      document.getElementById("imgCestinhasReservadas").src = svgDataUri(svgCestinhasReservadas);
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("btnIrLogin").addEventListener("click", () => {
         window.location.href = ROTAS.login;
@@ -557,13 +649,15 @@
 
       document.getElementById("btnEnviar").addEventListener("click", enviar);
 
+      // ✅ Setar imagens dos novos campos (P..S)
+      setNewFieldImages();
+
       // Inputs: só números, sem ponto/virgula
       CAMPOS.forEach(c => {
         const el = document.getElementById(c.id);
         el.addEventListener("input", () => aplicarMascaraSomenteNumero(el));
       });
 
-      // Total inicial
       atualizarTotal();
 
       // Valida sessão
@@ -596,7 +690,8 @@
   <!-- Fontes confiáveis -->
   <!-- fetch + credentials/cookies: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
   <!-- input date: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
-  <!-- CSS cm units: https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units -->
+  <!-- Data URI (SVG): https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs -->
+  <!-- encodeURIComponent: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent -->
   <!-- img loading=lazy: https://developer.mozilla.org/en-US/docs/Web/Performance/Lazy_loading -->
 </body>
 </html>
