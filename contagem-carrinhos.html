@@ -183,7 +183,6 @@
     }
 
     .ok{ color:#1b5e20; }
-
     .hidden{ display:none !important; }
 
     /* Tela “sem sessão” */
@@ -206,35 +205,42 @@
     .card-erro h2{ margin: 0 0 8px; color:#c00000; }
     .card-erro p{ margin: 0 0 12px; color:#333; font-weight:700; }
 
-    /* ==== Card extra para MOVIMENTAÇÃO (não entra no total) ==== */
-    .card-mov{
+    /* ==== Cards “separadores” (iguais ao padrão do card de movimentação) ==== */
+    .card-box{
       margin-top: 12px;
-      background: #fff;
+      background:#fff;
       border: 1px solid #e6e6e6;
       border-radius: 10px;
       padding: 12px;
     }
-    .card-mov h3{
+    .card-box h3{
       margin: 0 0 8px;
       font-size: 14px;
       font-weight: 900;
+      display:flex;
+      align-items:center;
+      gap: 8px;
     }
-    .mov-grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
+    .icon{
+      width: 22px;
+      height: 22px;
+      display:inline-block;
+      vertical-align: middle;
+    }
+
+    /* Movimentação: manter SELECT + QTD lado a lado até no celular */
+    .mov-row{
+      display:flex;
       gap: 10px;
       align-items: end;
     }
-    @media (max-width: 560px){
-      .mov-grid{ grid-template-columns: 1fr; }
+    .mov-row .campo{ flex: 1 1 0; }
+    .mov-row .campo.qtd{ flex: 0 0 150px; }
+    @media (max-width: 380px){
+      .mov-row{ gap: 8px; }
+      .mov-row .campo.qtd{ flex-basis: 130px; }
     }
-    .hint{
-      font-size: 12px;
-      color:#444;
-      font-weight: 700;
-      margin-top: 6px;
-      line-height: 1.35;
-    }
+
     .pill{
       display:inline-block;
       padding: 4px 8px;
@@ -246,6 +252,16 @@
     }
     .pill.neg{ color:#b30000; }
     .pill.pos{ color:#1b5e20; }
+
+    /* A grid interna dos cards (mantém 2 colunas, mas fica 1 no celular) */
+    .card-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 560px){
+      .card-grid{ grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 
@@ -283,7 +299,7 @@
         </div>
       </div>
 
-      <!-- Contagens (colunas E em diante) - 2 colunas -->
+      <!-- ====== CONTAGEM PRINCIPAL (carrinhos) ====== -->
       <div class="grid" aria-label="Contagem por tipo de carrinho">
         <div class="campo">
           <label for="duplocar120">
@@ -348,54 +364,74 @@
           </label>
           <input id="bebeJipinho" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
+      </div>
 
-        <div class="campo">
-          <label for="cestinha">
-            <img src="https://i.ibb.co/1fv1GX7R/1001340274.png" alt="Cestinha" loading="lazy" />
-            Cestinha:
-          </label>
-          <input id="cestinha" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
+      <!-- ====== CARD: ITENS ESPECIAIS (separado) ====== -->
+      <div class="card-box">
+        <h3>
+          <img class="icon" id="icoEspeciais" alt="Ícone especiais" />
+          Itens especiais
+        </h3>
+        <div class="card-grid">
+          <div class="campo">
+            <label for="cestinha">
+              <img src="https://i.ibb.co/1fv1GX7R/1001340274.png" alt="Cestinha" loading="lazy" />
+              Cestinha:
+            </label>
+            <input id="cestinha" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          </div>
 
-        <div class="campo">
-          <label for="cadeiraRodas">
-            <img src="https://i.ibb.co/sdp6hPzN/file-00000000b954720ea6b9b2e95516ed0a.png" alt="Cadeira de rodas" loading="lazy" />
-            Cadeira de rodas:
-          </label>
-          <input id="cadeiraRodas" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
+          <div class="campo">
+            <label for="cadeiraRodas">
+              <img src="https://i.ibb.co/sdp6hPzN/file-00000000b954720ea6b9b2e95516ed0a.png" alt="Cadeira de rodas" loading="lazy" />
+              Cadeira de rodas:
+            </label>
+            <input id="cadeiraRodas" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          </div>
 
-        <div class="campo">
-          <label for="carrinhosQuebrados">
-            <img src="https://i.ibb.co/ZpwFJf5H/file-0000000062a0720e86cbcca63bfd8b64.png" alt="Carrinhos Quebrados" loading="lazy" />
-            Carrinhos Quebrados:
-          </label>
-          <input id="carrinhosQuebrados" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <!-- ✅ Mantém os campos P e Q (Reserva) -->
-        <div class="campo">
-          <label for="carrinhosReserva">
-            <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
-            Carrinhos de reserva:
-          </label>
-          <input id="carrinhosReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <div class="campo">
-          <label for="cestinhasReserva">
-            <img id="imgCestinhasReserva" alt="Cestinhas de reserva" loading="lazy" />
-            Cestinhas de reserva:
-          </label>
-          <input id="cestinhasReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          <div class="campo">
+            <label for="carrinhosQuebrados">
+              <img src="https://i.ibb.co/ZpwFJf5H/file-0000000062a0720e86cbcca63bfd8b64.png" alt="Carrinhos Quebrados" loading="lazy" />
+              Carrinhos Quebrados:
+            </label>
+            <input id="carrinhosQuebrados" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          </div>
         </div>
       </div>
 
-      <!-- ✅ NOVO: MOVIMENTAÇÃO (não entra no total do topo) -->
-      <div class="card-mov">
-        <h3>Movimentação de carrinhos <span id="pillMov" class="pill">0</span></h3>
+      <!-- ====== CARD: RESERVAS (separado) ====== -->
+      <div class="card-box">
+        <h3>
+          <img class="icon" id="icoReserva" alt="Ícone reservas" />
+          Reservas
+        </h3>
+        <div class="card-grid">
+          <div class="campo">
+            <label for="carrinhosReserva">
+              <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
+              Carrinhos de reserva:
+            </label>
+            <input id="carrinhosReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          </div>
 
-        <div class="mov-grid">
+          <div class="campo">
+            <label for="cestinhasReserva">
+              <img id="imgCestinhasReserva" alt="Cestinhas de reserva" loading="lazy" />
+              Cestinhas de reserva:
+            </label>
+            <input id="cestinhasReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== CARD: MOVIMENTAÇÃO (separado e NÃO entra no total) ====== -->
+      <div class="card-box">
+        <h3>
+          <img class="icon" id="icoMov" alt="Ícone movimentação" />
+          Movimentação de carrinhos <span id="pillMov" class="pill">0</span>
+        </h3>
+
+        <div class="mov-row">
           <div class="campo">
             <label for="movTipo">Tipo do movimento:</label>
             <select id="movTipo" class="input">
@@ -404,16 +440,10 @@
             </select>
           </div>
 
-          <div class="campo">
-            <label for="movQtd">Quantidade (sempre positiva):</label>
+          <div class="campo qtd">
+            <label for="movQtd">Quantidade:</label>
             <input id="movQtd" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
           </div>
-        </div>
-
-        <div class="hint">
-          • Este campo <b>não altera</b> a “Soma total (contagem física)” acima.<br>
-          • Ao enviar, o backend receberá <b>movCarrinhos</b> com sinal:
-          <b>Entrada</b> = positivo | <b>Saída</b> = negativo.
         </div>
       </div>
 
@@ -438,11 +468,13 @@
       { id: "pranchaJacare",      label: "Prancha Jacaré",         key: "pranchaJacare" },
       { id: "compraKids",         label: "Compra Kids",            key: "compraKids" },
       { id: "bebeJipinho",        label: "Bebê Jipinho",           key: "bebeJipinho" },
+
+      // Itens especiais
       { id: "cestinha",           label: "Cestinha",               key: "cestinha" },
       { id: "cadeiraRodas",       label: "Cadeira de rodas",       key: "cadeiraRodas" },
       { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",    key: "carrinhosQuebrados" },
 
-      // P e Q (reserva)
+      // Reservas (P e Q)
       { id: "carrinhosReserva",   label: "Carrinhos de reserva",   key: "carrinhosReserva" },
       { id: "cestinhasReserva",   label: "Cestinhas de reserva",   key: "cestinhasReserva" },
     ];
@@ -471,7 +503,7 @@
       atualizarTotal();
     }
 
-    // ✅ Movimentação: sempre digitos, mas sinal aplicado pelo select
+    // ✅ Movimentação: sempre digitos, sinal aplicado pelo select
     function atualizarPillMov() {
       const tipo = document.getElementById(CAMPO_MOV.tipoId).value;
       const qtd  = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
@@ -488,8 +520,7 @@
     function aplicarMascaraMovQtd() {
       const el = document.getElementById(CAMPO_MOV.qtdId);
       el.value = soDigitos(el.value);
-      // IMPORTANTE: não chama atualizarTotal() aqui (não impactar no total)
-      atualizarPillMov();
+      atualizarPillMov(); // não impacta o total
     }
 
     async function obterSessaoDoBackend() {
@@ -539,8 +570,8 @@
 
       // Movimentação: opcional (mas se preenchido, valida)
       const movQtdRaw = (document.getElementById(CAMPO_MOV.qtdId).value || "").trim();
-      if (movQtdRaw !== "") {
-        if (!/^\d+$/.test(movQtdRaw)) return `Use somente números em: ${CAMPO_MOV.label}.`;
+      if (movQtdRaw !== "" && !/^\d+$/.test(movQtdRaw)) {
+        return `Use somente números em: ${CAMPO_MOV.label}.`;
       }
 
       return "";
@@ -579,12 +610,11 @@
           return acc;
         }, {});
 
-        // Movimentação (não entra no total do topo, mas vai pro backend com sinal)
+        // Movimentação (vai pro backend com sinal, mas não entra no total do topo)
         const movQtd = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
         const movTipo = document.getElementById(CAMPO_MOV.tipoId).value;
         const movSigned = (movTipo === "SAIDA") ? -movQtd : +movQtd;
 
-        // Se usuário deixar em branco, manda 0 (ou você pode omitir — mas omitir quebra se o backend exigir)
         contagens[CAMPO_MOV.key] = movQtd ? movSigned : 0;
 
         const payload = {
@@ -618,6 +648,7 @@
         CAMPOS_CONTAGEM.forEach(c => document.getElementById(c.id).value = "");
         document.getElementById(CAMPO_MOV.qtdId).value = "";
         document.getElementById(CAMPO_MOV.tipoId).value = "ENTRADA";
+
         atualizarTotal();
         atualizarPillMov();
 
@@ -630,27 +661,49 @@
     }
 
     /* =========================
-       ✅ IMAGENS (Data URI SVG) para P e Q
+       IMAGENS (Data URI SVG)
+       - Reserva (P/Q)
+       - Ícones de títulos (movimentação / especiais / reservas)
        ========================= */
     function svgDataUri(svg) {
       return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
     }
 
-    function setNewFieldImages() {
-      const baseStyle = (emoji, title) => `
-        <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+    function svgBadge(emoji) {
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
           <defs>
             <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stop-color="#f7f8ff"/>
               <stop offset="1" stop-color="#e0e3ff"/>
             </linearGradient>
           </defs>
-          <rect x="6" y="6" width="116" height="116" rx="18" fill="url(#g)" stroke="#e6e6e6" stroke-width="3"/>
+          <rect x="6" y="6" width="84" height="84" rx="16" fill="url(#g)" stroke="#e6e6e6" stroke-width="3"/>
+          <text x="48" y="60" text-anchor="middle" font-size="44">${emoji}</text>
+        </svg>
+      `;
+    }
+
+    function setIconsAndReserveImages() {
+      // Títulos
+      document.getElementById("icoMov").src = svgDataUri(svgBadge("🔁"));
+      document.getElementById("icoEspeciais").src = svgDataUri(svgBadge("🧩"));
+      document.getElementById("icoReserva").src = svgDataUri(svgBadge("📦"));
+
+      // Campos Reserva (P/Q)
+      const baseStyle = (emoji, title) => `
+        <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+          <defs>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f7f8ff"/>
+              <stop offset="1" stop-color="#e0e3ff"/>
+            </linearGradient>
+          </defs>
+          <rect x="6" y="6" width="116" height="116" rx="18" fill="url(#g2)" stroke="#e6e6e6" stroke-width="3"/>
           <text x="64" y="74" text-anchor="middle" font-size="56">${emoji}</text>
           <text x="64" y="104" text-anchor="middle" font-size="14" font-family="Arial" font-weight="700" fill="#111">${title}</text>
         </svg>
       `;
-
       document.getElementById("imgCarrinhosReserva").src = svgDataUri(baseStyle("🛒", "Reserva"));
       document.getElementById("imgCestinhasReserva").src = svgDataUri(baseStyle("🧺", "Reserva"));
     }
@@ -660,8 +713,8 @@
       document.getElementById("btnVoltarMenu").addEventListener("click", () => window.location.href = ROTAS.menu);
       document.getElementById("btnEnviar").addEventListener("click", enviar);
 
-      // Imagens P e Q
-      setNewFieldImages();
+      // Ícones + imagens
+      setIconsAndReserveImages();
 
       // Inputs: contagem física
       CAMPOS_CONTAGEM.forEach(c => {
