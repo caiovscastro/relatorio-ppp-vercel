@@ -242,12 +242,13 @@
         </div>
       </div>
 
-      <!-- Contagens (colunas E em diante) - 2 colunas -->
+      <!-- Contagens - 2 colunas -->
       <div class="grid" aria-label="Contagem por tipo de carrinho">
         <!-- E -->
         <div class="campo">
           <label for="duplocar120">
-            <img src="https://https://i.ibb.co/d00R9n4p/1001340222.png" alt="Duplocar 120L" loading="lazy" />
+            <!-- ✅ corrigido: removido https://https:// -->
+            <img src="https://i.ibb.co/d00R9n4p/1001340222.png" alt="Duplocar 120L" loading="lazy" />
             Duplocar 120L:
           </label>
           <input id="duplocar120" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -256,7 +257,7 @@
         <!-- F -->
         <div class="campo">
           <label for="grande160">
-            <img src="https://https://i.ibb.co/21ybNLZL/1001340221.png" alt="Grande 160L" loading="lazy" />
+            <img src="https://i.ibb.co/21ybNLZL/1001340221.png" alt="Grande 160L" loading="lazy" />
             Grande 160L:
           </label>
           <input id="grande160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -265,7 +266,7 @@
         <!-- G -->
         <div class="campo">
           <label for="bebeConforto160">
-            <img src="https://https://i.ibb.co/ymJqvr5c/1001340229.png" alt="Bebê conforto 160L" loading="lazy" />
+            <img src="https://i.ibb.co/ymJqvr5c/1001340229.png" alt="Bebê conforto 160L" loading="lazy" />
             Bebê conforto 160L:
           </label>
           <input id="bebeConforto160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -274,7 +275,7 @@
         <!-- H -->
         <div class="campo">
           <label for="maxcar200">
-            <img src="https://https://i.ibb.co/ymPcqNWL/1001340230.png" alt="Maxcar 200L" loading="lazy" />
+            <img src="https://i.ibb.co/ymPcqNWL/1001340230.png" alt="Maxcar 200L" loading="lazy" />
             Maxcar 200L:
           </label>
           <input id="maxcar200" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -283,7 +284,7 @@
         <!-- I -->
         <div class="campo">
           <label for="macrocar300">
-            <img src="https://https://i.ibb.co/x8KD8SMn/1001340231.png" alt="Macrocar 300L" loading="lazy" />
+            <img src="https://i.ibb.co/x8KD8SMn/1001340231.png" alt="Macrocar 300L" loading="lazy" />
             Macrocar 300L:
           </label>
           <input id="macrocar300" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -292,7 +293,7 @@
         <!-- J -->
         <div class="campo">
           <label for="pranchaJacare">
-            <img src="https://https://i.ibb.co/jvsjrBGM/1001340272.png" alt="Prancha Jacaré" loading="lazy" />
+            <img src="https://i.ibb.co/jvsjrBGM/1001340272.png" alt="Prancha Jacaré" loading="lazy" />
             Prancha Jacaré:
           </label>
           <input id="pranchaJacare" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -301,7 +302,7 @@
         <!-- K -->
         <div class="campo">
           <label for="compraKids">
-            <img src="https://https://i.ibb.co/27mvLyS4/1001340273.png" alt="Compra Kids" loading="lazy" />
+            <img src="https://i.ibb.co/27mvLyS4/1001340273.png" alt="Compra Kids" loading="lazy" />
             Compra Kids:
           </label>
           <input id="compraKids" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -310,7 +311,7 @@
         <!-- L -->
         <div class="campo">
           <label for="bebeJipinho">
-            <img src="https://https://i.ibb.co/mFz3xj39/1001340271.png" alt="Bebê Jipinho" loading="lazy" />
+            <img src="https://i.ibb.co/mFz3xj39/1001340271.png" alt="Bebê Jipinho" loading="lazy" />
             Bebê Jipinho:
           </label>
           <input id="bebeJipinho" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -319,7 +320,7 @@
         <!-- M -->
         <div class="campo">
           <label for="cestinha">
-            <img src="https://https://i.ibb.co/1fv1GX7R/1001340274.png" alt="Cestinha" loading="lazy" />
+            <img src="https://i.ibb.co/1fv1GX7R/1001340274.png" alt="Cestinha" loading="lazy" />
             Cestinha:
           </label>
           <input id="cestinha" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -344,12 +345,12 @@
         </div>
 
         <!-- =========================
-             ✅ NOVOS CAMPOS (a partir da última coluna em uso)
+             ✅ CAMPOS ADICIONAIS (a partir da última coluna em uso)
              Última em uso: O
-             Então seguimos: P, Q
+             Então: P, Q, R, S
              ========================= -->
 
-        <!-- P: Carrinhos reserva -->
+        <!-- P: Carrinhos de reserva -->
         <div class="campo">
           <label for="carrinhosReserva">
             <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
@@ -358,13 +359,31 @@
           <input id="carrinhosReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Q: Cestinhas reserva -->
+        <!-- Q: Cestinhas de reserva -->
         <div class="campo">
           <label for="cestinhasReserva">
             <img id="imgCestinhasReserva" alt="Cestinhas de reserva" loading="lazy" />
             Cestinhas de reserva:
           </label>
           <input id="cestinhasReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- R: Transferência de carrinhos -->
+        <div class="campo">
+          <label for="transferenciaCarrinhos">
+            <img id="imgTransferenciaCarrinhos" alt="Transferência de carrinhos" loading="lazy" />
+            Transferência de carrinhos:
+          </label>
+          <input id="transferenciaCarrinhos" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- S: Entrada de carrinhos -->
+        <div class="campo">
+          <label for="entradaCarrinhos">
+            <img id="imgEntradaCarrinhos" alt="Entrada de carrinhos" loading="lazy" />
+            Entrada de carrinhos:
+          </label>
+          <input id="entradaCarrinhos" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
       </div>
 
@@ -395,31 +414,31 @@
       N  Cadeira de rodas
       O  Carrinhos Quebrados
 
-      ✅ Mantidos APENAS os novos campos de RESERVA (P..Q):
+      ✅ Campos adicionais (a partir de O):
       P  Carrinhos de reserva
       Q  Cestinhas de reserva
-
-      ❌ Removidos:
-      R  Carrinhos reservados
-      S  Cestinhas reservadas
+      R  Transferência de carrinhos
+      S  Entrada de carrinhos
     */
 
     const CAMPOS = [
-      { id: "duplocar120",        label: "Duplocar 120L",          key: "duplocar120" },
-      { id: "grande160",          label: "Grande 160L",            key: "grande160" },
-      { id: "bebeConforto160",    label: "Bebê conforto 160L",     key: "bebeConforto160" },
-      { id: "maxcar200",          label: "Maxcar 200L",            key: "maxcar200" },
-      { id: "macrocar300",        label: "Macrocar 300L",          key: "macrocar300" },
-      { id: "pranchaJacare",      label: "Prancha Jacaré",         key: "pranchaJacare" },
-      { id: "compraKids",         label: "Compra Kids",            key: "compraKids" },
-      { id: "bebeJipinho",        label: "Bebê Jipinho",           key: "bebeJipinho" },
-      { id: "cestinha",           label: "Cestinha",               key: "cestinha" },
-      { id: "cadeiraRodas",       label: "Cadeira de rodas",       key: "cadeiraRodas" },
-      { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",    key: "carrinhosQuebrados" },
+      { id: "duplocar120",           label: "Duplocar 120L",            key: "duplocar120" },
+      { id: "grande160",             label: "Grande 160L",              key: "grande160" },
+      { id: "bebeConforto160",       label: "Bebê conforto 160L",       key: "bebeConforto160" },
+      { id: "maxcar200",             label: "Maxcar 200L",              key: "maxcar200" },
+      { id: "macrocar300",           label: "Macrocar 300L",            key: "macrocar300" },
+      { id: "pranchaJacare",         label: "Prancha Jacaré",           key: "pranchaJacare" },
+      { id: "compraKids",            label: "Compra Kids",              key: "compraKids" },
+      { id: "bebeJipinho",           label: "Bebê Jipinho",             key: "bebeJipinho" },
+      { id: "cestinha",              label: "Cestinha",                 key: "cestinha" },
+      { id: "cadeiraRodas",          label: "Cadeira de rodas",         key: "cadeiraRodas" },
+      { id: "carrinhosQuebrados",    label: "Carrinhos Quebrados",      key: "carrinhosQuebrados" },
 
-      // ✅ NOVOS (P..Q)
-      { id: "carrinhosReserva",   label: "Carrinhos de reserva",   key: "carrinhosReserva" },
-      { id: "cestinhasReserva",   label: "Cestinhas de reserva",   key: "cestinhasReserva" },
+      // ✅ adicionais
+      { id: "carrinhosReserva",         label: "Carrinhos de reserva",        key: "carrinhosReserva" },
+      { id: "cestinhasReserva",         label: "Cestinhas de reserva",        key: "cestinhasReserva" },
+      { id: "transferenciaCarrinhos",   label: "Transferência de carrinhos",  key: "transferenciaCarrinhos" },
+      { id: "entradaCarrinhos",         label: "Entrada de carrinhos",        key: "entradaCarrinhos" },
     ];
 
     let sessaoAtual = null;
@@ -483,7 +502,7 @@
       el.textContent = texto || "";
     }
 
-    // ✅ Validação: todos os campos obrigatórios
+    // Validação: todos os campos obrigatórios
     function validarFormulario() {
       const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
       if (!dataLanc) return "Selecione a Data Contagem.";
@@ -493,7 +512,6 @@
         if (v === "") return `Preencha: ${c.label}.`;
         if (!/^\d+$/.test(v)) return `Use somente números em: ${c.label}.`;
       }
-
       return "";
     }
 
@@ -531,7 +549,6 @@
       try {
         const dataISO = (document.getElementById("dataLancamento").value || "").trim();
 
-        // Payload (/api/carrinhos)
         const payload = {
           dataLancamento: isoParaBR(dataISO),
           contagens: CAMPOS.reduce((acc, c) => {
@@ -574,7 +591,7 @@
     }
 
     /* =========================
-       ✅ IMAGENS (data URI SVG) apenas para os campos NOVOS (P..Q)
+       ✅ IMAGENS (data URI SVG) para os campos NOVOS (P..S)
        ========================= */
     function svgDataUri(svg) {
       return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
@@ -595,11 +612,13 @@
         </svg>
       `;
 
-      const svgCarrinhosReserva = baseStyle("🛒", "Reserva");
-      const svgCestinhasReserva = baseStyle("🧺", "Reserva");
+      // P/Q
+      document.getElementById("imgCarrinhosReserva").src = svgDataUri(baseStyle("🛒", "Reserva"));
+      document.getElementById("imgCestinhasReserva").src = svgDataUri(baseStyle("🧺", "Reserva"));
 
-      document.getElementById("imgCarrinhosReserva").src = svgDataUri(svgCarrinhosReserva);
-      document.getElementById("imgCestinhasReserva").src = svgDataUri(svgCestinhasReserva);
+      // R/S
+      document.getElementById("imgTransferenciaCarrinhos").src = svgDataUri(baseStyle("🔁", "Transfer."));
+      document.getElementById("imgEntradaCarrinhos").src = svgDataUri(baseStyle("📦", "Entrada"));
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -613,7 +632,6 @@
 
       document.getElementById("btnEnviar").addEventListener("click", enviar);
 
-      // ✅ Setar imagens dos novos campos (P..Q)
       setNewFieldImages();
 
       // Inputs: só números, sem ponto/virgula
