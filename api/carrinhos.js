@@ -2,7 +2,7 @@
 //
 // Grava contagem de carrinhos na aba CARRINHOS do Google Sheets.
 //
-// ✅ NOVO MODELO (A..R):
+// ✅ MODELO ATUAL (A..S):
 // A: Data/Hora da rede (servidor - São Paulo)
 // B: Loja (da sessão)
 // C: Usuário (da sessão)
@@ -21,18 +21,18 @@
 // N: Cadeira de rodas
 // O: Carrinhos Quebrados
 //
-// ✅ Reservas (mantidos):
+// ✅ Reservas:
 // P: Carrinhos de reserva
 // Q: Cestinhas de reserva
 //
-// ✅ Movimentação (NOVO):
+// ✅ Movimentação:
 // R: Movimentação de carrinhos (entrada positivo / saída negativo)
 //    - Vem do front como contagens.movCarrinhos
 //    - NÃO é contagem física, é ajuste de rastreabilidade
 //
-// ❌ Removidos do modelo:
-// S: Carrinhos reservados
-// T: Cestinhas reservadas
+// ✅ NOVO (tipo/categoria da movimentação):
+// S: Tipo de movimentação (ex.: MOVI_ENTRE_LOJAS | MOVI_MANUTENCAO)
+//    - Vem do front como body.movCategoria
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -47,6 +47,16 @@ const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
 const PERFIS_PERMITIDOS = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
+
+/**
+ * Valores aceitos para o novo seletor de "Tipo de movimentação".
+ * - Mantemos em formato "código" (sem acento/espaço) para ser robusto em integrações/relatórios.
+ * - A interface pode mostrar rótulos amigáveis, mas o backend grava o código controlado.
+ */
+const MOV_CATEGORIAS_PERMITIDAS = new Set([
+  "MOVI_ENTRE_LOJAS",
+  "MOVI_MANUTENCAO",
+]);
 
 function nowSaoPaulo() {
   const agora = new Date();
@@ -100,6 +110,19 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
+/**
+ * Normaliza e valida o "tipo de movimentação" vindo do front.
+ * Regras:
+ * - Se vier vazio/undefined/null => assume MOVI_ENTRE_LOJAS (padrão seguro)
+ * - Se vier um valor fora da lista => rejeita (400), para evitar "sujeira" na coluna S
+ */
+function validarMovCategoria(raw) {
+  const v = String(raw ?? "").trim().toUpperCase();
+  if (!v) return { ok: true, value: "MOVI_ENTRE_LOJAS" };
+  if (!MOV_CATEGORIAS_PERMITIDAS.has(v)) return { ok: false, value: "" };
+  return { ok: true, value: v };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -122,13 +145,23 @@ export default async function handler(req, res) {
     const dataLancamento = String(body.dataLancamento || "").trim();
     const contagens = body.contagens || {};
 
+    // ✅ NOVO: valida categoria do movimento (coluna S)
+    const movCategoriaValid = validarMovCategoria(body.movCategoria);
+    if (!movCategoriaValid.ok) {
+      return res.status(400).json({
+        sucesso: false,
+        message: "Tipo de movimentação inválido. Use: MOVI_ENTRE_LOJAS ou MOVI_MANUTENCAO.",
+      });
+    }
+    const movCategoria = movCategoriaValid.value;
+
     // Data Contagem precisa estar em "DD/MM/AAAA"
     if (!isBRDateDDMMAAAA(dataLancamento)) {
       return res.status(400).json({ sucesso: false, message: "Data Contagem inválida. Use DD/MM/AAAA." });
     }
 
     /*
-      ✅ MAPEAMENTO (E..R)
+      ✅ MAPEAMENTO (E..S)
 
       E  duplocar120
       F  grande160
@@ -144,6 +177,7 @@ export default async function handler(req, res) {
       P  carrinhosReserva
       Q  cestinhasReserva
       R  movCarrinhos   (pode ser negativo)
+      S  movCategoria   (texto controlado)
     */
 
     // CONTAGEM (não-negativo)
@@ -210,7 +244,7 @@ export default async function handler(req, res) {
     const dtRede = nowSaoPaulo();
     const dataHoraRede = formatarDataHoraBR(dtRede);
 
-    // Linha a gravar (A..R)
+    // Linha a gravar (A..S)
     const values = [[
       dataHoraRede,       // A
       loja,               // B
@@ -233,14 +267,15 @@ export default async function handler(req, res) {
       cestinhasReserva,   // Q
 
       movCarrinhos,       // R (entrada + / saída -)
+      movCategoria,       // S (tipo de movimentação)
     ]];
 
     const sheets = await getSheetsClient();
 
-    // ✅ Range atualizado para A:R
+    // ✅ Range atualizado para A:S (agora gravamos coluna S)
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "CARRINHOS!A:R",
+      range: "CARRINHOS!A:S",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values },
