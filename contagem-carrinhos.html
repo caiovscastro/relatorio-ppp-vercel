@@ -88,7 +88,7 @@
       line-height: 1;
     }
 
-    /* ===== GRID (2 colunas) ===== */
+    /* ===== GRID (2 colunas) - contagem principal ===== */
     .grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -205,7 +205,7 @@
     .card-erro h2{ margin: 0 0 8px; color:#c00000; }
     .card-erro p{ margin: 0 0 12px; color:#333; font-weight:700; }
 
-    /* ==== Cards “separadores” (iguais ao padrão do card de movimentação) ==== */
+    /* ==== Cards “separadores” ==== */
     .card-box{
       margin-top: 12px;
       background:#fff;
@@ -228,17 +228,43 @@
       vertical-align: middle;
     }
 
-    /* Movimentação: manter SELECT + QTD lado a lado até no celular */
+    /* ===========================
+       1) ITENS ESPECIAIS: fundo cinza clarinho
+       2) RESERVAS: fundo cinza clarinho
+       3) Ambos: manter 2 colunas mesmo no celular
+       =========================== */
+
+    /* Fundo cinza clarinho (bem suave) */
+    .card-soft{
+      background:#f7f7f7;     /* cinza bem clarinho */
+      border-color:#e6e6e6;
+    }
+
+    /* Grid interna SEMPRE 2 colunas (inclusive no celular) */
+    .card-grid-2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* ===========================
+       MOVIMENTAÇÃO: 3 campos em linha
+       - Tipo do movimento (Entrada/Saída)
+       - Tipo de movimentação (Entre lojas / Manutenção)  -> vai para coluna S via backend
+       - Quantidade
+       Mantém usabilidade no celular ajustando bases.
+       =========================== */
     .mov-row{
       display:flex;
       gap: 10px;
       align-items: end;
     }
-    .mov-row .campo{ flex: 1 1 0; }
-    .mov-row .campo.qtd{ flex: 0 0 150px; }
-    @media (max-width: 380px){
+    .mov-row .campo{ flex: 1 1 0; min-width: 0; }
+    .mov-row .campo.qtd{ flex: 0 0 140px; }
+
+    @media (max-width: 420px){
       .mov-row{ gap: 8px; }
-      .mov-row .campo.qtd{ flex-basis: 130px; }
+      .mov-row .campo.qtd{ flex-basis: 120px; }
     }
 
     .pill{
@@ -252,16 +278,6 @@
     }
     .pill.neg{ color:#b30000; }
     .pill.pos{ color:#1b5e20; }
-
-    /* A grid interna dos cards (mantém 2 colunas, mas fica 1 no celular) */
-    .card-grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    @media (max-width: 560px){
-      .card-grid{ grid-template-columns: 1fr; }
-    }
   </style>
 </head>
 
@@ -366,13 +382,15 @@
         </div>
       </div>
 
-      <!-- ====== CARD: ITENS ESPECIAIS (separado) ====== -->
-      <div class="card-box">
+      <!-- ====== CARD: ITENS ESPECIAIS (2 colunas mesmo no celular + fundo cinza clarinho) ====== -->
+      <div class="card-box card-soft">
         <h3>
           <img class="icon" id="icoEspeciais" alt="Ícone especiais" />
           Itens especiais
         </h3>
-        <div class="card-grid">
+
+        <!-- Sempre 2 colunas -->
+        <div class="card-grid-2">
           <div class="campo">
             <label for="cestinha">
               <img src="https://i.ibb.co/1fv1GX7R/1001340274.png" alt="Cestinha" loading="lazy" />
@@ -399,13 +417,15 @@
         </div>
       </div>
 
-      <!-- ====== CARD: RESERVAS (separado) ====== -->
-      <div class="card-box">
+      <!-- ====== CARD: RESERVAS (2 colunas mesmo no celular + fundo cinza clarinho) ====== -->
+      <div class="card-box card-soft">
         <h3>
           <img class="icon" id="icoReserva" alt="Ícone reservas" />
           Reservas
         </h3>
-        <div class="card-grid">
+
+        <!-- Sempre 2 colunas -->
+        <div class="card-grid-2">
           <div class="campo">
             <label for="carrinhosReserva">
               <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
@@ -424,7 +444,7 @@
         </div>
       </div>
 
-      <!-- ====== CARD: MOVIMENTAÇÃO (separado e NÃO entra no total) ====== -->
+      <!-- ====== CARD: MOVIMENTAÇÃO (novo seletor + vai para coluna S via backend) ====== -->
       <div class="card-box">
         <h3>
           <img class="icon" id="icoMov" alt="Ícone movimentação" />
@@ -432,6 +452,7 @@
         </h3>
 
         <div class="mov-row">
+          <!-- Tipo do movimento (Entrada/Saída) -->
           <div class="campo">
             <label for="movTipo">Tipo do movimento:</label>
             <select id="movTipo" class="input">
@@ -440,6 +461,16 @@
             </select>
           </div>
 
+          <!-- NOVO: Tipo de movimentação (deve ir para coluna S no backend) -->
+          <div class="campo">
+            <label for="movCategoria">Tipo de movimentação:</label>
+            <select id="movCategoria" class="input">
+              <option value="MOVI_ENTRE_LOJAS">Movi. entre lojas</option>
+              <option value="MOVI_MANUTENCAO">Movi. Manutenção</option>
+            </select>
+          </div>
+
+          <!-- Quantidade -->
           <div class="campo qtd">
             <label for="movQtd">Quantidade:</label>
             <input id="movQtd" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
@@ -479,9 +510,14 @@
       { id: "cestinhasReserva",   label: "Cestinhas de reserva",   key: "cestinhasReserva" },
     ];
 
-    // ✅ Campo de movimentação (NÃO entra no total)
+    // ✅ Movimentação (NÃO entra no total)
+    // Agora com 3 campos:
+    // - movTipo (Entrada/Saída) => sinal
+    // - movCategoria (Entre lojas / Manutenção) => deve ir para coluna S no backend
+    // - movQtd => valor absoluto
     const CAMPO_MOV = {
       tipoId: "movTipo",
+      categoriaId: "movCategoria",
       qtdId: "movQtd",
       key: "movCarrinhos",
       label: "Movimentação de carrinhos"
@@ -503,7 +539,7 @@
       atualizarTotal();
     }
 
-    // ✅ Movimentação: sempre digitos, sinal aplicado pelo select
+    // ✅ Movimentação: sempre dígitos, sinal aplicado pelo select ENTRADA/SAIDA
     function atualizarPillMov() {
       const tipo = document.getElementById(CAMPO_MOV.tipoId).value;
       const qtd  = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
@@ -610,16 +646,21 @@
           return acc;
         }, {});
 
-        // Movimentação (vai pro backend com sinal, mas não entra no total do topo)
+        // Movimentação (vai com sinal, mas não entra no total do topo)
         const movQtd = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
         const movTipo = document.getElementById(CAMPO_MOV.tipoId).value;
         const movSigned = (movTipo === "SAIDA") ? -movQtd : +movQtd;
 
+        // NOVO: categoria do movimento (para o backend gravar na coluna S)
+        const movCategoria = document.getElementById(CAMPO_MOV.categoriaId).value;
+
         contagens[CAMPO_MOV.key] = movQtd ? movSigned : 0;
 
+        // Payload: incluo movCategoria fora de contagens para ficar explícito no backend
         const payload = {
           dataLancamento: isoParaBR(dataISO),
-          contagens
+          contagens,
+          movCategoria // <-- backend deve gravar na COLUNA S (ajuste em /api/carrinhos)
         };
 
         const resp = await fetch("/api/carrinhos", {
@@ -648,6 +689,7 @@
         CAMPOS_CONTAGEM.forEach(c => document.getElementById(c.id).value = "");
         document.getElementById(CAMPO_MOV.qtdId).value = "";
         document.getElementById(CAMPO_MOV.tipoId).value = "ENTRADA";
+        document.getElementById(CAMPO_MOV.categoriaId).value = "MOVI_ENTRE_LOJAS";
 
         atualizarTotal();
         atualizarPillMov();
@@ -753,6 +795,8 @@
   </script>
 
   <!-- Fontes confiáveis -->
+  <!-- Grid/Flexbox: https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox -->
+  <!-- CSS Grid: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout -->
   <!-- input + select: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input -->
   <!-- fetch + credentials/cookies: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
   <!-- Data URI (SVG): https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs -->
