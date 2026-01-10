@@ -205,6 +205,47 @@
     }
     .card-erro h2{ margin: 0 0 8px; color:#c00000; }
     .card-erro p{ margin: 0 0 12px; color:#333; font-weight:700; }
+
+    /* ==== Card extra para MOVIMENTAÇÃO (não entra no total) ==== */
+    .card-mov{
+      margin-top: 12px;
+      background: #fff;
+      border: 1px solid #e6e6e6;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .card-mov h3{
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 900;
+    }
+    .mov-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items: end;
+    }
+    @media (max-width: 560px){
+      .mov-grid{ grid-template-columns: 1fr; }
+    }
+    .hint{
+      font-size: 12px;
+      color:#444;
+      font-weight: 700;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+    .pill{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 12px;
+      background:#f3f3f3;
+      border:1px solid #e6e6e6;
+    }
+    .pill.neg{ color:#b30000; }
+    .pill.pos{ color:#1b5e20; }
   </style>
 </head>
 
@@ -230,7 +271,7 @@
       </div>
 
       <div class="card-total">
-        <div class="total-label">Soma total (todos os campos)</div>
+        <div class="total-label">Soma total (contagem física)</div>
         <div class="total-valor" id="totalCarrinhos">0</div>
       </div>
 
@@ -242,19 +283,16 @@
         </div>
       </div>
 
-      <!-- Contagens - 2 colunas -->
+      <!-- Contagens (colunas E em diante) - 2 colunas -->
       <div class="grid" aria-label="Contagem por tipo de carrinho">
-        <!-- E -->
         <div class="campo">
           <label for="duplocar120">
-            <!-- ✅ corrigido: removido https://https:// -->
             <img src="https://i.ibb.co/d00R9n4p/1001340222.png" alt="Duplocar 120L" loading="lazy" />
             Duplocar 120L:
           </label>
           <input id="duplocar120" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- F -->
         <div class="campo">
           <label for="grande160">
             <img src="https://i.ibb.co/21ybNLZL/1001340221.png" alt="Grande 160L" loading="lazy" />
@@ -263,7 +301,6 @@
           <input id="grande160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- G -->
         <div class="campo">
           <label for="bebeConforto160">
             <img src="https://i.ibb.co/ymJqvr5c/1001340229.png" alt="Bebê conforto 160L" loading="lazy" />
@@ -272,7 +309,6 @@
           <input id="bebeConforto160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- H -->
         <div class="campo">
           <label for="maxcar200">
             <img src="https://i.ibb.co/ymPcqNWL/1001340230.png" alt="Maxcar 200L" loading="lazy" />
@@ -281,7 +317,6 @@
           <input id="maxcar200" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- I -->
         <div class="campo">
           <label for="macrocar300">
             <img src="https://i.ibb.co/x8KD8SMn/1001340231.png" alt="Macrocar 300L" loading="lazy" />
@@ -290,7 +325,6 @@
           <input id="macrocar300" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- J -->
         <div class="campo">
           <label for="pranchaJacare">
             <img src="https://i.ibb.co/jvsjrBGM/1001340272.png" alt="Prancha Jacaré" loading="lazy" />
@@ -299,7 +333,6 @@
           <input id="pranchaJacare" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- K -->
         <div class="campo">
           <label for="compraKids">
             <img src="https://i.ibb.co/27mvLyS4/1001340273.png" alt="Compra Kids" loading="lazy" />
@@ -308,7 +341,6 @@
           <input id="compraKids" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- L -->
         <div class="campo">
           <label for="bebeJipinho">
             <img src="https://i.ibb.co/mFz3xj39/1001340271.png" alt="Bebê Jipinho" loading="lazy" />
@@ -317,7 +349,6 @@
           <input id="bebeJipinho" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- M -->
         <div class="campo">
           <label for="cestinha">
             <img src="https://i.ibb.co/1fv1GX7R/1001340274.png" alt="Cestinha" loading="lazy" />
@@ -326,7 +357,6 @@
           <input id="cestinha" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- N -->
         <div class="campo">
           <label for="cadeiraRodas">
             <img src="https://i.ibb.co/sdp6hPzN/file-00000000b954720ea6b9b2e95516ed0a.png" alt="Cadeira de rodas" loading="lazy" />
@@ -335,7 +365,6 @@
           <input id="cadeiraRodas" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- O -->
         <div class="campo">
           <label for="carrinhosQuebrados">
             <img src="https://i.ibb.co/ZpwFJf5H/file-0000000062a0720e86cbcca63bfd8b64.png" alt="Carrinhos Quebrados" loading="lazy" />
@@ -344,13 +373,7 @@
           <input id="carrinhosQuebrados" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- =========================
-             ✅ CAMPOS ADICIONAIS (a partir da última coluna em uso)
-             Última em uso: O
-             Então: P, Q, R, S
-             ========================= -->
-
-        <!-- P: Carrinhos de reserva -->
+        <!-- ✅ Mantém os campos P e Q (Reserva) -->
         <div class="campo">
           <label for="carrinhosReserva">
             <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
@@ -359,7 +382,6 @@
           <input id="carrinhosReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
-        <!-- Q: Cestinhas de reserva -->
         <div class="campo">
           <label for="cestinhasReserva">
             <img id="imgCestinhasReserva" alt="Cestinhas de reserva" loading="lazy" />
@@ -367,23 +389,31 @@
           </label>
           <input id="cestinhasReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
+      </div>
 
-        <!-- R: Transferência de carrinhos -->
-        <div class="campo">
-          <label for="transferenciaCarrinhos">
-            <img id="imgTransferenciaCarrinhos" alt="Transferência de carrinhos" loading="lazy" />
-            Transferência de carrinhos:
-          </label>
-          <input id="transferenciaCarrinhos" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+      <!-- ✅ NOVO: MOVIMENTAÇÃO (não entra no total do topo) -->
+      <div class="card-mov">
+        <h3>Movimentação de carrinhos <span id="pillMov" class="pill">0</span></h3>
+
+        <div class="mov-grid">
+          <div class="campo">
+            <label for="movTipo">Tipo do movimento:</label>
+            <select id="movTipo" class="input">
+              <option value="ENTRADA">Entrada</option>
+              <option value="SAIDA">Saída</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="movQtd">Quantidade (sempre positiva):</label>
+            <input id="movQtd" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          </div>
         </div>
 
-        <!-- S: Entrada de carrinhos -->
-        <div class="campo">
-          <label for="entradaCarrinhos">
-            <img id="imgEntradaCarrinhos" alt="Entrada de carrinhos" loading="lazy" />
-            Entrada de carrinhos:
-          </label>
-          <input id="entradaCarrinhos" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        <div class="hint">
+          • Este campo <b>não altera</b> a “Soma total (contagem física)” acima.<br>
+          • Ao enviar, o backend receberá <b>movCarrinhos</b> com sinal:
+          <b>Entrada</b> = positivo | <b>Saída</b> = negativo.
         </div>
       </div>
 
@@ -396,77 +426,72 @@
 
   <script>
     const ROTAS = { login: "/login.html", menu: "/menu.html" };
-
-    // Perfis que podem acessar esta tela
     const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-    /*
-      ✅ Colunas existentes (E..O):
-      E  Duplocar 120L
-      F  Grande 160L
-      G  Bebê conforto 160L
-      H  Maxcar 200L
-      I  Macrocar 300L
-      J  Prancha Jacaré
-      K  Compra Kids
-      L  Bebê Jipinho
-      M  Cestinha
-      N  Cadeira de rodas
-      O  Carrinhos Quebrados
+    // ✅ Campos que entram no TOTAL do topo (NÃO incluir movimentação)
+    const CAMPOS_CONTAGEM = [
+      { id: "duplocar120",        label: "Duplocar 120L",          key: "duplocar120" },
+      { id: "grande160",          label: "Grande 160L",            key: "grande160" },
+      { id: "bebeConforto160",    label: "Bebê conforto 160L",     key: "bebeConforto160" },
+      { id: "maxcar200",          label: "Maxcar 200L",            key: "maxcar200" },
+      { id: "macrocar300",        label: "Macrocar 300L",          key: "macrocar300" },
+      { id: "pranchaJacare",      label: "Prancha Jacaré",         key: "pranchaJacare" },
+      { id: "compraKids",         label: "Compra Kids",            key: "compraKids" },
+      { id: "bebeJipinho",        label: "Bebê Jipinho",           key: "bebeJipinho" },
+      { id: "cestinha",           label: "Cestinha",               key: "cestinha" },
+      { id: "cadeiraRodas",       label: "Cadeira de rodas",       key: "cadeiraRodas" },
+      { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",    key: "carrinhosQuebrados" },
 
-      ✅ Campos adicionais (a partir de O):
-      P  Carrinhos de reserva
-      Q  Cestinhas de reserva
-      R  Transferência de carrinhos
-      S  Entrada de carrinhos
-    */
-
-    const CAMPOS = [
-      { id: "duplocar120",           label: "Duplocar 120L",            key: "duplocar120" },
-      { id: "grande160",             label: "Grande 160L",              key: "grande160" },
-      { id: "bebeConforto160",       label: "Bebê conforto 160L",       key: "bebeConforto160" },
-      { id: "maxcar200",             label: "Maxcar 200L",              key: "maxcar200" },
-      { id: "macrocar300",           label: "Macrocar 300L",            key: "macrocar300" },
-      { id: "pranchaJacare",         label: "Prancha Jacaré",           key: "pranchaJacare" },
-      { id: "compraKids",            label: "Compra Kids",              key: "compraKids" },
-      { id: "bebeJipinho",           label: "Bebê Jipinho",             key: "bebeJipinho" },
-      { id: "cestinha",              label: "Cestinha",                 key: "cestinha" },
-      { id: "cadeiraRodas",          label: "Cadeira de rodas",         key: "cadeiraRodas" },
-      { id: "carrinhosQuebrados",    label: "Carrinhos Quebrados",      key: "carrinhosQuebrados" },
-
-      // ✅ adicionais
-      { id: "carrinhosReserva",         label: "Carrinhos de reserva",        key: "carrinhosReserva" },
-      { id: "cestinhasReserva",         label: "Cestinhas de reserva",        key: "cestinhasReserva" },
-      { id: "transferenciaCarrinhos",   label: "Transferência de carrinhos",  key: "transferenciaCarrinhos" },
-      { id: "entradaCarrinhos",         label: "Entrada de carrinhos",        key: "entradaCarrinhos" },
+      // P e Q (reserva)
+      { id: "carrinhosReserva",   label: "Carrinhos de reserva",   key: "carrinhosReserva" },
+      { id: "cestinhasReserva",   label: "Cestinhas de reserva",   key: "cestinhasReserva" },
     ];
+
+    // ✅ Campo de movimentação (NÃO entra no total)
+    const CAMPO_MOV = {
+      tipoId: "movTipo",
+      qtdId: "movQtd",
+      key: "movCarrinhos",
+      label: "Movimentação de carrinhos"
+    };
 
     let sessaoAtual = null;
 
-    // Remove tudo que não for dígito (0-9)
-    function soDigitos(str) {
-      return String(str || "").replace(/[^\d]/g, "");
-    }
+    function soDigitos(str) { return String(str || "").replace(/[^\d]/g, ""); }
+    function toInt(str) { const s = soDigitos(str); return s ? parseInt(s, 10) : 0; }
 
-    // Converte string para inteiro (default 0)
-    function toInt(str) {
-      const s = soDigitos(str);
-      return s ? parseInt(s, 10) : 0;
-    }
-
-    // Soma total (card) - soma TODOS os campos listados em CAMPOS
+    // ✅ Total do topo: somente contagem física (CAMPOS_CONTAGEM)
     function atualizarTotal() {
-      const total = CAMPOS.reduce((acc, c) => acc + toInt(document.getElementById(c.id).value), 0);
+      const total = CAMPOS_CONTAGEM.reduce((acc, c) => acc + toInt(document.getElementById(c.id).value), 0);
       document.getElementById("totalCarrinhos").textContent = String(total);
     }
 
-    // Aplica máscara "somente números" em tempo real
     function aplicarMascaraSomenteNumero(inputEl) {
       inputEl.value = soDigitos(inputEl.value);
       atualizarTotal();
     }
 
-    // Busca sessão do backend (/api/session)
+    // ✅ Movimentação: sempre digitos, mas sinal aplicado pelo select
+    function atualizarPillMov() {
+      const tipo = document.getElementById(CAMPO_MOV.tipoId).value;
+      const qtd  = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
+
+      const signed = (tipo === "SAIDA") ? -qtd : +qtd;
+      const pill = document.getElementById("pillMov");
+      pill.textContent = String(signed);
+
+      pill.classList.remove("neg","pos");
+      if (signed < 0) pill.classList.add("neg");
+      else if (signed > 0) pill.classList.add("pos");
+    }
+
+    function aplicarMascaraMovQtd() {
+      const el = document.getElementById(CAMPO_MOV.qtdId);
+      el.value = soDigitos(el.value);
+      // IMPORTANTE: não chama atualizarTotal() aqui (não impactar no total)
+      atualizarPillMov();
+    }
+
     async function obterSessaoDoBackend() {
       try {
         const resp = await fetch("/api/session", {
@@ -474,7 +499,6 @@
           credentials: "include",
           headers: { "Accept": "application/json" }
         });
-
         if (!resp.ok) return null;
 
         const dados = await resp.json().catch(() => null);
@@ -502,20 +526,26 @@
       el.textContent = texto || "";
     }
 
-    // Validação: todos os campos obrigatórios
     function validarFormulario() {
       const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
       if (!dataLanc) return "Selecione a Data Contagem.";
 
-      for (const c of CAMPOS) {
+      // Contagem física: obrigatória
+      for (const c of CAMPOS_CONTAGEM) {
         const v = (document.getElementById(c.id).value || "").trim();
         if (v === "") return `Preencha: ${c.label}.`;
         if (!/^\d+$/.test(v)) return `Use somente números em: ${c.label}.`;
       }
+
+      // Movimentação: opcional (mas se preenchido, valida)
+      const movQtdRaw = (document.getElementById(CAMPO_MOV.qtdId).value || "").trim();
+      if (movQtdRaw !== "") {
+        if (!/^\d+$/.test(movQtdRaw)) return `Use somente números em: ${CAMPO_MOV.label}.`;
+      }
+
       return "";
     }
 
-    // Converte "YYYY-MM-DD" para "DD/MM/AAAA"
     function isoParaBR(iso) {
       const s = String(iso || "").trim();
       const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -526,10 +556,7 @@
     async function enviar() {
       setMsg("");
 
-      if (!sessaoAtual) {
-        mostrarSemSessao();
-        return;
-      }
+      if (!sessaoAtual) { mostrarSemSessao(); return; }
 
       const perfil = String(sessaoAtual.perfil || "").trim().toUpperCase();
       if (!PERFIS_PERMITIDOS.includes(perfil)) {
@@ -538,10 +565,7 @@
       }
 
       const erro = validarFormulario();
-      if (erro) {
-        setMsg(erro);
-        return;
-      }
+      if (erro) { setMsg(erro); return; }
 
       const btn = document.getElementById("btnEnviar");
       btn.disabled = true;
@@ -549,12 +573,23 @@
       try {
         const dataISO = (document.getElementById("dataLancamento").value || "").trim();
 
+        // Contagens (contagem física)
+        const contagens = CAMPOS_CONTAGEM.reduce((acc, c) => {
+          acc[c.key] = toInt(document.getElementById(c.id).value);
+          return acc;
+        }, {});
+
+        // Movimentação (não entra no total do topo, mas vai pro backend com sinal)
+        const movQtd = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
+        const movTipo = document.getElementById(CAMPO_MOV.tipoId).value;
+        const movSigned = (movTipo === "SAIDA") ? -movQtd : +movQtd;
+
+        // Se usuário deixar em branco, manda 0 (ou você pode omitir — mas omitir quebra se o backend exigir)
+        contagens[CAMPO_MOV.key] = movQtd ? movSigned : 0;
+
         const payload = {
           dataLancamento: isoParaBR(dataISO),
-          contagens: CAMPOS.reduce((acc, c) => {
-            acc[c.key] = toInt(document.getElementById(c.id).value);
-            return acc;
-          }, {})
+          contagens
         };
 
         const resp = await fetch("/api/carrinhos", {
@@ -580,8 +615,12 @@
         setMsg(dados.message || "Contagem enviada com sucesso.", true);
 
         // Limpa campos (mantém data)
-        CAMPOS.forEach(c => document.getElementById(c.id).value = "");
+        CAMPOS_CONTAGEM.forEach(c => document.getElementById(c.id).value = "");
+        document.getElementById(CAMPO_MOV.qtdId).value = "";
+        document.getElementById(CAMPO_MOV.tipoId).value = "ENTRADA";
         atualizarTotal();
+        atualizarPillMov();
+
       } catch (e) {
         console.error(e);
         setMsg("Erro de conexão ao enviar. Tente novamente.");
@@ -591,7 +630,7 @@
     }
 
     /* =========================
-       ✅ IMAGENS (data URI SVG) para os campos NOVOS (P..S)
+       ✅ IMAGENS (Data URI SVG) para P e Q
        ========================= */
     function svgDataUri(svg) {
       return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
@@ -612,42 +651,34 @@
         </svg>
       `;
 
-      // P/Q
       document.getElementById("imgCarrinhosReserva").src = svgDataUri(baseStyle("🛒", "Reserva"));
       document.getElementById("imgCestinhasReserva").src = svgDataUri(baseStyle("🧺", "Reserva"));
-
-      // R/S
-      document.getElementById("imgTransferenciaCarrinhos").src = svgDataUri(baseStyle("🔁", "Transfer."));
-      document.getElementById("imgEntradaCarrinhos").src = svgDataUri(baseStyle("📦", "Entrada"));
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      document.getElementById("btnIrLogin").addEventListener("click", () => {
-        window.location.href = ROTAS.login;
-      });
-
-      document.getElementById("btnVoltarMenu").addEventListener("click", () => {
-        window.location.href = ROTAS.menu;
-      });
-
+      document.getElementById("btnIrLogin").addEventListener("click", () => window.location.href = ROTAS.login);
+      document.getElementById("btnVoltarMenu").addEventListener("click", () => window.location.href = ROTAS.menu);
       document.getElementById("btnEnviar").addEventListener("click", enviar);
 
+      // Imagens P e Q
       setNewFieldImages();
 
-      // Inputs: só números, sem ponto/virgula
-      CAMPOS.forEach(c => {
+      // Inputs: contagem física
+      CAMPOS_CONTAGEM.forEach(c => {
         const el = document.getElementById(c.id);
         el.addEventListener("input", () => aplicarMascaraSomenteNumero(el));
       });
 
-      atualizarTotal();
+      // Inputs: movimentação (não impacta total)
+      document.getElementById(CAMPO_MOV.qtdId).addEventListener("input", aplicarMascaraMovQtd);
+      document.getElementById(CAMPO_MOV.tipoId).addEventListener("change", atualizarPillMov);
 
-      // Valida sessão
+      atualizarTotal();
+      atualizarPillMov();
+
+      // Sessão
       const s = await obterSessaoDoBackend();
-      if (!s) {
-        mostrarSemSessao();
-        return;
-      }
+      if (!s) { mostrarSemSessao(); return; }
 
       const perfil = String(s.perfil || "").trim().toUpperCase();
       if (!PERFIS_PERMITIDOS.includes(perfil)) {
@@ -662,7 +693,6 @@
 
       sessaoAtual = s;
       mostrarApp();
-
       document.getElementById("infoLoja").textContent = s.loja;
       document.getElementById("infoUsuario").textContent = s.usuario;
       document.getElementById("infoPerfil").textContent = s.perfil;
@@ -670,10 +700,9 @@
   </script>
 
   <!-- Fontes confiáveis -->
+  <!-- input + select: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input -->
   <!-- fetch + credentials/cookies: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
-  <!-- input date: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
   <!-- Data URI (SVG): https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs -->
   <!-- encodeURIComponent: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent -->
-  <!-- img loading=lazy: https://developer.mozilla.org/en-US/docs/Web/Performance/Lazy_loading -->
 </body>
 </html>
