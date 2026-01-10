@@ -63,12 +63,13 @@
     .k{ color:#555; font-weight:700; }
     .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
 
+    /* Card total (mantive o estilo, mas agora teremos 2 cards: carrinhos e cestinhas) */
     .card-total{
       background:#f7f8ff;
       border: 1px solid #e0e3ff;
       border-radius: 10px;
       padding: 14px 12px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display:flex;
       justify-content: space-between;
       align-items:center;
@@ -108,7 +109,6 @@
       font-weight: 800;
       font-size: 13px;
       color:#111;
-
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -228,15 +228,9 @@
       vertical-align: middle;
     }
 
-    /* ===========================
-       1) ITENS ESPECIAIS: fundo cinza clarinho
-       2) RESERVAS: fundo cinza clarinho
-       3) Ambos: manter 2 colunas mesmo no celular
-       =========================== */
-
     /* Fundo cinza clarinho (bem suave) */
     .card-soft{
-      background:#f7f7f7;     /* cinza bem clarinho */
+      background:#f7f7f7;
       border-color:#e6e6e6;
     }
 
@@ -248,23 +242,22 @@
     }
 
     /* ===========================
-       MOVIMENTAÇÃO: 3 campos em linha
-       - Tipo do movimento (Entrada/Saída)
-       - Tipo de movimentação (Entre lojas / Manutenção)  -> vai para coluna S via backend
-       - Quantidade
-       Mantém usabilidade no celular ajustando bases.
+       MOVIMENTAÇÃO (AJUSTE):
+       1) Mesmo tamanho para Direção, Motivo e Qtd.
+       2) Fundo cinza clarinho no cartão
+       => Usei GRID 3 colunas, 1fr 1fr 1fr
        =========================== */
     .mov-row{
-      display:flex;
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
       align-items: end;
     }
-    .mov-row .campo{ flex: 1 1 0; min-width: 0; }
-    .mov-row .campo.qtd{ flex: 0 0 140px; }
 
+    /* Em telas muito estreitas, reduzimos um pouco o espaçamento.
+       Mantém 3 colunas como você pediu. */
     @media (max-width: 420px){
       .mov-row{ gap: 8px; }
-      .mov-row .campo.qtd{ flex-basis: 120px; }
     }
 
     .pill{
@@ -302,9 +295,16 @@
         <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
       </div>
 
+      <!-- ✅ 3) Total de carrinhos (sem movimentação; sem cestinha; sem cadeira de rodas; sem cestinhas reserva) -->
       <div class="card-total">
-        <div class="total-label">Soma total (contagem física)</div>
+        <div class="total-label">Soma total de carrinhos</div>
         <div class="total-valor" id="totalCarrinhos">0</div>
+      </div>
+
+      <!-- ✅ 4) Novo total de cestinhas (cestinha + cestinhas de reserva) -->
+      <div class="card-total">
+        <div class="total-label">Soma total de cestinhas</div>
+        <div class="total-valor" id="totalCestinhas">0</div>
       </div>
 
       <!-- Data de contagem (coluna D) -->
@@ -382,14 +382,13 @@
         </div>
       </div>
 
-      <!-- ====== CARD: ITENS ESPECIAIS (2 colunas mesmo no celular + fundo cinza clarinho) ====== -->
+      <!-- ====== CARD: ITENS ESPECIAIS ====== -->
       <div class="card-box card-soft">
         <h3>
           <img class="icon" id="icoEspeciais" alt="Ícone especiais" />
           Itens especiais
         </h3>
 
-        <!-- Sempre 2 colunas -->
         <div class="card-grid-2">
           <div class="campo">
             <label for="cestinha">
@@ -417,17 +416,17 @@
         </div>
       </div>
 
-      <!-- ====== CARD: RESERVAS (2 colunas mesmo no celular + fundo cinza clarinho) ====== -->
+      <!-- ====== CARD: RESERVAS ====== -->
       <div class="card-box card-soft">
         <h3>
           <img class="icon" id="icoReserva" alt="Ícone reservas" />
           Reservas
         </h3>
 
-        <!-- Sempre 2 colunas -->
         <div class="card-grid-2">
           <div class="campo">
             <label for="carrinhosReserva">
+              <!-- ✅ ícone trocado pelo link que você mandou -->
               <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
               Carrinhos de reserva:
             </label>
@@ -436,6 +435,7 @@
 
           <div class="campo">
             <label for="cestinhasReserva">
+              <!-- ✅ ícone trocado pelo link que você mandou -->
               <img id="imgCestinhasReserva" alt="Cestinhas de reserva" loading="lazy" />
               Cestinhas de reserva:
             </label>
@@ -444,15 +444,14 @@
         </div>
       </div>
 
-      <!-- ====== CARD: MOVIMENTAÇÃO (novo seletor + vai para coluna S via backend) ====== -->
-      <div class="card-box">
+      <!-- ====== CARD: MOVIMENTAÇÃO (fundo cinza clarinho + 3 colunas iguais) ====== -->
+      <div class="card-box card-soft">
         <h3>
           <img class="icon" id="icoMov" alt="Ícone movimentação" />
           Movimentação de carrinhos <span id="pillMov" class="pill">0</span>
         </h3>
 
         <div class="mov-row">
-          <!-- Tipo do movimento (Entrada/Saída) -->
           <div class="campo">
             <label for="movTipo">Direção:</label>
             <select id="movTipo" class="input">
@@ -461,7 +460,6 @@
             </select>
           </div>
 
-          <!-- NOVO: Tipo de movimentação (deve ir para coluna S no backend) -->
           <div class="campo">
             <label for="movCategoria">Motivo:</label>
             <select id="movCategoria" class="input">
@@ -470,10 +468,11 @@
             </select>
           </div>
 
-          <!-- Quantidade -->
-          <div class="campo qtd">
-            <label for="movQtd">Quantidade:</label>
-            <input id="movQtd" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+          <div class="campo">
+            <!-- ✅ 1) abreviação se necessário: Qtd. -->
+            <label for="movQtd">Qtd.:</label>
+            <!-- ✅ 5) obrigatório como os demais -->
+            <input id="movQtd" class="input" inputmode="numeric" autocomplete="off" placeholder="0" required />
           </div>
         </div>
       </div>
@@ -489,7 +488,7 @@
     const ROTAS = { login: "/login.html", menu: "/menu.html" };
     const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-    // ✅ Campos que entram no TOTAL do topo (NÃO incluir movimentação)
+    // ✅ Campos de contagem (usados para validar e enviar ao backend)
     const CAMPOS_CONTAGEM = [
       { id: "duplocar120",        label: "Duplocar 120L",          key: "duplocar120" },
       { id: "grande160",          label: "Grande 160L",            key: "grande160" },
@@ -505,16 +504,12 @@
       { id: "cadeiraRodas",       label: "Cadeira de rodas",       key: "cadeiraRodas" },
       { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",    key: "carrinhosQuebrados" },
 
-      // Reservas (P e Q)
+      // Reservas
       { id: "carrinhosReserva",   label: "Carrinhos de reserva",   key: "carrinhosReserva" },
       { id: "cestinhasReserva",   label: "Cestinhas de reserva",   key: "cestinhasReserva" },
     ];
 
-    // ✅ Movimentação (NÃO entra no total)
-    // Agora com 3 campos:
-    // - movTipo (Entrada/Saída) => sinal
-    // - movCategoria (Entre lojas / Manutenção) => deve ir para coluna S no backend
-    // - movQtd => valor absoluto
+    // ✅ Movimentação (vai para backend, não entra nos totais)
     const CAMPO_MOV = {
       tipoId: "movTipo",
       categoriaId: "movCategoria",
@@ -523,20 +518,45 @@
       label: "Movimentação de carrinhos"
     };
 
+    // ✅ 3) Total de carrinhos:
+    // Inclui TODOS os carrinhos (incluindo quebrados e carrinhos de reserva),
+    // MAS não inclui cestinhas, cadeira de rodas, nem cestinhas de reserva, nem movimentação.
+    const IDS_TOTAL_CARRINHOS = [
+      "duplocar120",
+      "grande160",
+      "bebeConforto160",
+      "maxcar200",
+      "macrocar300",
+      "pranchaJacare",
+      "compraKids",
+      "bebeJipinho",
+      "carrinhosQuebrados",
+      "carrinhosReserva",
+    ];
+
+    // ✅ 4) Total de cestinhas: cestinha + cestinhas de reserva
+    const IDS_TOTAL_CESTINHAS = [
+      "cestinha",
+      "cestinhasReserva",
+    ];
+
     let sessaoAtual = null;
 
     function soDigitos(str) { return String(str || "").replace(/[^\d]/g, ""); }
     function toInt(str) { const s = soDigitos(str); return s ? parseInt(s, 10) : 0; }
 
-    // ✅ Total do topo: somente contagem física (CAMPOS_CONTAGEM)
-    function atualizarTotal() {
-      const total = CAMPOS_CONTAGEM.reduce((acc, c) => acc + toInt(document.getElementById(c.id).value), 0);
-      document.getElementById("totalCarrinhos").textContent = String(total);
+    // ✅ Atualiza os dois totais do topo (Carrinhos e Cestinhas)
+    function atualizarTotais() {
+      const totalCarrinhos = IDS_TOTAL_CARRINHOS.reduce((acc, id) => acc + toInt(document.getElementById(id).value), 0);
+      const totalCestinhas = IDS_TOTAL_CESTINHAS.reduce((acc, id) => acc + toInt(document.getElementById(id).value), 0);
+
+      document.getElementById("totalCarrinhos").textContent = String(totalCarrinhos);
+      document.getElementById("totalCestinhas").textContent = String(totalCestinhas);
     }
 
     function aplicarMascaraSomenteNumero(inputEl) {
       inputEl.value = soDigitos(inputEl.value);
-      atualizarTotal();
+      atualizarTotais();
     }
 
     // ✅ Movimentação: sempre dígitos, sinal aplicado pelo select ENTRADA/SAIDA
@@ -556,7 +576,7 @@
     function aplicarMascaraMovQtd() {
       const el = document.getElementById(CAMPO_MOV.qtdId);
       el.value = soDigitos(el.value);
-      atualizarPillMov(); // não impacta o total
+      atualizarPillMov(); // não impacta os totais
     }
 
     async function obterSessaoDoBackend() {
@@ -597,18 +617,17 @@
       const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
       if (!dataLanc) return "Selecione a Data Contagem.";
 
-      // Contagem física: obrigatória
+      // Contagem física: obrigatória (todos os campos da tela)
       for (const c of CAMPOS_CONTAGEM) {
         const v = (document.getElementById(c.id).value || "").trim();
         if (v === "") return `Preencha: ${c.label}.`;
         if (!/^\d+$/.test(v)) return `Use somente números em: ${c.label}.`;
       }
 
-      // Movimentação: opcional (mas se preenchido, valida)
+      // ✅ 5) Movimentação: agora é OBRIGATÓRIO (como os demais)
       const movQtdRaw = (document.getElementById(CAMPO_MOV.qtdId).value || "").trim();
-      if (movQtdRaw !== "" && !/^\d+$/.test(movQtdRaw)) {
-        return `Use somente números em: ${CAMPO_MOV.label}.`;
-      }
+      if (movQtdRaw === "") return "Preencha: Movimentação de carrinhos (Qtd.).";
+      if (!/^\d+$/.test(movQtdRaw)) return `Use somente números em: ${CAMPO_MOV.label}.`;
 
       return "";
     }
@@ -640,27 +659,25 @@
       try {
         const dataISO = (document.getElementById("dataLancamento").value || "").trim();
 
-        // Contagens (contagem física)
+        // Contagens (tudo que é contagem física da tela, incluindo cestinhas/cadeiras/reservas/quebrados)
         const contagens = CAMPOS_CONTAGEM.reduce((acc, c) => {
           acc[c.key] = toInt(document.getElementById(c.id).value);
           return acc;
         }, {});
 
-        // Movimentação (vai com sinal, mas não entra no total do topo)
+        // Movimentação (obrigatória)
         const movQtd = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
         const movTipo = document.getElementById(CAMPO_MOV.tipoId).value;
         const movSigned = (movTipo === "SAIDA") ? -movQtd : +movQtd;
 
-        // NOVO: categoria do movimento (para o backend gravar na coluna S)
         const movCategoria = document.getElementById(CAMPO_MOV.categoriaId).value;
 
-        contagens[CAMPO_MOV.key] = movQtd ? movSigned : 0;
+        contagens[CAMPO_MOV.key] = movSigned;
 
-        // Payload: incluo movCategoria fora de contagens para ficar explícito no backend
         const payload = {
           dataLancamento: isoParaBR(dataISO),
           contagens,
-          movCategoria // <-- backend deve gravar na COLUNA S (ajuste em /api/carrinhos)
+          movCategoria
         };
 
         const resp = await fetch("/api/carrinhos", {
@@ -691,7 +708,7 @@
         document.getElementById(CAMPO_MOV.tipoId).value = "ENTRADA";
         document.getElementById(CAMPO_MOV.categoriaId).value = "MOVI_ENTRE_LOJAS";
 
-        atualizarTotal();
+        atualizarTotais();
         atualizarPillMov();
 
       } catch (e) {
@@ -703,9 +720,7 @@
     }
 
     /* =========================
-       IMAGENS (Data URI SVG)
-       - Reserva (P/Q)
-       - Ícones de títulos (movimentação / especiais / reservas)
+       Ícones (Data URI SVG) + Reservas (URLs)
        ========================= */
     function svgDataUri(svg) {
       return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
@@ -727,27 +742,14 @@
     }
 
     function setIconsAndReserveImages() {
-      // Títulos
+      // Ícones dos títulos (mantidos em SVG)
       document.getElementById("icoMov").src = svgDataUri(svgBadge("🔁"));
       document.getElementById("icoEspeciais").src = svgDataUri(svgBadge("🧩"));
       document.getElementById("icoReserva").src = svgDataUri(svgBadge("📦"));
 
-      // Campos Reserva (P/Q)
-      const baseStyle = (emoji, title) => `
-        <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-          <defs>
-            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#f7f8ff"/>
-              <stop offset="1" stop-color="#e0e3ff"/>
-            </linearGradient>
-          </defs>
-          <rect x="6" y="6" width="116" height="116" rx="18" fill="url(#g2)" stroke="#e6e6e6" stroke-width="3"/>
-          <text x="64" y="74" text-anchor="middle" font-size="56">${emoji}</text>
-          <text x="64" y="104" text-anchor="middle" font-size="14" font-family="Arial" font-weight="700" fill="#111">${title}</text>
-        </svg>
-      `;
-      document.getElementById("imgCarrinhosReserva").src = svgDataUri(baseStyle("🛒", "Reserva"));
-      document.getElementById("imgCestinhasReserva").src = svgDataUri(baseStyle("🧺", "Reserva"));
+      // ✅ Troca dos ícones de Reservas pelos links informados
+      document.getElementById("imgCarrinhosReserva").src = "https://i.ibb.co/Hfxhc3ff/file-00000000d2e4720e951cb0a4bdb65b70.png";
+      document.getElementById("imgCestinhasReserva").src = "https://i.ibb.co/prxcgT8L/file-00000000ce88720e9b15f9e9545c779c.png";
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -758,17 +760,17 @@
       // Ícones + imagens
       setIconsAndReserveImages();
 
-      // Inputs: contagem física
+      // Inputs: contagem física (atualiza totais)
       CAMPOS_CONTAGEM.forEach(c => {
         const el = document.getElementById(c.id);
         el.addEventListener("input", () => aplicarMascaraSomenteNumero(el));
       });
 
-      // Inputs: movimentação (não impacta total)
+      // Inputs: movimentação (obrigatória, não impacta totais)
       document.getElementById(CAMPO_MOV.qtdId).addEventListener("input", aplicarMascaraMovQtd);
       document.getElementById(CAMPO_MOV.tipoId).addEventListener("change", atualizarPillMov);
 
-      atualizarTotal();
+      atualizarTotais();
       atualizarPillMov();
 
       // Sessão
@@ -795,11 +797,9 @@
   </script>
 
   <!-- Fontes confiáveis -->
-  <!-- Grid/Flexbox: https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox -->
   <!-- CSS Grid: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout -->
-  <!-- input + select: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input -->
+  <!-- HTML required (validação): https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/required -->
   <!-- fetch + credentials/cookies: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
   <!-- Data URI (SVG): https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs -->
-  <!-- encodeURIComponent: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent -->
 </body>
 </html>
