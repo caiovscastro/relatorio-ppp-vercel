@@ -1,8 +1,8 @@
 // /api/carrinhos-listar.js
 //
-// Lê registros da aba CARRINHOS (A:O) e retorna para o dashboard.
+// Lê registros da aba CARRINHOS (A:S) e retorna para o dashboard.
 //
-// Colunas (A..O):
+// Colunas (A..S):
 // A: Data/Hora da rede (servidor - São Paulo)  -> string (ex: "06/01/2026 10:22:33")
 // B: Loja (da sessão no lançamento)            -> string
 // C: Usuário (da sessão no lançamento)         -> string
@@ -16,8 +16,12 @@
 // K: Compra Kids                               -> int
 // L: Bebê Jipinho                              -> int
 // M: Cestinha                                  -> int
-// N: Cadeira Rodas                             -> int
+// N: Cadeira de rodas                          -> int
 // O: Carrinhos Quebrados                       -> int
+// P: Carrinhos reserva                         -> int
+// Q: Cestinhas reserva                         -> int
+// R: Quantidade de movimentação                -> int com sinal (pode ser negativo)
+// S: Motivo                                    -> string
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -42,17 +46,26 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
-// Converte valor em inteiro >= 0, truncando decimais e tratando inválidos como 0
+// Converte valor em inteiro >= 0, truncando decimais e tratando inválidos como 0 (para contagens)
 function asIntSafe(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.trunc(n));
 }
 
+// Converte valor em inteiro COM SINAL, truncando decimais e tratando inválidos como 0 (para movimentação - coluna R)
+function asIntSignedSafe(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.trunc(n);
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
-    return res.status(405).json({ sucesso: false, message: "Método não permitido. Use GET." });
+    return res
+      .status(405)
+      .json({ sucesso: false, message: "Método não permitido. Use GET." });
   }
 
   // Sessão + perfis permitidos
@@ -69,10 +82,10 @@ export default async function handler(req, res) {
   try {
     const sheets = await getSheetsClient();
 
-    // ✅ Ajuste: agora busca A:O (15 colunas)
+    // ✅ Ajuste: agora busca A:S (19 colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "CARRINHOS!A:O",
+      range: "CARRINHOS!A:S",
       valueRenderOption: "UNFORMATTED_VALUE",
       dateTimeRenderOption: "FORMATTED_STRING",
     });
@@ -92,22 +105,33 @@ export default async function handler(req, res) {
     for (let i = startIndex; i < values.length; i++) {
       const row = values[i] || [];
 
-      // ✅ Garante 15 colunas (A..O) para evitar "undefined" em linhas incompletas
-      while (row.length < 15) row.push("");
+      // ✅ Garante 19 colunas (A..S) para evitar "undefined" em linhas incompletas
+      while (row.length < 19) row.push("");
 
       const dataHoraRede = String(row[0] ?? "").trim(); // A
       const loja         = String(row[1] ?? "").trim(); // B
       const usuario      = String(row[2] ?? "").trim(); // C
-      const dataContagem = String(row[3] ?? "").trim(); // D (DD/MM/AAAA)
+      const dataContagem = String(row[3] ?? "").trim(); // D
+
+      // ✅ Coluna S (Motivo)
+      const motivo = String(row[18] ?? "").trim();
 
       // Monta o registro no formato esperado pelo dashboard:
-      // - contagens.* como inteiros >= 0
-      // - ✅ remove "mini" (não existe mais na tela/dash)
+      // - contagens.* como inteiros (contagens sempre >=0)
+      // - contagens.movCarrinhos (R) pode ser negativo
+      // - motivo também vai no topo para facilitar no front (getMotivo)
       const rec = {
         dataHoraRede,
         loja,
         usuario,
         dataContagem,
+
+        // ✅ (S) Motivo (mantido no topo)
+        motivo,
+
+        // ✅ (S) também exposto com outro nome, para compatibilidade com o front atual (getMotivo)
+        movCategoria: motivo,
+
         contagens: {
           duplocar120:        asIntSafe(row[4]),   // E
           grande160:          asIntSafe(row[5]),   // F
@@ -120,7 +144,12 @@ export default async function handler(req, res) {
           cestinha:           asIntSafe(row[12]),  // M
           cadeiraRodas:       asIntSafe(row[13]),  // N
           carrinhosQuebrados: asIntSafe(row[14]),  // O
-        }
+          carrinhosReserva:   asIntSafe(row[15]),  // P
+          cestinhasReserva:   asIntSafe(row[16]),  // Q
+
+          // ✅ (R) Quantidade de movimentação (pode ser negativa)
+          movCarrinhos:       asIntSignedSafe(row[17]), // R
+        },
       };
 
       // Descarta linhas totalmente vazias
