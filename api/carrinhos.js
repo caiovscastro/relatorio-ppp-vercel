@@ -2,11 +2,13 @@
 //
 // Grava contagem de carrinhos na aba CARRINHOS do Google Sheets.
 //
-// Colunas:
+// Colunas (A..S):
 // A: Data/Hora da rede (servidor - São Paulo)
 // B: Loja (da sessão)
 // C: Usuário (da sessão)
 // D: Data Contagem (formato "DD/MM/AAAA")
+//
+// Tipos / contagens (E em diante):
 // E: Duplocar 120L
 // F: Grande 160L
 // G: Bebê conforto 160L
@@ -18,6 +20,12 @@
 // M: Cestinha
 // N: Cadeira de rodas
 // O: Carrinhos Quebrados
+//
+// ✅ NOVOS CAMPOS (a partir da última coluna em uso: O)
+// P: Carrinhos de reserva
+// Q: Cestinhas de reserva
+// R: Carrinhos reservados (separado do disponível ao cliente)
+// S: Cestinhas reservadas (separado do disponível ao cliente)
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -106,7 +114,8 @@ export default async function handler(req, res) {
     }
 
     /*
-      ✅ MAPEAMENTO (E..O) - todos obrigatórios
+      ✅ MAPEAMENTO (E..S) - todos obrigatórios
+
       E  duplocar120
       F  grande160
       G  bebeConforto160
@@ -118,22 +127,32 @@ export default async function handler(req, res) {
       M  cestinha
       N  cadeiraRodas
       O  carrinhosQuebrados
+
+      ✅ NOVOS (P..S)
+      P  carrinhosReserva
+      Q  cestinhasReserva
+      R  carrinhosReservados
+      S  cestinhasReservadas
     */
-    const duplocar120        = asIntObrigatorio(contagens.duplocar120);
-    const grande160          = asIntObrigatorio(contagens.grande160);
-    const bebeConforto160    = asIntObrigatorio(contagens.bebeConforto160);
-    const maxcar200          = asIntObrigatorio(contagens.maxcar200);
-    const macrocar300        = asIntObrigatorio(contagens.macrocar300);
-    const pranchaJacare      = asIntObrigatorio(contagens.pranchaJacare);
-    const compraKids         = asIntObrigatorio(contagens.compraKids);
-    const bebeJipinho        = asIntObrigatorio(contagens.bebeJipinho);
-    const cestinha           = asIntObrigatorio(contagens.cestinha);
+    const duplocar120         = asIntObrigatorio(contagens.duplocar120);
+    const grande160           = asIntObrigatorio(contagens.grande160);
+    const bebeConforto160     = asIntObrigatorio(contagens.bebeConforto160);
+    const maxcar200           = asIntObrigatorio(contagens.maxcar200);
+    const macrocar300         = asIntObrigatorio(contagens.macrocar300);
+    const pranchaJacare       = asIntObrigatorio(contagens.pranchaJacare);
+    const compraKids          = asIntObrigatorio(contagens.compraKids);
+    const bebeJipinho         = asIntObrigatorio(contagens.bebeJipinho);
+    const cestinha            = asIntObrigatorio(contagens.cestinha);
+    const cadeiraRodas        = asIntObrigatorio(contagens.cadeiraRodas);
+    const carrinhosQuebrados  = asIntObrigatorio(contagens.carrinhosQuebrados);
 
-    // ✅ NOVOS (N e O)
-    const cadeiraRodas       = asIntObrigatorio(contagens.cadeiraRodas);
-    const carrinhosQuebrados = asIntObrigatorio(contagens.carrinhosQuebrados);
+    // ✅ NOVOS (P..S)
+    const carrinhosReserva     = asIntObrigatorio(contagens.carrinhosReserva);
+    const cestinhasReserva     = asIntObrigatorio(contagens.cestinhasReserva);
+    const carrinhosReservados  = asIntObrigatorio(contagens.carrinhosReservados);
+    const cestinhasReservadas  = asIntObrigatorio(contagens.cestinhasReservadas);
 
-    // Todos obrigatórios (incluindo N e O)
+    // Todos obrigatórios (incluindo os novos)
     const obrigatorios = [
       duplocar120,
       grande160,
@@ -146,6 +165,10 @@ export default async function handler(req, res) {
       cestinha,
       cadeiraRodas,
       carrinhosQuebrados,
+      carrinhosReserva,
+      cestinhasReserva,
+      carrinhosReservados,
+      cestinhasReservadas,
     ];
 
     if (obrigatorios.some((v) => v === null)) {
@@ -172,31 +195,38 @@ export default async function handler(req, res) {
     const dtRede = nowSaoPaulo();
     const dataHoraRede = formatarDataHoraBR(dtRede);
 
-    // Linha a gravar (A..O)
+    // Linha a gravar (A..S)
     const values = [[
-      dataHoraRede,       // A
-      loja,               // B
-      usuario,            // C
-      dataLancamento,     // D (DD/MM/AAAA)
-      duplocar120,        // E
-      grande160,          // F
-      bebeConforto160,    // G
-      maxcar200,          // H
-      macrocar300,        // I
-      pranchaJacare,      // J
-      compraKids,         // K
-      bebeJipinho,        // L
-      cestinha,           // M
-      cadeiraRodas,       // N
-      carrinhosQuebrados  // O
+      dataHoraRede,          // A
+      loja,                  // B
+      usuario,               // C
+      dataLancamento,        // D (DD/MM/AAAA)
+
+      duplocar120,           // E
+      grande160,             // F
+      bebeConforto160,       // G
+      maxcar200,             // H
+      macrocar300,           // I
+      pranchaJacare,         // J
+      compraKids,            // K
+      bebeJipinho,           // L
+      cestinha,              // M
+      cadeiraRodas,          // N
+      carrinhosQuebrados,    // O
+
+      // ✅ NOVOS (P..S)
+      carrinhosReserva,      // P
+      cestinhasReserva,      // Q
+      carrinhosReservados,   // R
+      cestinhasReservadas,   // S
     ]];
 
     const sheets = await getSheetsClient();
 
-    // ✅ Range atualizado para A:O
+    // ✅ Range atualizado para A:S
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "CARRINHOS!A:O",
+      range: "CARRINHOS!A:S",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values },
@@ -219,6 +249,6 @@ export default async function handler(req, res) {
 /*
   Fontes confiáveis:
   - Google Sheets API (append values): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
-  - JWT auth googleapis: https://github.com/googleapis/google-api-nodejs-client
-  - Date + timeZone: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
+  - google-api-nodejs-client (JWT auth / Sheets): https://github.com/googleapis/google-api-nodejs-client
+  - Date + timeZone (toLocaleString): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
 */
