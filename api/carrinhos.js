@@ -2,7 +2,7 @@
 //
 // Grava contagem de carrinhos na aba CARRINHOS do Google Sheets.
 //
-// Colunas (A..S):
+// ✅ NOVO MODELO (A..R):
 // A: Data/Hora da rede (servidor - São Paulo)
 // B: Loja (da sessão)
 // C: Usuário (da sessão)
@@ -21,11 +21,18 @@
 // N: Cadeira de rodas
 // O: Carrinhos Quebrados
 //
-// ✅ NOVOS CAMPOS (a partir da última coluna em uso: O)
+// ✅ Reservas (mantidos):
 // P: Carrinhos de reserva
 // Q: Cestinhas de reserva
-// R: Carrinhos reservados (separado do disponível ao cliente)
-// S: Cestinhas reservadas (separado do disponível ao cliente)
+//
+// ✅ Movimentação (NOVO):
+// R: Movimentação de carrinhos (entrada positivo / saída negativo)
+//    - Vem do front como contagens.movCarrinhos
+//    - NÃO é contagem física, é ajuste de rastreabilidade
+//
+// ❌ Removidos do modelo:
+// S: Carrinhos reservados
+// T: Cestinhas reservadas
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -64,16 +71,23 @@ function isBRDateDDMMAAAA(s) {
   if (yyyy < 2000 || yyyy > 2100) return false;
   if (mm < 1 || mm > 12) return false;
 
-  const maxDia = new Date(yyyy, mm, 0).getDate(); // último dia do mês
+  const maxDia = new Date(yyyy, mm, 0).getDate();
   if (dd < 1 || dd > maxDia) return false;
 
   return true;
 }
 
-// Converte e valida inteiro obrigatório (>=0, sem decimal)
-function asIntObrigatorio(v) {
+// Inteiro obrigatório (>=0, sem decimal) — usado para CONTAGEM
+function asIntObrigatorioNaoNegativo(v) {
   const n = Number(v);
   if (!Number.isFinite(n) || n < 0 || !Number.isInteger(n)) return null;
+  return n;
+}
+
+// Inteiro obrigatório (pode ser negativo) — usado para MOVIMENTAÇÃO
+function asIntObrigatorioComSinal(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n) || !Number.isInteger(n)) return null;
   return n;
 }
 
@@ -94,7 +108,7 @@ export default async function handler(req, res) {
 
   // Sessão + perfis permitidos
   const session = requireSession(req, res, { allowedProfiles: PERFIS_PERMITIDOS });
-  if (!session) return; // requireSession já responde 401/403
+  if (!session) return;
 
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
@@ -114,7 +128,7 @@ export default async function handler(req, res) {
     }
 
     /*
-      ✅ MAPEAMENTO (E..S) - todos obrigatórios
+      ✅ MAPEAMENTO (E..R)
 
       E  duplocar120
       F  grande160
@@ -127,32 +141,34 @@ export default async function handler(req, res) {
       M  cestinha
       N  cadeiraRodas
       O  carrinhosQuebrados
-
-      ✅ NOVOS (P..S)
       P  carrinhosReserva
       Q  cestinhasReserva
-      R  carrinhosReservados
-      S  cestinhasReservadas
+      R  movCarrinhos   (pode ser negativo)
     */
-    const duplocar120         = asIntObrigatorio(contagens.duplocar120);
-    const grande160           = asIntObrigatorio(contagens.grande160);
-    const bebeConforto160     = asIntObrigatorio(contagens.bebeConforto160);
-    const maxcar200           = asIntObrigatorio(contagens.maxcar200);
-    const macrocar300         = asIntObrigatorio(contagens.macrocar300);
-    const pranchaJacare       = asIntObrigatorio(contagens.pranchaJacare);
-    const compraKids          = asIntObrigatorio(contagens.compraKids);
-    const bebeJipinho         = asIntObrigatorio(contagens.bebeJipinho);
-    const cestinha            = asIntObrigatorio(contagens.cestinha);
-    const cadeiraRodas        = asIntObrigatorio(contagens.cadeiraRodas);
-    const carrinhosQuebrados  = asIntObrigatorio(contagens.carrinhosQuebrados);
 
-    // ✅ NOVOS (P..S)
-    const carrinhosReserva     = asIntObrigatorio(contagens.carrinhosReserva);
-    const cestinhasReserva     = asIntObrigatorio(contagens.cestinhasReserva);
-    const carrinhosReservados  = asIntObrigatorio(contagens.carrinhosReservados);
-    const cestinhasReservadas  = asIntObrigatorio(contagens.cestinhasReservadas);
+    // CONTAGEM (não-negativo)
+    const duplocar120        = asIntObrigatorioNaoNegativo(contagens.duplocar120);
+    const grande160          = asIntObrigatorioNaoNegativo(contagens.grande160);
+    const bebeConforto160    = asIntObrigatorioNaoNegativo(contagens.bebeConforto160);
+    const maxcar200          = asIntObrigatorioNaoNegativo(contagens.maxcar200);
+    const macrocar300        = asIntObrigatorioNaoNegativo(contagens.macrocar300);
+    const pranchaJacare      = asIntObrigatorioNaoNegativo(contagens.pranchaJacare);
+    const compraKids         = asIntObrigatorioNaoNegativo(contagens.compraKids);
+    const bebeJipinho        = asIntObrigatorioNaoNegativo(contagens.bebeJipinho);
+    const cestinha           = asIntObrigatorioNaoNegativo(contagens.cestinha);
+    const cadeiraRodas       = asIntObrigatorioNaoNegativo(contagens.cadeiraRodas);
+    const carrinhosQuebrados = asIntObrigatorioNaoNegativo(contagens.carrinhosQuebrados);
+    const carrinhosReserva   = asIntObrigatorioNaoNegativo(contagens.carrinhosReserva);
+    const cestinhasReserva   = asIntObrigatorioNaoNegativo(contagens.cestinhasReserva);
 
-    // Todos obrigatórios (incluindo os novos)
+    // MOVIMENTAÇÃO (inteiro com sinal)
+    // ✅ Se o front mandar 0/""/undefined, vira 0 (aceito)
+    const movCarrinhosRaw = (contagens.movCarrinhos === "" || contagens.movCarrinhos === undefined || contagens.movCarrinhos === null)
+      ? 0
+      : contagens.movCarrinhos;
+
+    const movCarrinhos = asIntObrigatorioComSinal(movCarrinhosRaw);
+
     const obrigatorios = [
       duplocar120,
       grande160,
@@ -167,14 +183,13 @@ export default async function handler(req, res) {
       carrinhosQuebrados,
       carrinhosReserva,
       cestinhasReserva,
-      carrinhosReservados,
-      cestinhasReservadas,
+      movCarrinhos, // pode ser negativo, mas não pode ser NaN / decimal
     ];
 
     if (obrigatorios.some((v) => v === null)) {
       return res.status(400).json({
         sucesso: false,
-        message: "Preencha todas as contagens com números inteiros (sem ponto e sem vírgula).",
+        message: "Preencha as contagens com números inteiros (sem ponto e sem vírgula). Movimentação pode ser negativa.",
       });
     }
 
@@ -195,38 +210,37 @@ export default async function handler(req, res) {
     const dtRede = nowSaoPaulo();
     const dataHoraRede = formatarDataHoraBR(dtRede);
 
-    // Linha a gravar (A..S)
+    // Linha a gravar (A..R)
     const values = [[
-      dataHoraRede,          // A
-      loja,                  // B
-      usuario,               // C
-      dataLancamento,        // D (DD/MM/AAAA)
+      dataHoraRede,       // A
+      loja,               // B
+      usuario,            // C
+      dataLancamento,     // D
 
-      duplocar120,           // E
-      grande160,             // F
-      bebeConforto160,       // G
-      maxcar200,             // H
-      macrocar300,           // I
-      pranchaJacare,         // J
-      compraKids,            // K
-      bebeJipinho,           // L
-      cestinha,              // M
-      cadeiraRodas,          // N
-      carrinhosQuebrados,    // O
+      duplocar120,        // E
+      grande160,          // F
+      bebeConforto160,    // G
+      maxcar200,          // H
+      macrocar300,        // I
+      pranchaJacare,      // J
+      compraKids,         // K
+      bebeJipinho,        // L
+      cestinha,           // M
+      cadeiraRodas,       // N
+      carrinhosQuebrados, // O
 
-      // ✅ NOVOS (P..S)
-      carrinhosReserva,      // P
-      cestinhasReserva,      // Q
-      carrinhosReservados,   // R
-      cestinhasReservadas,   // S
+      carrinhosReserva,   // P
+      cestinhasReserva,   // Q
+
+      movCarrinhos,       // R (entrada + / saída -)
     ]];
 
     const sheets = await getSheetsClient();
 
-    // ✅ Range atualizado para A:S
+    // ✅ Range atualizado para A:R
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "CARRINHOS!A:S",
+      range: "CARRINHOS!A:R",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values },
