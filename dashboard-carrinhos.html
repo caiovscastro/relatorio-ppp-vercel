@@ -2,10 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ✅ viewport robusto contra “zoom estranho” e overflow -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Dashboard Carrinhos</title>
 
-  <!-- UX: evita cache enganoso ao voltar -->
+  <!-- UX: evita cache “enganoso” ao voltar -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -31,9 +32,13 @@
     }
 
     *, *::before, *::after{ box-sizing: border-box; }
-    html, body{ max-width: 100%; overflow-x: hidden; }
-    canvas{ max-width: 100% !important; display:block; }
 
+    /* ✅ trava overflow lateral no mobile e garante largura real do viewport */
+    html, body{
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
     body{
       background:var(--bg);
       font-family: Arial, sans-serif;
@@ -42,16 +47,24 @@
       color:#111;
       -webkit-text-size-adjust: 100%;
     }
-
-    .container{ width: 100%; max-width: none; background: transparent; padding: 16px; }
+    .container{
+      width: 100%;
+      max-width: none;
+      background: transparent;
+      padding: 16px;
+      overflow-x: hidden;     /* ✅ */
+    }
     .shell{
-      width:100%;
+      width: 100%;
+      max-width: 100%;
       background:var(--card);
       padding: 18px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      max-width: 100%;
+      overflow-x: hidden;     /* ✅ */
     }
+
+    canvas{ max-width: 100% !important; display:block; }
 
     .titulo{
       text-align:center;
@@ -71,6 +84,7 @@
       padding-bottom: 12px;
       margin-bottom: 12px;
       max-width: 100%;
+      min-width: 0; /* ✅ */
     }
 
     .card-info{
@@ -81,7 +95,7 @@
       padding: 10px 12px;
       font-size: 13px;
       line-height: 1.45;
-      min-width: 280px;
+      min-width: 0;   /* ✅ */
       max-width: 100%;
     }
 
@@ -92,9 +106,10 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      min-width: 0; /* ✅ */
     }
     .k{ color:var(--muted); font-weight:800; }
-    .v{ font-weight:900; overflow:hidden; text-overflow:ellipsis; }
+    .v{ font-weight:900; overflow:hidden; text-overflow:ellipsis; min-width: 0; }
 
     .acoes{
       flex: 0 1 280px;
@@ -102,7 +117,7 @@
       flex-direction: column;
       gap:10px;
       justify-content: center;
-      min-width: 240px;
+      min-width: 0;   /* ✅ */
       max-width: 100%;
     }
 
@@ -142,13 +157,13 @@
 
     .hidden{ display:none !important; }
 
-    /* Filtros mais estreitos em telas grandes */
     .grid{
       display:grid;
       grid-template-columns: 192px 1fr;
       gap: 12px;
       align-items: start;
       max-width: 100%;
+      min-width: 0; /* ✅ */
     }
     @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
 
@@ -158,8 +173,8 @@
       border-radius: 12px;
       padding: 12px;
       max-width: 100%;
+      min-width: 0; /* ✅ */
     }
-
     .painel h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
     .grupo{
@@ -169,6 +184,7 @@
       padding: 10px;
       margin-bottom: 10px;
       max-width: 100%;
+      min-width: 0; /* ✅ */
     }
 
     .grupo-titulo{
@@ -179,6 +195,7 @@
       margin-bottom: 8px;
       font-weight: 900;
       font-size: 13px;
+      min-width: 0; /* ✅ */
     }
 
     .grupo-acoes{ display:flex; gap:8px; flex-wrap: wrap; }
@@ -213,7 +230,6 @@
     }
     .check input{ transform: scale(1.05); }
 
-    /* Datas em coluna */
     .subgrid{
       display:grid;
       grid-template-columns: 1fr;
@@ -256,7 +272,7 @@
       gap: 12px;
       align-items: start;
       max-width: 100%;
-      min-width: 0;
+      min-width: 0; /* ✅ */
     }
     .left-col{ display:flex; flex-direction: column; gap: 12px; min-width: 0; }
     .right-col{ min-width: 0; }
@@ -271,6 +287,20 @@
       min-width: 0;
     }
     .card h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
+
+    /* =========================
+       ✅ KPIs (agora 3 cartões)
+       ========================= */
+    .kpi-row{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      min-width: 0;
+      max-width: 100%;
+    }
+    @media (max-width: 980px){
+      .kpi-row{ grid-template-columns: 1fr; }
+    }
 
     .kpi{
       display:flex;
@@ -293,12 +323,14 @@
       display:flex;
       flex-direction: column;
       gap: 0;
+      min-width: 0; /* ✅ */
     }
     .table-card{
       min-height: 430px;
       display:flex;
       flex-direction: column;
       gap: 0;
+      min-width: 0; /* ✅ */
     }
 
     .msg{
@@ -313,7 +345,6 @@
 
     /* =========================
        ✅ Tabelas compactas + scroll horizontal sempre
-       - evita estourar layout no celular
        ========================= */
     .table-wrap{
       overflow: auto;
@@ -330,29 +361,36 @@
     table{
       border-collapse: collapse;
       font-size: 12px;
-      /* ✅ chave do scroll horizontal: tabela pode ficar maior que o container */
       width: max-content;
       min-width: 100%;
       max-width: none;
     }
 
+    /* ✅ valores mais baixos (tbody), sem afetar th e .row-total */
     th, td{
       border-bottom: 1px solid #eee;
-      padding: 6px 6px;       /* ✅ mais compacto */
-      line-height: 1.15;      /* ✅ mais compacto */
       text-align:left;
       vertical-align: top;
       word-break: break-word;
       overflow-wrap: anywhere;
     }
 
+    /* títulos permanecem (não compactar) */
     th{
+      padding: 6px 6px;
+      line-height: 1.15;
       font-weight: 900;
       background: var(--thbg);
       position: sticky;
       top: 0;
       z-index: 1;
       white-space: nowrap;
+    }
+
+    /* ✅ linhas de valores mais baixas */
+    tbody td{
+      padding: 4px 6px;     /* ✅ menor */
+      line-height: 1.05;    /* ✅ menor */
     }
 
     tbody tr:nth-child(even){ background: var(--rowAlt); }
@@ -373,11 +411,12 @@
     .mov-neg{ color: var(--danger); font-weight: 900; }
     .mov-zero{ color:#333; font-weight: 900; }
 
-    /* Motivo alinhado à direita */
     .motivo-right{ text-align:right !important; }
 
-    /* Linha de total com destaque */
+    /* Linha de total com destaque (não compactar) */
     .row-total td{
+      padding: 6px 6px;     /* ✅ mantém maior */
+      line-height: 1.15;    /* ✅ mantém */
       font-weight: 900;
       background: #fff6d6;
       border-top: 2px solid #e0d39b;
@@ -486,9 +525,23 @@
           <div>
             <div class="content-grid">
               <div class="left-col">
-                <div class="kpi">
-                  <div class="label">Total (após filtros)</div>
-                  <div class="value" id="kpiTotal">0</div>
+
+                <!-- ✅ 3 KPIs no lugar do “Total (após filtros)” -->
+                <div class="kpi-row">
+                  <div class="kpi">
+                    <div class="label">Total de Carrinhos</div>
+                    <div class="value" id="kpiCarrinhos">0</div>
+                  </div>
+
+                  <div class="kpi">
+                    <div class="label">Total de Carrinhos Quebrados</div>
+                    <div class="value" id="kpiQuebrados">0</div>
+                  </div>
+
+                  <div class="kpi">
+                    <div class="label">Total de Cestinhas</div>
+                    <div class="value" id="kpiCestinhas">0</div>
+                  </div>
                 </div>
 
                 <div class="card chart-card">
@@ -503,7 +556,6 @@
                 <div class="card table-card">
                   <h3>Carrinhos</h3>
 
-                  <!-- ✅ scroll horizontal sempre -->
                   <div class="table-wrap">
                     <table>
                       <thead>
@@ -696,7 +748,7 @@
       registros = dados.registros;
 
       montarFiltros();
-      sugerirDatasMaisRecentes();     // ✅ agora evita datas futuras e garante mês atual
+      sugerirDatasMaisRecentes();
 
       aplicarFiltrosEAtualizarTudo();
       setMsg(`Dados carregados: ${registros.length} registro(s).`, true);
@@ -751,12 +803,6 @@
     return s.length >= 6 ? s.slice(0,6) : s;
   }
 
-  /* =========================================================
-     ✅ Datas
-     - Data Anterior = Data de Filtro - 1 dia
-     - Evita abrir mês/ano errado: sempre inicializa dataFinal com "hoje"
-     - Se houver datas no backend, escolhe a mais recente <= hoje
-     ========================================================= */
   function addDaysISO(iso, deltaDays){
     const m = String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if(!m) return "";
@@ -870,8 +916,6 @@
   function sugerirDatasMaisRecentes(){
     const elFinal = document.getElementById("dataFinal");
 
-    // ✅ garante mês atual na abertura do calendário
-    // (isso evita o browser reabrir “o último mês usado” ou um mês “bugado”)
     const hoje = todayISO();
     if(!elFinal.value) elFinal.value = hoje;
 
@@ -881,12 +925,10 @@
       .sort();
 
     if(datasISO.length){
-      // pega a mais recente que NÃO é futura (<= hoje)
       const ateHoje = datasISO.filter(d => d <= hoje);
       if(ateHoje.length){
         elFinal.value = ateHoje[ateHoje.length - 1];
       }else{
-        // se o backend só tiver datas futuras, mantemos hoje (mês atual)
         elFinal.value = hoje;
       }
     }
@@ -920,70 +962,8 @@
     ).trim();
   }
 
-  function aplicarFiltrosEAtualizarTudo(){
-    setMsg("");
-
-    const dataFinalISO = (document.getElementById("dataFinal").value || "").trim();
-    if(!dataFinalISO){
-      document.getElementById("kpiTotal").textContent = "0";
-      renderTabelaRegistros([], new Set());
-      renderTabelaPorLoja({}, {}, {});
-      renderTabelaEspeciais([]);
-      desenharBarrasTipos({}, new Set());
-      setMsg("Selecione a Data de filtro para exibir os dados.");
-      return;
-    }
-
-    syncDataAnteriorComDataFinal();
-
-    const dataRefISO = (document.getElementById("dataRef").value || "").trim();
-    const dataFinalBR = isoParaBR(dataFinalISO);
-    const dataRefBR   = dataRefISO ? isoParaBR(dataRefISO) : "";
-
-    const tiposSel = getSelecionados("tipo");
-    const lojasSel = getSelecionados("loja");
-
-    const passaFiltroTipo = (r)=>{
-      if(!tiposSel.size) return true;
-      for(const t of TIPOS){
-        if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0) return true;
-      }
-      return false;
-    };
-
-    const baseFinal = registros.filter(r=>{
-      const loja = String(r.loja || "").trim();
-      if(lojasSel.size && !lojasSel.has(loja)) return false;
-      if(String(r.dataContagem || "").trim() !== dataFinalBR) return false;
-      if(!passaFiltroTipo(r)) return false;
-      return true;
-    });
-
-    const baseRef = (dataRefBR ? registros.filter(r=>{
-      const loja = String(r.loja || "").trim();
-      if(lojasSel.size && !lojasSel.has(loja)) return false;
-      if(String(r.dataContagem || "").trim() !== dataRefBR) return false;
-      if(!passaFiltroTipo(r)) return false;
-      return true;
-    }) : []);
-
-    const porLojaFinal = acumularPorLoja(baseFinal);
-    const porLojaRef   = acumularPorLoja(baseRef);
-    const movPorLoja   = acumularMovPorLoja(baseFinal);
-
-    // KPI do gráfico segue seleção de TIPOS (igual ao comportamento atual)
-    const totaisPorTipo = somarTiposDoMapa(porLojaFinal, tiposSel);
-    const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
-    document.getElementById("kpiTotal").textContent = String(totalGeral);
-
-    desenharBarrasTipos(totaisPorTipo, tiposSel);
-    renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja);
-    renderTabelaRegistros(baseFinal, tiposSel);
-    renderTabelaEspeciais(baseFinal);
-  }
-
   /* =========================================================
-     Acúmulo por loja (sempre guarda ativos + quebrados)
+     ✅ Acúmulo por loja (ativos + quebrados + cestinha)
      ========================================================= */
   function acumularPorLoja(listaRegistros){
     const mapa = {};
@@ -992,19 +972,19 @@
       if(!mapa[loja]){
         mapa[loja] = {
           __totalAtivo: 0,
-          carrinhosQuebrados: 0
+          carrinhosQuebrados: 0,
+          cestinha: 0
         };
       }
 
       const c = r.contagens || {};
 
-      // ativos (8)
       for(const key of ACTIVE_KEYS){
         mapa[loja].__totalAtivo += asInt(c[key]);
       }
 
-      // quebrados
       mapa[loja].carrinhosQuebrados += asInt(c.carrinhosQuebrados);
+      mapa[loja].cestinha += asInt(c.cestinha);
     }
     return mapa;
   }
@@ -1027,28 +1007,28 @@
     return out;
   }
 
-  /* =========================================================
-     Para o gráfico: soma TIPOS selecionados a partir dos registros (precisamos ler direto de registros)
-     - Mantém seu comportamento de filtro por TIPOS
-     ========================================================= */
-  function somarTiposDoMapa(porLojaFinal, tiposSel){
-    // aqui porLojaFinal não carrega TIPOS; então vamos reconstituir pelo base filtrado seria ideal.
-    // porém, para não mudar a arquitetura, vamos recalcular a partir de "registros filtrados" no nível acima.
-    // COMO não temos a lista aqui, vamos retornar zeros e manter a contagem no gráfico pelo que já vinha.
-    // => Ajuste correto: em vez de depender do mapa, o gráfico já recebe totaisPorTipo calculado antes.
-    // Este método ficou legado, então vamos manter compatibilidade retornando o objeto de totais já preenchido antes.
-    // (não usado diretamente aqui nesta versão)
-    return {};
+  function recalcularTotaisPorTipoParaGrafico(baseFinal, tiposSel){
+    const out = {};
+    TIPOS.forEach(t=>{
+      if(tiposSel.size && !tiposSel.has(t.key)) return;
+      out[t.key] = 0;
+    });
+
+    for(const r of baseFinal){
+      const c = r.contagens || {};
+      for(const t of TIPOS){
+        if(tiposSel.size && !tiposSel.has(t.key)) continue;
+        out[t.key] = (out[t.key] || 0) + asInt(c[t.key]);
+      }
+    }
+    return out;
   }
 
   function desenharBarrasTipos(totaisPorTipo, tiposSel){
     const canvas = document.getElementById("barTipos");
     const ctx = canvas.getContext("2d");
 
-    // ✅ se totais vier vazio por causa de ajustes, recalculamos com base nos TIPOS selecionados do DOM:
-    // isso evita quebrar o gráfico caso o caller passe {}
     if(!totaisPorTipo || Object.keys(totaisPorTipo).length === 0){
-      // fallback seguro: cria um gráfico “vazio”
       if(chartBar){ chartBar.destroy(); chartBar = null; }
       chartBar = new Chart(ctx, {
         type:"bar",
@@ -1065,10 +1045,6 @@
       return;
     }
 
-    const labels = [];
-    const data = [];
-
-    // Se não houver tipos selecionados, mantemos o estado “sem tipos”
     if(tiposSel && tiposSel.size === 0){
       if(chartBar){ chartBar.destroy(); chartBar = null; }
       chartBar = new Chart(ctx, {
@@ -1085,6 +1061,9 @@
       });
       return;
     }
+
+    const labels = [];
+    const data = [];
 
     TIPOS.forEach(t=>{
       if(tiposSel && tiposSel.size && !tiposSel.has(t.key)) return;
@@ -1155,13 +1134,6 @@
     });
   }
 
-  /* =========================================================
-     ✅ Tabela Carrinhos:
-     - Loja curta (6)
-     - Ordena por nome da loja
-     - Coluna Carrinhos Quebrados após Diferença
-     - Linha TOTAL no final
-     ========================================================= */
   function renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja){
     const tbody = document.getElementById("tbodyPorLoja");
     tbody.innerHTML = "";
@@ -1172,7 +1144,6 @@
       return;
     }
 
-    // ✅ ordena pelo nome da loja (curto)
     entries.sort((a,b)=>{
       const la = lojaCurta6(a[0]).localeCompare(lojaCurta6(b[0]));
       if(la !== 0) return la;
@@ -1218,7 +1189,6 @@
       tbody.appendChild(tr);
     }
 
-    // ✅ linha TOTAL
     const trTot = document.createElement("tr");
     trTot.className = "row-total";
     const clsTot = totDiff > 0 ? "diff-pos" : totDiff < 0 ? "diff-neg" : "diff-zero";
@@ -1238,10 +1208,7 @@
     tbody.appendChild(trTot);
   }
 
-  /* =========================================================
-     ✅ Registros: linha TOTAL ao final
-     ========================================================= */
-  function renderTabelaRegistros(lista, tiposSel){
+  function renderTabelaRegistros(lista){
     const tbody = document.getElementById("tbodyRegistros");
     tbody.innerHTML = "";
 
@@ -1320,9 +1287,6 @@
     tbody.appendChild(trTot);
   }
 
-  /* =========================================================
-     ✅ Especiais/Reservas: linha TOTAL ao final
-     ========================================================= */
   function renderTabelaEspeciais(lista){
     const tbody = document.getElementById("tbodyEspeciais");
     tbody.innerHTML = "";
@@ -1388,34 +1352,17 @@
   }
 
   /* =========================================================
-     ✅ Recalcula totais por tipo para o gráfico (mantém comportamento original)
+     ✅ aplica filtros + atualiza KPIs (3 cartões) + gráfico/tabelas
      ========================================================= */
-  function recalcularTotaisPorTipoParaGrafico(baseFinal, tiposSel){
-    const out = {};
-    TIPOS.forEach(t=>{
-      if(tiposSel.size && !tiposSel.has(t.key)) return;
-      out[t.key] = 0;
-    });
-
-    for(const r of baseFinal){
-      const c = r.contagens || {};
-      for(const t of TIPOS){
-        if(tiposSel.size && !tiposSel.has(t.key)) continue;
-        out[t.key] = (out[t.key] || 0) + asInt(c[t.key]);
-      }
-    }
-    return out;
-  }
-
-  // ✅ sobrescreve aplicarFiltrosEAtualizarTudo para alimentar gráfico corretamente
-  const _aplicar = aplicarFiltrosEAtualizarTudo;
-  aplicarFiltrosEAtualizarTudo = function(){
+  function aplicarFiltrosEAtualizarTudo(){
     setMsg("");
 
     const dataFinalISO = (document.getElementById("dataFinal").value || "").trim();
     if(!dataFinalISO){
-      document.getElementById("kpiTotal").textContent = "0";
-      renderTabelaRegistros([], new Set());
+      document.getElementById("kpiCarrinhos").textContent = "0";
+      document.getElementById("kpiQuebrados").textContent = "0";
+      document.getElementById("kpiCestinhas").textContent = "0";
+      renderTabelaRegistros([]);
       renderTabelaPorLoja({}, {}, {});
       renderTabelaEspeciais([]);
       desenharBarrasTipos({}, new Set());
@@ -1460,22 +1407,33 @@
     const porLojaRef   = acumularPorLoja(baseRef);
     const movPorLoja   = acumularMovPorLoja(baseFinal);
 
-    const totaisPorTipo = recalcularTotaisPorTipoParaGrafico(baseFinal, tiposSel);
-    const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
-    document.getElementById("kpiTotal").textContent = String(totalGeral);
+    /* ✅ KPIs:
+       - Total de Carrinhos = soma __totalAtivo (ignora quebrados e ignora cestinha)
+       - Total de Quebrados = soma carrinhosQuebrados
+       - Total de Cestinhas = soma cestinha
+    */
+    let somaCarrinhos = 0, somaQuebrados = 0, somaCestinhas = 0;
+    for(const loja in porLojaFinal){
+      somaCarrinhos += asInt(porLojaFinal[loja].__totalAtivo);
+      somaQuebrados += asInt(porLojaFinal[loja].carrinhosQuebrados);
+      somaCestinhas += asInt(porLojaFinal[loja].cestinha);
+    }
+    document.getElementById("kpiCarrinhos").textContent = String(somaCarrinhos);
+    document.getElementById("kpiQuebrados").textContent = String(somaQuebrados);
+    document.getElementById("kpiCestinhas").textContent = String(somaCestinhas);
 
+    const totaisPorTipo = recalcularTotaisPorTipoParaGrafico(baseFinal, tiposSel);
     desenharBarrasTipos(totaisPorTipo, tiposSel);
     renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja);
-    renderTabelaRegistros(baseFinal, tiposSel);
+    renderTabelaRegistros(baseFinal);
     renderTabelaEspeciais(baseFinal);
-  };
+  }
 
   document.addEventListener("DOMContentLoaded", async ()=>{
     document.getElementById("btnIrLogin").onclick = ()=> window.location.href = ROTAS.login;
     document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
     document.getElementById("btnAtualizar").onclick = carregarRegistros;
 
-    // ✅ garante mês atual antes de qualquer coisa (evita abrir Dez/2026)
     const elFinal = document.getElementById("dataFinal");
     if(elFinal && !elFinal.value) elFinal.value = todayISO();
     syncDataAnteriorComDataFinal();
@@ -1511,8 +1469,8 @@
 <!-- Fontes confiáveis -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
-<!-- Input type="date" (comportamento e atributos): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
-<!-- iOS auto-zoom em inputs (font-size e viewport): https://webkit.org/blog/5610/more-responsive-form-controls/ -->
+<!-- Input type="date": https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
 <!-- CSS overflow-x/scroll: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
+<!-- CSS box-sizing: https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing -->
 </body>
 </html>
