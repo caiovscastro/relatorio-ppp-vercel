@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ (1) Bloqueia zoom/“esticar” no mobile (principalmente iOS/Android) -->
+  <!-- ✅ Bloqueia zoom/“esticar” no mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
 
   <title>Dashboard Carrinhos</title>
@@ -28,8 +28,6 @@
       --tileBorder:#e0e3ff;
       --thbg:#e9e9e9;
       --rowAlt:#f7f7f7;
-
-      /* ✅ Linhas de grade suaves nas tabelas */
       --grid: rgba(0,0,0,0.06);
     }
 
@@ -44,8 +42,6 @@
       color:#111;
       font-family: Arial, sans-serif;
       -webkit-text-size-adjust: 100%;
-
-      /* Mantém comportamento geral já existente */
       touch-action: manipulation;
     }
 
@@ -91,17 +87,32 @@
       overflow-x: hidden;
     }
 
-    /* ✅ (2) Cartão de info mais estreito (apenas Loja e Usuário) */
+    /* =========================================================
+       ✅ (2) NOVO LAYOUT TOPBAR NO DESKTOP:
+       - card-info ocupa o restante
+       - ações ocupa no máximo 40% da largura total
+       ========================================================= */
     .card-info{
-      flex: 0 1 260px;             /* antes: 1 1 320px */
+      flex: 1 1 60%;
       background:#f7f7f7;
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 12px;
       font-size: 13px;
       line-height: 1.45;
-      min-width: 0;
+      min-width: 260px;
       overflow-x: hidden;
+    }
+
+    .acoes{
+      flex: 0 0 40%;          /* ✅ trava 40% no desktop */
+      max-width: 40%;         /* ✅ garante que não passe disso */
+      display:flex;
+      flex-direction: row;
+      gap:10px;
+      justify-content: flex-end;
+      align-items: stretch;
+      min-width: 260px;
     }
 
     .linha{
@@ -115,17 +126,6 @@
     }
     .k{ color:var(--muted); font-weight:800; }
     .v{ font-weight:900; overflow:hidden; text-overflow:ellipsis; min-width: 0; }
-
-    /* ✅ (3) Botões lado a lado, mesmo no celular, tamanhos iguais */
-    .acoes{
-      flex: 1 1 320px;             /* dá espaço para 2 botões lado a lado */
-      display:flex;
-      flex-direction: row;         /* antes: column */
-      gap:10px;
-      justify-content: center;
-      align-items: stretch;
-      min-width: 0;
-    }
 
     .btn{
       width:100%;
@@ -142,17 +142,24 @@
     .btn-sec{ background:#e9e9e9; color:#111; }
     .btn-sec:hover{ background:#dedede; }
 
-    /* ✅ (3) Ajustes específicos p/ mobile (texto sem estourar e botões iguais) */
+    /* ✅ No mobile: botões voltam a ocupar 100% e ficam lado a lado */
     @media (max-width: 520px){
       .container{ padding: 10px; }
       .shell{ padding: 14px; }
 
-      .acoes{ width: 100%; }
+      .card-info{ flex: 1 1 100%; max-width: 100%; min-width: 0; }
+      .acoes{
+        flex: 1 1 100%;
+        max-width: 100%;
+        width: 100%;
+        justify-content: center;
+        min-width: 0;
+      }
       .acoes .btn{
-        flex: 1;                   /* iguais */
-        white-space: nowrap;       /* não quebra */
-        font-size: 12px;           /* reduz para caber */
-        padding: 10px 8px;         /* ajusta largura útil */
+        flex: 1;
+        white-space: nowrap;
+        font-size: 12px;
+        padding: 10px 8px;
       }
     }
 
@@ -381,14 +388,12 @@
     th, td{
       border-bottom: 1px solid var(--grid);
       border-right: 1px solid var(--grid);
-
       text-align:left;
       vertical-align: top;
       word-break: break-word;
       overflow-wrap: anywhere;
       white-space: nowrap;
     }
-
     th:last-child, td:last-child{ border-right: none; }
 
     th{
@@ -401,13 +406,11 @@
       z-index: 1;
       border-top: 1px solid var(--grid);
     }
-
     tbody td{
       padding: 4px 6px;
       line-height: 1.05;
       border-top: 1px solid var(--grid);
     }
-
     tbody tr:nth-child(even){ background: var(--rowAlt); }
 
     .diff-pos{ color: var(--ok); font-weight: 900; }
@@ -439,11 +442,19 @@
       overflow: hidden;
     }
 
-    /* ✅ (1) Evita gestos no canvas do gráfico (impede “esticar/zoom” no touch) */
+    /* =========================================================
+       ✅ (1) ANTI-“ESTICAR” NO GRÁFICO
+       - bloqueia qualquer gesto no canvas
+       - impede seleção/drag
+       ========================================================= */
     #barTipos{
       width: 100% !important;
       height: 100% !important;
-      touch-action: none; /* crítico para bloquear gestos no canvas */
+
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
   </style>
 </head>
@@ -455,8 +466,6 @@
         <div class="card-info">
           <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
           <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
-
-          <!-- ✅ (2) Oculto: Perfil (título e valor) -->
           <div class="linha hidden"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
         </div>
 
@@ -495,7 +504,6 @@
               </div>
             </div>
 
-            <!-- ✅ (4) NOVO cartão Dimensões (não filtra; apenas controla colunas da tabela "Carrinhos") -->
             <div class="grupo">
               <div class="grupo-titulo">Dimensões</div>
               <div id="listaDimensoes"></div>
@@ -503,7 +511,7 @@
 
             <div class="grupo">
               <div class="grupo-titulo">
-                <span>Tipo de carrinho</span>
+                <span>Tipos</span>
                 <span class="grupo-acoes">
                   <button class="mini-btn" id="btnTiposTudo">Tudo</button>
                   <button class="mini-btn" id="btnTiposNada">Nada</button>
@@ -553,7 +561,7 @@
 
                 <div class="card chart-card">
                   <h3>Quantidade por Tipo</h3>
-                  <div class="chart-wrap">
+                  <div class="chart-wrap" id="wrapBarTipos">
                     <canvas id="barTipos"></canvas>
                   </div>
                 </div>
@@ -670,8 +678,72 @@
   let registros = [];
   let chartBar = null;
 
+  /* =========================================================
+     ✅ (1) ANTI-“ESTICAR” (Chart.js): trava de resize + eventos desligados
+     ========================================================= */
+  let roChart = null;
+  let lastWrapW = 0;
+  let lastWrapH = 0;
+  let resizeTimer = null;
+
+  function lockChartResizeObserver(){
+    const wrap = document.getElementById("wrapBarTipos");
+    if(!wrap) return;
+
+    // Evita múltiplos observers
+    if(roChart){
+      try{ roChart.disconnect(); }catch(e){}
+      roChart = null;
+    }
+
+    roChart = new ResizeObserver((entries)=>{
+      const cr = entries && entries[0] && entries[0].contentRect ? entries[0].contentRect : null;
+      if(!cr) return;
+
+      const w = Math.round(cr.width);
+      const h = Math.round(cr.height);
+
+      // ✅ Só reage se mudou de verdade (evita loop de “esticando” por micro variações)
+      if(w === lastWrapW && h === lastWrapH) return;
+
+      lastWrapW = w;
+      lastWrapH = h;
+
+      // Debounce do resize
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(()=>{
+        if(chartBar){
+          chartBar.resize();
+        }
+      }, 80);
+    });
+    roChart.observe(wrap);
+  }
+
+  function bloquearGestosNoCanvas(){
+    const canvas = document.getElementById("barTipos");
+    if(!canvas) return;
+
+    const prevent = (e)=>{ e.preventDefault(); };
+
+    // iOS Safari gestures
+    canvas.addEventListener("gesturestart", prevent, { passive:false });
+    canvas.addEventListener("gesturechange", prevent, { passive:false });
+    canvas.addEventListener("gestureend", prevent, { passive:false });
+
+    // Touch gestures
+    canvas.addEventListener("touchstart", (e)=>{
+      // Bloqueia qualquer “drag/scroll” que tente disparar recalculo
+      e.preventDefault();
+    }, { passive:false });
+
+    canvas.addEventListener("touchmove", (e)=>{
+      e.preventDefault();
+    }, { passive:false });
+  }
+
   /* =========================
-     ✅ Formatação pt-BR (ponto de milhar)
+     Formatação pt-BR
      ========================= */
   function fmtInt(n){
     const v = Number(n);
@@ -718,7 +790,7 @@
   }
 
   /* =========================================================
-     ✅ (2) DEDUP por Loja + Data
+     DEDUP por Loja + Data
      ========================================================= */
   function brParaISO(br){
     const s = String(br||"").trim();
@@ -908,15 +980,15 @@
   }
 
   /* =========================================================
-     ✅ (4) Dimensões (controle de colunas da tabela "Carrinhos")
+     Dimensões (controle colunas tabela Carrinhos)
      ========================================================= */
   const DIMENSOES = [
-    { key:"qtdMov",    label:"Qtd Mov.",    defaultChecked:false },
-    { key:"motivoMov", label:"Motivo Mov.", defaultChecked:false },
-    { key:"anterior",  label:"Anterior",    defaultChecked:true  },
-    { key:"diferenca", label:"Diferença",   defaultChecked:true  },
-    { key:"usuario",   label:"Usuário",     defaultChecked:false },
-    { key:"quebrados", label:"C. Quebrados",defaultChecked:true  },
+    { key:"qtdMov",    label:"Qtd Mov.",     defaultChecked:false },
+    { key:"motivoMov", label:"Motivo Mov.",  defaultChecked:false },
+    { key:"anterior",  label:"Anterior",     defaultChecked:true  },
+    { key:"diferenca", label:"Diferença",    defaultChecked:true  },
+    { key:"usuario",   label:"Usuário",      defaultChecked:false },
+    { key:"quebrados", label:"C. Quebrados", defaultChecked:true  },
   ];
 
   function getDimensoesSelecionadas(){
@@ -931,7 +1003,7 @@
   }
 
   /* =========================================================
-     ✅ (B) SOMAS
+     SOMAS
      ========================================================= */
   function somaModelosSelecionados(contagens, tiposSel){
     let s = 0;
@@ -976,11 +1048,10 @@
   }
 
   /* =========================================================
-     ✅ GRÁFICO
+     GRÁFICO
      ========================================================= */
   function recalcularTotaisParaGrafico(baseFinal, tiposSel){
     const out = {};
-
     for(const k of ACTIVE_KEYS){
       if(!tiposSel.has(k)) continue;
       out[k] = 0;
@@ -994,7 +1065,6 @@
 
     for(const r of baseFinal){
       const c = r.contagens || {};
-
       for(const k of ACTIVE_KEYS){
         if(!tiposSel.has(k)) continue;
         out[k] = (out[k] || 0) + asInt(c[k]);
@@ -1028,29 +1098,26 @@
       labels.push(`Carrinhos reserva ${(TIPO_ICONE.carrinhosReserva||"🅿️")}`);
       data.push(asInt(totais?.__reserva));
     }
-
     if(tiposSel.has("cestinha")){
       labels.push(`Cestinhas ${(TIPO_ICONE.cestinha||"🧺")}`);
       data.push(asInt(totais?.__cestinha));
     }
-
     if(tiposSel.has("cestinhasReserva")){
       labels.push(`Cestinhas reserva ${(TIPO_ICONE.cestinhasReserva||"🧺")}`);
       data.push(asInt(totais?.__cestinhaReserva));
     }
-
     if(tiposSel.has("carrinhosQuebrados")){
       labels.push(`Carrinhos Quebrados ${(TIPO_ICONE.carrinhosQuebrados||"⚠️")}`);
       data.push(asInt(totais?.__quebrados));
     }
-
     if(tiposSel.has("cadeiraRodas")){
       labels.push(`Cadeira de rodas ${(TIPO_ICONE.cadeiraRodas||"♿")}`);
       data.push(asInt(totais?.__cadeira));
     }
 
+    if(chartBar){ chartBar.destroy(); chartBar = null; }
+
     if(labels.length === 0){
-      if(chartBar){ chartBar.destroy(); chartBar = null; }
       chartBar = new Chart(ctx, {
         type:"bar",
         data:{ labels:["Sem tipos selecionados"], datasets:[{ data:[0] }] },
@@ -1058,6 +1125,8 @@
           indexAxis:"y",
           responsive:true,
           maintainAspectRatio:false,
+          events: [],                 // ✅ DESLIGA eventos
+          interaction: { mode: null }, // ✅ sem interação
           plugins:{ legend:{display:false}, tooltip:{enabled:false}, datalabels:{formatter:()=>""} },
           scales:{ x:{display:false}, y:{display:true, grid:{display:false}} }
         },
@@ -1072,8 +1141,6 @@
 
     const maxVal = Math.max(0, ...dataOrd);
     const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.18) : 1;
-
-    if(chartBar){ chartBar.destroy(); }
 
     const gradientFactory = (context) => {
       const { chart } = context;
@@ -1095,21 +1162,29 @@
           borderWidth: 0,
           borderRadius: 8,
           barThickness: 18,
-          maxBarThickness: 22
+          maxBarThickness: 22,
+
+          // ✅ Importante: evita “elasticidade” visual por categoria
+          categoryPercentage: 0.92,
+          barPercentage: 0.90
         }]
       },
       options:{
         indexAxis:"y",
         responsive:true,
         maintainAspectRatio:false,
+
+        // ✅ (1) crítica: DESLIGA qualquer interação do Chart.js
+        events: [],                   // nenhuma entrada (click/touch/mouse)
+        interaction: { mode: null },  // sem “nearest” etc
+        onHover: null,
+
+        // ✅ garante que não fica recalculando padding por “hover”/eventos
         layout:{ padding:{ left: 26, right: 22, top: 6, bottom: 6 } },
+
         plugins:{
           legend:{ display:false },
-          tooltip:{
-            callbacks:{
-              label:(c)=>` ${c.label}: ${fmtInt(c.parsed.x || 0)}`
-            }
-          },
+          tooltip:{ enabled:false }, // ✅ desligado
           datalabels:{
             formatter:(v)=> (v ? fmtInt(v) : ""),
             anchor:"end",
@@ -1138,35 +1213,13 @@
       },
       plugins:[ChartDataLabels]
     });
+
+    // ✅ (1) trava observador de resize depois do chart existir
+    lockChartResizeObserver();
   }
 
   /* =========================================================
-     ✅ (1) Anti-gesto no canvas do gráfico (evita “esticar infinito”)
-     - Bloqueia pinch/zoom e gestos iOS no canvas
-     ========================================================= */
-  function bloquearGestosNoCanvas(){
-    const canvas = document.getElementById("barTipos");
-    if(!canvas) return;
-
-    const prevent = (e)=>{ e.preventDefault(); };
-
-    // iOS Safari: gesturestart/gesturechange/gestureend
-    canvas.addEventListener("gesturestart", prevent, { passive:false });
-    canvas.addEventListener("gesturechange", prevent, { passive:false });
-    canvas.addEventListener("gestureend", prevent, { passive:false });
-
-    // Touch: bloqueia zoom com 2 dedos e “esticar”
-    canvas.addEventListener("touchstart", (e)=>{
-      if(e.touches && e.touches.length > 1) e.preventDefault();
-    }, { passive:false });
-
-    canvas.addEventListener("touchmove", (e)=>{
-      if(e.touches && e.touches.length > 1) e.preventDefault();
-    }, { passive:false });
-  }
-
-  /* =========================================================
-     ✅ TABELA POR LOJA (Carrinhos) - agora respeita Dimensões
+     TABELA POR LOJA (Carrinhos)
      ========================================================= */
   function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel, dims){
     const thead = document.getElementById("theadPorLoja");
@@ -1174,7 +1227,6 @@
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
-    // ✅ (4) Dimensões controlam colunas (não dependem mais de auto-hide)
     const showUsuario   = !!dims.usuario;
     const showAnterior  = !!dims.anterior;
     const showDiferenca = !!dims.diferenca;
@@ -1191,11 +1243,7 @@
 
       const c = r.contagens || {};
       mapFinal[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
-
-      // Quebrados só faz sentido se o tipo estiver selecionado; mas a coluna depende das Dimensões
       mapFinal[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
-
-      // ✅ (4) Usuário por loja (dedup => tende a ser 1 por loja/dia)
       mapFinal[loja].usuario = String(r.usuario || "").trim();
     }
 
@@ -1208,8 +1256,7 @@
 
     const lojas = Object.keys(mapFinal);
     if(!lojas.length){
-      // calcula colunas dinamicamente
-      let cols = 2; // Loja + Atual (sempre)
+      let cols = 2;
       if(showUsuario) cols += 1;
       if(showAnterior) cols += 1;
       if(showDiferenca) cols += 1;
@@ -1251,8 +1298,7 @@
       const mov = movObj ? asIntSigned(movObj.movSum) : 0;
       const movCls = mov > 0 ? "mov-pos" : mov < 0 ? "mov-neg" : "mov-zero";
 
-      const motivoTxtRaw = movObj ? (movObj.motivoTxt || "") : "";
-      const motivoTxt = motivoTxtRaw;
+      const motivoTxt = movObj ? (movObj.motivoTxt || "") : "";
 
       totAtual += atual;
       if(showAnterior) totAnterior += anterior;
@@ -1274,7 +1320,6 @@
       tbody.appendChild(tr);
     }
 
-    // ✅ Linha TOTAL coerente com colunas selecionadas
     const trTot = document.createElement("tr");
     trTot.className = "row-total";
 
@@ -1295,7 +1340,7 @@
   }
 
   /* =========================================================
-     ✅ REGISTROS
+     REGISTROS
      ========================================================= */
   function renderTabelaRegistros(lista, tiposSel){
     const thead = document.getElementById("theadRegistros");
@@ -1367,7 +1412,7 @@
   }
 
   /* =========================================================
-     ✅ ESPECIAIS
+     ESPECIAIS
      ========================================================= */
   function renderTabelaEspeciais(lista, tiposSel){
     const thead = document.getElementById("theadEspeciais");
@@ -1430,7 +1475,6 @@
   }
 
   function montarFiltros(){
-    /* ✅ (4) Monta Dimensões (antes dos demais) */
     const listaDim = document.getElementById("listaDimensoes");
     listaDim.innerHTML = "";
 
@@ -1445,14 +1489,12 @@
       listaDim.appendChild(row);
     });
 
-    // Mudou Dimensões => atualiza tudo (principalmente a tabela Carrinhos)
     document.querySelectorAll('input[type="checkbox"][data-dim]').forEach(cb=>{
       cb.addEventListener("change", aplicarFiltrosEAtualizarTudo);
     });
 
     const listaTipos = document.getElementById("listaTipos");
     listaTipos.innerHTML = "";
-
     TIPOS.forEach((t, i)=>{
       const id = `tp_${i}`;
       const row = document.createElement("div");
@@ -1570,8 +1612,6 @@
 
     const tiposSel = getSelecionados("tipo");
     const lojasSel = getSelecionados("loja");
-
-    // ✅ (4) Lê dimensões selecionadas para render da tabela "Carrinhos"
     const dims = getDimensoesSelecionadas();
 
     if(tiposSel.size === 0){
@@ -1630,7 +1670,6 @@
     const totaisGrafico = recalcularTotaisParaGrafico(baseFinal, tiposSel);
     desenharBarrasTipos(totaisGrafico, tiposSel);
 
-    // ✅ (4) tabela Carrinhos respeita Dimensões
     renderTabelaPorLoja(baseFinal, baseRef, movPorLoja, tiposSel, dims);
     renderTabelaRegistros(baseFinal, tiposSel);
     renderTabelaEspeciais(baseFinal, tiposSel);
@@ -1641,7 +1680,7 @@
     document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
     document.getElementById("btnAtualizar").onclick = carregarRegistros;
 
-    // ✅ (1) aplica bloqueio de gestos diretamente no canvas do gráfico
+    // ✅ (1) Bloqueio agressivo: evita qualquer gesto que dispare “resize/layout”
     bloquearGestosNoCanvas();
 
     const elFinal = document.getElementById("dataFinal");
@@ -1659,7 +1698,7 @@
       mostrarApp();
       document.getElementById("infoLoja").textContent = s.loja;
       document.getElementById("infoUsuario").textContent = s.usuario;
-      document.getElementById("infoPerfil").textContent = s.perfil; // está oculto no HTML
+      document.getElementById("infoPerfil").textContent = s.perfil;
       setMsg("Acesso negado: seu perfil não tem permissão para esta tela.");
       document.getElementById("btnAtualizar").disabled = true;
       return;
@@ -1668,18 +1707,17 @@
     mostrarApp();
     document.getElementById("infoLoja").textContent = s.loja;
     document.getElementById("infoUsuario").textContent = s.usuario;
-    document.getElementById("infoPerfil").textContent = s.perfil; // está oculto no HTML
+    document.getElementById("infoPerfil").textContent = s.perfil;
 
     await carregarRegistros();
   });
 </script>
 
 <!-- Fontes confiáveis -->
-<!-- Viewport (user-scalable/maximum-scale): https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
-<!-- touch-action (CSS): https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action -->
-<!-- addEventListener passive:false / preventDefault: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener -->
-<!-- Touch events: https://developer.mozilla.org/en-US/docs/Web/API/Touch_events -->
-<!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
-<!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
+<!-- Chart.js events / interaction: https://www.chartjs.org/docs/latest/configuration/interactions.html -->
+<!-- Chart.js responsive / resize: https://www.chartjs.org/docs/latest/configuration/responsive.html -->
+<!-- ResizeObserver: https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver -->
+<!-- touch-action: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action -->
+<!-- preventDefault + passive:false: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener -->
 </body>
 </html>
