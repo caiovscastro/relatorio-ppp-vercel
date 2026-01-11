@@ -26,6 +26,12 @@
       --tileBorder:#e0e3ff;
       --thbg:#e9e9e9;
       --rowAlt:#f7f7f7;
+
+      /* =========================================================
+         ✅ (1) Linhas de grade suaves nas tabelas
+         - Cor bem leve, para não “poluir” o visual
+         ========================================================= */
+      --grid: rgba(0,0,0,0.06);
     }
 
     *, *::before, *::after{ box-sizing: border-box; }
@@ -357,12 +363,23 @@
     }
 
     th, td{
-      border-bottom: 1px solid #eee;
+      /* =========================================================
+         ✅ (1) Linhas de grade suaves nas tabelas (h/v)
+         - Mantém o border-bottom, adiciona border-right e um “top” leve
+         ========================================================= */
+      border-bottom: 1px solid var(--grid);
+      border-right: 1px solid var(--grid);
+
       text-align:left;
       vertical-align: top;
       word-break: break-word;
       overflow-wrap: anywhere;
       white-space: nowrap;
+    }
+
+    /* Não desenhar grade na última coluna (visual mais limpo) */
+    th:last-child, td:last-child{
+      border-right: none;
     }
 
     th{
@@ -373,11 +390,17 @@
       position: sticky;
       top: 0;
       z-index: 1;
+
+      /* Linha superior suave para “fechar” a grade no cabeçalho */
+      border-top: 1px solid var(--grid);
     }
 
     tbody td{
       padding: 4px 6px;
       line-height: 1.05;
+
+      /* Linha superior bem leve por linha */
+      border-top: 1px solid var(--grid);
     }
 
     tbody tr:nth-child(even){ background: var(--rowAlt); }
@@ -398,6 +421,9 @@
       font-weight: 900;
       background: #fff6d6;
       border-top: 2px solid #e0d39b;
+
+      /* Mantém grade suave no total, sem pesar */
+      border-bottom: 1px solid var(--grid);
     }
 
     .chart-wrap{
@@ -544,7 +570,7 @@
             </div>
 
             <div class="card" style="margin-top:12px;">
-              <h3>Especiais e Reservas (por registro)</h3>
+              <h3>Especiais e Reservas</h3>
               <div class="table-wrap">
                 <table>
                   <thead id="theadEspeciais"></thead>
@@ -678,6 +704,103 @@
     }
   }
 
+  /* =========================================================
+     ✅ (2) DEDUP por Loja + Data
+     - Regra: Se houver mais de um lançamento da mesma loja na mesma data,
+       considerar apenas o ÚLTIMO baseado em (Data col D + Hora col A).
+     - Aqui no front-end: para cada (loja + dataContagem), ficamos com o maior timestamp.
+     - Implementação robusta: tenta achar campos de hora comuns.
+     ========================================================= */
+
+  function brParaISO(br){
+    const s = String(br||"").trim();
+    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if(!m) return "";
+    return `${m[3]}-${m[2]}-${m[1]}`;
+  }
+  function isoParaBR(iso){
+    const s = String(iso||"").trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return "";
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+
+  // ✅ Extrai HH:MM(:SS) com tolerância. Se vazio/ inválido => "00:00:00"
+  function normalizarHoraParaHMS(valor){
+    const s = String(valor ?? "").trim();
+
+    // Aceita: "HH:MM", "H:MM", "HH:MM:SS"
+    let m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if(m){
+      const hh = Math.max(0, Math.min(23, Number(m[1])));
+      const mm = Math.max(0, Math.min(59, Number(m[2])));
+      const ss = Math.max(0, Math.min(59, Number(m[3] ?? 0)));
+      return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+    }
+
+    // Aceita: "HHMM" ou "HMM" (ex: 930 => 09:30)
+    m = s.match(/^(\d{1,2})(\d{2})$/);
+    if(m){
+      const hh = Math.max(0, Math.min(23, Number(m[1])));
+      const mm = Math.max(0, Math.min(59, Number(m[2])));
+      return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:00`;
+    }
+
+    return "00:00:00";
+  }
+
+  // ✅ Extrai um timestamp (ms) do registro, com base em Data (D) + Hora (A)
+  function obterTimestampRegistro(reg){
+    // Data (coluna D) normalmente já vem como reg.dataContagem (dd/mm/aaaa)
+    const dataBR =
+      String(reg?.dataContagem ?? reg?.data ?? reg?.dataFiltro ?? "").trim();
+
+    const dataISO = brParaISO(dataBR);
+    if(!dataISO){
+      // Sem data, não dá para ordenar direito. Considera 0.
+      return 0;
+    }
+
+    // Hora (coluna A): tenta campos mais comuns que podem vir do backend
+    const horaRaw =
+      reg?.horaRegistro ??
+      reg?.hora ??
+      reg?.horario ??
+      reg?.time ??
+      reg?.horaContagem ??
+      reg?.horaLancamento ??
+      reg?.horaRegistroA ?? // fallback extra
+      "";
+
+    const hms = normalizarHoraParaHMS(horaRaw);
+
+    // Cria um Date local: YYYY-MM-DDTHH:MM:SS
+    // (Sem timezone explícito, assume local do navegador, consistente para comparação interna)
+    const dt = new Date(`${dataISO}T${hms}`);
+    const t = dt.getTime();
+    return Number.isFinite(t) ? t : 0;
+  }
+
+  // ✅ Mantém apenas o último registro por (Loja, Data)
+  function manterUltimoLancamentoPorLojaEDia(lista){
+    const map = new Map(); // key => { ts, reg }
+
+    for(const r of (lista || [])){
+      const loja = String(r?.loja ?? "").trim();
+      const dataBR = String(r?.dataContagem ?? r?.data ?? "").trim();
+      const key = `${loja}__${dataBR}`;
+
+      const ts = obterTimestampRegistro(r);
+
+      const cur = map.get(key);
+      if(!cur || ts >= cur.ts){
+        map.set(key, { ts, reg: r });
+      }
+    }
+
+    return Array.from(map.values()).map(x => x.reg);
+  }
+
   async function carregarRegistros(){
     setMsg("");
     const btn = document.getElementById("btnAtualizar");
@@ -702,7 +825,12 @@
         return;
       }
 
-      registros = dados.registros;
+      /* =========================================================
+         ✅ (2) Aplicação da regra:
+         - antes: registros = dados.registros
+         - agora: dedup por (loja + data) mantendo o último por data+hora
+         ========================================================= */
+      registros = manterUltimoLancamentoPorLojaEDia(dados.registros);
 
       montarFiltros();
       sugerirDatasMaisRecentes();
@@ -716,19 +844,6 @@
     }finally{
       btn.disabled = false;
     }
-  }
-
-  function brParaISO(br){
-    const s = String(br||"").trim();
-    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if(!m) return "";
-    return `${m[3]}-${m[2]}-${m[1]}`;
-  }
-  function isoParaBR(iso){
-    const s = String(iso||"").trim();
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(!m) return "";
-    return `${m[3]}/${m[2]}/${m[1]}`;
   }
 
   function asInt(v){
@@ -871,13 +986,11 @@
   function recalcularTotaisParaGrafico(baseFinal, tiposSel){
     const out = {};
 
-    // Modelos
     for(const k of ACTIVE_KEYS){
       if(!tiposSel.has(k)) continue;
       out[k] = 0;
     }
 
-    // Especiais (cada um como barra independente)
     if(tiposSel.has("carrinhosReserva"))  out.__reserva = 0;
     if(tiposSel.has("cestinha"))          out.__cestinha = 0;
     if(tiposSel.has("cestinhasReserva"))  out.__cestinhaReserva = 0;
@@ -909,7 +1022,6 @@
     const labels = [];
     const data = [];
 
-    // Modelos selecionados
     for(const k of ACTIVE_KEYS){
       if(!tiposSel.has(k)) continue;
       const t = TIPOS.find(x=>x.key===k);
@@ -917,14 +1029,12 @@
       data.push(asInt(totais?.[k]));
     }
 
-    // Especiais (barras separadas)
     if(tiposSel.has("carrinhosReserva")){
       labels.push(`Carrinhos reserva ${(TIPO_ICONE.carrinhosReserva||"🅿️")}`);
       data.push(asInt(totais?.__reserva));
     }
 
     if(tiposSel.has("cestinha")){
-      // Mantém o “Cestinhas” como no visual do print (mesmo sendo a cesta padrão)
       labels.push(`Cestinhas ${(TIPO_ICONE.cestinha||"🧺")}`);
       data.push(asInt(totais?.__cestinha));
     }
@@ -965,7 +1075,6 @@
     const labelsOrd = zipped.map(x=>x.l);
     const dataOrd = zipped.map(x=>x.v);
 
-    // ✅ Ajuste pedido: “diminuir o tamanho da primeira barra” => cria folga no máximo do eixo
     const maxVal = Math.max(0, ...dataOrd);
     const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.18) : 1;
 
@@ -1069,14 +1178,13 @@
 
     const lojas = Object.keys(mapFinal);
     if(!lojas.length){
-      const cols = 4 + (mostrarQuebrados ? 1 : 0) + 2; // (mantém estrutura do vazio como antes)
+      const cols = 4 + (mostrarQuebrados ? 1 : 0) + 2;
       tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
       return;
     }
 
     lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
 
-    // ✅ Se TODA a coluna mov for 0 => oculta Mov. e Motivo
     let mostrarMov = false;
     for(const loja of lojas){
       const mov = asIntSigned(movPorLoja?.[loja]?.movSum || 0);
@@ -1093,8 +1201,6 @@
       ${mostrarMov ? `<th>Mov.</th><th class="motivo-right">Motivo</th>` : ``}
     `;
     thead.appendChild(trh);
-
-    const colsCount = 4 + (mostrarQuebrados ? 1 : 0) + (mostrarMov ? 2 : 0);
 
     let totAtual=0, totAnterior=0, totDiff=0, totQuebr=0, totMov=0;
 
@@ -1511,7 +1617,9 @@
 
 <!-- Fontes confiáveis -->
 <!-- Intl.NumberFormat / toLocaleString: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString -->
-<!-- Viewport: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
+<!-- Date (criação e getTime): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date -->
+<!-- Regex (match): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match -->
+<!-- Viewport meta: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
 <!-- Chart.js scales suggestedMax: https://www.chartjs.org/docs/latest/axes/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
 </body>
