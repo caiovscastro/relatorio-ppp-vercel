@@ -2,16 +2,13 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ Evita zoom “estranho” e respeita viewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Dashboard Carrinhos</title>
 
-  <!-- UX: evita cache “enganoso” ao voltar -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <!-- Chart.js + plugin datalabels -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
@@ -33,15 +30,10 @@
 
     *, *::before, *::after{ box-sizing: border-box; }
 
-    /* =========================================================
-       ✅ CORREÇÃO DEFINITIVA DE “ESTOURA À DIREITA”
-       - Evita 100vw (causa overflow em celulares)
-       - Usa hidden (mais compatível que clip)
-       ========================================================= */
     html, body{
       width: 100%;
       max-width: 100%;
-      overflow-x: hidden; /* ✅ não deixa a página vazar lateralmente */
+      overflow-x: hidden;
       background:var(--bg);
       margin:0;
       color:#111;
@@ -50,7 +42,6 @@
       touch-action: manipulation;
     }
 
-    /* ✅ Container sem 100vw (100vw costuma criar 1~2px de overflow em mobile) */
     .container{
       width: 100%;
       max-width: 100%;
@@ -66,15 +57,11 @@
       padding: 18px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      overflow-x: hidden;  /* ✅ garante que nada “empurra” o shell */
+      overflow-x: hidden;
       min-width: 0;
     }
 
-    /* ✅ canvases não podem empurrar layout */
-    canvas{
-      max-width: 100% !important;
-      display:block;
-    }
+    canvas{ max-width: 100% !important; display:block; }
 
     .titulo{
       text-align:center;
@@ -93,7 +80,7 @@
       border-bottom: 1px solid var(--border);
       padding-bottom: 12px;
       margin-bottom: 12px;
-      min-width: 0; /* ✅ */
+      min-width: 0;
       overflow-x: hidden;
     }
 
@@ -105,7 +92,7 @@
       padding: 10px 12px;
       font-size: 13px;
       line-height: 1.45;
-      min-width: 0; /* ✅ */
+      min-width: 0;
       overflow-x: hidden;
     }
 
@@ -127,7 +114,7 @@
       flex-direction: column;
       gap:10px;
       justify-content: center;
-      min-width: 0; /* ✅ */
+      min-width: 0;
     }
 
     .btn{
@@ -166,7 +153,6 @@
 
     .hidden{ display:none !important; }
 
-    /* ✅ grid: min-width:0 é obrigatório para não vazar */
     .grid{
       display:grid;
       grid-template-columns: 192px 1fr;
@@ -175,7 +161,7 @@
       min-width: 0;
       overflow-x: hidden;
     }
-    .grid > *{ min-width: 0; } /* ✅ */
+    .grid > *{ min-width: 0; }
     @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
 
     .painel{
@@ -244,18 +230,6 @@
     }
     .check input{ transform: scale(1.05); }
 
-    .subgrid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    @media (max-width: 820px){
-      .card-info, .acoes{ min-width: 0; flex: 1 1 100%; }
-      .linha{ white-space: normal; }
-      .k, .v{ white-space: normal; }
-    }
     @media (max-width: 520px){
       .container{ padding: 10px; }
       .shell{ padding: 14px; }
@@ -275,11 +249,7 @@
       max-width: 100%;
     }
     .input:focus{ border-color:var(--primary); box-shadow: 0 0 0 1px #0066ff33; }
-
-    /* ✅ Evita auto-zoom no iOS: input < 16px */
-    @media (max-width: 520px){
-      .input{ font-size:16px; }
-    }
+    @media (max-width: 520px){ .input{ font-size:16px; } }
 
     .content-grid{
       display:grid;
@@ -289,7 +259,7 @@
       min-width: 0;
       overflow-x: hidden;
     }
-    .content-grid > *{ min-width: 0; } /* ✅ */
+    .content-grid > *{ min-width: 0; }
     .left-col{ display:flex; flex-direction: column; gap: 12px; min-width: 0; overflow-x: hidden; }
     .right-col{ min-width: 0; overflow-x: hidden; }
     @media (max-width: 980px){ .content-grid{ grid-template-columns: 1fr; } }
@@ -301,20 +271,17 @@
       padding: 12px;
       max-width: 100%;
       min-width: 0;
-      overflow: hidden; /* ✅ importante: card não pode “vazar” */
+      overflow: hidden;
     }
     .card h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
-    /* =========================
-       ✅ KPIs
-       ========================= */
     .kpi-row{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 12px;
       min-width: 0;
     }
-    .kpi-row > *{ min-width: 0; } /* ✅ */
+    .kpi-row > *{ min-width: 0; }
     @media (max-width: 980px){ .kpi-row{ grid-template-columns: 1fr; } }
 
     .kpi{
@@ -369,12 +336,6 @@
     }
     .ok{ color: var(--ok); }
 
-    /* =========================
-       ✅ TABELAS (anti overflow)
-       - Wrapper tem overflow-x:auto
-       - Table usa width:auto (não força body)
-       - contain:content ajuda Safari/iOS a não “vazar”
-       ========================= */
     .table-wrap{
       width: 100%;
       overflow-x: auto;
@@ -384,14 +345,14 @@
       -webkit-overflow-scrolling: touch;
       max-width: 100%;
       min-width: 0;
-      contain: content; /* ✅ evita vazamento de layout em alguns mobiles */
+      contain: content;
     }
 
     table{
       border-collapse: collapse;
       font-size: 12px;
-      width: auto;         /* ✅ não força o body */
-      min-width: 100%;     /* ✅ preenche o card quando poucas colunas */
+      width: auto;
+      min-width: 100%;
       max-width: none;
     }
 
@@ -401,7 +362,7 @@
       vertical-align: top;
       word-break: break-word;
       overflow-wrap: anywhere;
-      white-space: nowrap; /* ✅ tabela compacta e previsível; wrapper rola */
+      white-space: nowrap;
     }
 
     th{
@@ -420,14 +381,6 @@
     }
 
     tbody tr:nth-child(even){ background: var(--rowAlt); }
-
-    .nota{
-      font-size: 12px;
-      color:#444;
-      line-height: 1.35;
-      margin-top: 8px;
-      font-weight: 700;
-    }
 
     .diff-pos{ color: var(--ok); font-weight: 900; }
     .diff-neg{ color: var(--danger); font-weight: 900; }
@@ -492,29 +445,20 @@
 
       <div id="app" class="hidden">
         <div class="grid">
-          <!-- =========================
-               PAINEL DE FILTROS
-               ========================= -->
           <div class="painel">
             <h3>Filtros</h3>
 
             <div class="grupo">
               <div class="grupo-titulo">Datas</div>
 
-              <div class="subgrid">
-                <div class="campo">
-                  <label for="dataFinal">Data de Filtro</label>
-                  <input id="dataFinal" class="input" type="date" />
-                </div>
-
-                <div class="campo">
-                  <label for="dataRef">Data Anterior</label>
-                  <input id="dataRef" class="input" type="date" />
-                </div>
+              <div class="campo" style="margin-bottom:10px;">
+                <label for="dataFinal">Data de Filtro</label>
+                <input id="dataFinal" class="input" type="date" />
               </div>
 
-              <div class="nota">
-                O dashboard usa a <b>Data de filtro</b>. A <b>Data Anterior</b> é usada para calcular a <b>diferença</b>.
+              <div class="campo">
+                <label for="dataRef">Data Anterior</label>
+                <input id="dataRef" class="input" type="date" />
               </div>
             </div>
 
@@ -530,9 +474,7 @@
             </div>
 
             <div class="grupo">
-              <div class="grupo-titulo">
-                <span>Bandeira</span>
-              </div>
+              <div class="grupo-titulo"><span>Bandeira</span></div>
 
               <div class="check">
                 <input type="checkbox" id="bandBIG" checked />
@@ -543,23 +485,16 @@
                 <label for="bandULT"><b>ULT</b></label>
               </div>
 
-              <div class="grupo-titulo" style="margin-top:10px;">
-                <span>Lojas</span>
-              </div>
+              <div class="grupo-titulo" style="margin-top:10px;"><span>Lojas</span></div>
               <div class="lista" id="listaLojas"></div>
             </div>
 
             <div class="msg" id="msg"></div>
           </div>
 
-          <!-- =========================
-               CONTEÚDO
-               ========================= -->
           <div>
             <div class="content-grid">
               <div class="left-col">
-
-                <!-- KPIs (respeitam filtros) -->
                 <div class="kpi-row">
                   <div class="kpi">
                     <div class="label">Carrinhos ativos</div>
@@ -577,16 +512,14 @@
                   </div>
                 </div>
 
-                <!-- Gráfico (respeita filtro de tipo) -->
                 <div class="card chart-card">
-                  <h3>Quantidade por Modelo</h3>
+                  <h3>Quantidade por Tipo</h3>
                   <div class="chart-wrap">
                     <canvas id="barTipos"></canvas>
                   </div>
                 </div>
               </div>
 
-              <!-- Tabela Carrinhos por loja (respeita tipo, e esconde coluna quebrados se desmarcado) -->
               <div class="right-col">
                 <div class="card table-card">
                   <h3>Carrinhos</h3>
@@ -600,7 +533,6 @@
               </div>
             </div>
 
-            <!-- Registros (colunas dinâmicas conforme tipo) -->
             <div class="card" style="margin-top:12px;">
               <h3>Registros de Carrinhos</h3>
               <div class="table-wrap">
@@ -611,7 +543,6 @@
               </div>
             </div>
 
-            <!-- Especiais (colunas dinâmicas conforme tipo) -->
             <div class="card" style="margin-top:12px;">
               <h3>Especiais e Reservas (por registro)</h3>
               <div class="table-wrap">
@@ -629,18 +560,10 @@
   </div>
 
 <script>
-  /* =========================================================
-     CONFIG
-     ========================================================= */
   const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-  /* =========================================================
-     TIPOS
-     - Inclui os novos pedidos: carrinhosReserva e cestinhasReserva
-     ========================================================= */
   const TIPOS = [
-    // Modelos (ativos)
     { key: "duplocar120",     label: "Duplocar 120L" },
     { key: "grande160",       label: "Grande 160L" },
     { key: "bebeConforto160", label: "Bebê 160L" },
@@ -650,15 +573,13 @@
     { key: "compraKids",      label: "Compra Kids" },
     { key: "bebeJipinho",     label: "Bebê Jipinho" },
 
-    // Especiais / reservas
-    { key: "carrinhosReserva",   label: "Carrinhos reserva" },   // ✅ novo no filtro
+    { key: "carrinhosReserva",   label: "Carrinhos reserva" },
     { key: "carrinhosQuebrados", label: "Carrinhos Quebrados" },
     { key: "cestinha",           label: "Cestinha" },
-    { key: "cestinhasReserva",   label: "Cestinhas reserva" },   // ✅ novo no filtro
+    { key: "cestinhasReserva",   label: "Cestinhas reserva" },
     { key: "cadeiraRodas",       label: "Cadeira de rodas" }
   ];
 
-  /* Conjunto de chaves que representam “carrinhos ativos” (modelos) */
   const ACTIVE_KEYS = [
     "duplocar120",
     "grande160",
@@ -670,7 +591,6 @@
     "bebeJipinho"
   ];
 
-  /* Conjunto de chaves que representam “especiais” */
   const SPECIAL_KEYS = [
     "carrinhosReserva",
     "carrinhosQuebrados",
@@ -708,13 +628,24 @@
     "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 25 - BRASILINHA",
   ];
 
-  let sessaoAtual = null;
   let registros = [];
   let chartBar = null;
 
-  /* =========================================================
-     HELPERS UI
-     ========================================================= */
+  /* =========================
+     ✅ Formatação pt-BR (ponto de milhar)
+     ========================= */
+  function fmtInt(n){
+    const v = Number(n);
+    const safe = Number.isFinite(v) ? Math.trunc(v) : 0;
+    return safe.toLocaleString("pt-BR");
+  }
+  function fmtSigned(n){
+    const v = Number(n);
+    const safe = Number.isFinite(v) ? Math.trunc(v) : 0;
+    if(safe > 0) return `+${safe.toLocaleString("pt-BR")}`;
+    return safe.toLocaleString("pt-BR");
+  }
+
   function setMsg(texto, ok=false){
     const el = document.getElementById("msg");
     el.classList.toggle("ok", !!ok);
@@ -725,146 +656,11 @@
     document.getElementById("app").classList.add("hidden");
     document.getElementById("telaSemSessao").classList.remove("hidden");
   }
-
   function mostrarApp(){
     document.getElementById("telaSemSessao").classList.add("hidden");
     document.getElementById("app").classList.remove("hidden");
   }
 
-  /* =========================================================
-     HELPERS DADOS
-     ========================================================= */
-  function brParaISO(br){
-    const s = String(br||"").trim();
-    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if(!m) return "";
-    return `${m[3]}-${m[2]}-${m[1]}`;
-  }
-
-  function isoParaBR(iso){
-    const s = String(iso||"").trim();
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(!m) return "";
-    return `${m[3]}/${m[2]}/${m[1]}`;
-  }
-
-  function asInt(v){
-    const n = Number(v);
-    return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0;
-  }
-
-  function asIntSigned(v){
-    const n = Number(v);
-    return Number.isFinite(n) ? Math.trunc(n) : 0;
-  }
-
-  function bandeiraDaLoja(loja){
-    const s = String(loja||"").trim().toUpperCase();
-    if(s.startsWith("BIG")) return "BIG";
-    if(s.startsWith("ULT")) return "ULT";
-    return "OUTRA";
-  }
-
-  function esc(s){
-    return String(s ?? "").replace(/[&<>"']/g, (m)=>({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-    }[m]));
-  }
-
-  function lojaCurta6(loja){
-    const s = String(loja || "").trim();
-    return s.length >= 6 ? s.slice(0,6) : s;
-  }
-
-  function addDaysISO(iso, deltaDays){
-    const m = String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if(!m) return "";
-    const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-    d.setDate(d.getDate() + Number(deltaDays || 0));
-    const pad2 = (n)=> String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-  }
-
-  function todayISO(){
-    const d = new Date();
-    const pad2 = (n)=> String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-  }
-
-  function syncDataAnteriorComDataFinal(){
-    const elFinal = document.getElementById("dataFinal");
-    const elRef   = document.getElementById("dataRef");
-
-    const finalISO = (elFinal.value || "").trim();
-    if(!finalISO){
-      elRef.removeAttribute("max");
-      return;
-    }
-
-    const anteriorISO = addDaysISO(finalISO, -1);
-    elRef.max = anteriorISO;
-
-    const refISO = (elRef.value || "").trim();
-    if(!refISO || refISO >= finalISO){
-      elRef.value = anteriorISO;
-    }
-    if(elRef.value >= finalISO){
-      elRef.value = anteriorISO;
-    }
-  }
-
-  function getSelecionados(tipo){
-    const set = new Set();
-    document.querySelectorAll(`input[type="checkbox"][data-tipo="${tipo}"]`).forEach(cb=>{
-      if(cb.checked){
-        set.add(cb.getAttribute("data-valor"));
-      }
-    });
-    return set;
-  }
-
-  function getMovimentoSigned(reg){
-    const c = reg?.contagens || {};
-    const v = (c.movCarrinhos !== undefined) ? c.movCarrinhos : (reg.movCarrinhos ?? reg.movimento ?? reg.mov ?? 0);
-    return asIntSigned(v);
-  }
-
-  function getMotivo(reg){
-    return String(
-      reg?.movCategoria ??
-      reg?.motivo ??
-      reg?.motivoMov ??
-      reg?.categoriaMov ??
-      ""
-    ).trim();
-  }
-
-  /* =========================================================
-     ✅ SOMAS RESPEITANDO O FILTRO DE TIPO
-     ========================================================= */
-  function somaAtivosSelecionados(contagens, tiposSel){
-    // Soma apenas modelos selecionados
-    let s = 0;
-    for(const k of ACTIVE_KEYS){
-      if(tiposSel.has(k)) s += asInt(contagens?.[k]);
-    }
-    return s;
-  }
-
-  function somaCestinhasSelecionadas(contagens, tiposSel){
-    let s = 0;
-    if(tiposSel.has("cestinha")) s += asInt(contagens?.cestinha);
-    if(tiposSel.has("cestinhasReserva")) s += asInt(contagens?.cestinhasReserva);
-    return s;
-  }
-
-  function getQuebradosSeSelecionado(contagens, tiposSel){
-    return tiposSel.has("carrinhosQuebrados") ? asInt(contagens?.carrinhosQuebrados) : 0;
-  }
-
-  /* =========================================================
-     SESSÃO / API
-     ========================================================= */
   async function obterSessaoDoBackend(){
     try{
       const resp = await fetch("/api/session", {
@@ -912,7 +708,7 @@
       sugerirDatasMaisRecentes();
 
       aplicarFiltrosEAtualizarTudo();
-      setMsg(`Dados carregados: ${registros.length} registro(s).`, true);
+      setMsg(`Dados carregados: ${fmtInt(registros.length)} registro(s).`, true);
 
     }catch(e){
       console.error(e);
@@ -922,9 +718,536 @@
     }
   }
 
+  function brParaISO(br){
+    const s = String(br||"").trim();
+    const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if(!m) return "";
+    return `${m[3]}-${m[2]}-${m[1]}`;
+  }
+  function isoParaBR(iso){
+    const s = String(iso||"").trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return "";
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+
+  function asInt(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 0;
+  }
+  function asIntSigned(v){
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.trunc(n) : 0;
+  }
+
+  function bandeiraDaLoja(loja){
+    const s = String(loja||"").trim().toUpperCase();
+    if(s.startsWith("BIG")) return "BIG";
+    if(s.startsWith("ULT")) return "ULT";
+    return "OUTRA";
+  }
+
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, (m)=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+  function lojaCurta6(loja){
+    const s = String(loja || "").trim();
+    return s.length >= 6 ? s.slice(0,6) : s;
+  }
+
+  function addDaysISO(iso, deltaDays){
+    const m = String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return "";
+    const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+    d.setDate(d.getDate() + Number(deltaDays || 0));
+    const pad2 = (n)=> String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+  function todayISO(){
+    const d = new Date();
+    const pad2 = (n)=> String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+
+  function syncDataAnteriorComDataFinal(){
+    const elFinal = document.getElementById("dataFinal");
+    const elRef   = document.getElementById("dataRef");
+
+    const finalISO = (elFinal.value || "").trim();
+    if(!finalISO){
+      elRef.removeAttribute("max");
+      return;
+    }
+
+    const anteriorISO = addDaysISO(finalISO, -1);
+    elRef.max = anteriorISO;
+
+    const refISO = (elRef.value || "").trim();
+    if(!refISO || refISO >= finalISO) elRef.value = anteriorISO;
+    if(elRef.value >= finalISO) elRef.value = anteriorISO;
+  }
+
+  function getSelecionados(tipo){
+    const set = new Set();
+    document.querySelectorAll(`input[type="checkbox"][data-tipo="${tipo}"]`).forEach(cb=>{
+      if(cb.checked) set.add(cb.getAttribute("data-valor"));
+    });
+    return set;
+  }
+
+  function getMovimentoSigned(reg){
+    const c = reg?.contagens || {};
+    const v = (c.movCarrinhos !== undefined) ? c.movCarrinhos : (reg.movCarrinhos ?? reg.movimento ?? reg.mov ?? 0);
+    return asIntSigned(v);
+  }
+
+  function getMotivo(reg){
+    return String(
+      reg?.movCategoria ??
+      reg?.motivo ??
+      reg?.motivoMov ??
+      reg?.categoriaMov ??
+      ""
+    ).trim();
+  }
+
   /* =========================================================
-     FILTROS (montagem)
+     ✅ (B) SOMAS: Carrinhos (por loja) e KPI consideram reservas
      ========================================================= */
+  function somaModelosSelecionados(contagens, tiposSel){
+    let s = 0;
+    for(const k of ACTIVE_KEYS){
+      if(tiposSel.has(k)) s += asInt(contagens?.[k]);
+    }
+    return s;
+  }
+
+  function somaCarrinhosReservaSeSelecionado(contagens, tiposSel){
+    return tiposSel.has("carrinhosReserva") ? asInt(contagens?.carrinhosReserva) : 0;
+  }
+
+  function somaAtivosMaisReserva(contagens, tiposSel){
+    // ✅ “Carrinhos ativos” (agora) = modelos selecionados + carrinhosReserva (se marcado)
+    return somaModelosSelecionados(contagens, tiposSel) + somaCarrinhosReservaSeSelecionado(contagens, tiposSel);
+  }
+
+  function somaCestinhasSelecionadas(contagens, tiposSel){
+    let s = 0;
+    if(tiposSel.has("cestinha")) s += asInt(contagens?.cestinha);
+    if(tiposSel.has("cestinhasReserva")) s += asInt(contagens?.cestinhasReserva);
+    return s;
+  }
+
+  function getQuebradosSeSelecionado(contagens, tiposSel){
+    return tiposSel.has("carrinhosQuebrados") ? asInt(contagens?.carrinhosQuebrados) : 0;
+  }
+
+  function acumularMovPorLoja(listaRegistros){
+    const out = {};
+    for(const r of listaRegistros){
+      const loja = String(r.loja||"").trim();
+      if(!out[loja]) out[loja] = { movSum: 0, motivos: new Set() };
+      out[loja].movSum += getMovimentoSigned(r);
+      const motivo = getMotivo(r);
+      if(motivo) out[loja].motivos.add(motivo);
+    }
+    for(const loja in out){
+      out[loja].motivoTxt = Array.from(out[loja].motivos).join(", ");
+    }
+    return out;
+  }
+
+  /* =========================================================
+     ✅ GRÁFICO
+     - Modelos selecionados + “Carrinhos reserva” (barra) + “Cestinhas” (barra)
+     ========================================================= */
+  function recalcularTotaisParaGrafico(baseFinal, tiposSel){
+    const out = {};
+
+    // Modelos
+    for(const k of ACTIVE_KEYS){
+      if(!tiposSel.has(k)) continue;
+      out[k] = 0;
+    }
+
+    // “Carrinhos reserva” barra
+    const showReserva = tiposSel.has("carrinhosReserva");
+    if(showReserva) out.__reserva = 0;
+
+    // “Cestinhas” barra (cestinha + cestinhasReserva)
+    const showCest = tiposSel.has("cestinha") || tiposSel.has("cestinhasReserva");
+    if(showCest) out.__cestinhas = 0;
+
+    for(const r of baseFinal){
+      const c = r.contagens || {};
+
+      for(const k of ACTIVE_KEYS){
+        if(!tiposSel.has(k)) continue;
+        out[k] = (out[k] || 0) + asInt(c[k]);
+      }
+
+      if(showReserva) out.__reserva += asInt(c.carrinhosReserva);
+
+      if(showCest){
+        out.__cestinhas += asInt(c.cestinha) + asInt(c.cestinhasReserva);
+      }
+    }
+    return out;
+  }
+
+  function desenharBarrasTipos(totais, tiposSel){
+    const canvas = document.getElementById("barTipos");
+    const ctx = canvas.getContext("2d");
+
+    const labels = [];
+    const data = [];
+
+    // Modelos selecionados
+    for(const k of ACTIVE_KEYS){
+      if(!tiposSel.has(k)) continue;
+      const t = TIPOS.find(x=>x.key===k);
+      labels.push(`${t ? t.label : k} ${(TIPO_ICONE[k]||"🛒")}`);
+      data.push(asInt(totais?.[k]));
+    }
+
+    // Barra de reserva
+    if(tiposSel.has("carrinhosReserva")){
+      labels.push(`Carrinhos reserva ${(TIPO_ICONE.carrinhosReserva||"🅿️")}`);
+      data.push(asInt(totais?.__reserva));
+    }
+
+    // Barra de cestinhas (agregada)
+    if(tiposSel.has("cestinha") || tiposSel.has("cestinhasReserva")){
+      labels.push(`Cestinhas ${(TIPO_ICONE.cestinha||"🧺")}`);
+      data.push(asInt(totais?.__cestinhas));
+    }
+
+    if(labels.length === 0){
+      if(chartBar){ chartBar.destroy(); chartBar = null; }
+      chartBar = new Chart(ctx, {
+        type:"bar",
+        data:{ labels:["Sem tipos selecionados"], datasets:[{ data:[0] }] },
+        options:{
+          indexAxis:"y",
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{ legend:{display:false}, tooltip:{enabled:false}, datalabels:{formatter:()=>""} },
+          scales:{ x:{display:false}, y:{display:true, grid:{display:false}} }
+        },
+        plugins:[ChartDataLabels]
+      });
+      return;
+    }
+
+    const zipped = labels.map((l,i)=>({ l, v:data[i] })).sort((a,b)=>b.v - a.v);
+    const labelsOrd = zipped.map(x=>x.l);
+    const dataOrd = zipped.map(x=>x.v);
+
+    if(chartBar){ chartBar.destroy(); }
+
+    const gradientFactory = (context) => {
+      const { chart } = context;
+      const { ctx, chartArea } = chart;
+      if(!chartArea) return "#1b5e20";
+      const g = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+      g.addColorStop(0, "#1b5e20");
+      g.addColorStop(1, "#f4d03f");
+      return g;
+    };
+
+    chartBar = new Chart(ctx, {
+      type:"bar",
+      data:{
+        labels: labelsOrd,
+        datasets:[{
+          data: dataOrd,
+          backgroundColor: gradientFactory,
+          borderWidth: 0,
+          borderRadius: 8,
+          barThickness: 18,
+          maxBarThickness: 22
+        }]
+      },
+      options:{
+        indexAxis:"y",
+        responsive:true,
+        maintainAspectRatio:false,
+        layout:{ padding:{ left: 26, right: 22, top: 6, bottom: 6 } },
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            callbacks:{
+              label:(c)=>` ${c.label}: ${fmtInt(c.parsed.x || 0)}`
+            }
+          },
+          datalabels:{
+            formatter:(v)=> (v ? fmtInt(v) : ""),
+            anchor:"end",
+            align:"right",
+            clamp:true,
+            offset: 8,
+            font:{ weight:"900" },
+            textStrokeColor:"#ffffff",
+            textStrokeWidth: 3
+          }
+        },
+        scales:{
+          x:{ display:false, grid:{ display:false }, border:{ display:false } },
+          y:{
+            display:true,
+            grid:{ display:false },
+            border:{ display:false },
+            ticks:{ font:{ weight:"900" }, padding: 10 }
+          }
+        }
+      },
+      plugins:[ChartDataLabels]
+    });
+  }
+
+  /* =========================================================
+     ✅ TABELA POR LOJA (Carrinhos)
+     - Atual/Anterior/Diferença = modelos selecionados + reserva (se marcado)
+     - Quebrados coluna só se selecionado
+     ========================================================= */
+  function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel){
+    const thead = document.getElementById("theadPorLoja");
+    const tbody = document.getElementById("tbodyPorLoja");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    const mostrarQuebrados = tiposSel.has("carrinhosQuebrados");
+
+    const trh = document.createElement("tr");
+    trh.innerHTML = `
+      <th>Loja</th>
+      <th>Atual</th>
+      <th>Anterior</th>
+      <th>Diferença</th>
+      ${mostrarQuebrados ? `<th>Carrinhos Quebrados</th>` : ``}
+      <th>Mov.</th>
+      <th class="motivo-right">Motivo</th>
+    `;
+    thead.appendChild(trh);
+
+    const mapFinal = {};
+    const mapRef = {};
+
+    for(const r of listaFinal){
+      const loja = String(r.loja||"").trim();
+      if(!mapFinal[loja]) mapFinal[loja] = { ativos:0, quebrados:0 };
+      const c = r.contagens || {};
+      mapFinal[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
+      mapFinal[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
+    }
+
+    for(const r of listaRef){
+      const loja = String(r.loja||"").trim();
+      if(!mapRef[loja]) mapRef[loja] = { ativos:0 };
+      const c = r.contagens || {};
+      mapRef[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
+    }
+
+    const lojas = Object.keys(mapFinal);
+    if(!lojas.length){
+      const cols = mostrarQuebrados ? 7 : 6;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
+      return;
+    }
+
+    lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
+
+    let totAtual=0, totAnterior=0, totDiff=0, totQuebr=0, totMov=0;
+
+    for(const loja of lojas){
+      const atual = asInt(mapFinal[loja].ativos);
+      const anterior = asInt(mapRef[loja]?.ativos || 0);
+      const diff = atual - anterior;
+
+      const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
+
+      const quebrados = mostrarQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
+
+      const movObj = movPorLoja?.[loja];
+      const mov = movObj ? asIntSigned(movObj.movSum) : 0;
+      const movCls = mov > 0 ? "mov-pos" : mov < 0 ? "mov-neg" : "mov-zero";
+      const motivoTxtRaw = movObj ? (movObj.motivoTxt || "") : "";
+      const motivoTxt = (mov === 0) ? "" : motivoTxtRaw;
+
+      totAtual += atual;
+      totAnterior += anterior;
+      totDiff += diff;
+      if(mostrarQuebrados) totQuebr += quebrados;
+      totMov += mov;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(lojaCurta6(loja))}</td>
+        <td style="font-weight:900;">${fmtInt(atual)}</td>
+        <td style="font-weight:900;">${fmtInt(anterior)}</td>
+        <td class="${cls}">${fmtSigned(diff)}</td>
+        ${mostrarQuebrados ? `<td style="font-weight:900;">${fmtInt(quebrados)}</td>` : ``}
+        <td class="${movCls}">${fmtSigned(mov)}</td>
+        <td class="motivo-right">${esc(motivoTxt)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    const trTot = document.createElement("tr");
+    trTot.className = "row-total";
+    const clsTot = totDiff > 0 ? "diff-pos" : totDiff < 0 ? "diff-neg" : "diff-zero";
+    const clsTotMov = totMov > 0 ? "mov-pos" : totMov < 0 ? "mov-neg" : "mov-zero";
+
+    trTot.innerHTML = `
+      <td>TOTAL</td>
+      <td>${fmtInt(totAtual)}</td>
+      <td>${fmtInt(totAnterior)}</td>
+      <td class="${clsTot}">${fmtSigned(totDiff)}</td>
+      ${mostrarQuebrados ? `<td>${fmtInt(totQuebr)}</td>` : ``}
+      <td class="${clsTotMov}">${fmtSigned(totMov)}</td>
+      <td class="motivo-right"></td>
+    `;
+    tbody.appendChild(trTot);
+  }
+
+  /* =========================================================
+     ✅ REGISTROS (colunas dinâmicas: somente modelos selecionados)
+     - Total soma apenas selecionados
+     ========================================================= */
+  function renderTabelaRegistros(lista, tiposSel){
+    const thead = document.getElementById("theadRegistros");
+    const tbody = document.getElementById("tbodyRegistros");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    const modelosSel = ACTIVE_KEYS.filter(k => tiposSel.has(k));
+
+    const trh = document.createElement("tr");
+    trh.innerHTML = `
+      <th>Loja</th>
+      <th>Usuário</th>
+      ${modelosSel.map(k => {
+        const t = TIPOS.find(x=>x.key===k);
+        return `<th>${esc(t ? t.label : k)}</th>`;
+      }).join("")}
+      <th>Total</th>
+    `;
+    thead.appendChild(trh);
+
+    if(!lista.length){
+      const cols = 3 + modelosSel.length;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      return;
+    }
+
+    const ord = [...lista].sort((a,b)=>{
+      const la = lojaCurta6(a.loja||"").localeCompare(lojaCurta6(b.loja||""));
+      if(la !== 0) return la;
+      return String(a.usuario||"").localeCompare(String(b.usuario||""));
+    });
+
+    const totCol = {};
+    modelosSel.forEach(k => totCol[k]=0);
+    let totGeral = 0;
+
+    for(const r of ord){
+      const c = r.contagens || {};
+      let totalLinha = 0;
+
+      const valores = modelosSel.map(k=>{
+        const v = asInt(c[k]);
+        totCol[k] += v;
+        totalLinha += v;
+        return v;
+      });
+
+      totGeral += totalLinha;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(lojaCurta6(r.loja))}</td>
+        <td>${esc(r.usuario)}</td>
+        ${valores.map(v=>`<td>${fmtInt(v)}</td>`).join("")}
+        <td style="font-weight:900;">${fmtInt(totalLinha)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    const trTot = document.createElement("tr");
+    trTot.className = "row-total";
+    trTot.innerHTML = `
+      <td colspan="2">TOTAL</td>
+      ${modelosSel.map(k=>`<td>${fmtInt(totCol[k])}</td>`).join("")}
+      <td>${fmtInt(totGeral)}</td>
+    `;
+    tbody.appendChild(trTot);
+  }
+
+  /* =========================================================
+     ✅ ESPECIAIS (colunas dinâmicas: especiais selecionados)
+     ========================================================= */
+  function renderTabelaEspeciais(lista, tiposSel){
+    const thead = document.getElementById("theadEspeciais");
+    const tbody = document.getElementById("tbodyEspeciais");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    const especiaisSel = SPECIAL_KEYS.filter(k => tiposSel.has(k));
+
+    const trh = document.createElement("tr");
+    trh.innerHTML = `
+      <th>Loja</th>
+      <th>Usuário</th>
+      ${especiaisSel.map(k=>{
+        const t = TIPOS.find(x=>x.key===k);
+        return `<th>${esc(t ? t.label : k)}</th>`;
+      }).join("")}
+    `;
+    thead.appendChild(trh);
+
+    if(!lista.length){
+      const cols = 2 + especiaisSel.length;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      return;
+    }
+
+    const ord = [...lista].sort((a,b)=>{
+      const la = lojaCurta6(a.loja||"").localeCompare(lojaCurta6(b.loja||""));
+      if(la !== 0) return la;
+      return String(a.usuario||"").localeCompare(String(b.usuario||""));
+    });
+
+    const totCol = {};
+    especiaisSel.forEach(k => totCol[k]=0);
+
+    for(const r of ord){
+      const c = r.contagens || {};
+      const valores = especiaisSel.map(k=>{
+        const v = asInt(c[k]);
+        totCol[k] += v;
+        return v;
+      });
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(lojaCurta6(r.loja))}</td>
+        <td>${esc(r.usuario)}</td>
+        ${valores.map(v=>`<td>${fmtInt(v)}</td>`).join("")}
+      `;
+      tbody.appendChild(tr);
+    }
+
+    const trTot = document.createElement("tr");
+    trTot.className = "row-total";
+    trTot.innerHTML = `
+      <td colspan="2">TOTAL</td>
+      ${especiaisSel.map(k=>`<td>${fmtInt(totCol[k])}</td>`).join("")}
+    `;
+    tbody.appendChild(trTot);
+  }
+
   function montarFiltros(){
     const listaTipos = document.getElementById("listaTipos");
     listaTipos.innerHTML = "";
@@ -1022,396 +1345,6 @@
     syncDataAnteriorComDataFinal();
   }
 
-  /* =========================================================
-     ✅ AGREGADORES (por loja e por registro)
-     ========================================================= */
-  function acumularMovPorLoja(listaRegistros){
-    const out = {};
-    for(const r of listaRegistros){
-      const loja = String(r.loja||"").trim();
-      if(!out[loja]) out[loja] = { movSum: 0, motivos: new Set() };
-
-      const mov = getMovimentoSigned(r);
-      out[loja].movSum += mov;
-
-      const motivo = getMotivo(r);
-      if(motivo) out[loja].motivos.add(motivo);
-    }
-    for(const loja in out){
-      out[loja].motivoTxt = Array.from(out[loja].motivos).join(", ");
-    }
-    return out;
-  }
-
-  /* =========================================================
-     ✅ GRÁFICO (somente modelos selecionados)
-     ========================================================= */
-  function recalcularTotaisParaGraficoModelos(baseFinal, tiposSel){
-    const out = {};
-    for(const k of ACTIVE_KEYS){
-      if(!tiposSel.has(k)) continue;
-      out[k] = 0;
-    }
-    for(const r of baseFinal){
-      const c = r.contagens || {};
-      for(const k of ACTIVE_KEYS){
-        if(!tiposSel.has(k)) continue;
-        out[k] = (out[k] || 0) + asInt(c[k]);
-      }
-    }
-    return out;
-  }
-
-  function desenharBarrasTipos(totaisPorTipo, tiposSel){
-    const canvas = document.getElementById("barTipos");
-    const ctx = canvas.getContext("2d");
-
-    const modelosSelecionados = ACTIVE_KEYS.filter(k => tiposSel.has(k));
-
-    if(modelosSelecionados.length === 0){
-      if(chartBar){ chartBar.destroy(); chartBar = null; }
-      chartBar = new Chart(ctx, {
-        type:"bar",
-        data:{ labels:["Sem tipos selecionados"], datasets:[{ data:[0] }] },
-        options:{
-          indexAxis:"y",
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins:{ legend:{display:false}, tooltip:{enabled:false}, datalabels:{formatter:()=>""} },
-          scales:{ x:{display:false}, y:{display:true, grid:{display:false}} }
-        },
-        plugins:[ChartDataLabels]
-      });
-      return;
-    }
-
-    const labels = [];
-    const data = [];
-
-    for(const k of modelosSelecionados){
-      const t = TIPOS.find(x=>x.key===k);
-      const label = t ? t.label : k;
-      labels.push(`${label} ${(TIPO_ICONE[k]||"🛒")}`);
-      data.push(asInt(totaisPorTipo[k]));
-    }
-
-    const zipped = labels.map((l,i)=>({ l, v:data[i] })).sort((a,b)=>b.v - a.v);
-    const labelsOrd = zipped.map(x=>x.l);
-    const dataOrd = zipped.map(x=>x.v);
-
-    if(chartBar){ chartBar.destroy(); }
-
-    const gradientFactory = (context) => {
-      const { chart } = context;
-      const { ctx, chartArea } = chart;
-      if(!chartArea) return "#1b5e20";
-      const g = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-      g.addColorStop(0, "#1b5e20");
-      g.addColorStop(1, "#f4d03f");
-      return g;
-    };
-
-    chartBar = new Chart(ctx, {
-      type:"bar",
-      data:{
-        labels: labelsOrd,
-        datasets:[{
-          data: dataOrd,
-          backgroundColor: gradientFactory,
-          borderWidth: 0,
-          borderRadius: 8,
-          barThickness: 18,
-          maxBarThickness: 22
-        }]
-      },
-      options:{
-        indexAxis:"y",
-        responsive:true,
-        maintainAspectRatio:false,
-        layout:{ padding:{ left: 26, right: 22, top: 6, bottom: 6 } },
-        plugins:{
-          legend:{ display:false },
-          tooltip:{ callbacks:{ label:(c)=>` ${c.label}: ${c.parsed.x || 0}` } },
-          datalabels:{
-            formatter:(v)=> (v ? String(v) : ""),
-            anchor:"end",
-            align:"right",
-            clamp:true,
-            offset: 8,
-            font:{ weight:"900" },
-            textStrokeColor:"#ffffff",
-            textStrokeWidth: 3
-          }
-        },
-        scales:{
-          x:{ display:false, grid:{ display:false }, border:{ display:false } },
-          y:{
-            display:true,
-            grid:{ display:false },
-            border:{ display:false },
-            ticks:{ font:{ weight:"900" }, padding: 10 }
-          }
-        }
-      },
-      plugins:[ChartDataLabels]
-    });
-  }
-
-  /* =========================================================
-     ✅ TABELA POR LOJA (Carrinhos)
-     - Atual/Anterior/Diferença = SOMA dos modelos selecionados
-     - Quebrados só aparece se estiver selecionado
-     ========================================================= */
-  function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel){
-    const thead = document.getElementById("theadPorLoja");
-    const tbody = document.getElementById("tbodyPorLoja");
-    thead.innerHTML = "";
-    tbody.innerHTML = "";
-
-    const mostrarQuebrados = tiposSel.has("carrinhosQuebrados");
-
-    // Cabeçalho dinâmico (some a coluna “Quebrados” se desmarcado)
-    const trh = document.createElement("tr");
-    trh.innerHTML = `
-      <th>Loja</th>
-      <th>Atual</th>
-      <th>Anterior</th>
-      <th>Diferença</th>
-      ${mostrarQuebrados ? `<th>Carrinhos Quebrados</th>` : ``}
-      <th>Mov.</th>
-      <th class="motivo-right">Motivo</th>
-    `;
-    thead.appendChild(trh);
-
-    // Agrega por loja a partir das listas (final/ref), respeitando o filtro de tipo na soma
-    const mapFinal = {};
-    const mapRef = {};
-
-    for(const r of listaFinal){
-      const loja = String(r.loja||"").trim();
-      if(!mapFinal[loja]) mapFinal[loja] = { ativos:0, quebrados:0 };
-      const c = r.contagens || {};
-      mapFinal[loja].ativos += somaAtivosSelecionados(c, tiposSel);
-      mapFinal[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
-    }
-
-    for(const r of listaRef){
-      const loja = String(r.loja||"").trim();
-      if(!mapRef[loja]) mapRef[loja] = { ativos:0 };
-      const c = r.contagens || {};
-      mapRef[loja].ativos += somaAtivosSelecionados(c, tiposSel);
-    }
-
-    const lojas = Object.keys(mapFinal);
-    if(!lojas.length){
-      const cols = mostrarQuebrados ? 7 : 6;
-      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
-      return;
-    }
-
-    lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
-
-    let totAtual=0, totAnterior=0, totDiff=0, totQuebr=0, totMov=0;
-
-    for(const loja of lojas){
-      const atual = asInt(mapFinal[loja].ativos);
-      const anterior = asInt(mapRef[loja]?.ativos || 0);
-      const diff = atual - anterior;
-
-      const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
-      const txtDiff = diff > 0 ? `+${diff}` : String(diff);
-
-      const quebrados = mostrarQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
-
-      const movObj = movPorLoja?.[loja];
-      const mov = movObj ? asIntSigned(movObj.movSum) : 0;
-      const movCls = mov > 0 ? "mov-pos" : mov < 0 ? "mov-neg" : "mov-zero";
-      const movTxt = mov > 0 ? `+${mov}` : String(mov);
-
-      const motivoTxtRaw = movObj ? (movObj.motivoTxt || "") : "";
-      const motivoTxt = (mov === 0) ? "" : motivoTxtRaw;
-
-      totAtual += atual;
-      totAnterior += anterior;
-      totDiff += diff;
-      if(mostrarQuebrados) totQuebr += quebrados;
-      totMov += mov;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${esc(lojaCurta6(loja))}</td>
-        <td style="font-weight:900;">${atual}</td>
-        <td style="font-weight:900;">${anterior}</td>
-        <td class="${cls}">${txtDiff}</td>
-        ${mostrarQuebrados ? `<td style="font-weight:900;">${quebrados}</td>` : ``}
-        <td class="${movCls}">${movTxt}</td>
-        <td class="motivo-right">${esc(motivoTxt)}</td>
-      `;
-      tbody.appendChild(tr);
-    }
-
-    // Total
-    const trTot = document.createElement("tr");
-    trTot.className = "row-total";
-    const clsTot = totDiff > 0 ? "diff-pos" : totDiff < 0 ? "diff-neg" : "diff-zero";
-    const txtTotDiff = totDiff > 0 ? `+${totDiff}` : String(totDiff);
-    const clsTotMov = totMov > 0 ? "mov-pos" : totMov < 0 ? "mov-neg" : "mov-zero";
-    const txtTotMov = totMov > 0 ? `+${totMov}` : String(totMov);
-
-    trTot.innerHTML = `
-      <td>TOTAL</td>
-      <td>${totAtual}</td>
-      <td>${totAnterior}</td>
-      <td class="${clsTot}">${txtTotDiff}</td>
-      ${mostrarQuebrados ? `<td>${totQuebr}</td>` : ``}
-      <td class="${clsTotMov}">${txtTotMov}</td>
-      <td class="motivo-right"></td>
-    `;
-    tbody.appendChild(trTot);
-  }
-
-  /* =========================================================
-     ✅ REGISTROS (colunas dinâmicas por tipo)
-     - Só mostra modelos selecionados
-     - Total soma apenas selecionados
-     ========================================================= */
-  function renderTabelaRegistros(lista, tiposSel){
-    const thead = document.getElementById("theadRegistros");
-    const tbody = document.getElementById("tbodyRegistros");
-    thead.innerHTML = "";
-    tbody.innerHTML = "";
-
-    const modelosSel = ACTIVE_KEYS.filter(k => tiposSel.has(k));
-
-    // Cabeçalho dinâmico
-    const trh = document.createElement("tr");
-    trh.innerHTML = `
-      <th>Loja</th>
-      <th>Usuário</th>
-      ${modelosSel.map(k => {
-        const t = TIPOS.find(x=>x.key===k);
-        return `<th>${esc(t ? t.label : k)}</th>`;
-      }).join("")}
-      <th>Total</th>
-    `;
-    thead.appendChild(trh);
-
-    if(!lista.length){
-      const cols = 3 + modelosSel.length; // loja+usuario + tipos + total
-      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
-      return;
-    }
-
-    const ord = [...lista].sort((a,b)=>{
-      const la = lojaCurta6(a.loja||"").localeCompare(lojaCurta6(b.loja||""));
-      if(la !== 0) return la;
-      return String(a.usuario||"").localeCompare(String(b.usuario||""));
-    });
-
-    // Totais por coluna (apenas colunas visíveis)
-    const totCol = {};
-    modelosSel.forEach(k => totCol[k]=0);
-    let totGeral = 0;
-
-    for(const r of ord){
-      const c = r.contagens || {};
-      let totalLinha = 0;
-
-      const valores = modelosSel.map(k=>{
-        const v = asInt(c[k]);
-        totCol[k] += v;
-        totalLinha += v;
-        return v;
-      });
-
-      totGeral += totalLinha;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${esc(lojaCurta6(r.loja))}</td>
-        <td>${esc(r.usuario)}</td>
-        ${valores.map(v=>`<td>${v}</td>`).join("")}
-        <td style="font-weight:900;">${totalLinha}</td>
-      `;
-      tbody.appendChild(tr);
-    }
-
-    const trTot = document.createElement("tr");
-    trTot.className = "row-total";
-    trTot.innerHTML = `
-      <td colspan="2">TOTAL</td>
-      ${modelosSel.map(k=>`<td>${totCol[k]}</td>`).join("")}
-      <td>${totGeral}</td>
-    `;
-    tbody.appendChild(trTot);
-  }
-
-  /* =========================================================
-     ✅ ESPECIAIS (colunas dinâmicas por tipo)
-     ========================================================= */
-  function renderTabelaEspeciais(lista, tiposSel){
-    const thead = document.getElementById("theadEspeciais");
-    const tbody = document.getElementById("tbodyEspeciais");
-    thead.innerHTML = "";
-    tbody.innerHTML = "";
-
-    const especiaisSel = SPECIAL_KEYS.filter(k => tiposSel.has(k));
-
-    const trh = document.createElement("tr");
-    trh.innerHTML = `
-      <th>Loja</th>
-      <th>Usuário</th>
-      ${especiaisSel.map(k=>{
-        const t = TIPOS.find(x=>x.key===k);
-        return `<th>${esc(t ? t.label : k)}</th>`;
-      }).join("")}
-    `;
-    thead.appendChild(trh);
-
-    if(!lista.length){
-      const cols = 2 + especiaisSel.length;
-      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
-      return;
-    }
-
-    const ord = [...lista].sort((a,b)=>{
-      const la = lojaCurta6(a.loja||"").localeCompare(lojaCurta6(b.loja||""));
-      if(la !== 0) return la;
-      return String(a.usuario||"").localeCompare(String(b.usuario||""));
-    });
-
-    const totCol = {};
-    especiaisSel.forEach(k => totCol[k]=0);
-
-    for(const r of ord){
-      const c = r.contagens || {};
-      const valores = especiaisSel.map(k=>{
-        const v = asInt(c[k]);
-        totCol[k] += v;
-        return v;
-      });
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${esc(lojaCurta6(r.loja))}</td>
-        <td>${esc(r.usuario)}</td>
-        ${valores.map(v=>`<td>${v}</td>`).join("")}
-      `;
-      tbody.appendChild(tr);
-    }
-
-    const trTot = document.createElement("tr");
-    trTot.className = "row-total";
-    trTot.innerHTML = `
-      <td colspan="2">TOTAL</td>
-      ${especiaisSel.map(k=>`<td>${totCol[k]}</td>`).join("")}
-    `;
-    tbody.appendChild(trTot);
-  }
-
-  /* =========================================================
-     ✅ APLICAÇÃO DOS FILTROS (tudo respeita o tipo selecionado)
-     ========================================================= */
   function aplicarFiltrosEAtualizarTudo(){
     setMsg("");
 
@@ -1437,7 +1370,6 @@
     const tiposSel = getSelecionados("tipo");
     const lojasSel = getSelecionados("loja");
 
-    // ✅ Se nenhum tipo estiver selecionado, tudo fica vazio
     if(tiposSel.size === 0){
       document.getElementById("kpiCarrinhos").textContent = "0";
       document.getElementById("kpiQuebrados").textContent = "0";
@@ -1450,7 +1382,7 @@
       return;
     }
 
-    // ✅ “passaFiltroTipo”: mantém registros que tenham quantidade > 0 em QUALQUER tipo marcado
+    // Mantém registro se tiver qualquer tipo marcado > 0
     const passaFiltroTipo = (r)=>{
       const c = r.contagens || {};
       for(const k of tiposSel){
@@ -1475,38 +1407,34 @@
       return true;
     }) : []);
 
-    // ✅ Movimentos por loja (continua baseado nos registros finais)
     const movPorLoja = acumularMovPorLoja(baseFinal);
 
-    // ✅ KPIs respeitam o tipo
+    // KPIs (pt-BR)
     let somaAtivos = 0;
     let somaQuebrados = 0;
     let somaCestinhas = 0;
 
     for(const r of baseFinal){
       const c = r.contagens || {};
-      somaAtivos += somaAtivosSelecionados(c, tiposSel);
+      somaAtivos += somaAtivosMaisReserva(c, tiposSel);
       somaQuebrados += getQuebradosSeSelecionado(c, tiposSel);
       somaCestinhas += somaCestinhasSelecionadas(c, tiposSel);
     }
 
-    document.getElementById("kpiCarrinhos").textContent = String(somaAtivos);
-    document.getElementById("kpiQuebrados").textContent = String(somaQuebrados);
-    document.getElementById("kpiCestinhas").textContent = String(somaCestinhas);
+    document.getElementById("kpiCarrinhos").textContent = fmtInt(somaAtivos);
+    document.getElementById("kpiQuebrados").textContent = fmtInt(somaQuebrados);
+    document.getElementById("kpiCestinhas").textContent = fmtInt(somaCestinhas);
 
-    // ✅ Gráfico (somente modelos selecionados)
-    const totaisGrafico = recalcularTotaisParaGraficoModelos(baseFinal, tiposSel);
+    // Gráfico
+    const totaisGrafico = recalcularTotaisParaGrafico(baseFinal, tiposSel);
     desenharBarrasTipos(totaisGrafico, tiposSel);
 
-    // ✅ Tabelas (todas obedecem o filtro de tipo com colunas dinâmicas)
+    // Tabelas
     renderTabelaPorLoja(baseFinal, baseRef, movPorLoja, tiposSel);
     renderTabelaRegistros(baseFinal, tiposSel);
     renderTabelaEspeciais(baseFinal, tiposSel);
   }
 
-  /* =========================================================
-     BOOT
-     ========================================================= */
   document.addEventListener("DOMContentLoaded", async ()=>{
     document.getElementById("btnIrLogin").onclick = ()=> window.location.href = ROTAS.login;
     document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
@@ -1524,7 +1452,6 @@
 
     const perfil = String(s.perfil||"").trim().toUpperCase();
     if(!PERFIS_PERMITIDOS.includes(perfil)){
-      sessaoAtual = s;
       mostrarApp();
       document.getElementById("infoLoja").textContent = s.loja;
       document.getElementById("infoUsuario").textContent = s.usuario;
@@ -1534,7 +1461,6 @@
       return;
     }
 
-    sessaoAtual = s;
     mostrarApp();
     document.getElementById("infoLoja").textContent = s.loja;
     document.getElementById("infoUsuario").textContent = s.usuario;
@@ -1545,11 +1471,10 @@
 </script>
 
 <!-- Fontes confiáveis -->
+<!-- Intl.NumberFormat / toLocaleString: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString -->
 <!-- Viewport: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
 <!-- overflow-x: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
-<!-- min-width em flex/grid (causa overflow): https://developer.mozilla.org/en-US/docs/Web/CSS/min-width -->
 <!-- contain: https://developer.mozilla.org/en-US/docs/Web/CSS/contain -->
-<!-- iOS zoom em inputs (font-size): https://developer.mozilla.org/en-US/docs/Web/CSS/font-size -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
 </body>
