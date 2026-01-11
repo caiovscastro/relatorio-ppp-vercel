@@ -365,7 +365,6 @@
     th, td{
       /* =========================================================
          ✅ (1) Linhas de grade suaves nas tabelas (h/v)
-         - Mantém o border-bottom, adiciona border-right e um “top” leve
          ========================================================= */
       border-bottom: 1px solid var(--grid);
       border-right: 1px solid var(--grid);
@@ -377,10 +376,7 @@
       white-space: nowrap;
     }
 
-    /* Não desenhar grade na última coluna (visual mais limpo) */
-    th:last-child, td:last-child{
-      border-right: none;
-    }
+    th:last-child, td:last-child{ border-right: none; }
 
     th{
       padding: 6px 6px;
@@ -390,16 +386,12 @@
       position: sticky;
       top: 0;
       z-index: 1;
-
-      /* Linha superior suave para “fechar” a grade no cabeçalho */
       border-top: 1px solid var(--grid);
     }
 
     tbody td{
       padding: 4px 6px;
       line-height: 1.05;
-
-      /* Linha superior bem leve por linha */
       border-top: 1px solid var(--grid);
     }
 
@@ -421,8 +413,6 @@
       font-weight: 900;
       background: #fff6d6;
       border-top: 2px solid #e0d39b;
-
-      /* Mantém grade suave no total, sem pesar */
       border-bottom: 1px solid var(--grid);
     }
 
@@ -708,8 +698,12 @@
      ✅ (2) DEDUP por Loja + Data
      - Regra: Se houver mais de um lançamento da mesma loja na mesma data,
        considerar apenas o ÚLTIMO baseado em (Data col D + Hora col A).
-     - Aqui no front-end: para cada (loja + dataContagem), ficamos com o maior timestamp.
-     - Implementação robusta: tenta achar campos de hora comuns.
+     - Compatível com o backend atual (/api/carrinhos-listar.js):
+       - A (coluna A) chega como: reg.dataHoraRede = "DD/MM/AAAA HH:MM:SS"
+       - D (coluna D) chega como: reg.dataContagem = "DD/MM/AAAA"
+     - Portanto:
+       - A data usada é SEMPRE dataContagem (D)
+       - A hora usada é extraída de dataHoraRede (A)
      ========================================================= */
 
   function brParaISO(br){
@@ -725,12 +719,15 @@
     return `${m[3]}/${m[2]}/${m[1]}`;
   }
 
-  // ✅ Extrai HH:MM(:SS) com tolerância. Se vazio/ inválido => "00:00:00"
+  // ✅ Normaliza e extrai "HH:MM:SS" de diversos formatos, inclusive:
+  // - "10:22:33"
+  // - "10:22"
+  // - "06/01/2026 10:22:33"  (dataHoraRede vinda do backend)
   function normalizarHoraParaHMS(valor){
     const s = String(valor ?? "").trim();
 
-    // Aceita: "HH:MM", "H:MM", "HH:MM:SS"
-    let m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    // 1) Procura primeiro por um trecho de hora EM QUALQUER POSIÇÃO (caso tenha data junto)
+    let m = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
     if(m){
       const hh = Math.max(0, Math.min(23, Number(m[1])));
       const mm = Math.max(0, Math.min(59, Number(m[2])));
@@ -738,7 +735,7 @@
       return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
     }
 
-    // Aceita: "HHMM" ou "HMM" (ex: 930 => 09:30)
+    // 2) Aceita: "HHMM" ou "HMM" (ex: 930 => 09:30)
     m = s.match(/^(\d{1,2})(\d{2})$/);
     if(m){
       const hh = Math.max(0, Math.min(23, Number(m[1])));
@@ -746,53 +743,41 @@
       return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:00`;
     }
 
+    // Sem hora válida => 00:00:00 (fica “menor” e perde para horários reais)
     return "00:00:00";
   }
 
-  // ✅ Extrai um timestamp (ms) do registro, com base em Data (D) + Hora (A)
+  // ✅ Extrai timestamp baseado em:
+  // - Data = dataContagem (D)
+  // - Hora = extraída de dataHoraRede (A)
   function obterTimestampRegistro(reg){
-    // Data (coluna D) normalmente já vem como reg.dataContagem (dd/mm/aaaa)
-    const dataBR =
-      String(reg?.dataContagem ?? reg?.data ?? reg?.dataFiltro ?? "").trim();
-
+    const dataBR = String(reg?.dataContagem ?? "").trim();
     const dataISO = brParaISO(dataBR);
-    if(!dataISO){
-      // Sem data, não dá para ordenar direito. Considera 0.
-      return 0;
-    }
+    if(!dataISO) return 0;
 
-    // Hora (coluna A): tenta campos mais comuns que podem vir do backend
-    const horaRaw =
-      reg?.horaRegistro ??
-      reg?.hora ??
-      reg?.horario ??
-      reg?.time ??
-      reg?.horaContagem ??
-      reg?.horaLancamento ??
-      reg?.horaRegistroA ?? // fallback extra
-      "";
-
+    // Backend atual: usa dataHoraRede como campo principal da coluna A
+    const horaRaw = (reg?.dataHoraRede ?? "").trim();
     const hms = normalizarHoraParaHMS(horaRaw);
 
-    // Cria um Date local: YYYY-MM-DDTHH:MM:SS
-    // (Sem timezone explícito, assume local do navegador, consistente para comparação interna)
     const dt = new Date(`${dataISO}T${hms}`);
     const t = dt.getTime();
     return Number.isFinite(t) ? t : 0;
   }
 
-  // ✅ Mantém apenas o último registro por (Loja, Data)
+  // ✅ Mantém apenas o último registro por (Loja, DataContagem)
   function manterUltimoLancamentoPorLojaEDia(lista){
     const map = new Map(); // key => { ts, reg }
 
     for(const r of (lista || [])){
       const loja = String(r?.loja ?? "").trim();
-      const dataBR = String(r?.dataContagem ?? r?.data ?? "").trim();
-      const key = `${loja}__${dataBR}`;
+      const dataBR = String(r?.dataContagem ?? "").trim();
+      if(!loja || !dataBR) continue;
 
+      const key = `${loja}__${dataBR}`;
       const ts = obterTimestampRegistro(r);
 
       const cur = map.get(key);
+      // >= para que, em empate (mesma hora), o último da lista ganhe
       if(!cur || ts >= cur.ts){
         map.set(key, { ts, reg: r });
       }
@@ -827,8 +812,8 @@
 
       /* =========================================================
          ✅ (2) Aplicação da regra:
-         - antes: registros = dados.registros
-         - agora: dedup por (loja + data) mantendo o último por data+hora
+         - Agora dedup por (loja + dataContagem), escolhendo o último pelo horário
+           extraído de dataHoraRede (coluna A).
          ========================================================= */
       registros = manterUltimoLancamentoPorLojaEDia(dados.registros);
 
@@ -975,13 +960,6 @@
 
   /* =========================================================
      ✅ GRÁFICO
-     - Modelos selecionados
-     - Carrinhos reserva
-     - Cestinha
-     - Cestinhas reserva
-     - Carrinhos Quebrados
-     - Cadeira de rodas
-     + Ajuste para “encurtar” proporcionalmente a maior barra (suggestedMax)
      ========================================================= */
   function recalcularTotaisParaGrafico(baseFinal, tiposSel){
     const out = {};
@@ -1147,8 +1125,6 @@
 
   /* =========================================================
      ✅ TABELA POR LOJA (Carrinhos)
-     - Se Mov. = 0 em todas as linhas => oculta Mov. e Motivo
-     - "Carrinhos Quebrados" => "C. Quebrados"
      ========================================================= */
   function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel){
     const thead = document.getElementById("theadPorLoja");
@@ -1619,6 +1595,7 @@
 <!-- Intl.NumberFormat / toLocaleString: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString -->
 <!-- Date (criação e getTime): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date -->
 <!-- Regex (match): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match -->
+<!-- Map: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map -->
 <!-- Viewport meta: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
 <!-- Chart.js scales suggestedMax: https://www.chartjs.org/docs/latest/axes/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
