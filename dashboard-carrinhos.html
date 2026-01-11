@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ viewport robusto contra “zoom estranho” e overflow -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <!-- ✅ viewport mais “agressivo” contra zoom/overflow -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
   <title>Dashboard Carrinhos</title>
 
   <!-- UX: evita cache “enganoso” ao voltar -->
@@ -33,27 +33,35 @@
 
     *, *::before, *::after{ box-sizing: border-box; }
 
-    /* ✅ trava overflow lateral no mobile e garante largura real do viewport */
-    html, body{
+    /* ✅ “Cinta” anti-estouro lateral (mais forte que hidden) */
+    html{
       width: 100%;
       max-width: 100%;
-      overflow-x: hidden;
+      overflow-x: clip;
     }
     body{
+      width: 100%;
+      max-width: 100%;
+      overflow-x: clip;
       background:var(--bg);
       font-family: Arial, sans-serif;
       margin:0;
       min-height:100vh;
       color:#111;
       -webkit-text-size-adjust: 100%;
+      touch-action: manipulation;
     }
+
+    /* ✅ garante que nada use largura maior que a tela */
     .container{
-      width: 100%;
-      max-width: none;
+      width: 100vw;
+      max-width: 100vw;
       background: transparent;
       padding: 16px;
-      overflow-x: hidden;     /* ✅ */
+      overflow-x: clip;
+      margin: 0 auto;
     }
+
     .shell{
       width: 100%;
       max-width: 100%;
@@ -61,10 +69,15 @@
       padding: 18px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      overflow-x: hidden;     /* ✅ */
+      overflow-x: clip;
+      min-width: 0;
     }
 
-    canvas{ max-width: 100% !important; display:block; }
+    /* ✅ canvases nunca “empurram” layout */
+    canvas{
+      max-width: 100% !important;
+      display:block;
+    }
 
     .titulo{
       text-align:center;
@@ -83,8 +96,11 @@
       border-bottom: 1px solid var(--border);
       padding-bottom: 12px;
       margin-bottom: 12px;
+
+      width: 100%;
       max-width: 100%;
-      min-width: 0; /* ✅ */
+      min-width: 0;
+      overflow-x: clip;
     }
 
     .card-info{
@@ -95,8 +111,9 @@
       padding: 10px 12px;
       font-size: 13px;
       line-height: 1.45;
-      min-width: 0;   /* ✅ */
+      min-width: 0;
       max-width: 100%;
+      overflow-x: clip;
     }
 
     .linha{
@@ -106,7 +123,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      min-width: 0; /* ✅ */
+      min-width: 0;
     }
     .k{ color:var(--muted); font-weight:800; }
     .v{ font-weight:900; overflow:hidden; text-overflow:ellipsis; min-width: 0; }
@@ -117,7 +134,7 @@
       flex-direction: column;
       gap:10px;
       justify-content: center;
-      min-width: 0;   /* ✅ */
+      min-width: 0;
       max-width: 100%;
     }
 
@@ -162,8 +179,11 @@
       grid-template-columns: 192px 1fr;
       gap: 12px;
       align-items: start;
+
+      width: 100%;
       max-width: 100%;
-      min-width: 0; /* ✅ */
+      min-width: 0;
+      overflow-x: clip;
     }
     @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
 
@@ -173,7 +193,8 @@
       border-radius: 12px;
       padding: 12px;
       max-width: 100%;
-      min-width: 0; /* ✅ */
+      min-width: 0;
+      overflow-x: clip;
     }
     .painel h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
@@ -184,7 +205,8 @@
       padding: 10px;
       margin-bottom: 10px;
       max-width: 100%;
-      min-width: 0; /* ✅ */
+      min-width: 0;
+      overflow-x: clip;
     }
 
     .grupo-titulo{
@@ -195,7 +217,7 @@
       margin-bottom: 8px;
       font-weight: 900;
       font-size: 13px;
-      min-width: 0; /* ✅ */
+      min-width: 0;
     }
 
     .grupo-acoes{ display:flex; gap:8px; flex-wrap: wrap; }
@@ -234,6 +256,7 @@
       display:grid;
       grid-template-columns: 1fr;
       gap: 10px;
+      min-width: 0;
     }
 
     @media (max-width: 820px){
@@ -271,11 +294,14 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       align-items: start;
+
+      width: 100%;
       max-width: 100%;
-      min-width: 0; /* ✅ */
+      min-width: 0;
+      overflow-x: clip;
     }
-    .left-col{ display:flex; flex-direction: column; gap: 12px; min-width: 0; }
-    .right-col{ min-width: 0; }
+    .left-col{ display:flex; flex-direction: column; gap: 12px; min-width: 0; max-width: 100%; overflow-x: clip; }
+    .right-col{ min-width: 0; max-width: 100%; overflow-x: clip; }
     @media (max-width: 980px){ .content-grid{ grid-template-columns: 1fr; } }
 
     .card{
@@ -285,11 +311,13 @@
       padding: 12px;
       max-width: 100%;
       min-width: 0;
+      overflow-x: clip;
     }
     .card h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
     /* =========================
-       ✅ KPIs (agora 3 cartões)
+       ✅ KPIs (3 cartões)
+       - título acima do valor
        ========================= */
     .kpi-row{
       display:grid;
@@ -304,9 +332,11 @@
 
     .kpi{
       display:flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap:10px;
+      flex-direction: column;      /* ✅ título em cima */
+      align-items: flex-start;     /* título à esquerda */
+      justify-content: flex-start;
+      gap: 6px;
+
       background: var(--tile);
       border: 1px solid var(--tileBorder);
       border-radius: 12px;
@@ -314,23 +344,35 @@
       max-width: 100%;
       min-width: 0;
       margin: 0;
+      overflow-x: clip;
     }
-    .kpi .label{ font-weight: 900; color:#111; font-size: 13px; }
-    .kpi .value{ font-weight: 900; font-size: 28px; color: var(--primary); line-height:1; }
+    .kpi .label{
+      font-weight: 900;
+      color:#111;
+      font-size: 13px;
+      line-height: 1.15;
+    }
+    .kpi .value{
+      font-weight: 900;
+      font-size: 34px;
+      color: var(--primary);
+      line-height: 1;
+      align-self: flex-end; /* valor à direita, como no print */
+    }
 
     .chart-card{
       min-height: 430px;
       display:flex;
       flex-direction: column;
       gap: 0;
-      min-width: 0; /* ✅ */
+      min-width: 0;
     }
     .table-card{
       min-height: 430px;
       display:flex;
       flex-direction: column;
       gap: 0;
-      min-width: 0; /* ✅ */
+      min-width: 0;
     }
 
     .msg{
@@ -344,7 +386,7 @@
     .ok{ color: var(--ok); }
 
     /* =========================
-       ✅ Tabelas compactas + scroll horizontal sempre
+       ✅ Tabelas
        ========================= */
     .table-wrap{
       overflow: auto;
@@ -354,8 +396,14 @@
       -webkit-overflow-scrolling: touch;
       max-width: 100%;
       flex: 1;
-      max-height: none;
+      max-height: none; /* padrão sem limite */
       min-width: 0;
+    }
+
+    /* ✅ versões “sem rolagem vertical” (pedido #5) */
+    .table-wrap.no-vert{
+      overflow-y: visible;   /* mostra tudo na vertical */
+      max-height: none;      /* sem limite */
     }
 
     table{
@@ -366,7 +414,6 @@
       max-width: none;
     }
 
-    /* ✅ valores mais baixos (tbody), sem afetar th e .row-total */
     th, td{
       border-bottom: 1px solid #eee;
       text-align:left;
@@ -375,7 +422,6 @@
       overflow-wrap: anywhere;
     }
 
-    /* títulos permanecem (não compactar) */
     th{
       padding: 6px 6px;
       line-height: 1.15;
@@ -387,10 +433,9 @@
       white-space: nowrap;
     }
 
-    /* ✅ linhas de valores mais baixas */
     tbody td{
-      padding: 4px 6px;     /* ✅ menor */
-      line-height: 1.05;    /* ✅ menor */
+      padding: 4px 6px;
+      line-height: 1.05;
     }
 
     tbody tr:nth-child(even){ background: var(--rowAlt); }
@@ -413,10 +458,9 @@
 
     .motivo-right{ text-align:right !important; }
 
-    /* Linha de total com destaque (não compactar) */
     .row-total td{
-      padding: 6px 6px;     /* ✅ mantém maior */
-      line-height: 1.15;    /* ✅ mantém */
+      padding: 6px 6px;
+      line-height: 1.15;
       font-weight: 900;
       background: #fff6d6;
       border-top: 2px solid #e0d39b;
@@ -424,12 +468,15 @@
 
     .chart-wrap{
       width:100%;
-      max-width: none;
+      max-width: 100%;
       margin: 0;
       position: relative;
       flex: 1;
       min-height: 0;
+      min-width: 0;
+      overflow: hidden; /* ✅ impede “empurrar” */
     }
+
     #barTipos{
       width: 100% !important;
       height: 100% !important;
@@ -526,7 +573,6 @@
             <div class="content-grid">
               <div class="left-col">
 
-                <!-- ✅ 3 KPIs no lugar do “Total (após filtros)” -->
                 <div class="kpi-row">
                   <div class="kpi">
                     <div class="label">Total de Carrinhos</div>
@@ -579,7 +625,8 @@
             <div class="card" style="margin-top:12px;">
               <h3>Registros de Carrinhos</h3>
 
-              <div class="table-wrap" style="max-height:420px;">
+              <!-- ✅ sem rolagem vertical (pedido #5) -->
+              <div class="table-wrap no-vert">
                 <table>
                   <thead>
                     <tr>
@@ -604,7 +651,8 @@
             <div class="card" style="margin-top:12px;">
               <h3>Especiais e Reservas (por registro)</h3>
 
-              <div class="table-wrap" style="max-height:420px;">
+              <!-- ✅ sem rolagem vertical (pedido #5) -->
+              <div class="table-wrap no-vert">
                 <table>
                   <thead>
                     <tr>
@@ -963,7 +1011,7 @@
   }
 
   /* =========================================================
-     ✅ Acúmulo por loja (ativos + quebrados + cestinha)
+     ✅ Acúmulo por loja (ativos + reservas + quebrados + cestinha + cestinha reserva)
      ========================================================= */
   function acumularPorLoja(listaRegistros){
     const mapa = {};
@@ -972,8 +1020,10 @@
       if(!mapa[loja]){
         mapa[loja] = {
           __totalAtivo: 0,
+          carrinhosReserva: 0,
           carrinhosQuebrados: 0,
-          cestinha: 0
+          cestinha: 0,
+          cestinhasReserva: 0
         };
       }
 
@@ -983,8 +1033,11 @@
         mapa[loja].__totalAtivo += asInt(c[key]);
       }
 
+      /* ✅ novos acumulados */
+      mapa[loja].carrinhosReserva   += asInt(c.carrinhosReserva);
       mapa[loja].carrinhosQuebrados += asInt(c.carrinhosQuebrados);
-      mapa[loja].cestinha += asInt(c.cestinha);
+      mapa[loja].cestinha           += asInt(c.cestinha);
+      mapa[loja].cestinhasReserva   += asInt(c.cestinhasReserva);
     }
     return mapa;
   }
@@ -1351,9 +1404,6 @@
     tbody.appendChild(trTot);
   }
 
-  /* =========================================================
-     ✅ aplica filtros + atualiza KPIs (3 cartões) + gráfico/tabelas
-     ========================================================= */
   function aplicarFiltrosEAtualizarTudo(){
     setMsg("");
 
@@ -1407,16 +1457,16 @@
     const porLojaRef   = acumularPorLoja(baseRef);
     const movPorLoja   = acumularMovPorLoja(baseFinal);
 
-    /* ✅ KPIs:
-       - Total de Carrinhos = soma __totalAtivo (ignora quebrados e ignora cestinha)
-       - Total de Quebrados = soma carrinhosQuebrados
-       - Total de Cestinhas = soma cestinha
+    /* ✅ KPIs atualizados:
+       - Total de Carrinhos = ativos + carrinhosReserva
+       - Total de Quebrados = carrinhosQuebrados
+       - Total de Cestinhas = cestinha + cestinhasReserva
     */
     let somaCarrinhos = 0, somaQuebrados = 0, somaCestinhas = 0;
     for(const loja in porLojaFinal){
-      somaCarrinhos += asInt(porLojaFinal[loja].__totalAtivo);
+      somaCarrinhos += asInt(porLojaFinal[loja].__totalAtivo) + asInt(porLojaFinal[loja].carrinhosReserva);
       somaQuebrados += asInt(porLojaFinal[loja].carrinhosQuebrados);
-      somaCestinhas += asInt(porLojaFinal[loja].cestinha);
+      somaCestinhas += asInt(porLojaFinal[loja].cestinha) + asInt(porLojaFinal[loja].cestinhasReserva);
     }
     document.getElementById("kpiCarrinhos").textContent = String(somaCarrinhos);
     document.getElementById("kpiQuebrados").textContent = String(somaQuebrados);
@@ -1467,10 +1517,11 @@
 </script>
 
 <!-- Fontes confiáveis -->
+<!-- Meta viewport: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
+<!-- overflow-x / clip: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
+<!-- touch-action: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action -->
+<!-- iOS zoom em inputs (tamanho de fonte): https://developer.mozilla.org/en-US/docs/Web/CSS/font-size -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
-<!-- Input type="date": https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
-<!-- CSS overflow-x/scroll: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
-<!-- CSS box-sizing: https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing -->
 </body>
 </html>
