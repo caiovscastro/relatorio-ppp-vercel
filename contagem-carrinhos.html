@@ -63,28 +63,38 @@
     .k{ color:#555; font-weight:700; }
     .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
 
-    /* Card total (mantive o estilo, mas agora teremos 2 cards: carrinhos e cestinhas) */
+    /* ====== TOTAIS LADO A LADO (inclusive no celular) ====== */
+    .totais-row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    /* Card total (ajustado: título em cima do valor) */
     .card-total{
       background:#f7f8ff;
       border: 1px solid #e0e3ff;
       border-radius: 10px;
       padding: 14px 12px;
-      margin-bottom: 12px;
+      margin: 0; /* agora o espaçamento é do .totais-row */
       display:flex;
-      justify-content: space-between;
-      align-items:center;
-      gap: 10px;
+      flex-direction: column;
+      align-items:flex-start;
+      gap: 6px;
+      min-width: 0;
     }
 
     .total-label{
-      font-weight: 800;
+      font-weight: 900;
       color:#111;
       font-size: 13px;
+      line-height: 1.1;
     }
 
     .total-valor{
       font-weight: 900;
-      font-size: 24px;
+      font-size: 26px;
       color:#0066ff;
       line-height: 1;
     }
@@ -241,12 +251,7 @@
       gap: 10px;
     }
 
-    /* ===========================
-       MOVIMENTAÇÃO (AJUSTE):
-       1) Mesmo tamanho para Direção, Motivo e Qtd.
-       2) Fundo cinza clarinho no cartão
-       => Usei GRID 3 colunas, 1fr 1fr 1fr
-       =========================== */
+    /* MOVIMENTAÇÃO: 3 colunas iguais */
     .mov-row{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -254,10 +259,10 @@
       align-items: end;
     }
 
-    /* Em telas muito estreitas, reduzimos um pouco o espaçamento.
-       Mantém 3 colunas como você pediu. */
     @media (max-width: 420px){
       .mov-row{ gap: 8px; }
+      .totais-row{ gap: 8px; }
+      .total-valor{ font-size: 24px; }
     }
 
     .pill{
@@ -295,16 +300,17 @@
         <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
       </div>
 
-      <!-- ✅ 3) Total de carrinhos (sem movimentação; sem cestinha; sem cadeira de rodas; sem cestinhas reserva) -->
-      <div class="card-total">
-        <div class="total-label">Soma total de carrinhos</div>
-        <div class="total-valor" id="totalCarrinhos">0</div>
-      </div>
+      <!-- ✅ 1) Totais lado a lado (inclusive no celular) + título acima -->
+      <div class="totais-row">
+        <div class="card-total">
+          <div class="total-label">Total de carrinhos</div>
+          <div class="total-valor" id="totalCarrinhos">0</div>
+        </div>
 
-      <!-- ✅ 4) Novo total de cestinhas (cestinha + cestinhas de reserva) -->
-      <div class="card-total">
-        <div class="total-label">Soma total de cestinhas</div>
-        <div class="total-valor" id="totalCestinhas">0</div>
+        <div class="card-total">
+          <div class="total-label">Total de cestinhas</div>
+          <div class="total-valor" id="totalCestinhas">0</div>
+        </div>
       </div>
 
       <!-- Data de contagem (coluna D) -->
@@ -426,7 +432,6 @@
         <div class="card-grid-2">
           <div class="campo">
             <label for="carrinhosReserva">
-              <!-- ✅ ícone trocado pelo link que você mandou -->
               <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
               Carrinhos de reserva:
             </label>
@@ -435,7 +440,6 @@
 
           <div class="campo">
             <label for="cestinhasReserva">
-              <!-- ✅ ícone trocado pelo link que você mandou -->
               <img id="imgCestinhasReserva" alt="Cestinhas de reserva" loading="lazy" />
               Cestinhas de reserva:
             </label>
@@ -444,7 +448,7 @@
         </div>
       </div>
 
-      <!-- ====== CARD: MOVIMENTAÇÃO (fundo cinza clarinho + 3 colunas iguais) ====== -->
+      <!-- ====== CARD: MOVIMENTAÇÃO ====== -->
       <div class="card-box card-soft">
         <h3>
           <img class="icon" id="icoMov" alt="Ícone movimentação" />
@@ -462,6 +466,9 @@
 
           <div class="campo">
             <label for="movCategoria">Motivo:</label>
+            <!-- IMPORTANTE:
+                 value continua sendo o "código" que a API valida.
+                 A abreviação (M.L / M.M) é gerada no JS e enviada em movCategoriaAbrev. -->
             <select id="movCategoria" class="input">
               <option value="MOVI_ENTRE_LOJAS">Movi. entre lojas</option>
               <option value="MOVI_MANUTENCAO">Movi. Manutenção</option>
@@ -486,7 +493,6 @@
     const ROTAS = { login: "/login.html", menu: "/menu.html" };
     const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-    // ✅ Campos de contagem (usados para validar e enviar ao backend)
     const CAMPOS_CONTAGEM = [
       { id: "duplocar120",        label: "Duplocar 120L",          key: "duplocar120" },
       { id: "grande160",          label: "Grande 160L",            key: "grande160" },
@@ -497,17 +503,14 @@
       { id: "compraKids",         label: "Compra Kids",            key: "compraKids" },
       { id: "bebeJipinho",        label: "Bebê Jipinho",           key: "bebeJipinho" },
 
-      // Itens especiais
       { id: "cestinha",           label: "Cestinha",               key: "cestinha" },
       { id: "cadeiraRodas",       label: "Cadeira de rodas",       key: "cadeiraRodas" },
       { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",    key: "carrinhosQuebrados" },
 
-      // Reservas
       { id: "carrinhosReserva",   label: "Carrinhos de reserva",   key: "carrinhosReserva" },
       { id: "cestinhasReserva",   label: "Cestinhas de reserva",   key: "cestinhasReserva" },
     ];
 
-    // ✅ Movimentação (vai para backend, não entra nos totais)
     const CAMPO_MOV = {
       tipoId: "movTipo",
       categoriaId: "movCategoria",
@@ -516,7 +519,6 @@
       label: "Movimentação de carrinhos"
     };
 
-    // ✅ 3) Total de carrinhos:
     const IDS_TOTAL_CARRINHOS = [
       "duplocar120",
       "grande160",
@@ -530,7 +532,6 @@
       "carrinhosReserva",
     ];
 
-    // ✅ 4) Total de cestinhas: cestinha + cestinhas de reserva
     const IDS_TOTAL_CESTINHAS = [
       "cestinha",
       "cestinhasReserva",
@@ -631,16 +632,14 @@
       return `${m[3]}/${m[2]}/${m[1]}`;
     }
 
-    // ✅ (ALTERAÇÃO SOLICITADA) abreviação do motivo para enviar na coluna S
-    function abreviarMotivoParaColunaS(textoMotivo) {
-      const m = String(textoMotivo || "").trim();
-
-      // Mapeia exatamente os textos exibidos no seletor
-      if (m === "Movi. entre lojas") return "M.L";
-      if (m === "Movi. Manutenção") return "M.M";
-
-      // fallback: mantém como está
-      return m;
+    // ✅ Abreviação que você quer gravar na coluna S
+    // Você pediu: M.L ou M_L e M.M ou M_M.
+    // Vou usar com ponto (M.L / M.M). Se quiser underscore, troque aqui.
+    function abreviarCodigoMotivo(codigo) {
+      const v = String(codigo || "").trim().toUpperCase();
+      if (v === "MOVI_ENTRE_LOJAS") return "M.L";
+      if (v === "MOVI_MANUTENCAO") return "M.M";
+      return "";
     }
 
     async function enviar() {
@@ -672,18 +671,19 @@
         const movTipo = document.getElementById(CAMPO_MOV.tipoId).value;
         const movSigned = (movTipo === "SAIDA") ? -movQtd : +movQtd;
 
-        // ✅ antes: pegava o value do select (MOVI_ENTRE_LOJAS / MOVI_MANUTENCAO)
-        // ✅ agora: envia abreviado (M.L / M.M) baseado no TEXTO visível do seletor
-        const sel = document.getElementById(CAMPO_MOV.categoriaId);
-        const motivoTexto = sel?.options?.[sel.selectedIndex]?.text || "";
-        const movCategoria = abreviarMotivoParaColunaS(motivoTexto);
+        // ✅ IMPORTANTE:
+        // - movCategoria (código) vai para a validação da API
+        // - movCategoriaAbrev (M.L / M.M) é o que você quer gravar na coluna S
+        const movCategoriaCodigo = document.getElementById(CAMPO_MOV.categoriaId).value;
+        const movCategoriaAbrev = abreviarCodigoMotivo(movCategoriaCodigo);
 
         contagens[CAMPO_MOV.key] = movSigned;
 
         const payload = {
           dataLancamento: isoParaBR(dataISO),
           contagens,
-          movCategoria
+          movCategoria: movCategoriaCodigo,
+          movCategoriaAbrev
         };
 
         const resp = await fetch("/api/carrinhos", {
@@ -725,9 +725,6 @@
       }
     }
 
-    /* =========================
-       Ícones (Data URI SVG) + Reservas (URLs)
-       ========================= */
     function svgDataUri(svg) {
       return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
     }
@@ -796,9 +793,9 @@
     });
   </script>
 
-  <!-- Fontes confiáveis -->
-  <!-- HTMLSelectElement / options / selectedIndex: https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement -->
-  <!-- Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API -->
-  <!-- Array.prototype.reduce: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce -->
+  <!-- Fontes (links confiáveis) -->
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select -->
+  <!-- https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
+  <!-- https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout -->
 </body>
 </html>
