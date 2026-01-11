@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ viewport mais “agressivo” contra zoom/overflow -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <!-- ✅ Evita zoom “estranho” e respeita viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Dashboard Carrinhos</title>
 
   <!-- UX: evita cache “enganoso” ao voltar -->
@@ -33,33 +33,30 @@
 
     *, *::before, *::after{ box-sizing: border-box; }
 
-    /* ✅ “Cinta” anti-estouro lateral (mais forte que hidden) */
-    html{
+    /* =========================================================
+       ✅ CORREÇÃO DEFINITIVA DE “ESTOURA À DIREITA”
+       - Evita 100vw (causa overflow em celulares)
+       - Usa hidden (mais compatível que clip)
+       ========================================================= */
+    html, body{
       width: 100%;
       max-width: 100%;
-      overflow-x: clip;
-    }
-    body{
-      width: 100%;
-      max-width: 100%;
-      overflow-x: clip;
+      overflow-x: hidden; /* ✅ não deixa a página vazar lateralmente */
       background:var(--bg);
-      font-family: Arial, sans-serif;
       margin:0;
-      min-height:100vh;
       color:#111;
+      font-family: Arial, sans-serif;
       -webkit-text-size-adjust: 100%;
       touch-action: manipulation;
     }
 
-    /* ✅ garante que nada use largura maior que a tela */
+    /* ✅ Container sem 100vw (100vw costuma criar 1~2px de overflow em mobile) */
     .container{
-      width: 100vw;
-      max-width: 100vw;
-      background: transparent;
+      width: 100%;
+      max-width: 100%;
       padding: 16px;
-      overflow-x: clip;
       margin: 0 auto;
+      overflow-x: hidden;
     }
 
     .shell{
@@ -69,11 +66,11 @@
       padding: 18px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      overflow-x: clip;
+      overflow-x: hidden;  /* ✅ garante que nada “empurra” o shell */
       min-width: 0;
     }
 
-    /* ✅ canvases nunca “empurram” layout */
+    /* ✅ canvases não podem empurrar layout */
     canvas{
       max-width: 100% !important;
       display:block;
@@ -96,11 +93,8 @@
       border-bottom: 1px solid var(--border);
       padding-bottom: 12px;
       margin-bottom: 12px;
-
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      overflow-x: clip;
+      min-width: 0; /* ✅ */
+      overflow-x: hidden;
     }
 
     .card-info{
@@ -111,9 +105,8 @@
       padding: 10px 12px;
       font-size: 13px;
       line-height: 1.45;
-      min-width: 0;
-      max-width: 100%;
-      overflow-x: clip;
+      min-width: 0; /* ✅ */
+      overflow-x: hidden;
     }
 
     .linha{
@@ -134,8 +127,7 @@
       flex-direction: column;
       gap:10px;
       justify-content: center;
-      min-width: 0;
-      max-width: 100%;
+      min-width: 0; /* ✅ */
     }
 
     .btn{
@@ -174,17 +166,16 @@
 
     .hidden{ display:none !important; }
 
+    /* ✅ grid: min-width:0 é obrigatório para não vazar */
     .grid{
       display:grid;
       grid-template-columns: 192px 1fr;
       gap: 12px;
       align-items: start;
-
-      width: 100%;
-      max-width: 100%;
       min-width: 0;
-      overflow-x: clip;
+      overflow-x: hidden;
     }
+    .grid > *{ min-width: 0; } /* ✅ */
     @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
 
     .painel{
@@ -194,7 +185,7 @@
       padding: 12px;
       max-width: 100%;
       min-width: 0;
-      overflow-x: clip;
+      overflow-x: hidden;
     }
     .painel h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
@@ -206,7 +197,7 @@
       margin-bottom: 10px;
       max-width: 100%;
       min-width: 0;
-      overflow-x: clip;
+      overflow-x: hidden;
     }
 
     .grupo-titulo{
@@ -239,6 +230,7 @@
       overflow:auto;
       border-top: 1px dashed #ddd;
       padding-top: 8px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .check{
@@ -284,7 +276,7 @@
     }
     .input:focus{ border-color:var(--primary); box-shadow: 0 0 0 1px #0066ff33; }
 
-    /* ✅ Evita auto-zoom do iOS (font-size < 16px causa zoom) */
+    /* ✅ Evita auto-zoom no iOS: input < 16px */
     @media (max-width: 520px){
       .input{ font-size:16px; }
     }
@@ -294,14 +286,12 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       align-items: start;
-
-      width: 100%;
-      max-width: 100%;
       min-width: 0;
-      overflow-x: clip;
+      overflow-x: hidden;
     }
-    .left-col{ display:flex; flex-direction: column; gap: 12px; min-width: 0; max-width: 100%; overflow-x: clip; }
-    .right-col{ min-width: 0; max-width: 100%; overflow-x: clip; }
+    .content-grid > *{ min-width: 0; } /* ✅ */
+    .left-col{ display:flex; flex-direction: column; gap: 12px; min-width: 0; overflow-x: hidden; }
+    .right-col{ min-width: 0; overflow-x: hidden; }
     @media (max-width: 980px){ .content-grid{ grid-template-columns: 1fr; } }
 
     .card{
@@ -311,40 +301,34 @@
       padding: 12px;
       max-width: 100%;
       min-width: 0;
-      overflow-x: clip;
+      overflow: hidden; /* ✅ importante: card não pode “vazar” */
     }
     .card h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
     /* =========================
-       ✅ KPIs (3 cartões)
-       - título acima do valor
+       ✅ KPIs
        ========================= */
     .kpi-row{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 12px;
       min-width: 0;
-      max-width: 100%;
     }
-    @media (max-width: 980px){
-      .kpi-row{ grid-template-columns: 1fr; }
-    }
+    .kpi-row > *{ min-width: 0; } /* ✅ */
+    @media (max-width: 980px){ .kpi-row{ grid-template-columns: 1fr; } }
 
     .kpi{
       display:flex;
-      flex-direction: column;      /* ✅ título em cima */
-      align-items: flex-start;     /* título à esquerda */
+      flex-direction: column;
+      align-items: flex-start;
       justify-content: flex-start;
       gap: 6px;
-
       background: var(--tile);
       border: 1px solid var(--tileBorder);
       border-radius: 12px;
       padding: 12px;
-      max-width: 100%;
       min-width: 0;
-      margin: 0;
-      overflow-x: clip;
+      overflow:hidden;
     }
     .kpi .label{
       font-weight: 900;
@@ -357,7 +341,7 @@
       font-size: 34px;
       color: var(--primary);
       line-height: 1;
-      align-self: flex-end; /* valor à direita, como no print */
+      align-self: flex-end;
     }
 
     .chart-card{
@@ -386,31 +370,28 @@
     .ok{ color: var(--ok); }
 
     /* =========================
-       ✅ Tabelas
+       ✅ TABELAS (anti overflow)
+       - Wrapper tem overflow-x:auto
+       - Table usa width:auto (não força body)
+       - contain:content ajuda Safari/iOS a não “vazar”
        ========================= */
     .table-wrap{
-      overflow: auto;
+      width: 100%;
       overflow-x: auto;
+      overflow-y: visible;
       border:1px solid #eee;
       border-radius: 10px;
       -webkit-overflow-scrolling: touch;
       max-width: 100%;
-      flex: 1;
-      max-height: none; /* padrão sem limite */
       min-width: 0;
-    }
-
-    /* ✅ versões “sem rolagem vertical” (pedido #5) */
-    .table-wrap.no-vert{
-      overflow-y: visible;   /* mostra tudo na vertical */
-      max-height: none;      /* sem limite */
+      contain: content; /* ✅ evita vazamento de layout em alguns mobiles */
     }
 
     table{
       border-collapse: collapse;
       font-size: 12px;
-      width: max-content;
-      min-width: 100%;
+      width: auto;         /* ✅ não força o body */
+      min-width: 100%;     /* ✅ preenche o card quando poucas colunas */
       max-width: none;
     }
 
@@ -420,6 +401,7 @@
       vertical-align: top;
       word-break: break-word;
       overflow-wrap: anywhere;
+      white-space: nowrap; /* ✅ tabela compacta e previsível; wrapper rola */
     }
 
     th{
@@ -430,7 +412,6 @@
       position: sticky;
       top: 0;
       z-index: 1;
-      white-space: nowrap;
     }
 
     tbody td{
@@ -469,12 +450,11 @@
     .chart-wrap{
       width:100%;
       max-width: 100%;
-      margin: 0;
       position: relative;
       flex: 1;
       min-height: 0;
       min-width: 0;
-      overflow: hidden; /* ✅ impede “empurrar” */
+      overflow: hidden;
     }
 
     #barTipos{
@@ -512,6 +492,9 @@
 
       <div id="app" class="hidden">
         <div class="grid">
+          <!-- =========================
+               PAINEL DE FILTROS
+               ========================= -->
           <div class="painel">
             <h3>Filtros</h3>
 
@@ -531,7 +514,7 @@
               </div>
 
               <div class="nota">
-                O dashboard usa a <b>Data de filtro para buscar</b>. A <b>Data Anterior</b> é usada para calcular a <b>diferença</b>.
+                O dashboard usa a <b>Data de filtro</b>. A <b>Data Anterior</b> é usada para calcular a <b>diferença</b>.
               </div>
             </div>
 
@@ -569,10 +552,14 @@
             <div class="msg" id="msg"></div>
           </div>
 
+          <!-- =========================
+               CONTEÚDO
+               ========================= -->
           <div>
             <div class="content-grid">
               <div class="left-col">
 
+                <!-- KPIs (respeitam filtros) -->
                 <div class="kpi-row">
                   <div class="kpi">
                     <div class="label">Carrinhos ativos</div>
@@ -590,6 +577,7 @@
                   </div>
                 </div>
 
+                <!-- Gráfico (respeita filtro de tipo) -->
                 <div class="card chart-card">
                   <h3>Quantidade por Modelo</h3>
                   <div class="chart-wrap">
@@ -598,23 +586,13 @@
                 </div>
               </div>
 
+              <!-- Tabela Carrinhos por loja (respeita tipo, e esconde coluna quebrados se desmarcado) -->
               <div class="right-col">
                 <div class="card table-card">
                   <h3>Carrinhos</h3>
-
                   <div class="table-wrap">
                     <table>
-                      <thead>
-                        <tr>
-                          <th>Loja</th>
-                          <th>Atual</th>
-                          <th>Anterior</th>
-                          <th>Diferença</th>
-                          <th>Carrinhos Quebrados</th>
-                          <th>Mov.</th>
-                          <th class="motivo-right">Motivo</th>
-                        </tr>
-                      </thead>
+                      <thead id="theadPorLoja"></thead>
                       <tbody id="tbodyPorLoja"></tbody>
                     </table>
                   </div>
@@ -622,49 +600,23 @@
               </div>
             </div>
 
+            <!-- Registros (colunas dinâmicas conforme tipo) -->
             <div class="card" style="margin-top:12px;">
               <h3>Registros de Carrinhos</h3>
-
-              <!-- ✅ sem rolagem vertical (pedido #5) -->
-              <div class="table-wrap no-vert">
+              <div class="table-wrap">
                 <table>
-                  <thead>
-                    <tr>
-                      <th>Loja</th>
-                      <th>Usuário</th>
-                      <th>Duplocar 120L</th>
-                      <th>Grande 160L</th>
-                      <th>Bebê 160L</th>
-                      <th>Maxcar 200L</th>
-                      <th>Macrocar 300L</th>
-                      <th>Prancha Jacaré</th>
-                      <th>Compra Kids</th>
-                      <th>Bebê Jipinho</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
+                  <thead id="theadRegistros"></thead>
                   <tbody id="tbodyRegistros"></tbody>
                 </table>
               </div>
             </div>
 
+            <!-- Especiais (colunas dinâmicas conforme tipo) -->
             <div class="card" style="margin-top:12px;">
               <h3>Especiais e Reservas (por registro)</h3>
-
-              <!-- ✅ sem rolagem vertical (pedido #5) -->
-              <div class="table-wrap no-vert">
+              <div class="table-wrap">
                 <table>
-                  <thead>
-                    <tr>
-                      <th>Loja</th>
-                      <th>Usuário</th>
-                      <th>Carrinhos reserva</th>
-                      <th>Carrinhos Quebrados</th>
-                      <th>Cestinhas</th>
-                      <th>Cestinhas reserva</th>
-                      <th>Cadeira de rodas</th>
-                    </tr>
-                  </thead>
+                  <thead id="theadEspeciais"></thead>
                   <tbody id="tbodyEspeciais"></tbody>
                 </table>
               </div>
@@ -677,24 +629,37 @@
   </div>
 
 <script>
+  /* =========================================================
+     CONFIG
+     ========================================================= */
   const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
+  /* =========================================================
+     TIPOS
+     - Inclui os novos pedidos: carrinhosReserva e cestinhasReserva
+     ========================================================= */
   const TIPOS = [
-    { key: "duplocar120",        label: "Duplocar 120L" },
-    { key: "grande160",          label: "Grande 160L" },
-    { key: "bebeConforto160",    label: "Bebê 160L" },
-    { key: "maxcar200",          label: "Maxcar 200L" },
-    { key: "macrocar300",        label: "Macrocar 300L" },
-    { key: "pranchaJacare",      label: "Prancha Jacaré" },
-    { key: "compraKids",         label: "Compra Kids" },
-    { key: "bebeJipinho",        label: "Bebê Jipinho" },
+    // Modelos (ativos)
+    { key: "duplocar120",     label: "Duplocar 120L" },
+    { key: "grande160",       label: "Grande 160L" },
+    { key: "bebeConforto160", label: "Bebê 160L" },
+    { key: "maxcar200",       label: "Maxcar 200L" },
+    { key: "macrocar300",     label: "Macrocar 300L" },
+    { key: "pranchaJacare",   label: "Prancha Jacaré" },
+    { key: "compraKids",      label: "Compra Kids" },
+    { key: "bebeJipinho",     label: "Bebê Jipinho" },
+
+    // Especiais / reservas
+    { key: "carrinhosReserva",   label: "Carrinhos reserva" },   // ✅ novo no filtro
+    { key: "carrinhosQuebrados", label: "Carrinhos Quebrados" },
     { key: "cestinha",           label: "Cestinha" },
-    { key: "cadeiraRodas",       label: "Cadeira de rodas" },
-    { key: "carrinhosQuebrados", label: "Carrinhos Quebrados" }
+    { key: "cestinhasReserva",   label: "Cestinhas reserva" },   // ✅ novo no filtro
+    { key: "cadeiraRodas",       label: "Cadeira de rodas" }
   ];
 
-  const ACTIVE_KEYS = new Set([
+  /* Conjunto de chaves que representam “carrinhos ativos” (modelos) */
+  const ACTIVE_KEYS = [
     "duplocar120",
     "grande160",
     "bebeConforto160",
@@ -703,7 +668,16 @@
     "pranchaJacare",
     "compraKids",
     "bebeJipinho"
-  ]);
+  ];
+
+  /* Conjunto de chaves que representam “especiais” */
+  const SPECIAL_KEYS = [
+    "carrinhosReserva",
+    "carrinhosQuebrados",
+    "cestinha",
+    "cestinhasReserva",
+    "cadeiraRodas"
+  ];
 
   const TIPO_ICONE = {
     duplocar120: "🛒",
@@ -714,9 +688,11 @@
     pranchaJacare: "🛒",
     compraKids: "🧸",
     bebeJipinho: "👶",
+    carrinhosReserva: "🅿️",
+    carrinhosQuebrados: "⚠️",
     cestinha: "🧺",
-    cadeiraRodas: "♿",
-    carrinhosQuebrados: "⚠️"
+    cestinhasReserva: "🧺",
+    cadeiraRodas: "♿"
   };
 
   const LOJAS = [
@@ -736,6 +712,9 @@
   let registros = [];
   let chartBar = null;
 
+  /* =========================================================
+     HELPERS UI
+     ========================================================= */
   function setMsg(texto, ok=false){
     const el = document.getElementById("msg");
     el.classList.toggle("ok", !!ok);
@@ -752,63 +731,9 @@
     document.getElementById("app").classList.remove("hidden");
   }
 
-  async function obterSessaoDoBackend(){
-    try{
-      const resp = await fetch("/api/session", {
-        method:"GET",
-        credentials:"include",
-        headers:{ "Accept":"application/json" }
-      });
-      if(!resp.ok) return null;
-      const dados = await resp.json().catch(()=>null);
-      if(!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
-      return dados;
-    }catch(e){
-      console.error("[DASH-CARRINHOS] erro /api/session:", e);
-      return null;
-    }
-  }
-
-  async function carregarRegistros(){
-    setMsg("");
-    const btn = document.getElementById("btnAtualizar");
-    btn.disabled = true;
-
-    try{
-      const resp = await fetch("/api/carrinhos-listar", {
-        method:"GET",
-        credentials:"include",
-        headers:{ "Accept":"application/json" }
-      });
-
-      if(resp.status === 401 || resp.status === 403){
-        mostrarSemSessao();
-        setMsg("Sessão inválida/expirada. Faça login novamente.");
-        return;
-      }
-
-      const dados = await resp.json().catch(()=>({}));
-      if(!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)){
-        setMsg(dados.message || "Erro ao carregar registros.");
-        return;
-      }
-
-      registros = dados.registros;
-
-      montarFiltros();
-      sugerirDatasMaisRecentes();
-
-      aplicarFiltrosEAtualizarTudo();
-      setMsg(`Dados carregados: ${registros.length} registro(s).`, true);
-
-    }catch(e){
-      console.error(e);
-      setMsg("Erro de conexão ao carregar dados.");
-    }finally{
-      btn.disabled = false;
-    }
-  }
-
+  /* =========================================================
+     HELPERS DADOS
+     ========================================================= */
   function brParaISO(br){
     const s = String(br||"").trim();
     const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -888,9 +813,122 @@
     }
   }
 
+  function getSelecionados(tipo){
+    const set = new Set();
+    document.querySelectorAll(`input[type="checkbox"][data-tipo="${tipo}"]`).forEach(cb=>{
+      if(cb.checked){
+        set.add(cb.getAttribute("data-valor"));
+      }
+    });
+    return set;
+  }
+
+  function getMovimentoSigned(reg){
+    const c = reg?.contagens || {};
+    const v = (c.movCarrinhos !== undefined) ? c.movCarrinhos : (reg.movCarrinhos ?? reg.movimento ?? reg.mov ?? 0);
+    return asIntSigned(v);
+  }
+
+  function getMotivo(reg){
+    return String(
+      reg?.movCategoria ??
+      reg?.motivo ??
+      reg?.motivoMov ??
+      reg?.categoriaMov ??
+      ""
+    ).trim();
+  }
+
+  /* =========================================================
+     ✅ SOMAS RESPEITANDO O FILTRO DE TIPO
+     ========================================================= */
+  function somaAtivosSelecionados(contagens, tiposSel){
+    // Soma apenas modelos selecionados
+    let s = 0;
+    for(const k of ACTIVE_KEYS){
+      if(tiposSel.has(k)) s += asInt(contagens?.[k]);
+    }
+    return s;
+  }
+
+  function somaCestinhasSelecionadas(contagens, tiposSel){
+    let s = 0;
+    if(tiposSel.has("cestinha")) s += asInt(contagens?.cestinha);
+    if(tiposSel.has("cestinhasReserva")) s += asInt(contagens?.cestinhasReserva);
+    return s;
+  }
+
+  function getQuebradosSeSelecionado(contagens, tiposSel){
+    return tiposSel.has("carrinhosQuebrados") ? asInt(contagens?.carrinhosQuebrados) : 0;
+  }
+
+  /* =========================================================
+     SESSÃO / API
+     ========================================================= */
+  async function obterSessaoDoBackend(){
+    try{
+      const resp = await fetch("/api/session", {
+        method:"GET",
+        credentials:"include",
+        headers:{ "Accept":"application/json" }
+      });
+      if(!resp.ok) return null;
+      const dados = await resp.json().catch(()=>null);
+      if(!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
+      return dados;
+    }catch(e){
+      console.error("[DASH-CARRINHOS] erro /api/session:", e);
+      return null;
+    }
+  }
+
+  async function carregarRegistros(){
+    setMsg("");
+    const btn = document.getElementById("btnAtualizar");
+    btn.disabled = true;
+
+    try{
+      const resp = await fetch("/api/carrinhos-listar", {
+        method:"GET",
+        credentials:"include",
+        headers:{ "Accept":"application/json" }
+      });
+
+      if(resp.status === 401 || resp.status === 403){
+        mostrarSemSessao();
+        setMsg("Sessão inválida/expirada. Faça login novamente.");
+        return;
+      }
+
+      const dados = await resp.json().catch(()=>({}));
+      if(!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)){
+        setMsg(dados.message || "Erro ao carregar registros.");
+        return;
+      }
+
+      registros = dados.registros;
+
+      montarFiltros();
+      sugerirDatasMaisRecentes();
+
+      aplicarFiltrosEAtualizarTudo();
+      setMsg(`Dados carregados: ${registros.length} registro(s).`, true);
+
+    }catch(e){
+      console.error(e);
+      setMsg("Erro de conexão ao carregar dados.");
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  /* =========================================================
+     FILTROS (montagem)
+     ========================================================= */
   function montarFiltros(){
     const listaTipos = document.getElementById("listaTipos");
     listaTipos.innerHTML = "";
+
     TIPOS.forEach((t, i)=>{
       const id = `tp_${i}`;
       const row = document.createElement("div");
@@ -984,64 +1022,9 @@
     syncDataAnteriorComDataFinal();
   }
 
-  function getSelecionados(tipo){
-    const set = new Set();
-    document.querySelectorAll(`input[type="checkbox"][data-tipo="${tipo}"]`).forEach(cb=>{
-      if(cb.checked){
-        set.add(cb.getAttribute("data-valor"));
-      }
-    });
-    return set;
-  }
-
-  function getMovimentoSigned(reg){
-    const c = reg?.contagens || {};
-    const v = (c.movCarrinhos !== undefined) ? c.movCarrinhos : (reg.movCarrinhos ?? reg.movimento ?? reg.mov ?? 0);
-    return asIntSigned(v);
-  }
-
-  function getMotivo(reg){
-    return String(
-      reg?.movCategoria ??
-      reg?.motivo ??
-      reg?.motivoMov ??
-      reg?.categoriaMov ??
-      ""
-    ).trim();
-  }
-
   /* =========================================================
-     ✅ Acúmulo por loja (ativos + reservas + quebrados + cestinha + cestinha reserva)
+     ✅ AGREGADORES (por loja e por registro)
      ========================================================= */
-  function acumularPorLoja(listaRegistros){
-    const mapa = {};
-    for(const r of listaRegistros){
-      const loja = String(r.loja||"").trim();
-      if(!mapa[loja]){
-        mapa[loja] = {
-          __totalAtivo: 0,
-          carrinhosReserva: 0,
-          carrinhosQuebrados: 0,
-          cestinha: 0,
-          cestinhasReserva: 0
-        };
-      }
-
-      const c = r.contagens || {};
-
-      for(const key of ACTIVE_KEYS){
-        mapa[loja].__totalAtivo += asInt(c[key]);
-      }
-
-      /* ✅ novos acumulados */
-      mapa[loja].carrinhosReserva   += asInt(c.carrinhosReserva);
-      mapa[loja].carrinhosQuebrados += asInt(c.carrinhosQuebrados);
-      mapa[loja].cestinha           += asInt(c.cestinha);
-      mapa[loja].cestinhasReserva   += asInt(c.cestinhasReserva);
-    }
-    return mapa;
-  }
-
   function acumularMovPorLoja(listaRegistros){
     const out = {};
     for(const r of listaRegistros){
@@ -1060,18 +1043,20 @@
     return out;
   }
 
-  function recalcularTotaisPorTipoParaGrafico(baseFinal, tiposSel){
+  /* =========================================================
+     ✅ GRÁFICO (somente modelos selecionados)
+     ========================================================= */
+  function recalcularTotaisParaGraficoModelos(baseFinal, tiposSel){
     const out = {};
-    TIPOS.forEach(t=>{
-      if(tiposSel.size && !tiposSel.has(t.key)) return;
-      out[t.key] = 0;
-    });
-
+    for(const k of ACTIVE_KEYS){
+      if(!tiposSel.has(k)) continue;
+      out[k] = 0;
+    }
     for(const r of baseFinal){
       const c = r.contagens || {};
-      for(const t of TIPOS){
-        if(tiposSel.size && !tiposSel.has(t.key)) continue;
-        out[t.key] = (out[t.key] || 0) + asInt(c[t.key]);
+      for(const k of ACTIVE_KEYS){
+        if(!tiposSel.has(k)) continue;
+        out[k] = (out[k] || 0) + asInt(c[k]);
       }
     }
     return out;
@@ -1081,24 +1066,9 @@
     const canvas = document.getElementById("barTipos");
     const ctx = canvas.getContext("2d");
 
-    if(!totaisPorTipo || Object.keys(totaisPorTipo).length === 0){
-      if(chartBar){ chartBar.destroy(); chartBar = null; }
-      chartBar = new Chart(ctx, {
-        type:"bar",
-        data:{ labels:["Sem dados"], datasets:[{ data:[0] }] },
-        options:{
-          indexAxis:"y",
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins:{ legend:{display:false}, tooltip:{enabled:false}, datalabels:{formatter:()=>""} },
-          scales:{ x:{display:false}, y:{display:true, grid:{display:false}} }
-        },
-        plugins:[ChartDataLabels]
-      });
-      return;
-    }
+    const modelosSelecionados = ACTIVE_KEYS.filter(k => tiposSel.has(k));
 
-    if(tiposSel && tiposSel.size === 0){
+    if(modelosSelecionados.length === 0){
       if(chartBar){ chartBar.destroy(); chartBar = null; }
       chartBar = new Chart(ctx, {
         type:"bar",
@@ -1118,12 +1088,12 @@
     const labels = [];
     const data = [];
 
-    TIPOS.forEach(t=>{
-      if(tiposSel && tiposSel.size && !tiposSel.has(t.key)) return;
-      const icon = TIPO_ICONE[t.key] || "🛒";
-      labels.push(`${t.label} ${icon}`);
-      data.push(asInt(totaisPorTipo[t.key]));
-    });
+    for(const k of modelosSelecionados){
+      const t = TIPOS.find(x=>x.key===k);
+      const label = t ? t.label : k;
+      labels.push(`${label} ${(TIPO_ICONE[k]||"🛒")}`);
+      data.push(asInt(totaisPorTipo[k]));
+    }
 
     const zipped = labels.map((l,i)=>({ l, v:data[i] })).sort((a,b)=>b.v - a.v);
     const labelsOrd = zipped.map(x=>x.l);
@@ -1187,33 +1157,71 @@
     });
   }
 
-  function renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja){
+  /* =========================================================
+     ✅ TABELA POR LOJA (Carrinhos)
+     - Atual/Anterior/Diferença = SOMA dos modelos selecionados
+     - Quebrados só aparece se estiver selecionado
+     ========================================================= */
+  function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel){
+    const thead = document.getElementById("theadPorLoja");
     const tbody = document.getElementById("tbodyPorLoja");
+    thead.innerHTML = "";
     tbody.innerHTML = "";
 
-    const entries = Object.entries(porLojaFinal || {});
-    if(!entries.length){
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
+    const mostrarQuebrados = tiposSel.has("carrinhosQuebrados");
+
+    // Cabeçalho dinâmico (some a coluna “Quebrados” se desmarcado)
+    const trh = document.createElement("tr");
+    trh.innerHTML = `
+      <th>Loja</th>
+      <th>Atual</th>
+      <th>Anterior</th>
+      <th>Diferença</th>
+      ${mostrarQuebrados ? `<th>Carrinhos Quebrados</th>` : ``}
+      <th>Mov.</th>
+      <th class="motivo-right">Motivo</th>
+    `;
+    thead.appendChild(trh);
+
+    // Agrega por loja a partir das listas (final/ref), respeitando o filtro de tipo na soma
+    const mapFinal = {};
+    const mapRef = {};
+
+    for(const r of listaFinal){
+      const loja = String(r.loja||"").trim();
+      if(!mapFinal[loja]) mapFinal[loja] = { ativos:0, quebrados:0 };
+      const c = r.contagens || {};
+      mapFinal[loja].ativos += somaAtivosSelecionados(c, tiposSel);
+      mapFinal[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
+    }
+
+    for(const r of listaRef){
+      const loja = String(r.loja||"").trim();
+      if(!mapRef[loja]) mapRef[loja] = { ativos:0 };
+      const c = r.contagens || {};
+      mapRef[loja].ativos += somaAtivosSelecionados(c, tiposSel);
+    }
+
+    const lojas = Object.keys(mapFinal);
+    if(!lojas.length){
+      const cols = mostrarQuebrados ? 7 : 6;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
       return;
     }
 
-    entries.sort((a,b)=>{
-      const la = lojaCurta6(a[0]).localeCompare(lojaCurta6(b[0]));
-      if(la !== 0) return la;
-      return a[0].localeCompare(b[0]);
-    });
+    lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
 
-    let totAtual = 0, totAnterior = 0, totDiff = 0, totQuebrados = 0, totMov = 0;
+    let totAtual=0, totAnterior=0, totDiff=0, totQuebr=0, totMov=0;
 
-    for(const [loja, objFinal] of entries){
-      const atual = asInt(objFinal.__totalAtivo);
-      const anterior = asInt((porLojaRef && porLojaRef[loja] ? porLojaRef[loja].__totalAtivo : 0));
+    for(const loja of lojas){
+      const atual = asInt(mapFinal[loja].ativos);
+      const anterior = asInt(mapRef[loja]?.ativos || 0);
       const diff = atual - anterior;
-
-      const quebrados = asInt(objFinal.carrinhosQuebrados);
 
       const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
       const txtDiff = diff > 0 ? `+${diff}` : String(diff);
+
+      const quebrados = mostrarQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
 
       const movObj = movPorLoja?.[loja];
       const mov = movObj ? asIntSigned(movObj.movSum) : 0;
@@ -1226,7 +1234,7 @@
       totAtual += atual;
       totAnterior += anterior;
       totDiff += diff;
-      totQuebrados += quebrados;
+      if(mostrarQuebrados) totQuebr += quebrados;
       totMov += mov;
 
       const tr = document.createElement("tr");
@@ -1235,13 +1243,14 @@
         <td style="font-weight:900;">${atual}</td>
         <td style="font-weight:900;">${anterior}</td>
         <td class="${cls}">${txtDiff}</td>
-        <td style="font-weight:900;">${quebrados}</td>
+        ${mostrarQuebrados ? `<td style="font-weight:900;">${quebrados}</td>` : ``}
         <td class="${movCls}">${movTxt}</td>
         <td class="motivo-right">${esc(motivoTxt)}</td>
       `;
       tbody.appendChild(tr);
     }
 
+    // Total
     const trTot = document.createElement("tr");
     trTot.className = "row-total";
     const clsTot = totDiff > 0 ? "diff-pos" : totDiff < 0 ? "diff-neg" : "diff-zero";
@@ -1254,19 +1263,42 @@
       <td>${totAtual}</td>
       <td>${totAnterior}</td>
       <td class="${clsTot}">${txtTotDiff}</td>
-      <td>${totQuebrados}</td>
+      ${mostrarQuebrados ? `<td>${totQuebr}</td>` : ``}
       <td class="${clsTotMov}">${txtTotMov}</td>
       <td class="motivo-right"></td>
     `;
     tbody.appendChild(trTot);
   }
 
-  function renderTabelaRegistros(lista){
+  /* =========================================================
+     ✅ REGISTROS (colunas dinâmicas por tipo)
+     - Só mostra modelos selecionados
+     - Total soma apenas selecionados
+     ========================================================= */
+  function renderTabelaRegistros(lista, tiposSel){
+    const thead = document.getElementById("theadRegistros");
     const tbody = document.getElementById("tbodyRegistros");
+    thead.innerHTML = "";
     tbody.innerHTML = "";
 
+    const modelosSel = ACTIVE_KEYS.filter(k => tiposSel.has(k));
+
+    // Cabeçalho dinâmico
+    const trh = document.createElement("tr");
+    trh.innerHTML = `
+      <th>Loja</th>
+      <th>Usuário</th>
+      ${modelosSel.map(k => {
+        const t = TIPOS.find(x=>x.key===k);
+        return `<th>${esc(t ? t.label : k)}</th>`;
+      }).join("")}
+      <th>Total</th>
+    `;
+    thead.appendChild(trh);
+
     if(!lista.length){
-      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      const cols = 3 + modelosSel.length; // loja+usuario + tipos + total
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
       return;
     }
 
@@ -1276,48 +1308,29 @@
       return String(a.usuario||"").localeCompare(String(b.usuario||""));
     });
 
-    const tot = {
-      duplocar120:0, grande160:0, bebeConforto160:0, maxcar200:0,
-      macrocar300:0, pranchaJacare:0, compraKids:0, bebeJipinho:0,
-      total:0
-    };
+    // Totais por coluna (apenas colunas visíveis)
+    const totCol = {};
+    modelosSel.forEach(k => totCol[k]=0);
+    let totGeral = 0;
 
     for(const r of ord){
       const c = r.contagens || {};
+      let totalLinha = 0;
 
-      const vDuplo = asInt(c.duplocar120);
-      const vGrand = asInt(c.grande160);
-      const vBebe  = asInt(c.bebeConforto160);
-      const vMax   = asInt(c.maxcar200);
-      const vMacro = asInt(c.macrocar300);
-      const vPran  = asInt(c.pranchaJacare);
-      const vKids  = asInt(c.compraKids);
-      const vJip   = asInt(c.bebeJipinho);
+      const valores = modelosSel.map(k=>{
+        const v = asInt(c[k]);
+        totCol[k] += v;
+        totalLinha += v;
+        return v;
+      });
 
-      const totalLinha = vDuplo+vGrand+vBebe+vMax+vMacro+vPran+vKids+vJip;
-
-      tot.duplocar120 += vDuplo;
-      tot.grande160 += vGrand;
-      tot.bebeConforto160 += vBebe;
-      tot.maxcar200 += vMax;
-      tot.macrocar300 += vMacro;
-      tot.pranchaJacare += vPran;
-      tot.compraKids += vKids;
-      tot.bebeJipinho += vJip;
-      tot.total += totalLinha;
+      totGeral += totalLinha;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${esc(lojaCurta6(r.loja))}</td>
         <td>${esc(r.usuario)}</td>
-        <td>${vDuplo}</td>
-        <td>${vGrand}</td>
-        <td>${vBebe}</td>
-        <td>${vMax}</td>
-        <td>${vMacro}</td>
-        <td>${vPran}</td>
-        <td>${vKids}</td>
-        <td>${vJip}</td>
+        ${valores.map(v=>`<td>${v}</td>`).join("")}
         <td style="font-weight:900;">${totalLinha}</td>
       `;
       tbody.appendChild(tr);
@@ -1327,25 +1340,37 @@
     trTot.className = "row-total";
     trTot.innerHTML = `
       <td colspan="2">TOTAL</td>
-      <td>${tot.duplocar120}</td>
-      <td>${tot.grande160}</td>
-      <td>${tot.bebeConforto160}</td>
-      <td>${tot.maxcar200}</td>
-      <td>${tot.macrocar300}</td>
-      <td>${tot.pranchaJacare}</td>
-      <td>${tot.compraKids}</td>
-      <td>${tot.bebeJipinho}</td>
-      <td>${tot.total}</td>
+      ${modelosSel.map(k=>`<td>${totCol[k]}</td>`).join("")}
+      <td>${totGeral}</td>
     `;
     tbody.appendChild(trTot);
   }
 
-  function renderTabelaEspeciais(lista){
+  /* =========================================================
+     ✅ ESPECIAIS (colunas dinâmicas por tipo)
+     ========================================================= */
+  function renderTabelaEspeciais(lista, tiposSel){
+    const thead = document.getElementById("theadEspeciais");
     const tbody = document.getElementById("tbodyEspeciais");
+    thead.innerHTML = "";
     tbody.innerHTML = "";
 
+    const especiaisSel = SPECIAL_KEYS.filter(k => tiposSel.has(k));
+
+    const trh = document.createElement("tr");
+    trh.innerHTML = `
+      <th>Loja</th>
+      <th>Usuário</th>
+      ${especiaisSel.map(k=>{
+        const t = TIPOS.find(x=>x.key===k);
+        return `<th>${esc(t ? t.label : k)}</th>`;
+      }).join("")}
+    `;
+    thead.appendChild(trh);
+
     if(!lista.length){
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      const cols = 2 + especiaisSel.length;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
       return;
     }
 
@@ -1355,38 +1380,22 @@
       return String(a.usuario||"").localeCompare(String(b.usuario||""));
     });
 
-    const tot = {
-      carrinhosReserva:0,
-      carrinhosQuebrados:0,
-      cestinha:0,
-      cestinhasReserva:0,
-      cadeiraRodas:0
-    };
+    const totCol = {};
+    especiaisSel.forEach(k => totCol[k]=0);
 
     for(const r of ord){
       const c = r.contagens || {};
-
-      const carrinhosReserva   = asInt(c.carrinhosReserva);
-      const carrinhosQuebrados = asInt(c.carrinhosQuebrados);
-      const cestinha           = asInt(c.cestinha);
-      const cestinhasReserva   = asInt(c.cestinhasReserva);
-      const cadeiraRodas       = asInt(c.cadeiraRodas);
-
-      tot.carrinhosReserva += carrinhosReserva;
-      tot.carrinhosQuebrados += carrinhosQuebrados;
-      tot.cestinha += cestinha;
-      tot.cestinhasReserva += cestinhasReserva;
-      tot.cadeiraRodas += cadeiraRodas;
+      const valores = especiaisSel.map(k=>{
+        const v = asInt(c[k]);
+        totCol[k] += v;
+        return v;
+      });
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${esc(lojaCurta6(r.loja))}</td>
         <td>${esc(r.usuario)}</td>
-        <td>${carrinhosReserva}</td>
-        <td>${carrinhosQuebrados}</td>
-        <td>${cestinha}</td>
-        <td>${cestinhasReserva}</td>
-        <td>${cadeiraRodas}</td>
+        ${valores.map(v=>`<td>${v}</td>`).join("")}
       `;
       tbody.appendChild(tr);
     }
@@ -1395,15 +1404,14 @@
     trTot.className = "row-total";
     trTot.innerHTML = `
       <td colspan="2">TOTAL</td>
-      <td>${tot.carrinhosReserva}</td>
-      <td>${tot.carrinhosQuebrados}</td>
-      <td>${tot.cestinha}</td>
-      <td>${tot.cestinhasReserva}</td>
-      <td>${tot.cadeiraRodas}</td>
+      ${especiaisSel.map(k=>`<td>${totCol[k]}</td>`).join("")}
     `;
     tbody.appendChild(trTot);
   }
 
+  /* =========================================================
+     ✅ APLICAÇÃO DOS FILTROS (tudo respeita o tipo selecionado)
+     ========================================================= */
   function aplicarFiltrosEAtualizarTudo(){
     setMsg("");
 
@@ -1412,9 +1420,9 @@
       document.getElementById("kpiCarrinhos").textContent = "0";
       document.getElementById("kpiQuebrados").textContent = "0";
       document.getElementById("kpiCestinhas").textContent = "0";
-      renderTabelaRegistros([]);
-      renderTabelaPorLoja({}, {}, {});
-      renderTabelaEspeciais([]);
+      renderTabelaRegistros([], new Set());
+      renderTabelaPorLoja([], [], {}, new Set());
+      renderTabelaEspeciais([], new Set());
       desenharBarrasTipos({}, new Set());
       setMsg("Selecione a Data de filtro para exibir os dados.");
       return;
@@ -1429,10 +1437,24 @@
     const tiposSel = getSelecionados("tipo");
     const lojasSel = getSelecionados("loja");
 
+    // ✅ Se nenhum tipo estiver selecionado, tudo fica vazio
+    if(tiposSel.size === 0){
+      document.getElementById("kpiCarrinhos").textContent = "0";
+      document.getElementById("kpiQuebrados").textContent = "0";
+      document.getElementById("kpiCestinhas").textContent = "0";
+      renderTabelaRegistros([], tiposSel);
+      renderTabelaPorLoja([], [], {}, tiposSel);
+      renderTabelaEspeciais([], tiposSel);
+      desenharBarrasTipos({}, tiposSel);
+      setMsg("Nenhum tipo selecionado.");
+      return;
+    }
+
+    // ✅ “passaFiltroTipo”: mantém registros que tenham quantidade > 0 em QUALQUER tipo marcado
     const passaFiltroTipo = (r)=>{
-      if(!tiposSel.size) return true;
-      for(const t of TIPOS){
-        if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0) return true;
+      const c = r.contagens || {};
+      for(const k of tiposSel){
+        if(asInt(c[k]) > 0) return true;
       }
       return false;
     };
@@ -1453,32 +1475,38 @@
       return true;
     }) : []);
 
-    const porLojaFinal = acumularPorLoja(baseFinal);
-    const porLojaRef   = acumularPorLoja(baseRef);
-    const movPorLoja   = acumularMovPorLoja(baseFinal);
+    // ✅ Movimentos por loja (continua baseado nos registros finais)
+    const movPorLoja = acumularMovPorLoja(baseFinal);
 
-    /* ✅ KPIs atualizados:
-       - Total de Carrinhos = ativos + carrinhosReserva
-       - Total de Quebrados = carrinhosQuebrados
-       - Total de Cestinhas = cestinha + cestinhasReserva
-    */
-    let somaCarrinhos = 0, somaQuebrados = 0, somaCestinhas = 0;
-    for(const loja in porLojaFinal){
-      somaCarrinhos += asInt(porLojaFinal[loja].__totalAtivo) + asInt(porLojaFinal[loja].carrinhosReserva);
-      somaQuebrados += asInt(porLojaFinal[loja].carrinhosQuebrados);
-      somaCestinhas += asInt(porLojaFinal[loja].cestinha) + asInt(porLojaFinal[loja].cestinhasReserva);
+    // ✅ KPIs respeitam o tipo
+    let somaAtivos = 0;
+    let somaQuebrados = 0;
+    let somaCestinhas = 0;
+
+    for(const r of baseFinal){
+      const c = r.contagens || {};
+      somaAtivos += somaAtivosSelecionados(c, tiposSel);
+      somaQuebrados += getQuebradosSeSelecionado(c, tiposSel);
+      somaCestinhas += somaCestinhasSelecionadas(c, tiposSel);
     }
-    document.getElementById("kpiCarrinhos").textContent = String(somaCarrinhos);
+
+    document.getElementById("kpiCarrinhos").textContent = String(somaAtivos);
     document.getElementById("kpiQuebrados").textContent = String(somaQuebrados);
     document.getElementById("kpiCestinhas").textContent = String(somaCestinhas);
 
-    const totaisPorTipo = recalcularTotaisPorTipoParaGrafico(baseFinal, tiposSel);
-    desenharBarrasTipos(totaisPorTipo, tiposSel);
-    renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja);
-    renderTabelaRegistros(baseFinal);
-    renderTabelaEspeciais(baseFinal);
+    // ✅ Gráfico (somente modelos selecionados)
+    const totaisGrafico = recalcularTotaisParaGraficoModelos(baseFinal, tiposSel);
+    desenharBarrasTipos(totaisGrafico, tiposSel);
+
+    // ✅ Tabelas (todas obedecem o filtro de tipo com colunas dinâmicas)
+    renderTabelaPorLoja(baseFinal, baseRef, movPorLoja, tiposSel);
+    renderTabelaRegistros(baseFinal, tiposSel);
+    renderTabelaEspeciais(baseFinal, tiposSel);
   }
 
+  /* =========================================================
+     BOOT
+     ========================================================= */
   document.addEventListener("DOMContentLoaded", async ()=>{
     document.getElementById("btnIrLogin").onclick = ()=> window.location.href = ROTAS.login;
     document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
@@ -1517,10 +1545,11 @@
 </script>
 
 <!-- Fontes confiáveis -->
-<!-- Meta viewport: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
-<!-- overflow-x / clip: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
-<!-- touch-action: https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action -->
-<!-- iOS zoom em inputs (tamanho de fonte): https://developer.mozilla.org/en-US/docs/Web/CSS/font-size -->
+<!-- Viewport: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
+<!-- overflow-x: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
+<!-- min-width em flex/grid (causa overflow): https://developer.mozilla.org/en-US/docs/Web/CSS/min-width -->
+<!-- contain: https://developer.mozilla.org/en-US/docs/Web/CSS/contain -->
+<!-- iOS zoom em inputs (font-size): https://developer.mozilla.org/en-US/docs/Web/CSS/font-size -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
 </body>
