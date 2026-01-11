@@ -469,9 +469,7 @@
           </div>
 
           <div class="campo">
-            <!-- ✅ 1) abreviação se necessário: Qtd. -->
             <label for="movQtd">Qtd.:</label>
-            <!-- ✅ 5) obrigatório como os demais -->
             <input id="movQtd" class="input" inputmode="numeric" autocomplete="off" placeholder="0" required />
           </div>
         </div>
@@ -519,8 +517,6 @@
     };
 
     // ✅ 3) Total de carrinhos:
-    // Inclui TODOS os carrinhos (incluindo quebrados e carrinhos de reserva),
-    // MAS não inclui cestinhas, cadeira de rodas, nem cestinhas de reserva, nem movimentação.
     const IDS_TOTAL_CARRINHOS = [
       "duplocar120",
       "grande160",
@@ -545,7 +541,6 @@
     function soDigitos(str) { return String(str || "").replace(/[^\d]/g, ""); }
     function toInt(str) { const s = soDigitos(str); return s ? parseInt(s, 10) : 0; }
 
-    // ✅ Atualiza os dois totais do topo (Carrinhos e Cestinhas)
     function atualizarTotais() {
       const totalCarrinhos = IDS_TOTAL_CARRINHOS.reduce((acc, id) => acc + toInt(document.getElementById(id).value), 0);
       const totalCestinhas = IDS_TOTAL_CESTINHAS.reduce((acc, id) => acc + toInt(document.getElementById(id).value), 0);
@@ -559,7 +554,6 @@
       atualizarTotais();
     }
 
-    // ✅ Movimentação: sempre dígitos, sinal aplicado pelo select ENTRADA/SAIDA
     function atualizarPillMov() {
       const tipo = document.getElementById(CAMPO_MOV.tipoId).value;
       const qtd  = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
@@ -576,7 +570,7 @@
     function aplicarMascaraMovQtd() {
       const el = document.getElementById(CAMPO_MOV.qtdId);
       el.value = soDigitos(el.value);
-      atualizarPillMov(); // não impacta os totais
+      atualizarPillMov();
     }
 
     async function obterSessaoDoBackend() {
@@ -617,14 +611,12 @@
       const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
       if (!dataLanc) return "Selecione a Data Contagem.";
 
-      // Contagem física: obrigatória (todos os campos da tela)
       for (const c of CAMPOS_CONTAGEM) {
         const v = (document.getElementById(c.id).value || "").trim();
         if (v === "") return `Preencha: ${c.label}.`;
         if (!/^\d+$/.test(v)) return `Use somente números em: ${c.label}.`;
       }
 
-      // ✅ 5) Movimentação: agora é OBRIGATÓRIO (como os demais)
       const movQtdRaw = (document.getElementById(CAMPO_MOV.qtdId).value || "").trim();
       if (movQtdRaw === "") return "Preencha: Movimentação de carrinhos (Qtd.).";
       if (!/^\d+$/.test(movQtdRaw)) return `Use somente números em: ${CAMPO_MOV.label}.`;
@@ -637,6 +629,18 @@
       const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
       if (!m) return s;
       return `${m[3]}/${m[2]}/${m[1]}`;
+    }
+
+    // ✅ (ALTERAÇÃO SOLICITADA) abreviação do motivo para enviar na coluna S
+    function abreviarMotivoParaColunaS(textoMotivo) {
+      const m = String(textoMotivo || "").trim();
+
+      // Mapeia exatamente os textos exibidos no seletor
+      if (m === "Movi. entre lojas") return "M.L";
+      if (m === "Movi. Manutenção") return "M.M";
+
+      // fallback: mantém como está
+      return m;
     }
 
     async function enviar() {
@@ -659,18 +663,20 @@
       try {
         const dataISO = (document.getElementById("dataLancamento").value || "").trim();
 
-        // Contagens (tudo que é contagem física da tela, incluindo cestinhas/cadeiras/reservas/quebrados)
         const contagens = CAMPOS_CONTAGEM.reduce((acc, c) => {
           acc[c.key] = toInt(document.getElementById(c.id).value);
           return acc;
         }, {});
 
-        // Movimentação (obrigatória)
         const movQtd = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
         const movTipo = document.getElementById(CAMPO_MOV.tipoId).value;
         const movSigned = (movTipo === "SAIDA") ? -movQtd : +movQtd;
 
-        const movCategoria = document.getElementById(CAMPO_MOV.categoriaId).value;
+        // ✅ antes: pegava o value do select (MOVI_ENTRE_LOJAS / MOVI_MANUTENCAO)
+        // ✅ agora: envia abreviado (M.L / M.M) baseado no TEXTO visível do seletor
+        const sel = document.getElementById(CAMPO_MOV.categoriaId);
+        const motivoTexto = sel?.options?.[sel.selectedIndex]?.text || "";
+        const movCategoria = abreviarMotivoParaColunaS(motivoTexto);
 
         contagens[CAMPO_MOV.key] = movSigned;
 
@@ -742,12 +748,10 @@
     }
 
     function setIconsAndReserveImages() {
-      // Ícones dos títulos (mantidos em SVG)
       document.getElementById("icoMov").src = svgDataUri(svgBadge("🔁"));
       document.getElementById("icoEspeciais").src = svgDataUri(svgBadge("🧩"));
       document.getElementById("icoReserva").src = svgDataUri(svgBadge("📦"));
 
-      // ✅ Troca dos ícones de Reservas pelos links informados
       document.getElementById("imgCarrinhosReserva").src = "https://i.ibb.co/Hfxhc3ff/file-00000000d2e4720e951cb0a4bdb65b70.png";
       document.getElementById("imgCestinhasReserva").src = "https://i.ibb.co/prxcgT8L/file-00000000ce88720e9b15f9e9545c779c.png";
     }
@@ -757,23 +761,19 @@
       document.getElementById("btnVoltarMenu").addEventListener("click", () => window.location.href = ROTAS.menu);
       document.getElementById("btnEnviar").addEventListener("click", enviar);
 
-      // Ícones + imagens
       setIconsAndReserveImages();
 
-      // Inputs: contagem física (atualiza totais)
       CAMPOS_CONTAGEM.forEach(c => {
         const el = document.getElementById(c.id);
         el.addEventListener("input", () => aplicarMascaraSomenteNumero(el));
       });
 
-      // Inputs: movimentação (obrigatória, não impacta totais)
       document.getElementById(CAMPO_MOV.qtdId).addEventListener("input", aplicarMascaraMovQtd);
       document.getElementById(CAMPO_MOV.tipoId).addEventListener("change", atualizarPillMov);
 
       atualizarTotais();
       atualizarPillMov();
 
-      // Sessão
       const s = await obterSessaoDoBackend();
       if (!s) { mostrarSemSessao(); return; }
 
@@ -797,9 +797,8 @@
   </script>
 
   <!-- Fontes confiáveis -->
-  <!-- CSS Grid: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout -->
-  <!-- HTML required (validação): https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/required -->
-  <!-- fetch + credentials/cookies: https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
-  <!-- Data URI (SVG): https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs -->
+  <!-- HTMLSelectElement / options / selectedIndex: https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement -->
+  <!-- Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API -->
+  <!-- Array.prototype.reduce: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce -->
 </body>
 </html>
