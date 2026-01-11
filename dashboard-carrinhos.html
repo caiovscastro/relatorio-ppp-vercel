@@ -2,7 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- ✅ (1) Bloqueia zoom/“esticar” no mobile (principalmente iOS/Android) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+
   <title>Dashboard Carrinhos</title>
 
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
@@ -27,10 +29,7 @@
       --thbg:#e9e9e9;
       --rowAlt:#f7f7f7;
 
-      /* =========================================================
-         ✅ (1) Linhas de grade suaves nas tabelas
-         - Cor bem leve, para não “poluir” o visual
-         ========================================================= */
+      /* ✅ Linhas de grade suaves nas tabelas */
       --grid: rgba(0,0,0,0.06);
     }
 
@@ -45,6 +44,8 @@
       color:#111;
       font-family: Arial, sans-serif;
       -webkit-text-size-adjust: 100%;
+
+      /* Mantém comportamento geral já existente */
       touch-action: manipulation;
     }
 
@@ -90,8 +91,9 @@
       overflow-x: hidden;
     }
 
+    /* ✅ (2) Cartão de info mais estreito (apenas Loja e Usuário) */
     .card-info{
-      flex: 1 1 320px;
+      flex: 0 1 260px;             /* antes: 1 1 320px */
       background:#f7f7f7;
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -114,12 +116,14 @@
     .k{ color:var(--muted); font-weight:800; }
     .v{ font-weight:900; overflow:hidden; text-overflow:ellipsis; min-width: 0; }
 
+    /* ✅ (3) Botões lado a lado, mesmo no celular, tamanhos iguais */
     .acoes{
-      flex: 0 1 280px;
+      flex: 1 1 320px;             /* dá espaço para 2 botões lado a lado */
       display:flex;
-      flex-direction: column;
+      flex-direction: row;         /* antes: column */
       gap:10px;
       justify-content: center;
+      align-items: stretch;
       min-width: 0;
     }
 
@@ -137,6 +141,20 @@
     .btn-prim:hover{ background:var(--primary2); }
     .btn-sec{ background:#e9e9e9; color:#111; }
     .btn-sec:hover{ background:#dedede; }
+
+    /* ✅ (3) Ajustes específicos p/ mobile (texto sem estourar e botões iguais) */
+    @media (max-width: 520px){
+      .container{ padding: 10px; }
+      .shell{ padding: 14px; }
+
+      .acoes{ width: 100%; }
+      .acoes .btn{
+        flex: 1;                   /* iguais */
+        white-space: nowrap;       /* não quebra */
+        font-size: 12px;           /* reduz para caber */
+        padding: 10px 8px;         /* ajusta largura útil */
+      }
+    }
 
     .tela-erro{
       width:100%;
@@ -237,8 +255,6 @@
     .check input{ transform: scale(1.05); }
 
     @media (max-width: 520px){
-      .container{ padding: 10px; }
-      .shell{ padding: 14px; }
       .check{ white-space: normal; }
     }
 
@@ -363,9 +379,6 @@
     }
 
     th, td{
-      /* =========================================================
-         ✅ (1) Linhas de grade suaves nas tabelas (h/v)
-         ========================================================= */
       border-bottom: 1px solid var(--grid);
       border-right: 1px solid var(--grid);
 
@@ -426,9 +439,11 @@
       overflow: hidden;
     }
 
+    /* ✅ (1) Evita gestos no canvas do gráfico (impede “esticar/zoom” no touch) */
     #barTipos{
       width: 100% !important;
       height: 100% !important;
+      touch-action: none; /* crítico para bloquear gestos no canvas */
     }
   </style>
 </head>
@@ -440,7 +455,9 @@
         <div class="card-info">
           <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
           <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
-          <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
+
+          <!-- ✅ (2) Oculto: Perfil (título e valor) -->
+          <div class="linha hidden"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
         </div>
 
         <div class="acoes">
@@ -476,6 +493,12 @@
                 <label for="dataRef">Data Anterior</label>
                 <input id="dataRef" class="input" type="date" />
               </div>
+            </div>
+
+            <!-- ✅ (4) NOVO cartão Dimensões (não filtra; apenas controla colunas da tabela "Carrinhos") -->
+            <div class="grupo">
+              <div class="grupo-titulo">Dimensões</div>
+              <div id="listaDimensoes"></div>
             </div>
 
             <div class="grupo">
@@ -696,16 +719,7 @@
 
   /* =========================================================
      ✅ (2) DEDUP por Loja + Data
-     - Regra: Se houver mais de um lançamento da mesma loja na mesma data,
-       considerar apenas o ÚLTIMO baseado em (Data col D + Hora col A).
-     - Compatível com o backend atual (/api/carrinhos-listar.js):
-       - A (coluna A) chega como: reg.dataHoraRede = "DD/MM/AAAA HH:MM:SS"
-       - D (coluna D) chega como: reg.dataContagem = "DD/MM/AAAA"
-     - Portanto:
-       - A data usada é SEMPRE dataContagem (D)
-       - A hora usada é extraída de dataHoraRede (A)
      ========================================================= */
-
   function brParaISO(br){
     const s = String(br||"").trim();
     const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -719,14 +733,9 @@
     return `${m[3]}/${m[2]}/${m[1]}`;
   }
 
-  // ✅ Normaliza e extrai "HH:MM:SS" de diversos formatos, inclusive:
-  // - "10:22:33"
-  // - "10:22"
-  // - "06/01/2026 10:22:33"  (dataHoraRede vinda do backend)
   function normalizarHoraParaHMS(valor){
     const s = String(valor ?? "").trim();
 
-    // 1) Procura primeiro por um trecho de hora EM QUALQUER POSIÇÃO (caso tenha data junto)
     let m = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
     if(m){
       const hh = Math.max(0, Math.min(23, Number(m[1])));
@@ -735,7 +744,6 @@
       return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
     }
 
-    // 2) Aceita: "HHMM" ou "HMM" (ex: 930 => 09:30)
     m = s.match(/^(\d{1,2})(\d{2})$/);
     if(m){
       const hh = Math.max(0, Math.min(23, Number(m[1])));
@@ -743,19 +751,14 @@
       return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:00`;
     }
 
-    // Sem hora válida => 00:00:00 (fica “menor” e perde para horários reais)
     return "00:00:00";
   }
 
-  // ✅ Extrai timestamp baseado em:
-  // - Data = dataContagem (D)
-  // - Hora = extraída de dataHoraRede (A)
   function obterTimestampRegistro(reg){
     const dataBR = String(reg?.dataContagem ?? "").trim();
     const dataISO = brParaISO(dataBR);
     if(!dataISO) return 0;
 
-    // Backend atual: usa dataHoraRede como campo principal da coluna A
     const horaRaw = (reg?.dataHoraRede ?? "").trim();
     const hms = normalizarHoraParaHMS(horaRaw);
 
@@ -764,10 +767,8 @@
     return Number.isFinite(t) ? t : 0;
   }
 
-  // ✅ Mantém apenas o último registro por (Loja, DataContagem)
   function manterUltimoLancamentoPorLojaEDia(lista){
-    const map = new Map(); // key => { ts, reg }
-
+    const map = new Map();
     for(const r of (lista || [])){
       const loja = String(r?.loja ?? "").trim();
       const dataBR = String(r?.dataContagem ?? "").trim();
@@ -777,12 +778,10 @@
       const ts = obterTimestampRegistro(r);
 
       const cur = map.get(key);
-      // >= para que, em empate (mesma hora), o último da lista ganhe
       if(!cur || ts >= cur.ts){
         map.set(key, { ts, reg: r });
       }
     }
-
     return Array.from(map.values()).map(x => x.reg);
   }
 
@@ -810,11 +809,6 @@
         return;
       }
 
-      /* =========================================================
-         ✅ (2) Aplicação da regra:
-         - Agora dedup por (loja + dataContagem), escolhendo o último pelo horário
-           extraído de dataHoraRede (coluna A).
-         ========================================================= */
       registros = manterUltimoLancamentoPorLojaEDia(dados.registros);
 
       montarFiltros();
@@ -914,7 +908,30 @@
   }
 
   /* =========================================================
-     ✅ (B) SOMAS: Carrinhos (por loja) e KPI consideram reservas
+     ✅ (4) Dimensões (controle de colunas da tabela "Carrinhos")
+     ========================================================= */
+  const DIMENSOES = [
+    { key:"qtdMov",    label:"Qtd Mov.",    defaultChecked:false },
+    { key:"motivoMov", label:"Motivo Mov.", defaultChecked:false },
+    { key:"anterior",  label:"Anterior",    defaultChecked:true  },
+    { key:"diferenca", label:"Diferença",   defaultChecked:true  },
+    { key:"usuario",   label:"Usuário",     defaultChecked:false },
+    { key:"quebrados", label:"C. Quebrados",defaultChecked:true  },
+  ];
+
+  function getDimensoesSelecionadas(){
+    const out = {};
+    DIMENSOES.forEach(d => out[d.key] = !!d.defaultChecked);
+
+    document.querySelectorAll('input[type="checkbox"][data-dim]').forEach(cb=>{
+      const k = cb.getAttribute("data-dim");
+      out[k] = !!cb.checked;
+    });
+    return out;
+  }
+
+  /* =========================================================
+     ✅ (B) SOMAS
      ========================================================= */
   function somaModelosSelecionados(contagens, tiposSel){
     let s = 0;
@@ -1124,25 +1141,62 @@
   }
 
   /* =========================================================
-     ✅ TABELA POR LOJA (Carrinhos)
+     ✅ (1) Anti-gesto no canvas do gráfico (evita “esticar infinito”)
+     - Bloqueia pinch/zoom e gestos iOS no canvas
      ========================================================= */
-  function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel){
+  function bloquearGestosNoCanvas(){
+    const canvas = document.getElementById("barTipos");
+    if(!canvas) return;
+
+    const prevent = (e)=>{ e.preventDefault(); };
+
+    // iOS Safari: gesturestart/gesturechange/gestureend
+    canvas.addEventListener("gesturestart", prevent, { passive:false });
+    canvas.addEventListener("gesturechange", prevent, { passive:false });
+    canvas.addEventListener("gestureend", prevent, { passive:false });
+
+    // Touch: bloqueia zoom com 2 dedos e “esticar”
+    canvas.addEventListener("touchstart", (e)=>{
+      if(e.touches && e.touches.length > 1) e.preventDefault();
+    }, { passive:false });
+
+    canvas.addEventListener("touchmove", (e)=>{
+      if(e.touches && e.touches.length > 1) e.preventDefault();
+    }, { passive:false });
+  }
+
+  /* =========================================================
+     ✅ TABELA POR LOJA (Carrinhos) - agora respeita Dimensões
+     ========================================================= */
+  function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel, dims){
     const thead = document.getElementById("theadPorLoja");
     const tbody = document.getElementById("tbodyPorLoja");
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
-    const mostrarQuebrados = tiposSel.has("carrinhosQuebrados");
+    // ✅ (4) Dimensões controlam colunas (não dependem mais de auto-hide)
+    const showUsuario   = !!dims.usuario;
+    const showAnterior  = !!dims.anterior;
+    const showDiferenca = !!dims.diferenca;
+    const showQuebrados = !!dims.quebrados;
+    const showMov       = !!dims.qtdMov;
+    const showMotivo    = !!dims.motivoMov;
 
     const mapFinal = {};
     const mapRef = {};
 
     for(const r of listaFinal){
       const loja = String(r.loja||"").trim();
-      if(!mapFinal[loja]) mapFinal[loja] = { ativos:0, quebrados:0 };
+      if(!mapFinal[loja]) mapFinal[loja] = { ativos:0, quebrados:0, usuario:"" };
+
       const c = r.contagens || {};
       mapFinal[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
+
+      // Quebrados só faz sentido se o tipo estiver selecionado; mas a coluna depende das Dimensões
       mapFinal[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
+
+      // ✅ (4) Usuário por loja (dedup => tende a ser 1 por loja/dia)
+      mapFinal[loja].usuario = String(r.usuario || "").trim();
     }
 
     for(const r of listaRef){
@@ -1154,27 +1208,31 @@
 
     const lojas = Object.keys(mapFinal);
     if(!lojas.length){
-      const cols = 4 + (mostrarQuebrados ? 1 : 0) + 2;
+      // calcula colunas dinamicamente
+      let cols = 2; // Loja + Atual (sempre)
+      if(showUsuario) cols += 1;
+      if(showAnterior) cols += 1;
+      if(showDiferenca) cols += 1;
+      if(showQuebrados) cols += 1;
+      if(showMov) cols += 1;
+      if(showMotivo) cols += 1;
+
       tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
       return;
     }
 
     lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
 
-    let mostrarMov = false;
-    for(const loja of lojas){
-      const mov = asIntSigned(movPorLoja?.[loja]?.movSum || 0);
-      if(mov !== 0){ mostrarMov = true; break; }
-    }
-
     const trh = document.createElement("tr");
     trh.innerHTML = `
       <th>Loja</th>
+      ${showUsuario ? `<th>Usuário</th>` : ``}
       <th>Atual</th>
-      <th>Anterior</th>
-      <th>Diferença</th>
-      ${mostrarQuebrados ? `<th>C. Quebrados</th>` : ``}
-      ${mostrarMov ? `<th>Mov.</th><th class="motivo-right">Motivo</th>` : ``}
+      ${showAnterior ? `<th>Anterior</th>` : ``}
+      ${showDiferenca ? `<th>Diferença</th>` : ``}
+      ${showQuebrados ? `<th>C. Quebrados</th>` : ``}
+      ${showMov ? `<th>Mov.</th>` : ``}
+      ${showMotivo ? `<th class="motivo-right">Motivo</th>` : ``}
     `;
     thead.appendChild(trh);
 
@@ -1185,55 +1243,53 @@
       const anterior = asInt(mapRef[loja]?.ativos || 0);
       const diff = atual - anterior;
 
-      const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
-      const quebrados = mostrarQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
+      const clsDiff = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
+
+      const quebrados = showQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
 
       const movObj = movPorLoja?.[loja];
       const mov = movObj ? asIntSigned(movObj.movSum) : 0;
       const movCls = mov > 0 ? "mov-pos" : mov < 0 ? "mov-neg" : "mov-zero";
+
       const motivoTxtRaw = movObj ? (movObj.motivoTxt || "") : "";
-      const motivoTxt = (mov === 0) ? "" : motivoTxtRaw;
+      const motivoTxt = motivoTxtRaw;
 
       totAtual += atual;
-      totAnterior += anterior;
-      totDiff += diff;
-      if(mostrarQuebrados) totQuebr += quebrados;
-      if(mostrarMov) totMov += mov;
+      if(showAnterior) totAnterior += anterior;
+      if(showDiferenca) totDiff += diff;
+      if(showQuebrados) totQuebr += quebrados;
+      if(showMov) totMov += mov;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${esc(lojaCurta6(loja))}</td>
+        ${showUsuario ? `<td>${esc(mapFinal[loja].usuario || "")}</td>` : ``}
         <td style="font-weight:900;">${fmtInt(atual)}</td>
-        <td style="font-weight:900;">${fmtInt(anterior)}</td>
-        <td class="${cls}">${fmtSigned(diff)}</td>
-        ${mostrarQuebrados ? `<td style="font-weight:900;">${fmtInt(quebrados)}</td>` : ``}
-        ${
-          mostrarMov
-            ? `<td class="${movCls}">${fmtSigned(mov)}</td>
-               <td class="motivo-right">${esc(motivoTxt)}</td>`
-            : ``
-        }
+        ${showAnterior ? `<td style="font-weight:900;">${fmtInt(anterior)}</td>` : ``}
+        ${showDiferenca ? `<td class="${clsDiff}">${fmtSigned(diff)}</td>` : ``}
+        ${showQuebrados ? `<td style="font-weight:900;">${fmtInt(quebrados)}</td>` : ``}
+        ${showMov ? `<td class="${movCls}">${fmtSigned(mov)}</td>` : ``}
+        ${showMotivo ? `<td class="motivo-right">${esc(motivoTxt)}</td>` : ``}
       `;
       tbody.appendChild(tr);
     }
 
+    // ✅ Linha TOTAL coerente com colunas selecionadas
     const trTot = document.createElement("tr");
     trTot.className = "row-total";
-    const clsTot = totDiff > 0 ? "diff-pos" : totDiff < 0 ? "diff-neg" : "diff-zero";
+
+    const clsTotDiff = totDiff > 0 ? "diff-pos" : totDiff < 0 ? "diff-neg" : "diff-zero";
     const clsTotMov = totMov > 0 ? "mov-pos" : totMov < 0 ? "mov-neg" : "mov-zero";
 
     trTot.innerHTML = `
       <td>TOTAL</td>
+      ${showUsuario ? `<td></td>` : ``}
       <td>${fmtInt(totAtual)}</td>
-      <td>${fmtInt(totAnterior)}</td>
-      <td class="${clsTot}">${fmtSigned(totDiff)}</td>
-      ${mostrarQuebrados ? `<td>${fmtInt(totQuebr)}</td>` : ``}
-      ${
-        mostrarMov
-          ? `<td class="${clsTotMov}">${fmtSigned(totMov)}</td>
-             <td class="motivo-right"></td>`
-          : ``
-      }
+      ${showAnterior ? `<td>${fmtInt(totAnterior)}</td>` : ``}
+      ${showDiferenca ? `<td class="${clsTotDiff}">${fmtSigned(totDiff)}</td>` : ``}
+      ${showQuebrados ? `<td>${fmtInt(totQuebr)}</td>` : ``}
+      ${showMov ? `<td class="${clsTotMov}">${fmtSigned(totMov)}</td>` : ``}
+      ${showMotivo ? `<td class="motivo-right"></td>` : ``}
     `;
     tbody.appendChild(trTot);
   }
@@ -1374,6 +1430,26 @@
   }
 
   function montarFiltros(){
+    /* ✅ (4) Monta Dimensões (antes dos demais) */
+    const listaDim = document.getElementById("listaDimensoes");
+    listaDim.innerHTML = "";
+
+    DIMENSOES.forEach((d, i)=>{
+      const id = `dim_${i}`;
+      const row = document.createElement("div");
+      row.className = "check";
+      row.innerHTML = `
+        <input type="checkbox" id="${id}" data-dim="${d.key}" ${d.defaultChecked ? "checked" : ""} />
+        <label for="${id}">${d.label}</label>
+      `;
+      listaDim.appendChild(row);
+    });
+
+    // Mudou Dimensões => atualiza tudo (principalmente a tabela Carrinhos)
+    document.querySelectorAll('input[type="checkbox"][data-dim]').forEach(cb=>{
+      cb.addEventListener("change", aplicarFiltrosEAtualizarTudo);
+    });
+
     const listaTipos = document.getElementById("listaTipos");
     listaTipos.innerHTML = "";
 
@@ -1479,7 +1555,7 @@
       document.getElementById("kpiQuebrados").textContent = "0";
       document.getElementById("kpiCestinhas").textContent = "0";
       renderTabelaRegistros([], new Set());
-      renderTabelaPorLoja([], [], {}, new Set());
+      renderTabelaPorLoja([], [], {}, new Set(), getDimensoesSelecionadas());
       renderTabelaEspeciais([], new Set());
       desenharBarrasTipos({}, new Set());
       setMsg("Selecione a Data de filtro para exibir os dados.");
@@ -1495,12 +1571,15 @@
     const tiposSel = getSelecionados("tipo");
     const lojasSel = getSelecionados("loja");
 
+    // ✅ (4) Lê dimensões selecionadas para render da tabela "Carrinhos"
+    const dims = getDimensoesSelecionadas();
+
     if(tiposSel.size === 0){
       document.getElementById("kpiCarrinhos").textContent = "0";
       document.getElementById("kpiQuebrados").textContent = "0";
       document.getElementById("kpiCestinhas").textContent = "0";
       renderTabelaRegistros([], tiposSel);
-      renderTabelaPorLoja([], [], {}, tiposSel);
+      renderTabelaPorLoja([], [], {}, tiposSel, dims);
       renderTabelaEspeciais([], tiposSel);
       desenharBarrasTipos({}, tiposSel);
       setMsg("Nenhum tipo selecionado.");
@@ -1551,7 +1630,8 @@
     const totaisGrafico = recalcularTotaisParaGrafico(baseFinal, tiposSel);
     desenharBarrasTipos(totaisGrafico, tiposSel);
 
-    renderTabelaPorLoja(baseFinal, baseRef, movPorLoja, tiposSel);
+    // ✅ (4) tabela Carrinhos respeita Dimensões
+    renderTabelaPorLoja(baseFinal, baseRef, movPorLoja, tiposSel, dims);
     renderTabelaRegistros(baseFinal, tiposSel);
     renderTabelaEspeciais(baseFinal, tiposSel);
   }
@@ -1560,6 +1640,9 @@
     document.getElementById("btnIrLogin").onclick = ()=> window.location.href = ROTAS.login;
     document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
     document.getElementById("btnAtualizar").onclick = carregarRegistros;
+
+    // ✅ (1) aplica bloqueio de gestos diretamente no canvas do gráfico
+    bloquearGestosNoCanvas();
 
     const elFinal = document.getElementById("dataFinal");
     if(elFinal && !elFinal.value) elFinal.value = todayISO();
@@ -1576,7 +1659,7 @@
       mostrarApp();
       document.getElementById("infoLoja").textContent = s.loja;
       document.getElementById("infoUsuario").textContent = s.usuario;
-      document.getElementById("infoPerfil").textContent = s.perfil;
+      document.getElementById("infoPerfil").textContent = s.perfil; // está oculto no HTML
       setMsg("Acesso negado: seu perfil não tem permissão para esta tela.");
       document.getElementById("btnAtualizar").disabled = true;
       return;
@@ -1585,19 +1668,18 @@
     mostrarApp();
     document.getElementById("infoLoja").textContent = s.loja;
     document.getElementById("infoUsuario").textContent = s.usuario;
-    document.getElementById("infoPerfil").textContent = s.perfil;
+    document.getElementById("infoPerfil").textContent = s.perfil; // está oculto no HTML
 
     await carregarRegistros();
   });
 </script>
 
 <!-- Fontes confiáveis -->
-<!-- Intl.NumberFormat / toLocaleString: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString -->
-<!-- Date (criação e getTime): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date -->
-<!-- Regex (match): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match -->
-<!-- Map: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map -->
-<!-- Viewport meta: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
-<!-- Chart.js scales suggestedMax: https://www.chartjs.org/docs/latest/axes/ -->
+<!-- Viewport (user-scalable/maximum-scale): https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
+<!-- touch-action (CSS): https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action -->
+<!-- addEventListener passive:false / preventDefault: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener -->
+<!-- Touch events: https://developer.mozilla.org/en-US/docs/Web/API/Touch_events -->
+<!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
 </body>
 </html>
