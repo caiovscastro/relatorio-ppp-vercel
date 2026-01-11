@@ -23,6 +23,10 @@
 // R: Quantidade de movimentação                -> int com sinal (pode ser negativo)
 // S: Motivo                                    -> string
 //
+// ✅ Ajuste solicitado (necessário para o dashboard):
+// - Expor "horaRegistro" (HH:MM:SS) extraída da coluna A (dataHoraRede)
+// - (extra) Expor "dataRegistro" (DD/MM/AAAA) extraída da coluna A
+//
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
 // - Restringe perfis: ADMINISTRADOR, GERENTE_PPP, BASE_PPP
@@ -60,6 +64,34 @@ function asIntSignedSafe(v) {
   return Math.trunc(n);
 }
 
+/* =========================================================
+   ✅ Parse seguro do campo A: "DD/MM/AAAA HH:MM:SS"
+   - Retorna { dataBR, horaHMS } ou strings vazias se inválido
+   - Isso habilita o front a deduplicar por:
+     (Loja + DataContagem) pegando o MAIOR horário (horaRegistro)
+   ========================================================= */
+function parseDataHoraRedeBR(dataHoraRede) {
+  const s = String(dataHoraRede ?? "").trim();
+
+  // Aceita "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA HH:MM:SS"
+  const m = s.match(
+    /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/
+  );
+  if (!m) return { dataBR: "", horaHMS: "" };
+
+  const dd = m[1];
+  const mm = m[2];
+  const yyyy = m[3];
+  const HH = m[4];
+  const MM = m[5];
+  const SS = (m[6] ?? "00").padStart(2, "0");
+
+  return {
+    dataBR: `${dd}/${mm}/${yyyy}`,
+    horaHMS: `${HH}:${MM}:${SS}`,
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -82,7 +114,7 @@ export default async function handler(req, res) {
   try {
     const sheets = await getSheetsClient();
 
-    // ✅ Ajuste: agora busca A:S (19 colunas)
+    // Busca A:S (19 colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "CARRINHOS!A:S",
@@ -105,7 +137,7 @@ export default async function handler(req, res) {
     for (let i = startIndex; i < values.length; i++) {
       const row = values[i] || [];
 
-      // ✅ Garante 19 colunas (A..S) para evitar "undefined" em linhas incompletas
+      // Garante 19 colunas (A..S) para evitar undefined em linhas incompletas
       while (row.length < 19) row.push("");
 
       const dataHoraRede = String(row[0] ?? "").trim(); // A
@@ -113,24 +145,28 @@ export default async function handler(req, res) {
       const usuario      = String(row[2] ?? "").trim(); // C
       const dataContagem = String(row[3] ?? "").trim(); // D
 
-      // ✅ Coluna S (Motivo)
+      // Coluna S (Motivo)
       const motivo = String(row[18] ?? "").trim();
 
+      // ✅ NOVO: extrai data e hora a partir da coluna A
+      const { dataBR: dataRegistro, horaHMS: horaRegistro } = parseDataHoraRedeBR(dataHoraRede);
+
       // Monta o registro no formato esperado pelo dashboard:
-      // - contagens.* como inteiros (contagens sempre >=0)
-      // - contagens.movCarrinhos (R) pode ser negativo
-      // - motivo também vai no topo para facilitar no front (getMotivo)
       const rec = {
         dataHoraRede,
         loja,
         usuario,
         dataContagem,
 
-        // ✅ (S) Motivo (mantido no topo)
-        motivo,
+        // ✅ NOVOS CAMPOS (necessários para deduplicação correta no front)
+        // - horaRegistro: "HH:MM:SS" (extraído da coluna A)
+        // - dataRegistro: "DD/MM/AAAA" (extraído da coluna A) — útil para debug/consistência
+        horaRegistro,
+        dataRegistro,
 
-        // ✅ (S) também exposto com outro nome, para compatibilidade com o front atual (getMotivo)
-        movCategoria: motivo,
+        // (S) Motivo
+        motivo,
+        movCategoria: motivo, // compat com front
 
         contagens: {
           duplocar120:        asIntSafe(row[4]),   // E
@@ -147,7 +183,7 @@ export default async function handler(req, res) {
           carrinhosReserva:   asIntSafe(row[15]),  // P
           cestinhasReserva:   asIntSafe(row[16]),  // Q
 
-          // ✅ (R) Quantidade de movimentação (pode ser negativa)
+          // (R) Quantidade de movimentação (pode ser negativa)
           movCarrinhos:       asIntSignedSafe(row[17]), // R
         },
       };
@@ -176,4 +212,5 @@ export default async function handler(req, res) {
   Fontes confiáveis:
   - Google Sheets API (values.get): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
   - Google API Node.js Client (JWT): https://github.com/googleapis/google-api-nodejs-client
+  - Regex (String.prototype.match): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
 */
