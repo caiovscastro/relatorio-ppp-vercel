@@ -829,7 +829,6 @@
   }
 
   function somaAtivosMaisReserva(contagens, tiposSel){
-    // ✅ “Carrinhos ativos” (agora) = modelos selecionados + carrinhosReserva (se marcado)
     return somaModelosSelecionados(contagens, tiposSel) + somaCarrinhosReservaSeSelecionado(contagens, tiposSel);
   }
 
@@ -861,7 +860,13 @@
 
   /* =========================================================
      ✅ GRÁFICO
-     - Modelos selecionados + “Carrinhos reserva” (barra) + “Cestinhas” (barra)
+     - Modelos selecionados
+     - Carrinhos reserva
+     - Cestinha
+     - Cestinhas reserva
+     - Carrinhos Quebrados
+     - Cadeira de rodas
+     + Ajuste para “encurtar” proporcionalmente a maior barra (suggestedMax)
      ========================================================= */
   function recalcularTotaisParaGrafico(baseFinal, tiposSel){
     const out = {};
@@ -872,13 +877,12 @@
       out[k] = 0;
     }
 
-    // “Carrinhos reserva” barra
-    const showReserva = tiposSel.has("carrinhosReserva");
-    if(showReserva) out.__reserva = 0;
-
-    // “Cestinhas” barra (cestinha + cestinhasReserva)
-    const showCest = tiposSel.has("cestinha") || tiposSel.has("cestinhasReserva");
-    if(showCest) out.__cestinhas = 0;
+    // Especiais (cada um como barra independente)
+    if(tiposSel.has("carrinhosReserva"))  out.__reserva = 0;
+    if(tiposSel.has("cestinha"))          out.__cestinha = 0;
+    if(tiposSel.has("cestinhasReserva"))  out.__cestinhaReserva = 0;
+    if(tiposSel.has("carrinhosQuebrados"))out.__quebrados = 0;
+    if(tiposSel.has("cadeiraRodas"))      out.__cadeira = 0;
 
     for(const r of baseFinal){
       const c = r.contagens || {};
@@ -888,12 +892,13 @@
         out[k] = (out[k] || 0) + asInt(c[k]);
       }
 
-      if(showReserva) out.__reserva += asInt(c.carrinhosReserva);
-
-      if(showCest){
-        out.__cestinhas += asInt(c.cestinha) + asInt(c.cestinhasReserva);
-      }
+      if(tiposSel.has("carrinhosReserva"))   out.__reserva += asInt(c.carrinhosReserva);
+      if(tiposSel.has("cestinha"))           out.__cestinha += asInt(c.cestinha);
+      if(tiposSel.has("cestinhasReserva"))   out.__cestinhaReserva += asInt(c.cestinhasReserva);
+      if(tiposSel.has("carrinhosQuebrados")) out.__quebrados += asInt(c.carrinhosQuebrados);
+      if(tiposSel.has("cadeiraRodas"))       out.__cadeira += asInt(c.cadeiraRodas);
     }
+
     return out;
   }
 
@@ -912,16 +917,31 @@
       data.push(asInt(totais?.[k]));
     }
 
-    // Barra de reserva
+    // Especiais (barras separadas)
     if(tiposSel.has("carrinhosReserva")){
       labels.push(`Carrinhos reserva ${(TIPO_ICONE.carrinhosReserva||"🅿️")}`);
       data.push(asInt(totais?.__reserva));
     }
 
-    // Barra de cestinhas (agregada)
-    if(tiposSel.has("cestinha") || tiposSel.has("cestinhasReserva")){
+    if(tiposSel.has("cestinha")){
+      // Mantém o “Cestinhas” como no visual do print (mesmo sendo a cesta padrão)
       labels.push(`Cestinhas ${(TIPO_ICONE.cestinha||"🧺")}`);
-      data.push(asInt(totais?.__cestinhas));
+      data.push(asInt(totais?.__cestinha));
+    }
+
+    if(tiposSel.has("cestinhasReserva")){
+      labels.push(`Cestinhas reserva ${(TIPO_ICONE.cestinhasReserva||"🧺")}`);
+      data.push(asInt(totais?.__cestinhaReserva));
+    }
+
+    if(tiposSel.has("carrinhosQuebrados")){
+      labels.push(`Carrinhos Quebrados ${(TIPO_ICONE.carrinhosQuebrados||"⚠️")}`);
+      data.push(asInt(totais?.__quebrados));
+    }
+
+    if(tiposSel.has("cadeiraRodas")){
+      labels.push(`Cadeira de rodas ${(TIPO_ICONE.cadeiraRodas||"♿")}`);
+      data.push(asInt(totais?.__cadeira));
     }
 
     if(labels.length === 0){
@@ -944,6 +964,10 @@
     const zipped = labels.map((l,i)=>({ l, v:data[i] })).sort((a,b)=>b.v - a.v);
     const labelsOrd = zipped.map(x=>x.l);
     const dataOrd = zipped.map(x=>x.v);
+
+    // ✅ Ajuste pedido: “diminuir o tamanho da primeira barra” => cria folga no máximo do eixo
+    const maxVal = Math.max(0, ...dataOrd);
+    const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.18) : 1;
 
     if(chartBar){ chartBar.destroy(); }
 
@@ -994,7 +1018,12 @@
           }
         },
         scales:{
-          x:{ display:false, grid:{ display:false }, border:{ display:false } },
+          x:{
+            display:false,
+            grid:{ display:false },
+            border:{ display:false },
+            suggestedMax
+          },
           y:{
             display:true,
             grid:{ display:false },
@@ -1009,8 +1038,8 @@
 
   /* =========================================================
      ✅ TABELA POR LOJA (Carrinhos)
-     - Atual/Anterior/Diferença = modelos selecionados + reserva (se marcado)
-     - Quebrados coluna só se selecionado
+     - Se Mov. = 0 em todas as linhas => oculta Mov. e Motivo
+     - "Carrinhos Quebrados" => "C. Quebrados"
      ========================================================= */
   function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel){
     const thead = document.getElementById("theadPorLoja");
@@ -1019,18 +1048,6 @@
     tbody.innerHTML = "";
 
     const mostrarQuebrados = tiposSel.has("carrinhosQuebrados");
-
-    const trh = document.createElement("tr");
-    trh.innerHTML = `
-      <th>Loja</th>
-      <th>Atual</th>
-      <th>Anterior</th>
-      <th>Diferença</th>
-      ${mostrarQuebrados ? `<th>Carrinhos Quebrados</th>` : ``}
-      <th>Mov.</th>
-      <th class="motivo-right">Motivo</th>
-    `;
-    thead.appendChild(trh);
 
     const mapFinal = {};
     const mapRef = {};
@@ -1052,12 +1069,32 @@
 
     const lojas = Object.keys(mapFinal);
     if(!lojas.length){
-      const cols = mostrarQuebrados ? 7 : 6;
+      const cols = 4 + (mostrarQuebrados ? 1 : 0) + 2; // (mantém estrutura do vazio como antes)
       tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
       return;
     }
 
     lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
+
+    // ✅ Se TODA a coluna mov for 0 => oculta Mov. e Motivo
+    let mostrarMov = false;
+    for(const loja of lojas){
+      const mov = asIntSigned(movPorLoja?.[loja]?.movSum || 0);
+      if(mov !== 0){ mostrarMov = true; break; }
+    }
+
+    const trh = document.createElement("tr");
+    trh.innerHTML = `
+      <th>Loja</th>
+      <th>Atual</th>
+      <th>Anterior</th>
+      <th>Diferença</th>
+      ${mostrarQuebrados ? `<th>C. Quebrados</th>` : ``}
+      ${mostrarMov ? `<th>Mov.</th><th class="motivo-right">Motivo</th>` : ``}
+    `;
+    thead.appendChild(trh);
+
+    const colsCount = 4 + (mostrarQuebrados ? 1 : 0) + (mostrarMov ? 2 : 0);
 
     let totAtual=0, totAnterior=0, totDiff=0, totQuebr=0, totMov=0;
 
@@ -1067,7 +1104,6 @@
       const diff = atual - anterior;
 
       const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
-
       const quebrados = mostrarQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
 
       const movObj = movPorLoja?.[loja];
@@ -1080,7 +1116,7 @@
       totAnterior += anterior;
       totDiff += diff;
       if(mostrarQuebrados) totQuebr += quebrados;
-      totMov += mov;
+      if(mostrarMov) totMov += mov;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -1089,8 +1125,12 @@
         <td style="font-weight:900;">${fmtInt(anterior)}</td>
         <td class="${cls}">${fmtSigned(diff)}</td>
         ${mostrarQuebrados ? `<td style="font-weight:900;">${fmtInt(quebrados)}</td>` : ``}
-        <td class="${movCls}">${fmtSigned(mov)}</td>
-        <td class="motivo-right">${esc(motivoTxt)}</td>
+        ${
+          mostrarMov
+            ? `<td class="${movCls}">${fmtSigned(mov)}</td>
+               <td class="motivo-right">${esc(motivoTxt)}</td>`
+            : ``
+        }
       `;
       tbody.appendChild(tr);
     }
@@ -1106,15 +1146,18 @@
       <td>${fmtInt(totAnterior)}</td>
       <td class="${clsTot}">${fmtSigned(totDiff)}</td>
       ${mostrarQuebrados ? `<td>${fmtInt(totQuebr)}</td>` : ``}
-      <td class="${clsTotMov}">${fmtSigned(totMov)}</td>
-      <td class="motivo-right"></td>
+      ${
+        mostrarMov
+          ? `<td class="${clsTotMov}">${fmtSigned(totMov)}</td>
+             <td class="motivo-right"></td>`
+          : ``
+      }
     `;
     tbody.appendChild(trTot);
   }
 
   /* =========================================================
-     ✅ REGISTROS (colunas dinâmicas: somente modelos selecionados)
-     - Total soma apenas selecionados
+     ✅ REGISTROS
      ========================================================= */
   function renderTabelaRegistros(lista, tiposSel){
     const thead = document.getElementById("theadRegistros");
@@ -1186,7 +1229,7 @@
   }
 
   /* =========================================================
-     ✅ ESPECIAIS (colunas dinâmicas: especiais selecionados)
+     ✅ ESPECIAIS
      ========================================================= */
   function renderTabelaEspeciais(lista, tiposSel){
     const thead = document.getElementById("theadEspeciais");
@@ -1382,7 +1425,6 @@
       return;
     }
 
-    // Mantém registro se tiver qualquer tipo marcado > 0
     const passaFiltroTipo = (r)=>{
       const c = r.contagens || {};
       for(const k of tiposSel){
@@ -1409,7 +1451,6 @@
 
     const movPorLoja = acumularMovPorLoja(baseFinal);
 
-    // KPIs (pt-BR)
     let somaAtivos = 0;
     let somaQuebrados = 0;
     let somaCestinhas = 0;
@@ -1425,11 +1466,9 @@
     document.getElementById("kpiQuebrados").textContent = fmtInt(somaQuebrados);
     document.getElementById("kpiCestinhas").textContent = fmtInt(somaCestinhas);
 
-    // Gráfico
     const totaisGrafico = recalcularTotaisParaGrafico(baseFinal, tiposSel);
     desenharBarrasTipos(totaisGrafico, tiposSel);
 
-    // Tabelas
     renderTabelaPorLoja(baseFinal, baseRef, movPorLoja, tiposSel);
     renderTabelaRegistros(baseFinal, tiposSel);
     renderTabelaEspeciais(baseFinal, tiposSel);
@@ -1473,9 +1512,7 @@
 <!-- Fontes confiáveis -->
 <!-- Intl.NumberFormat / toLocaleString: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString -->
 <!-- Viewport: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
-<!-- overflow-x: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
-<!-- contain: https://developer.mozilla.org/en-US/docs/Web/CSS/contain -->
-<!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
+<!-- Chart.js scales suggestedMax: https://www.chartjs.org/docs/latest/axes/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
 </body>
 </html>
