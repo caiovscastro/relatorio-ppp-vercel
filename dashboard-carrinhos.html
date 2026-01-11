@@ -142,9 +142,7 @@
 
     .hidden{ display:none !important; }
 
-    /* =========================================================
-       ✅ (4) Filtros 40% mais estreito (somente em telas grandes)
-       ========================================================= */
+    /* Filtros mais estreitos em telas grandes */
     .grid{
       display:grid;
       grid-template-columns: 192px 1fr;
@@ -215,10 +213,10 @@
     }
     .check input{ transform: scale(1.05); }
 
-    /* ✅ (1) Datas em coluna (Data de Filtro em cima; Data Anterior abaixo) */
+    /* Datas em coluna */
     .subgrid{
       display:grid;
-      grid-template-columns: 1fr;  /* antes 2 colunas */
+      grid-template-columns: 1fr;
       gap: 10px;
     }
 
@@ -246,6 +244,11 @@
       max-width: 100%;
     }
     .input:focus{ border-color:var(--primary); box-shadow: 0 0 0 1px #0066ff33; }
+
+    /* ✅ Evita auto-zoom do iOS (font-size < 16px causa zoom) */
+    @media (max-width: 520px){
+      .input{ font-size:16px; }
+    }
 
     .content-grid{
       display:grid;
@@ -308,31 +311,10 @@
     }
     .ok{ color: var(--ok); }
 
-    table{
-      width:100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      max-width: 100%;
-    }
-    th, td{
-      border-bottom: 1px solid #eee;
-      padding: 8px 6px;
-      text-align:left;
-      vertical-align: top;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-    }
-
-    th{
-      font-weight: 900;
-      background: var(--thbg);
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    tbody tr:nth-child(even){ background: var(--rowAlt); }
-
+    /* =========================
+       ✅ Tabelas compactas + scroll horizontal sempre
+       - evita estourar layout no celular
+       ========================= */
     .table-wrap{
       overflow: auto;
       overflow-x: auto;
@@ -345,14 +327,35 @@
       min-width: 0;
     }
 
-    /* ✅ (6) Registros rolável na horizontal no celular */
-    .table-wrap.hscroll table{ min-width: 980px; }
-    @media (max-width: 520px){
-      .table-wrap.hscroll table{ min-width: 980px; }
+    table{
+      border-collapse: collapse;
+      font-size: 12px;
+      /* ✅ chave do scroll horizontal: tabela pode ficar maior que o container */
+      width: max-content;
+      min-width: 100%;
+      max-width: none;
     }
 
-    .table-lojas th:first-child,
-    .table-lojas td:first-child{ white-space: normal; }
+    th, td{
+      border-bottom: 1px solid #eee;
+      padding: 6px 6px;       /* ✅ mais compacto */
+      line-height: 1.15;      /* ✅ mais compacto */
+      text-align:left;
+      vertical-align: top;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    th{
+      font-weight: 900;
+      background: var(--thbg);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even){ background: var(--rowAlt); }
 
     .nota{
       font-size: 12px;
@@ -370,10 +373,10 @@
     .mov-neg{ color: var(--danger); font-weight: 900; }
     .mov-zero{ color:#333; font-weight: 900; }
 
-    /* ✅ (2) Motivo alinhado à direita (th e td) */
+    /* Motivo alinhado à direita */
     .motivo-right{ text-align:right !important; }
 
-    /* ✅ (3) Linha de total com destaque */
+    /* Linha de total com destaque */
     .row-total td{
       font-weight: 900;
       background: #fff6d6;
@@ -430,13 +433,11 @@
               <div class="grupo-titulo">Datas</div>
 
               <div class="subgrid">
-                <!-- ✅ (1) Data de Filtro em cima -->
                 <div class="campo">
                   <label for="dataFinal">Data de Filtro</label>
                   <input id="dataFinal" class="input" type="date" />
                 </div>
 
-                <!-- ✅ (1) Data Anterior abaixo -->
                 <div class="campo">
                   <label for="dataRef">Data Anterior</label>
                   <input id="dataRef" class="input" type="date" />
@@ -500,15 +501,18 @@
 
               <div class="right-col">
                 <div class="card table-card">
-                  <h3>Carrinhos ativos</h3>
+                  <h3>Carrinhos</h3>
+
+                  <!-- ✅ scroll horizontal sempre -->
                   <div class="table-wrap">
-                    <table class="table-lojas">
+                    <table>
                       <thead>
                         <tr>
                           <th>Loja</th>
-                          <th>Total</th>
-                          <th>Total Anterior</th>
+                          <th>Atual</th>
+                          <th>Anterior</th>
                           <th>Diferença</th>
+                          <th>Carrinhos Quebrados</th>
                           <th>Mov.</th>
                           <th class="motivo-right">Motivo</th>
                         </tr>
@@ -523,7 +527,7 @@
             <div class="card" style="margin-top:12px;">
               <h3>Registros de Carrinhos</h3>
 
-              <div class="table-wrap hscroll" style="max-height:420px;">
+              <div class="table-wrap" style="max-height:420px;">
                 <table>
                   <thead>
                     <tr>
@@ -548,7 +552,7 @@
             <div class="card" style="margin-top:12px;">
               <h3>Especiais e Reservas (por registro)</h3>
 
-              <div class="table-wrap hscroll" style="max-height:420px;">
+              <div class="table-wrap" style="max-height:420px;">
                 <table>
                   <thead>
                     <tr>
@@ -692,7 +696,7 @@
       registros = dados.registros;
 
       montarFiltros();
-      sugerirDatasMaisRecentes();
+      sugerirDatasMaisRecentes();     // ✅ agora evita datas futuras e garante mês atual
 
       aplicarFiltrosEAtualizarTudo();
       setMsg(`Dados carregados: ${registros.length} registro(s).`, true);
@@ -748,10 +752,10 @@
   }
 
   /* =========================================================
-     ✅ Datas: Data Anterior = Data de Filtro - 1 dia
-     + ✅ (1) Corrige mês inicial do input type="date"
-     Problema comum: value ISO inválido/antigo no navegador -> mostra outro mês.
-     Solução: sempre setar value ISO válido (YYYY-MM-DD).
+     ✅ Datas
+     - Data Anterior = Data de Filtro - 1 dia
+     - Evita abrir mês/ano errado: sempre inicializa dataFinal com "hoje"
+     - Se houver datas no backend, escolhe a mais recente <= hoje
      ========================================================= */
   function addDaysISO(iso, deltaDays){
     const m = String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -779,14 +783,12 @@
     }
 
     const anteriorISO = addDaysISO(finalISO, -1);
-
     elRef.max = anteriorISO;
 
     const refISO = (elRef.value || "").trim();
     if(!refISO || refISO >= finalISO){
       elRef.value = anteriorISO;
     }
-
     if(elRef.value >= finalISO){
       elRef.value = anteriorISO;
     }
@@ -866,19 +868,27 @@
   }
 
   function sugerirDatasMaisRecentes(){
+    const elFinal = document.getElementById("dataFinal");
+
+    // ✅ garante mês atual na abertura do calendário
+    // (isso evita o browser reabrir “o último mês usado” ou um mês “bugado”)
+    const hoje = todayISO();
+    if(!elFinal.value) elFinal.value = hoje;
+
     const datasISO = registros
       .map(r => brParaISO(String(r.dataContagem||"").trim()))
       .filter(Boolean)
       .sort();
 
-    const elFinal = document.getElementById("dataFinal");
-
     if(datasISO.length){
-      const maisRecente = datasISO[datasISO.length - 1];
-      if(!elFinal.value) elFinal.value = maisRecente;
-    } else {
-      // ✅ (1) fallback: se não houver datas no backend, usa hoje (evita input abrir mês/ano “maluco”)
-      if(!elFinal.value) elFinal.value = todayISO();
+      // pega a mais recente que NÃO é futura (<= hoje)
+      const ateHoje = datasISO.filter(d => d <= hoje);
+      if(ateHoje.length){
+        elFinal.value = ateHoje[ateHoje.length - 1];
+      }else{
+        // se o backend só tiver datas futuras, mantemos hoje (mês atual)
+        elFinal.value = hoje;
+      }
     }
 
     syncDataAnteriorComDataFinal();
@@ -957,10 +967,11 @@
       return true;
     }) : []);
 
-    const porLojaFinal = acumularPorLoja(baseFinal, tiposSel);
-    const porLojaRef   = acumularPorLoja(baseRef, tiposSel);
+    const porLojaFinal = acumularPorLoja(baseFinal);
+    const porLojaRef   = acumularPorLoja(baseRef);
     const movPorLoja   = acumularMovPorLoja(baseFinal);
 
+    // KPI do gráfico segue seleção de TIPOS (igual ao comportamento atual)
     const totaisPorTipo = somarTiposDoMapa(porLojaFinal, tiposSel);
     const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
     document.getElementById("kpiTotal").textContent = String(totalGeral);
@@ -971,25 +982,29 @@
     renderTabelaEspeciais(baseFinal);
   }
 
-  function acumularPorLoja(listaRegistros, tiposSel){
+  /* =========================================================
+     Acúmulo por loja (sempre guarda ativos + quebrados)
+     ========================================================= */
+  function acumularPorLoja(listaRegistros){
     const mapa = {};
     for(const r of listaRegistros){
       const loja = String(r.loja||"").trim();
       if(!mapa[loja]){
-        mapa[loja] = { __totalAll: 0, __totalAtivo: 0 };
-        for(const t of TIPOS){
-          if(tiposSel.size && !tiposSel.has(t.key)) continue;
-          mapa[loja][t.key] = 0;
-        }
+        mapa[loja] = {
+          __totalAtivo: 0,
+          carrinhosQuebrados: 0
+        };
       }
 
-      for(const t of TIPOS){
-        if(tiposSel.size && !tiposSel.has(t.key)) continue;
-        const v = asInt(r.contagens?.[t.key]);
-        mapa[loja][t.key] = (mapa[loja][t.key] || 0) + v;
-        mapa[loja].__totalAll += v;
-        if(ACTIVE_KEYS.has(t.key)) mapa[loja].__totalAtivo += v;
+      const c = r.contagens || {};
+
+      // ativos (8)
+      for(const key of ACTIVE_KEYS){
+        mapa[loja].__totalAtivo += asInt(c[key]);
       }
+
+      // quebrados
+      mapa[loja].carrinhosQuebrados += asInt(c.carrinhosQuebrados);
     }
     return mapa;
   }
@@ -1012,27 +1027,49 @@
     return out;
   }
 
-  function somarTiposDoMapa(porLoja, tiposSel){
-    const out = {};
-    for(const t of TIPOS){
-      if(tiposSel.size && !tiposSel.has(t.key)) continue;
-      out[t.key] = 0;
-    }
-    for(const loja in porLoja){
-      const obj = porLoja[loja];
-      for(const t of TIPOS){
-        if(tiposSel.size && !tiposSel.has(t.key)) continue;
-        out[t.key] += asInt(obj[t.key]);
-      }
-    }
-    return out;
+  /* =========================================================
+     Para o gráfico: soma TIPOS selecionados a partir dos registros (precisamos ler direto de registros)
+     - Mantém seu comportamento de filtro por TIPOS
+     ========================================================= */
+  function somarTiposDoMapa(porLojaFinal, tiposSel){
+    // aqui porLojaFinal não carrega TIPOS; então vamos reconstituir pelo base filtrado seria ideal.
+    // porém, para não mudar a arquitetura, vamos recalcular a partir de "registros filtrados" no nível acima.
+    // COMO não temos a lista aqui, vamos retornar zeros e manter a contagem no gráfico pelo que já vinha.
+    // => Ajuste correto: em vez de depender do mapa, o gráfico já recebe totaisPorTipo calculado antes.
+    // Este método ficou legado, então vamos manter compatibilidade retornando o objeto de totais já preenchido antes.
+    // (não usado diretamente aqui nesta versão)
+    return {};
   }
 
   function desenharBarrasTipos(totaisPorTipo, tiposSel){
     const canvas = document.getElementById("barTipos");
     const ctx = canvas.getContext("2d");
 
-    if(tiposSel.size === 0){
+    // ✅ se totais vier vazio por causa de ajustes, recalculamos com base nos TIPOS selecionados do DOM:
+    // isso evita quebrar o gráfico caso o caller passe {}
+    if(!totaisPorTipo || Object.keys(totaisPorTipo).length === 0){
+      // fallback seguro: cria um gráfico “vazio”
+      if(chartBar){ chartBar.destroy(); chartBar = null; }
+      chartBar = new Chart(ctx, {
+        type:"bar",
+        data:{ labels:["Sem dados"], datasets:[{ data:[0] }] },
+        options:{
+          indexAxis:"y",
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{ legend:{display:false}, tooltip:{enabled:false}, datalabels:{formatter:()=>""} },
+          scales:{ x:{display:false}, y:{display:true, grid:{display:false}} }
+        },
+        plugins:[ChartDataLabels]
+      });
+      return;
+    }
+
+    const labels = [];
+    const data = [];
+
+    // Se não houver tipos selecionados, mantemos o estado “sem tipos”
+    if(tiposSel && tiposSel.size === 0){
       if(chartBar){ chartBar.destroy(); chartBar = null; }
       chartBar = new Chart(ctx, {
         type:"bar",
@@ -1049,10 +1086,8 @@
       return;
     }
 
-    const labels = [];
-    const data = [];
     TIPOS.forEach(t=>{
-      if(tiposSel.size && !tiposSel.has(t.key)) return;
+      if(tiposSel && tiposSel.size && !tiposSel.has(t.key)) return;
       const icon = TIPO_ICONE[t.key] || "🛒";
       labels.push(`${t.label} ${icon}`);
       data.push(asInt(totaisPorTipo[t.key]));
@@ -1120,52 +1155,91 @@
     });
   }
 
+  /* =========================================================
+     ✅ Tabela Carrinhos:
+     - Loja curta (6)
+     - Ordena por nome da loja
+     - Coluna Carrinhos Quebrados após Diferença
+     - Linha TOTAL no final
+     ========================================================= */
   function renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja){
     const tbody = document.getElementById("tbodyPorLoja");
     tbody.innerHTML = "";
 
     const entries = Object.entries(porLojaFinal || {});
     if(!entries.length){
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
       return;
     }
 
-    entries.sort((a,b)=> (asInt(b[1].__totalAtivo) - asInt(a[1].__totalAtivo)));
+    // ✅ ordena pelo nome da loja (curto)
+    entries.sort((a,b)=>{
+      const la = lojaCurta6(a[0]).localeCompare(lojaCurta6(b[0]));
+      if(la !== 0) return la;
+      return a[0].localeCompare(b[0]);
+    });
+
+    let totAtual = 0, totAnterior = 0, totDiff = 0, totQuebrados = 0, totMov = 0;
 
     for(const [loja, objFinal] of entries){
-      const finalTotal = asInt(objFinal.__totalAtivo);
-      const refTotal = asInt((porLojaRef && porLojaRef[loja] ? porLojaRef[loja].__totalAtivo : 0));
-      const diff = finalTotal - refTotal;
+      const atual = asInt(objFinal.__totalAtivo);
+      const anterior = asInt((porLojaRef && porLojaRef[loja] ? porLojaRef[loja].__totalAtivo : 0));
+      const diff = atual - anterior;
+
+      const quebrados = asInt(objFinal.carrinhosQuebrados);
 
       const cls = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
-      const txt = diff > 0 ? `+${diff}` : String(diff);
+      const txtDiff = diff > 0 ? `+${diff}` : String(diff);
 
       const movObj = movPorLoja?.[loja];
       const mov = movObj ? asIntSigned(movObj.movSum) : 0;
       const movCls = mov > 0 ? "mov-pos" : mov < 0 ? "mov-neg" : "mov-zero";
       const movTxt = mov > 0 ? `+${mov}` : String(mov);
 
-      // ✅ (2) Se mov = 0, não mostrar motivo (em branco)
       const motivoTxtRaw = movObj ? (movObj.motivoTxt || "") : "";
       const motivoTxt = (mov === 0) ? "" : motivoTxtRaw;
 
+      totAtual += atual;
+      totAnterior += anterior;
+      totDiff += diff;
+      totQuebrados += quebrados;
+      totMov += mov;
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${esc(loja)}</td>
-        <td style="font-weight:900;">${finalTotal}</td>
-        <td style="font-weight:900;">${refTotal}</td>
-        <td class="${cls}">${txt}</td>
-
+        <td>${esc(lojaCurta6(loja))}</td>
+        <td style="font-weight:900;">${atual}</td>
+        <td style="font-weight:900;">${anterior}</td>
+        <td class="${cls}">${txtDiff}</td>
+        <td style="font-weight:900;">${quebrados}</td>
         <td class="${movCls}">${movTxt}</td>
         <td class="motivo-right">${esc(motivoTxt)}</td>
       `;
       tbody.appendChild(tr);
     }
+
+    // ✅ linha TOTAL
+    const trTot = document.createElement("tr");
+    trTot.className = "row-total";
+    const clsTot = totDiff > 0 ? "diff-pos" : totDiff < 0 ? "diff-neg" : "diff-zero";
+    const txtTotDiff = totDiff > 0 ? `+${totDiff}` : String(totDiff);
+    const clsTotMov = totMov > 0 ? "mov-pos" : totMov < 0 ? "mov-neg" : "mov-zero";
+    const txtTotMov = totMov > 0 ? `+${totMov}` : String(totMov);
+
+    trTot.innerHTML = `
+      <td>TOTAL</td>
+      <td>${totAtual}</td>
+      <td>${totAnterior}</td>
+      <td class="${clsTot}">${txtTotDiff}</td>
+      <td>${totQuebrados}</td>
+      <td class="${clsTotMov}">${txtTotMov}</td>
+      <td class="motivo-right"></td>
+    `;
+    tbody.appendChild(trTot);
   }
 
   /* =========================================================
-     ✅ (3) Registros: adiciona linha TOTAL ao final (por registro)
-     - Soma colunas exibidas (8 carrinhos) e o total geral
+     ✅ Registros: linha TOTAL ao final
      ========================================================= */
   function renderTabelaRegistros(lista, tiposSel){
     const tbody = document.getElementById("tbodyRegistros");
@@ -1177,12 +1251,11 @@
     }
 
     const ord = [...lista].sort((a,b)=>{
-      const la = String(a.loja||"").localeCompare(String(b.loja||""));
+      const la = lojaCurta6(a.loja||"").localeCompare(lojaCurta6(b.loja||""));
       if(la !== 0) return la;
       return String(a.usuario||"").localeCompare(String(b.usuario||""));
     });
 
-    // ✅ acumuladores de total (rodapé)
     const tot = {
       duplocar120:0, grande160:0, bebeConforto160:0, maxcar200:0,
       macrocar300:0, pranchaJacare:0, compraKids:0, bebeJipinho:0,
@@ -1217,7 +1290,6 @@
       tr.innerHTML = `
         <td>${esc(lojaCurta6(r.loja))}</td>
         <td>${esc(r.usuario)}</td>
-
         <td>${vDuplo}</td>
         <td>${vGrand}</td>
         <td>${vBebe}</td>
@@ -1226,13 +1298,11 @@
         <td>${vPran}</td>
         <td>${vKids}</td>
         <td>${vJip}</td>
-
         <td style="font-weight:900;">${totalLinha}</td>
       `;
       tbody.appendChild(tr);
     }
 
-    // ✅ linha de TOTAL no final
     const trTot = document.createElement("tr");
     trTot.className = "row-total";
     trTot.innerHTML = `
@@ -1251,7 +1321,7 @@
   }
 
   /* =========================================================
-     ✅ (3) Especiais/Reservas: adiciona linha TOTAL ao final
+     ✅ Especiais/Reservas: linha TOTAL ao final
      ========================================================= */
   function renderTabelaEspeciais(lista){
     const tbody = document.getElementById("tbodyEspeciais");
@@ -1263,7 +1333,7 @@
     }
 
     const ord = [...lista].sort((a,b)=>{
-      const la = String(a.loja||"").localeCompare(String(b.loja||""));
+      const la = lojaCurta6(a.loja||"").localeCompare(lojaCurta6(b.loja||""));
       if(la !== 0) return la;
       return String(a.usuario||"").localeCompare(String(b.usuario||""));
     });
@@ -1295,7 +1365,6 @@
       tr.innerHTML = `
         <td>${esc(lojaCurta6(r.loja))}</td>
         <td>${esc(r.usuario)}</td>
-
         <td>${carrinhosReserva}</td>
         <td>${carrinhosQuebrados}</td>
         <td>${cestinha}</td>
@@ -1318,10 +1387,98 @@
     tbody.appendChild(trTot);
   }
 
+  /* =========================================================
+     ✅ Recalcula totais por tipo para o gráfico (mantém comportamento original)
+     ========================================================= */
+  function recalcularTotaisPorTipoParaGrafico(baseFinal, tiposSel){
+    const out = {};
+    TIPOS.forEach(t=>{
+      if(tiposSel.size && !tiposSel.has(t.key)) return;
+      out[t.key] = 0;
+    });
+
+    for(const r of baseFinal){
+      const c = r.contagens || {};
+      for(const t of TIPOS){
+        if(tiposSel.size && !tiposSel.has(t.key)) continue;
+        out[t.key] = (out[t.key] || 0) + asInt(c[t.key]);
+      }
+    }
+    return out;
+  }
+
+  // ✅ sobrescreve aplicarFiltrosEAtualizarTudo para alimentar gráfico corretamente
+  const _aplicar = aplicarFiltrosEAtualizarTudo;
+  aplicarFiltrosEAtualizarTudo = function(){
+    setMsg("");
+
+    const dataFinalISO = (document.getElementById("dataFinal").value || "").trim();
+    if(!dataFinalISO){
+      document.getElementById("kpiTotal").textContent = "0";
+      renderTabelaRegistros([], new Set());
+      renderTabelaPorLoja({}, {}, {});
+      renderTabelaEspeciais([]);
+      desenharBarrasTipos({}, new Set());
+      setMsg("Selecione a Data de filtro para exibir os dados.");
+      return;
+    }
+
+    syncDataAnteriorComDataFinal();
+
+    const dataRefISO = (document.getElementById("dataRef").value || "").trim();
+    const dataFinalBR = isoParaBR(dataFinalISO);
+    const dataRefBR   = dataRefISO ? isoParaBR(dataRefISO) : "";
+
+    const tiposSel = getSelecionados("tipo");
+    const lojasSel = getSelecionados("loja");
+
+    const passaFiltroTipo = (r)=>{
+      if(!tiposSel.size) return true;
+      for(const t of TIPOS){
+        if(tiposSel.has(t.key) && asInt(r.contagens?.[t.key]) > 0) return true;
+      }
+      return false;
+    };
+
+    const baseFinal = registros.filter(r=>{
+      const loja = String(r.loja || "").trim();
+      if(lojasSel.size && !lojasSel.has(loja)) return false;
+      if(String(r.dataContagem || "").trim() !== dataFinalBR) return false;
+      if(!passaFiltroTipo(r)) return false;
+      return true;
+    });
+
+    const baseRef = (dataRefBR ? registros.filter(r=>{
+      const loja = String(r.loja || "").trim();
+      if(lojasSel.size && !lojasSel.has(loja)) return false;
+      if(String(r.dataContagem || "").trim() !== dataRefBR) return false;
+      if(!passaFiltroTipo(r)) return false;
+      return true;
+    }) : []);
+
+    const porLojaFinal = acumularPorLoja(baseFinal);
+    const porLojaRef   = acumularPorLoja(baseRef);
+    const movPorLoja   = acumularMovPorLoja(baseFinal);
+
+    const totaisPorTipo = recalcularTotaisPorTipoParaGrafico(baseFinal, tiposSel);
+    const totalGeral = Object.values(totaisPorTipo).reduce((a,b)=>a+b,0);
+    document.getElementById("kpiTotal").textContent = String(totalGeral);
+
+    desenharBarrasTipos(totaisPorTipo, tiposSel);
+    renderTabelaPorLoja(porLojaFinal, porLojaRef, movPorLoja);
+    renderTabelaRegistros(baseFinal, tiposSel);
+    renderTabelaEspeciais(baseFinal);
+  };
+
   document.addEventListener("DOMContentLoaded", async ()=>{
     document.getElementById("btnIrLogin").onclick = ()=> window.location.href = ROTAS.login;
     document.getElementById("btnVoltarMenu").onclick = ()=> window.location.href = ROTAS.menu;
     document.getElementById("btnAtualizar").onclick = carregarRegistros;
+
+    // ✅ garante mês atual antes de qualquer coisa (evita abrir Dez/2026)
+    const elFinal = document.getElementById("dataFinal");
+    if(elFinal && !elFinal.value) elFinal.value = todayISO();
+    syncDataAnteriorComDataFinal();
 
     const s = await obterSessaoDoBackend();
     if(!s){
@@ -1354,9 +1511,8 @@
 <!-- Fontes confiáveis -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 <!-- chartjs-plugin-datalabels: https://chartjs-plugin-datalabels.netlify.app/ -->
-<!-- Input type="date" (atributos min/max): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
-<!-- Date (manipulação de dias): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date -->
-<!-- CSS text-align: https://developer.mozilla.org/en-US/docs/Web/CSS/text-align -->
-<!-- Overflow/scroll (rolagem horizontal): https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
+<!-- Input type="date" (comportamento e atributos): https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date -->
+<!-- iOS auto-zoom em inputs (font-size e viewport): https://webkit.org/blog/5610/more-responsive-form-controls/ -->
+<!-- CSS overflow-x/scroll: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
 </body>
 </html>
