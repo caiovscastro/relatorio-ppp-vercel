@@ -30,9 +30,10 @@
 //    - Vem do front como contagens.movCarrinhos
 //    - NÃO é contagem física, é ajuste de rastreabilidade
 //
-// ✅ NOVO (tipo/categoria da movimentação):
-// S: Tipo de movimentação (ex.: MOVI_ENTRE_LOJAS | MOVI_MANUTENCAO)
-//    - Vem do front como body.movCategoria
+// ✅ Coluna S (Motivo / Tipo de movimentação):
+// S: Motivo abreviado (ex.: "M.L" | "M.M")
+//    - Front continua enviando o código canônico (MOVI_ENTRE_LOJAS | MOVI_MANUTENCAO)
+//    - Backend valida o código e grava abreviado na planilha
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -49,14 +50,25 @@ const spreadsheetId = process.env.SPREADSHEET_ID;
 const PERFIS_PERMITIDOS = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
 
 /**
- * Valores aceitos para o novo seletor de "Tipo de movimentação".
- * - Mantemos em formato "código" (sem acento/espaço) para ser robusto em integrações/relatórios.
- * - A interface pode mostrar rótulos amigáveis, mas o backend grava o código controlado.
+ * Valores aceitos para o seletor de "Tipo de movimentação" (código canônico).
+ * A interface pode mostrar rótulos amigáveis, mas o backend valida e controla.
  */
 const MOV_CATEGORIAS_PERMITIDAS = new Set([
   "MOVI_ENTRE_LOJAS",
   "MOVI_MANUTENCAO",
 ]);
+
+/**
+ * ✅ NOVO: abreviação para gravar na coluna S.
+ * Regras solicitadas:
+ * - "MOVI_ENTRE_LOJAS" => "M.L"
+ * - "MOVI_MANUTENCAO"  => "M.M"
+ */
+function abreviarMovCategoria(canon) {
+  if (canon === "MOVI_ENTRE_LOJAS") return "M.L";
+  if (canon === "MOVI_MANUTENCAO") return "M.M";
+  return "";
+}
 
 function nowSaoPaulo() {
   const agora = new Date();
@@ -145,7 +157,7 @@ export default async function handler(req, res) {
     const dataLancamento = String(body.dataLancamento || "").trim();
     const contagens = body.contagens || {};
 
-    // ✅ NOVO: valida categoria do movimento (coluna S)
+    // ✅ Valida categoria do movimento (front envia o CÓDIGO)
     const movCategoriaValid = validarMovCategoria(body.movCategoria);
     if (!movCategoriaValid.ok) {
       return res.status(400).json({
@@ -153,7 +165,10 @@ export default async function handler(req, res) {
         message: "Tipo de movimentação inválido. Use: MOVI_ENTRE_LOJAS ou MOVI_MANUTENCAO.",
       });
     }
-    const movCategoria = movCategoriaValid.value;
+    const movCategoriaCanonica = movCategoriaValid.value;
+
+    // ✅ NOVO: valor que vai para a coluna S (abreviado)
+    const movCategoriaAbreviada = abreviarMovCategoria(movCategoriaCanonica);
 
     // Data Contagem precisa estar em "DD/MM/AAAA"
     if (!isBRDateDDMMAAAA(dataLancamento)) {
@@ -176,8 +191,8 @@ export default async function handler(req, res) {
       O  carrinhosQuebrados
       P  carrinhosReserva
       Q  cestinhasReserva
-      R  movCarrinhos   (pode ser negativo)
-      S  movCategoria   (texto controlado)
+      R  movCarrinhos          (pode ser negativo)
+      S  movCategoriaAbreviada ("M.L" | "M.M")
     */
 
     // CONTAGEM (não-negativo)
@@ -197,9 +212,10 @@ export default async function handler(req, res) {
 
     // MOVIMENTAÇÃO (inteiro com sinal)
     // ✅ Se o front mandar 0/""/undefined, vira 0 (aceito)
-    const movCarrinhosRaw = (contagens.movCarrinhos === "" || contagens.movCarrinhos === undefined || contagens.movCarrinhos === null)
-      ? 0
-      : contagens.movCarrinhos;
+    const movCarrinhosRaw =
+      (contagens.movCarrinhos === "" || contagens.movCarrinhos === undefined || contagens.movCarrinhos === null)
+        ? 0
+        : contagens.movCarrinhos;
 
     const movCarrinhos = asIntObrigatorioComSinal(movCarrinhosRaw);
 
@@ -246,28 +262,28 @@ export default async function handler(req, res) {
 
     // Linha a gravar (A..S)
     const values = [[
-      dataHoraRede,       // A
-      loja,               // B
-      usuario,            // C
-      dataLancamento,     // D
+      dataHoraRede,           // A
+      loja,                   // B
+      usuario,                // C
+      dataLancamento,         // D
 
-      duplocar120,        // E
-      grande160,          // F
-      bebeConforto160,    // G
-      maxcar200,          // H
-      macrocar300,        // I
-      pranchaJacare,      // J
-      compraKids,         // K
-      bebeJipinho,        // L
-      cestinha,           // M
-      cadeiraRodas,       // N
-      carrinhosQuebrados, // O
+      duplocar120,            // E
+      grande160,              // F
+      bebeConforto160,        // G
+      maxcar200,              // H
+      macrocar300,            // I
+      pranchaJacare,          // J
+      compraKids,             // K
+      bebeJipinho,            // L
+      cestinha,               // M
+      cadeiraRodas,           // N
+      carrinhosQuebrados,     // O
 
-      carrinhosReserva,   // P
-      cestinhasReserva,   // Q
+      carrinhosReserva,       // P
+      cestinhasReserva,       // Q
 
-      movCarrinhos,       // R (entrada + / saída -)
-      movCategoria,       // S (tipo de movimentação)
+      movCarrinhos,           // R (entrada + / saída -)
+      movCategoriaAbreviada,  // S (M.L | M.M)
     ]];
 
     const sheets = await getSheetsClient();
