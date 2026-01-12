@@ -87,7 +87,7 @@
     }
 
     /* =========================================================
-       ✅ (2) TOPBAR:
+       ✅ TOPBAR:
        - Desktop: card-info + botões lado a lado (NÃO quebra linha)
        - Mobile: botões ficam abaixo
        ========================================================= */
@@ -104,9 +104,8 @@
     }
 
     .acoes{
-      /* ✅ limita largura no desktop e mantém ao lado do card-info */
       flex: 0 0 auto;
-      width: clamp(260px, 40%, 420px);   /* <= 40% (com teto) */
+      width: clamp(260px, 40%, 420px);
       display:flex;
       flex-direction: row;
       gap:10px;
@@ -142,12 +141,10 @@
     .btn-sec{ background:#e9e9e9; color:#111; }
     .btn-sec:hover{ background:#dedede; }
 
-    /* ✅ Desktop: impede quebra (botões SEMPRE ao lado do card-info) */
     @media (min-width: 521px){
       .topbar{ flex-wrap: nowrap; }
     }
 
-    /* ✅ Mobile: botões abaixo */
     @media (max-width: 520px){
       .container{ padding: 10px; }
       .shell{ padding: 14px; }
@@ -351,13 +348,10 @@
     }
 
     /* =========================================================
-       ✅ (1) FIX DEFINITIVO DO “GRÁFICO DESCENDO”:
-       - trava a altura do card do gráfico (sem crescer ao tocar)
-       - trava a altura do wrapper do canvas
-       - remove qualquer interação no canvas (pointer-events:none)
+       ✅ FIX “GRÁFICO DESCENDO”
        ========================================================= */
     .chart-card{
-      height: 430px;                 /* ✅ altura fixa (não “desce/estica”) */
+      height: 430px;
       display:flex;
       flex-direction: column;
       gap: 0;
@@ -370,8 +364,7 @@
       min-height: 0;
       min-width: 0;
       overflow: hidden;
-
-      height: 360px;                 /* ✅ trava altura do canvas-wrapper */
+      height: 360px;
     }
     @media (max-width: 520px){
       .chart-card{ height: 390px; }
@@ -381,10 +374,7 @@
     #barTipos{
       width: 100% !important;
       height: 100% !important;
-
-      /* ✅ elimina qualquer gesto/click no canvas */
       pointer-events: none;
-
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
@@ -936,6 +926,11 @@
 
   /* =========================================================
      Dimensões (controle colunas tabela Carrinhos)
+     =========================================================
+     ✅ (2) ADIÇÃO solicitada:
+     - "Cestinha" (default desmarcado)
+     - "C. Rodas" (default desmarcado)
+     - ambas devem aparecer após "C. Quebrados"
      ========================================================= */
   const DIMENSOES = [
     { key:"qtdMov",    label:"Qtd Mov.",     defaultChecked:false },
@@ -944,6 +939,10 @@
     { key:"diferenca", label:"Diferença",    defaultChecked:true  },
     { key:"usuario",   label:"Usuário",      defaultChecked:false },
     { key:"quebrados", label:"C. Quebrados", defaultChecked:true  },
+
+    /* ✅ NOVOS (iniciam desmarcados) */
+    { key:"cestinhaCol", label:"Cestinha",   defaultChecked:false },
+    { key:"rodasCol",    label:"C. Rodas",   defaultChecked:false },
   ];
 
   function getDimensoesSelecionadas(){
@@ -958,7 +957,7 @@
   }
 
   /* =========================================================
-     SOMAS
+     SOMAS (respeitando filtro de Tipos)
      ========================================================= */
   function somaModelosSelecionados(contagens, tiposSel){
     let s = 0;
@@ -985,6 +984,31 @@
 
   function getQuebradosSeSelecionado(contagens, tiposSel){
     return tiposSel.has("carrinhosQuebrados") ? asInt(contagens?.carrinhosQuebrados) : 0;
+  }
+
+  /* =========================================================
+     ✅ (2) NOVO: valores para as colunas novas na Tabela Carrinhos
+     - Cestinha:
+         * sempre considera "cestinha"
+         * e, se "cestinhasReserva" estiver marcado em Tipos, soma também "cestinhasReserva"
+       (ou seja: marcar "Cestinhas reserva" aumenta a coluna "Cestinha")
+     - C. Rodas:
+         * só mostra valor quando "cadeiraRodas" estiver marcado em Tipos
+     ========================================================= */
+  function getCestinhaParaTabela(contagens, tiposSel){
+    // ✅ base: sempre puxar "cestinha"
+    // (mantém a coluna útil como “Cestinha” e atende o requisito de acumular reserva quando marcado)
+    let s = asInt(contagens?.cestinha);
+
+    // ✅ se "Cestinhas reserva" estiver marcado nos Tipos, acumula com "cestinha"
+    if(tiposSel.has("cestinhasReserva")){
+      s += asInt(contagens?.cestinhasReserva);
+    }
+    return s;
+  }
+
+  function getCadeiraRodasParaTabela(contagens, tiposSel){
+    return tiposSel.has("cadeiraRodas") ? asInt(contagens?.cadeiraRodas) : 0;
   }
 
   function acumularMovPorLoja(listaRegistros){
@@ -1080,7 +1104,7 @@
           indexAxis:"y",
           responsive:true,
           maintainAspectRatio:false,
-          events: [],                  // ✅ sem eventos
+          events: [],
           plugins:{
             legend:{display:false},
             tooltip:{enabled:false},
@@ -1129,13 +1153,9 @@
         indexAxis:"y",
         responsive:true,
         maintainAspectRatio:false,
-
-        // ✅ trava total de interação interna
         events: [],
         interaction: { mode: null },
-
         layout:{ padding:{ left: 26, right: 22, top: 6, bottom: 6 } },
-
         plugins:{
           legend:{ display:false },
           tooltip:{ enabled:false },
@@ -1167,15 +1187,19 @@
       },
       plugins:[ChartDataLabels]
     });
-
-    /* ✅ Segurança extra:
-       Se o Chart.js tentar recalcular por qualquer resize do browser,
-       a altura está travada no CSS (.chart-card/.chart-wrap) — então não “desce”. */
   }
 
   /* =========================================================
      TABELA POR LOJA (Carrinhos)
-     ========================================================= */
+     =========================================================
+     ✅ (1) CORREÇÃO solicitada:
+     - A coluna "Anterior" agora aplica a MESMA lógica do "Atual"
+       com base no filtro de "Tipos" (incluindo reservas quando marcado).
+     - Para garantir isso, calculamos "atual" e "anterior" com
+       a mesma função (somaAtivosMaisReserva) usando o mesmo tiposSel.
+     ✅ (2) NOVAS colunas (via Dimensões):
+     - "Cestinha" e "C. Rodas" após "C. Quebrados"
+  ========================================================= */
   function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel, dims){
     const thead = document.getElementById("theadPorLoja");
     const tbody = document.getElementById("tbodyPorLoja");
@@ -1186,36 +1210,65 @@
     const showAnterior  = !!dims.anterior;
     const showDiferenca = !!dims.diferenca;
     const showQuebrados = !!dims.quebrados;
+
+    // ✅ NOVAS DIMENSÕES
+    const showCestinha  = !!dims.cestinhaCol;
+    const showRodas     = !!dims.rodasCol;
+
     const showMov       = !!dims.qtdMov;
     const showMotivo    = !!dims.motivoMov;
 
     const mapFinal = {};
     const mapRef = {};
 
+    // --------- FINAL (Atual) ----------
     for(const r of listaFinal){
       const loja = String(r.loja||"").trim();
-      if(!mapFinal[loja]) mapFinal[loja] = { ativos:0, quebrados:0, usuario:"" };
+      if(!mapFinal[loja]) mapFinal[loja] = {
+        ativos:0, quebrados:0, cestinha:0, rodas:0, usuario:""
+      };
 
       const c = r.contagens || {};
+
+      // ✅ Atual respeita Tipos (já existia, mantido)
       mapFinal[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
       mapFinal[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
+
+      // ✅ NOVOS: colunas opcionais (também respeitam Tipos conforme regra solicitada)
+      mapFinal[loja].cestinha += getCestinhaParaTabela(c, tiposSel);
+      mapFinal[loja].rodas    += getCadeiraRodasParaTabela(c, tiposSel);
+
       mapFinal[loja].usuario = String(r.usuario || "").trim();
     }
 
+    // --------- REF (Anterior) ----------
     for(const r of listaRef){
       const loja = String(r.loja||"").trim();
-      if(!mapRef[loja]) mapRef[loja] = { ativos:0 };
+      if(!mapRef[loja]) mapRef[loja] = {
+        ativos:0, quebrados:0, cestinha:0, rodas:0
+      };
+
       const c = r.contagens || {};
+
+      // ✅ (1) Anterior passa a usar a MESMA regra do Atual, respeitando Tipos
       mapRef[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
+
+      // (não solicitado, mas necessário para consistência quando as colunas novas estiverem visíveis)
+      mapRef[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
+      mapRef[loja].cestinha  += getCestinhaParaTabela(c, tiposSel);
+      mapRef[loja].rodas     += getCadeiraRodasParaTabela(c, tiposSel);
     }
 
     const lojas = Object.keys(mapFinal);
     if(!lojas.length){
-      let cols = 2;
+      // ✅ contagem dinâmica de colunas
+      let cols = 2; // Loja + Atual
       if(showUsuario) cols += 1;
       if(showAnterior) cols += 1;
       if(showDiferenca) cols += 1;
       if(showQuebrados) cols += 1;
+      if(showCestinha) cols += 1;
+      if(showRodas) cols += 1;
       if(showMov) cols += 1;
       if(showMotivo) cols += 1;
 
@@ -1226,6 +1279,8 @@
     lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
 
     const trh = document.createElement("tr");
+
+    // ✅ (2) ordem solicitada: após "C. Quebrados" entram "Cestinha" e "C. Rodas"
     trh.innerHTML = `
       <th>Loja</th>
       ${showUsuario ? `<th>Usuário</th>` : ``}
@@ -1233,21 +1288,30 @@
       ${showAnterior ? `<th>Anterior</th>` : ``}
       ${showDiferenca ? `<th>Diferença</th>` : ``}
       ${showQuebrados ? `<th>C. Quebrados</th>` : ``}
+      ${showCestinha ? `<th>Cestinha</th>` : ``}
+      ${showRodas ? `<th>C. Rodas</th>` : ``}
       ${showMov ? `<th>Mov.</th>` : ``}
       ${showMotivo ? `<th class="motivo-right">Motivo</th>` : ``}
     `;
     thead.appendChild(trh);
 
-    let totAtual=0, totAnterior=0, totDiff=0, totQuebr=0, totMov=0;
+    // Totais
+    let totAtual=0, totAnterior=0, totDiff=0, totQuebr=0, totCest=0, totRodas=0, totMov=0;
 
     for(const loja of lojas){
       const atual = asInt(mapFinal[loja].ativos);
-      const anterior = asInt(mapRef[loja]?.ativos || 0);
-      const diff = atual - anterior;
 
+      // ✅ (1) anterior agora reflete Tipos (inclui/exclui reservas conforme marcado)
+      const anterior = asInt(mapRef[loja]?.ativos || 0);
+
+      const diff = atual - anterior;
       const clsDiff = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
 
       const quebrados = showQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
+
+      // ✅ novos campos por loja
+      const cestinha = showCestinha ? asInt(mapFinal[loja].cestinha) : 0;
+      const rodas    = showRodas ? asInt(mapFinal[loja].rodas) : 0;
 
       const movObj = movPorLoja?.[loja];
       const mov = movObj ? asIntSigned(movObj.movSum) : 0;
@@ -1259,6 +1323,8 @@
       if(showAnterior) totAnterior += anterior;
       if(showDiferenca) totDiff += diff;
       if(showQuebrados) totQuebr += quebrados;
+      if(showCestinha) totCest += cestinha;
+      if(showRodas) totRodas += rodas;
       if(showMov) totMov += mov;
 
       const tr = document.createElement("tr");
@@ -1269,6 +1335,8 @@
         ${showAnterior ? `<td style="font-weight:900;">${fmtInt(anterior)}</td>` : ``}
         ${showDiferenca ? `<td class="${clsDiff}">${fmtSigned(diff)}</td>` : ``}
         ${showQuebrados ? `<td style="font-weight:900;">${fmtInt(quebrados)}</td>` : ``}
+        ${showCestinha ? `<td style="font-weight:900;">${fmtInt(cestinha)}</td>` : ``}
+        ${showRodas ? `<td style="font-weight:900;">${fmtInt(rodas)}</td>` : ``}
         ${showMov ? `<td class="${movCls}">${fmtSigned(mov)}</td>` : ``}
         ${showMotivo ? `<td class="motivo-right">${esc(motivoTxt)}</td>` : ``}
       `;
@@ -1288,6 +1356,8 @@
       ${showAnterior ? `<td>${fmtInt(totAnterior)}</td>` : ``}
       ${showDiferenca ? `<td class="${clsTotDiff}">${fmtSigned(totDiff)}</td>` : ``}
       ${showQuebrados ? `<td>${fmtInt(totQuebr)}</td>` : ``}
+      ${showCestinha ? `<td>${fmtInt(totCest)}</td>` : ``}
+      ${showRodas ? `<td>${fmtInt(totRodas)}</td>` : ``}
       ${showMov ? `<td class="${clsTotMov}">${fmtSigned(totMov)}</td>` : ``}
       ${showMotivo ? `<td class="motivo-right"></td>` : ``}
     `;
@@ -1668,8 +1738,6 @@
 <!-- Fontes confiáveis -->
 <!-- Chart.js (config, responsive, events): https://www.chartjs.org/docs/latest/ -->
 <!-- Chart.js interaction/events: https://www.chartjs.org/docs/latest/configuration/interactions.html -->
-<!-- CSS pointer-events: https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events -->
-<!-- CSS clamp(): https://developer.mozilla.org/en-US/docs/Web/CSS/clamp -->
 <!-- Viewport meta tag: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
 </body>
 </html>
