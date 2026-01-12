@@ -695,6 +695,21 @@
         </div>
       </div>
 
+      <!-- =================================================================================
+           ✅ NOVO: Tipo de abordagem (obrigatório escolher Reativa ou Preventiva)
+           - Fica logo abaixo do campo de escolher Data e Hora da ocorrência (como solicitado)
+           ================================================================================= -->
+      <div class="finalizar-dtcol" style="margin-bottom:10px;">
+        <label for="tipoAbordagem" style="font-weight:700; font-size:13px; color:#111;">
+          Tipo de abordagem (obrigatório):
+        </label>
+        <select id="tipoAbordagem" class="finalizar-dtinput">
+          <option value="Nenhum">Nenhum</option>
+          <option value="Reativa">Reativa</option>
+          <option value="Preventiva">Preventiva</option>
+        </select>
+      </div>
+
       <div class="finalizar-foto">
         <label for="fotoOcorrencia" style="font-weight:700; display:block; margin-bottom:6px;">
           Foto (opcional):
@@ -1248,7 +1263,7 @@
 
     setarDocumentoNoInput(docAtual);
     atualizarBotaoFinalizar();
-    if (status) status.textContent = "Ocorrência iniciada. Pesquise e selecione produtos para registrar.";
+    if (status) status.textContent = "Ocorrência iniciada. Pesquise e selecione produtos para registrar itens.";
     aplicarModoTela();
   }
 
@@ -1278,6 +1293,12 @@
     const horaEl = document.getElementById("horaOcorrido");
     if (dataEl) dataEl.value = "";
     if (horaEl) horaEl.value = "";
+
+    /* =================================================================================
+       ✅ NOVO: ao abrir o popup, reseta o seletor para "Nenhum" (estado inicial)
+       ================================================================================= */
+    const tipoEl = document.getElementById("tipoAbordagem");
+    if (tipoEl) tipoEl.value = "Nenhum";
 
     const fotoStatus = document.getElementById("fotoStatus");
     if (fotoStatus) fotoStatus.textContent = "";
@@ -1311,9 +1332,26 @@
     const dataOcorrido = (document.getElementById("dataOcorrido")?.value || "").trim();
     const horaOcorrido = (document.getElementById("horaOcorrido")?.value || "").trim();
 
-    if (!rel || !dataOcorrido || !horaOcorrido) {
+    /* =================================================================================
+       ✅ NOVO: lê o tipo de abordagem e valida como obrigatório (Reativa/Preventiva)
+       - "Nenhum" NÃO pode finalizar (conforme solicitado)
+       ================================================================================= */
+    const tipoAbordagem = (document.getElementById("tipoAbordagem")?.value || "Nenhum").trim();
+    const tipoValido = (tipoAbordagem === "Reativa" || tipoAbordagem === "Preventiva");
+
+    if (!rel || !dataOcorrido || !horaOcorrido || !tipoValido) {
       if (erroEl) {
-        if (!rel && (!dataOcorrido || !horaOcorrido)) {
+        // Mensagens específicas sem mudar a lógica existente do bloqueio,
+        // apenas acrescentando a exigência do novo campo.
+        if (!rel && (!dataOcorrido || !horaOcorrido) && !tipoValido) {
+          erroEl.textContent = "Preencha o relatório, selecione a data, a hora do ocorrido e escolha o Tipo de abordagem (Reativa ou Preventiva) para finalizar.";
+        } else if (!rel && !tipoValido) {
+          erroEl.textContent = "Preencha o relatório e escolha o Tipo de abordagem (Reativa ou Preventiva) para finalizar.";
+        } else if ((!dataOcorrido || !horaOcorrido) && !tipoValido) {
+          erroEl.textContent = "Selecione a data, a hora do ocorrido e escolha o Tipo de abordagem (Reativa ou Preventiva) para finalizar.";
+        } else if (!tipoValido) {
+          erroEl.textContent = "Escolha o Tipo de abordagem (Reativa ou Preventiva) para finalizar.";
+        } else if (!rel && (!dataOcorrido || !horaOcorrido)) {
           erroEl.textContent = "Preencha o relatório e selecione a data e a hora do ocorrido para finalizar.";
         } else if (!rel) {
           erroEl.textContent = "Preencha o relatório para finalizar.";
@@ -1343,7 +1381,10 @@
       // Foto é opcional
     }
 
-    enviarLoteFinalizacao(rel, imagemUrl, dataOcorrido, horaOcorrido);
+    /* =================================================================================
+       ✅ NOVO: passa tipoAbordagem para o envio do lote (vai repetir em cada item)
+       ================================================================================= */
+    enviarLoteFinalizacao(rel, imagemUrl, dataOcorrido, horaOcorrido, tipoAbordagem);
   }
 
   /* ===================== Upload de imagem ===================== */
@@ -1432,7 +1473,10 @@
     return String(dados.imageUrl || "");
   }
 
-  async function enviarLoteFinalizacao(relatorioTexto, imagemUrl, dataOcorrido, horaOcorrido) {
+  /* =====================================================================================
+     ✅ ALTERAÇÃO MINIMALISTA: adiciona parâmetro tipoAbordagem e inclui em cada item do lote
+     ===================================================================================== */
+  async function enviarLoteFinalizacao(relatorioTexto, imagemUrl, dataOcorrido, horaOcorrido, tipoAbordagem) {
     const status = document.getElementById("status");
 
     const lote = itensOcorrencia.map((item, idx) => ({
@@ -1446,6 +1490,9 @@
       numeroDocumento: item.numeroDocumento,
       dataOcorrido: dataOcorrido,
       horaOcorrido: horaOcorrido,
+
+      /* ✅ NOVO: repete o tipo de abordagem para cada produto (para gravar na coluna T) */
+      tipoAbordagem: tipoAbordagem,
     }));
 
     try {
