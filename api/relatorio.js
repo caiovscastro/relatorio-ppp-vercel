@@ -9,9 +9,10 @@
 // NOVO (SOLICITADO):
 // - DATA_OCORRIDO -> coluna R  (formato BR: dd/MM/yyyy) ✅ AJUSTADO
 // - HORA_OCORRIDO -> coluna S
+// - TIPO_ABORDAGEM -> coluna T ✅ NOVO (Reativa/Preventiva obrigatório)
 //
 // Fluxo:
-// - Garante que a aba RELATORIO exista e tenha cabeçalho A1:S1
+// - Garante que a aba RELATORIO exista e tenha cabeçalho A1:T1
 // - Gera DATA/HORA do REGISTRO em São Paulo (coluna A)
 // - Gera um ID único por linha (coluna P)
 // - Insere linhas via append
@@ -42,7 +43,7 @@ const sheets = google.sheets({ version: "v4", auth });
 let headerGarantido = false;
 
 /**
- * Garante que a aba RELATORIO exista e tenha cabeçalho correto A:S
+ * Garante que a aba RELATORIO exista e tenha cabeçalho correto A:T
  */
 async function garantirAbaRelatorio() {
   if (headerGarantido) return;
@@ -83,11 +84,13 @@ async function garantirAbaRelatorio() {
     "IMAGEM_URL",            // Q
     "DATA_OCORRIDO",         // R  ✅ NOVO
     "HORA_OCORRIDO",         // S  ✅ NOVO
+    "TIPO_ABORDAGEM",        // T  ✅ NOVO
   ]];
 
+  // ✅ Atualiza cabeçalho agora para A1:T1
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: "RELATORIO!A1:S1",
+    range: "RELATORIO!A1:T1",
     valueInputOption: "RAW",
     requestBody: { values: cabecalho },
   });
@@ -141,6 +144,7 @@ function isoParaBR(iso) {
 
 /**
  * Validação mínima (mantida exatamente como você tinha)
+ * + ✅ NOVO: valida Tipo de abordagem (Reativa/Preventiva obrigatório)
  */
 function validarRegistroBasico(reg) {
   const {
@@ -150,6 +154,7 @@ function validarRegistroBasico(reg) {
     quantidade,
     valorUnitario,
     numeroDocumento,
+    tipoAbordagem, // ✅ NOVO
   } = reg || {};
 
   if (!Array.isArray(produto) || produto.length < 8) {
@@ -164,11 +169,17 @@ function validarRegistroBasico(reg) {
     return "Quantidade, valor unitário e número de documento são obrigatórios.";
   }
 
+  // ✅ NOVO (solicitado): obrigatório ser "Reativa" ou "Preventiva"
+  const ta = String(tipoAbordagem || "").trim();
+  if (ta !== "Reativa" && ta !== "Preventiva") {
+    return "Tipo de abordagem é obrigatório (Reativa ou Preventiva).";
+  }
+
   return null;
 }
 
 /**
- * Monta linha A:S
+ * Monta linha A:T
  */
 function montarLinhaPlanilha(reg, dataHoraRegistro, idRegistro) {
   const {
@@ -180,8 +191,9 @@ function montarLinhaPlanilha(reg, dataHoraRegistro, idRegistro) {
     quantidade,
     valorUnitario,
     numeroDocumento,
-    dataOcorrido, // ✅ vindo do front (ISO: YYYY-MM-DD)
-    horaOcorrido, // ✅ vindo do front
+    dataOcorrido,    // ✅ vindo do front (ISO: YYYY-MM-DD)
+    horaOcorrido,    // ✅ vindo do front
+    tipoAbordagem,   // ✅ NOVO: vindo do front
   } = reg;
 
   const [
@@ -196,25 +208,26 @@ function montarLinhaPlanilha(reg, dataHoraRegistro, idRegistro) {
   ] = produto;
 
   return [
-    dataHoraRegistro,           // A
-    loja,                       // B
-    usuario,                    // C
-    ean,                        // D
-    codConsinco,                // E
-    nomeProduto,                // F
-    departamento,               // G
-    secao,                      // H
-    grupo,                      // I
-    subgrupo,                   // J
-    categoria,                  // K
-    observacao || "",           // L
-    quantidade,                 // M
-    valorUnitario,              // N
-    numeroDocumento,            // O
-    idRegistro,                 // P
-    imagemUrl || "",            // Q
-    isoParaBR(dataOcorrido),    // R  ✅ AJUSTADO p/ dd/MM/yyyy
-    horaOcorrido || "",         // S  ✅
+    dataHoraRegistro,            // A
+    loja,                        // B
+    usuario,                     // C
+    ean,                         // D
+    codConsinco,                 // E
+    nomeProduto,                 // F
+    departamento,                // G
+    secao,                       // H
+    grupo,                       // I
+    subgrupo,                    // J
+    categoria,                   // K
+    observacao || "",            // L
+    quantidade,                  // M
+    valorUnitario,               // N
+    numeroDocumento,             // O
+    idRegistro,                  // P
+    imagemUrl || "",             // Q
+    isoParaBR(dataOcorrido),     // R  ✅ AJUSTADO p/ dd/MM/yyyy
+    horaOcorrido || "",          // S  ✅
+    String(tipoAbordagem || ""), // T  ✅ NOVO
   ];
 }
 
