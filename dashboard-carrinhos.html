@@ -503,7 +503,8 @@
               <div class="grupo-titulo">Datas</div>
 
               <div class="campo" style="margin-bottom:10px;">
-                <label for="dataFinal">Data de Filtro</label>
+                <!-- ✅ (3) Substituído: Data de Filtro -> Data atual -->
+                <label for="dataFinal">Data atual</label>
                 <input id="dataFinal" class="input" type="date" />
               </div>
 
@@ -926,11 +927,6 @@
 
   /* =========================================================
      Dimensões (controle colunas tabela Carrinhos)
-     =========================================================
-     ✅ (2) ADIÇÃO solicitada:
-     - "Cestinha" (default desmarcado)
-     - "C. Rodas" (default desmarcado)
-     - ambas devem aparecer após "C. Quebrados"
      ========================================================= */
   const DIMENSOES = [
     { key:"qtdMov",    label:"Qtd Mov.",     defaultChecked:false },
@@ -940,7 +936,6 @@
     { key:"usuario",   label:"Usuário",      defaultChecked:false },
     { key:"quebrados", label:"C. Quebrados", defaultChecked:true  },
 
-    /* ✅ NOVOS (iniciam desmarcados) */
     { key:"cestinhaCol", label:"Cestinha",   defaultChecked:false },
     { key:"rodasCol",    label:"C. Rodas",   defaultChecked:false },
   ];
@@ -987,23 +982,15 @@
   }
 
   /* =========================================================
-     ✅ (2) NOVO: valores para as colunas novas na Tabela Carrinhos
-     - Cestinha:
-         * sempre considera "cestinha"
-         * e, se "cestinhasReserva" estiver marcado em Tipos, soma também "cestinhasReserva"
-       (ou seja: marcar "Cestinhas reserva" aumenta a coluna "Cestinha")
-     - C. Rodas:
-         * só mostra valor quando "cadeiraRodas" estiver marcado em Tipos
-     ========================================================= */
+     ✅ (1) AJUSTE: Coluna "Cestinha" (Total geral) deve respeitar
+     o checkbox "Cestinha" e "Cestinhas reserva":
+       - Se "Cestinha" desmarcado -> soma só "Cestinhas reserva" se marcado
+       - Se ambos desmarcados -> 0
+  ========================================================= */
   function getCestinhaParaTabela(contagens, tiposSel){
-    // ✅ base: sempre puxar "cestinha"
-    // (mantém a coluna útil como “Cestinha” e atende o requisito de acumular reserva quando marcado)
-    let s = asInt(contagens?.cestinha);
-
-    // ✅ se "Cestinhas reserva" estiver marcado nos Tipos, acumula com "cestinha"
-    if(tiposSel.has("cestinhasReserva")){
-      s += asInt(contagens?.cestinhasReserva);
-    }
+    let s = 0;
+    if(tiposSel.has("cestinha")) s += asInt(contagens?.cestinha);
+    if(tiposSel.has("cestinhasReserva")) s += asInt(contagens?.cestinhasReserva);
     return s;
   }
 
@@ -1191,15 +1178,7 @@
 
   /* =========================================================
      TABELA POR LOJA (Carrinhos)
-     =========================================================
-     ✅ (1) CORREÇÃO solicitada:
-     - A coluna "Anterior" agora aplica a MESMA lógica do "Atual"
-       com base no filtro de "Tipos" (incluindo reservas quando marcado).
-     - Para garantir isso, calculamos "atual" e "anterior" com
-       a mesma função (somaAtivosMaisReserva) usando o mesmo tiposSel.
-     ✅ (2) NOVAS colunas (via Dimensões):
-     - "Cestinha" e "C. Rodas" após "C. Quebrados"
-  ========================================================= */
+     ========================================================= */
   function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel, dims){
     const thead = document.getElementById("theadPorLoja");
     const tbody = document.getElementById("tbodyPorLoja");
@@ -1211,7 +1190,6 @@
     const showDiferenca = !!dims.diferenca;
     const showQuebrados = !!dims.quebrados;
 
-    // ✅ NOVAS DIMENSÕES
     const showCestinha  = !!dims.cestinhaCol;
     const showRodas     = !!dims.rodasCol;
 
@@ -1230,11 +1208,10 @@
 
       const c = r.contagens || {};
 
-      // ✅ Atual respeita Tipos (já existia, mantido)
       mapFinal[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
       mapFinal[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
 
-      // ✅ NOVOS: colunas opcionais (também respeitam Tipos conforme regra solicitada)
+      // ✅ (1) Cestinha respeitando checkbox de Cestinha / Cestinhas reserva
       mapFinal[loja].cestinha += getCestinhaParaTabela(c, tiposSel);
       mapFinal[loja].rodas    += getCadeiraRodasParaTabela(c, tiposSel);
 
@@ -1250,18 +1227,16 @@
 
       const c = r.contagens || {};
 
-      // ✅ (1) Anterior passa a usar a MESMA regra do Atual, respeitando Tipos
       mapRef[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
-
-      // (não solicitado, mas necessário para consistência quando as colunas novas estiverem visíveis)
       mapRef[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
+
+      // ✅ (1) idem para a referência (consistência quando coluna estiver visível)
       mapRef[loja].cestinha  += getCestinhaParaTabela(c, tiposSel);
       mapRef[loja].rodas     += getCadeiraRodasParaTabela(c, tiposSel);
     }
 
     const lojas = Object.keys(mapFinal);
     if(!lojas.length){
-      // ✅ contagem dinâmica de colunas
       let cols = 2; // Loja + Atual
       if(showUsuario) cols += 1;
       if(showAnterior) cols += 1;
@@ -1279,8 +1254,6 @@
     lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
 
     const trh = document.createElement("tr");
-
-    // ✅ (2) ordem solicitada: após "C. Quebrados" entram "Cestinha" e "C. Rodas"
     trh.innerHTML = `
       <th>Loja</th>
       ${showUsuario ? `<th>Usuário</th>` : ``}
@@ -1295,13 +1268,10 @@
     `;
     thead.appendChild(trh);
 
-    // Totais
     let totAtual=0, totAnterior=0, totDiff=0, totQuebr=0, totCest=0, totRodas=0, totMov=0;
 
     for(const loja of lojas){
       const atual = asInt(mapFinal[loja].ativos);
-
-      // ✅ (1) anterior agora reflete Tipos (inclui/exclui reservas conforme marcado)
       const anterior = asInt(mapRef[loja]?.ativos || 0);
 
       const diff = atual - anterior;
@@ -1309,7 +1279,6 @@
 
       const quebrados = showQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
 
-      // ✅ novos campos por loja
       const cestinha = showCestinha ? asInt(mapFinal[loja].cestinha) : 0;
       const rodas    = showRodas ? asInt(mapFinal[loja].rodas) : 0;
 
@@ -1318,6 +1287,9 @@
       const movCls = mov > 0 ? "mov-pos" : mov < 0 ? "mov-neg" : "mov-zero";
 
       const motivoTxt = movObj ? (movObj.motivoTxt || "") : "";
+
+      // ✅ (2) Se Mov. == 0, Motivo deve ficar em branco
+      const motivoExibir = (mov !== 0) ? motivoTxt : "";
 
       totAtual += atual;
       if(showAnterior) totAnterior += anterior;
@@ -1338,7 +1310,7 @@
         ${showCestinha ? `<td style="font-weight:900;">${fmtInt(cestinha)}</td>` : ``}
         ${showRodas ? `<td style="font-weight:900;">${fmtInt(rodas)}</td>` : ``}
         ${showMov ? `<td class="${movCls}">${fmtSigned(mov)}</td>` : ``}
-        ${showMotivo ? `<td class="motivo-right">${esc(motivoTxt)}</td>` : ``}
+        ${showMotivo ? `<td class="motivo-right">${esc(motivoExibir)}</td>` : ``}
       `;
       tbody.appendChild(tr);
     }
