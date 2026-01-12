@@ -578,7 +578,7 @@
 
               <div class="right-col">
                 <div class="card table-card">
-                  <h3>Carrinhos</h3>
+                  <h3>Total geral</h3>
                   <div class="table-wrap">
                     <table>
                       <thead id="theadPorLoja"></thead>
@@ -590,7 +590,7 @@
             </div>
 
             <div class="card" style="margin-top:12px;">
-              <h3>Registros de Carrinhos</h3>
+              <h3>Carrinhos por modelo</h3>
               <div class="table-wrap">
                 <table>
                   <thead id="theadRegistros"></thead>
@@ -832,7 +832,7 @@
       sugerirDatasMaisRecentes();
 
       aplicarFiltrosEAtualizarTudo();
-      setMsg(`Dados carregados: ${fmtInt(registros.length)} registro(s).`, true);
+      setMsg(`Dados carregados: ${fmtInt(registros.length)} registros.`, true);
 
     }catch(e){
       console.error(e);
@@ -1272,7 +1272,7 @@
       if(showMov) cols += 1;
       if(showMotivo) cols += 1;
 
-      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros atuais.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhuma loja com os filtros.</td></tr>`;
       return;
     }
 
@@ -1284,12 +1284,12 @@
     trh.innerHTML = `
       <th>Loja</th>
       ${showUsuario ? `<th>Usuário</th>` : ``}
-      <th>Atual</th>
-      ${showAnterior ? `<th>Anterior</th>` : ``}
-      ${showDiferenca ? `<th>Diferença</th>` : ``}
-      ${showQuebrados ? `<th>C. Quebrados</th>` : ``}
+      <th>C.Atual</th>
+      ${showAnterior ? `<th>C.Anterior</th>` : ``}
+      ${showDiferenca ? `<th>C.Diferença</th>` : ``}
+      ${showQuebrados ? `<th>C.Quebrados</th>` : ``}
       ${showCestinha ? `<th>Cestinha</th>` : ``}
-      ${showRodas ? `<th>C. Rodas</th>` : ``}
+      ${showRodas ? `<th>C.Rodas</th>` : ``}
       ${showMov ? `<th>Mov.</th>` : ``}
       ${showMotivo ? `<th class="motivo-right">Motivo</th>` : ``}
     `;
@@ -1389,7 +1389,7 @@
 
     if(!lista.length){
       const cols = 3 + modelosSel.length;
-      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros.</td></tr>`;
       return;
     }
 
@@ -1460,7 +1460,7 @@
 
     if(!lista.length){
       const cols = 2 + especiaisSel.length;
-      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros atuais.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center; font-weight:900; color:#444;">Nenhum registro com os filtros.</td></tr>`;
       return;
     }
 
@@ -1625,7 +1625,7 @@
       renderTabelaPorLoja([], [], {}, new Set(), getDimensoesSelecionadas());
       renderTabelaEspeciais([], new Set());
       desenharBarrasTipos({}, new Set());
-      setMsg("Selecione a Data de filtro para exibir os dados.");
+      setMsg("Selecione a Data de busca para exibir os dados.");
       return;
     }
 
