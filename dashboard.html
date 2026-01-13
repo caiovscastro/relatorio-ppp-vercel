@@ -2035,86 +2035,100 @@
       });
     }
 
-    function renderTopProdutos(labels, values, corBarra) {
-      const ctx = document.getElementById("chartTopProdutos");
-      if (chartTopProdutos) chartTopProdutos.destroy();
+function renderTopProdutos(labels, values, corBarra) {
+  const ctx = document.getElementById("chartTopProdutos");
+  if (chartTopProdutos) chartTopProdutos.destroy();
 
-      const valueOutsidePlugin = {
-        id: "valueOutsidePluginProdutos",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
+  // ✅ Detecta celular
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
 
-          ctx.save();
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial";
-          ctx.fillStyle = "#111";
+  // ✅ No celular encurta mais (mantém o começo do texto)
+  const maxChars = isMobile ? 18 : 30;
+  const labelsAdj = (labels || []).map((t) => {
+    const s = String(t || "").trim();
+    if (!s) return "N/I";
+    return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s;
+  });
 
-          meta.data.forEach((bar, i) => {
-            const val = chart.data.datasets[0].data[i];
-            const xRaw = bar.x + 8;
-            const x = Math.min(xRaw, chart.width - 8);
-            ctx.fillText(String(val), x, bar.y);
-          });
+  const valueOutsidePlugin = {
+    id: "valueOutsidePluginProdutos",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
 
-          ctx.restore();
-        }
-      };
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "bold 12px Arial";
+      ctx.fillStyle = "#111";
 
-      chartTopProdutos = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Registros",
-            data: values,
-            backgroundColor: corBarra || "#A98AE8",
-            clip: false
-          }]
-        },
-        options: {
-  indexAxis: "y",
-  responsive: true,
-  maintainAspectRatio: false,
-
-  // ✅ antes era: layout: { padding: { right: 46 } },
-  layout: { padding: { right: 46, left: 10 } },
-
-  plugins: {
-    legend: { display: false },
-    tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } }
-  },
-
-  scales: {
-    x: {
-      beginAtZero: true,
-      ticks: { display: false },
-      grid: { display: false },
-      border: { display: false }
-    },
-    y: {
-      ticks: {
-        autoSkip: false,
-        font: { size: 11 },
-        padding: 6,
-        align: "start",
-        crossAlign: "near"
-      },
-      afterFit: (scale) => {
-        // ✅ garante largura mínima do eixo Y para não cortar o início dos nomes
-        scale.width = Math.max(scale.width, 170);
-      },
-      grid: { display: false },
-      border: { display: false }
-    }
-  }
-}
-,
-        plugins: [valueOutsidePlugin]
+      meta.data.forEach((bar, i) => {
+        const val = chart.data.datasets[0].data[i];
+        const xRaw = bar.x + 8;
+        const x = Math.min(xRaw, chart.width - 8);
+        ctx.fillText(String(val), x, bar.y);
       });
+
+      ctx.restore();
     }
+  };
+
+  chartTopProdutos = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labelsAdj,
+      datasets: [{
+        label: "Registros",
+        data: values,
+        backgroundColor: corBarra || "#A98AE8",
+        clip: false
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+
+      // ✅ Dá “respiro” pra não cortar o início do texto
+      layout: { padding: { left: 16, right: 46 } },
+
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } }
+      },
+
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { display: false },
+          grid: { display: false },
+          border: { display: false }
+        },
+        y: {
+          ticks: {
+            autoSkip: false,
+            font: { size: isMobile ? 10 : 11 },
+            padding: 6,
+            align: "start",      // ✅ mantém o começo visível
+            crossAlign: "near"
+          },
+
+          // ✅ Impede o eixo Y de ficar grande demais e “encolher” as barras
+          afterFit: (scale) => {
+            const minW = isMobile ? 140 : 170;  // suficiente p/ não cortar
+            const maxW = isMobile ? 180 : 240;  // impede esmagar as barras
+            scale.width = Math.max(minW, Math.min(scale.width, maxW));
+          },
+
+          grid: { display: false },
+          border: { display: false }
+        }
+      }
+    },
+    plugins: [valueOutsidePlugin]
+  });
+}
 
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
