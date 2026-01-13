@@ -8,6 +8,12 @@
 
   <style>
     /* ====== Visual “semelhante ao print”: tiles claras em um fundo cinza suave ====== */
+    html, body{
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden; /* ✅ evita rolagem horizontal e “deslocamento” para a direita */
+    }
+
     body{
       margin: 0;
       font-family: Arial, sans-serif;
@@ -16,8 +22,11 @@
     }
 
     .wrap{
-      width: min(1100px, 92vw);
+      /* ✅ ocupa a tela sem estourar e sem ficar “puxado” para a direita */
+      width: calc(100vw - 20px);
+      max-width: 1400px;
       margin: 16px auto 30px;
+      box-sizing: border-box;
     }
 
     /* ============================
@@ -31,6 +40,7 @@
       padding: 12px 14px;
       min-height: 180px;
       box-sizing: border-box;
+      min-width: 0; /* ✅ importante para não “forçar” overflow */
     }
 
     .tile h3{
@@ -47,14 +57,16 @@
        ========================================================= */
     .layout{
       display: grid;
-      grid-template-columns: 270px 1fr;
+      grid-template-columns: 270px minmax(0, 1fr); /* ✅ evita overflow no conteúdo */
       gap: 12px;
       align-items: start;
+      min-width: 0;
     }
 
     .sidebar{
       min-height: unset;
       padding: 12px 12px;
+      min-width: 0;
     }
 
     .sidebar h3{
@@ -66,6 +78,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      min-width: 0;
     }
 
     .sidebar .side-stack .input-filter,
@@ -73,10 +86,12 @@
     .sidebar .side-stack .btn-dd{
       width: 100%;
       justify-content: center;
+      min-width: 0;
     }
 
     .sidebar .dd-wrap{
       width: 100%;
+      min-width: 0;
     }
 
     .sidebar .dd-panel{
@@ -95,8 +110,9 @@
        ========================================================= */
     .grid{
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr)); /* ✅ evita “estouro” */
       gap: 12px;
+      min-width: 0;
     }
 
     /* Topo ocupando as 3 colunas do grid */
@@ -109,6 +125,7 @@
 
       min-height: unset;
       padding: 14px 16px;
+      min-width: 0;
     }
 
     /* =========================================================
@@ -221,6 +238,7 @@
       font-size: 13px;
       outline: none;
       box-sizing: border-box;
+      min-width: 0;
     }
 
     /* Datas 10% menor (largura) */
@@ -243,6 +261,7 @@
       position: relative;
       display: inline-flex;
       align-items: center;
+      min-width: 0;
     }
 
     .btn-dd{
@@ -261,6 +280,8 @@
       align-items: center;
       justify-content: center;
       box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
     }
 
     .dd-panel{
@@ -325,13 +346,15 @@
     .row2{
       grid-column: 1 / -1;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* ✅ */
       gap: 12px;
+      min-width: 0;
     }
 
     .row3{
       grid-column: 1 / -1;
       display: block;
+      min-width: 0;
     }
 
     /* ============================
@@ -373,20 +396,23 @@
     .canvas-wrap{
       position: relative;
       height: 210px;
+      min-width: 0;
     }
 
     .ocorrencias-split{
       height: calc(100% - 28px);
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* ✅ */
       gap: 10px;
       align-items: center;
+      min-width: 0;
     }
 
     .ocorrencias-pie{
       position: relative;
       height: 240px;
       min-height: 240px;
+      min-width: 0;
     }
 
     /* ============================
@@ -397,9 +423,10 @@
     .bandeira-split{
       height: calc(100% - 28px);
       display: grid;
-      grid-template-columns: 1fr 1px 1fr;
+      grid-template-columns: minmax(0,1fr) 1px minmax(0,1fr);
       align-items: center;
       gap: 10px;
+      min-width: 0;
     }
 
     .bandeira-divider{
@@ -417,6 +444,7 @@
       justify-content: center;
       gap: 8px;
       min-height: 120px;
+      min-width: 0;
     }
 
     .bandeira-num{
@@ -475,31 +503,22 @@
 
     /* ====== Responsivo ====== */
     @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr 1fr; }
-      .row2{ grid-template-columns: 1fr; }
-      .layout{ grid-template-columns: 1fr; }
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row2{ grid-template-columns: minmax(0,1fr); }
+      .layout{ grid-template-columns: minmax(0,1fr); }
     }
 
     /* =========================================================
-       Ajuste para celular (mantido) + inputs flexíveis
+       ✅ Ajuste para celular:
+       1) Sidebar em 2 colunas (Atualizar ao lado de Voltar, etc.)
+       2) Mantém sem overflow horizontal
        ========================================================= */
     @media (max-width: 640px){
-      html, body{
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden;
-      }
-
-      *, *::before, *::after{
-        box-sizing: border-box;
-      }
-
       .wrap{
-        width: 100%;
+        width: calc(100vw - 20px);
         max-width: 100%;
         margin: 12px auto 24px;
-        padding-left: 10px;
-        padding-right: 10px;
+        padding: 0;
       }
 
       .grid, .row2, .row3,
@@ -543,6 +562,31 @@
       }
       .sidebar .dd-panel.dd-lojas{
         width: 320px;
+      }
+
+      /* ✅ 2 colunas para TODOS os filtros e botões (na ordem já existente) */
+      .sidebar .side-stack{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* ✅ garante que cada item ocupe corretamente a “célula” sem forçar largura */
+      .sidebar .side-stack > *{
+        width: 100%;
+        min-width: 0;
+      }
+
+      /* ✅ inputs que tinham largura fixa no desktop passam a ser 100% no mobile */
+      .input-date,
+      .input-money{
+        width: 100%;
+        min-width: 0;
+      }
+
+      /* ✅ dropdown botão sempre 100% */
+      .btn-dd{
+        width: 100%;
       }
     }
   </style>
