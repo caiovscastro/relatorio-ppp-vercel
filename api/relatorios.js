@@ -1,10 +1,14 @@
 // api/relatorios.js
-//
 // Lista registros da aba RELATORIO com filtros opcionais.
 // ✅ Segurança:
 // - Exige sessão válida via cookie (requireSession)
 // - BASE_PPP fica restrito à própria loja (evita consultar outras lojas via query)
 // - Não cachear resposta (no-store)
+//
+// ✅ Atualização solicitada:
+// - Dados agora são de A:T (inclui coluna T = "Tipo de abordagem")
+// - Adiciona campo "tipoAbordagem" no retorno
+// - Adiciona filtro opcional por querystring: tipoAbordagem (Reativa/Preventiva)
 
 import { google } from "googleapis";
 import { requireSession } from "./_authUsuarios.js";
@@ -75,6 +79,7 @@ export default async function handler(req, res) {
       departamento = "",
       dataInicio = "", // "YYYY-MM-DD"
       dataFim = "",    // "YYYY-MM-DD"
+      tipoAbordagem = "", // "Reativa" | "Preventiva" (opcional)
     } = req.query;
 
     const perfil = upperTrim(session.perfil);
@@ -86,7 +91,8 @@ export default async function handler(req, res) {
 
     const sheets = await getSheetsClient();
 
-    const range = "RELATORIO!A2:S";
+    // ✅ Agora A:T (inclui coluna T)
+    const range = "RELATORIO!A2:T";
     const resposta = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range,
@@ -100,6 +106,7 @@ export default async function handler(req, res) {
         dataHora, lojaCol, usuarioCol, ean, codConsinco, produto, departamentoCol,
         secao, grupo, subgrupo, categoria, relatorioObs, quantidade, valorUnitario,
         documentoCol, idCol, imagemUrlCol, dataOcorridoCol, horaOcorridoCol,
+        tipoAbordagemCol, // ✅ Coluna T
       ] = row;
 
       return {
@@ -121,8 +128,9 @@ export default async function handler(req, res) {
         id: idCol || "",
         idRegistro: idCol || "",
         imageUrl: imagemUrlCol || "",
-        dataOcorrido: dataOcorridoCol || "",         // "DD/MM/AAAA"
+        dataOcorrido: dataOcorridoCol || "", // "DD/MM/AAAA"
         horaOcorrido: normalizarHoraHHMM(horaOcorridoCol) || "", // "HH:mm"
+        tipoAbordagem: tipoAbordagemCol || "", // ✅ "Reativa" | "Preventiva"
       };
     });
 
@@ -134,11 +142,18 @@ export default async function handler(req, res) {
     const iniISO = String(dataInicio || "").trim();
     const fimISO = String(dataFim || "").trim();
 
+    const tipoAbordagemFiltro = upperTrim(tipoAbordagem);
+
     const filtrados = registros.filter((reg) => {
       if (lojaFiltro && !lowerTrim(reg.loja).includes(lojaFiltro)) return false;
       if (usuarioFiltro && !lowerTrim(reg.usuario).includes(usuarioFiltro)) return false;
       if (docFiltro && String(reg.documento || "") !== docFiltro) return false;
       if (depFiltro && upperTrim(reg.departamento) !== depFiltro) return false;
+
+      // ✅ Filtro opcional por Tipo de abordagem (coluna T)
+      if (tipoAbordagemFiltro) {
+        if (upperTrim(reg.tipoAbordagem) !== tipoAbordagemFiltro) return false;
+      }
 
       if (iniISO || fimISO) {
         const regISO = dataBRParaISO(reg.dataOcorrido);
