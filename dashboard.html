@@ -512,6 +512,7 @@
        ✅ Ajuste para celular:
        1) Sidebar em 2 colunas (Atualizar ao lado de Voltar, etc.)
        2) Mantém sem overflow horizontal
+       3) ✅ FIX: dropdowns da sidebar não podem “sair” da tela e cortar os checkboxes
        ========================================================= */
     @media (max-width: 640px){
       .wrap{
@@ -557,13 +558,6 @@
         align-items: stretch;
       }
 
-      .sidebar .dd-panel{
-        width: 240px;
-      }
-      .sidebar .dd-panel.dd-lojas{
-        width: 320px;
-      }
-
       /* ✅ 2 colunas para TODOS os filtros e botões (na ordem já existente) */
       .sidebar .side-stack{
         display: grid;
@@ -588,6 +582,20 @@
       .btn-dd{
         width: 100%;
       }
+
+      /* =====================================================================
+         ✅ FIX 1 (CSS): no mobile, dropdown da SIDEBAR abre ancorado à esquerda
+         para não “vazar” pra fora do viewport e cortar os checkboxes.
+         ===================================================================== */
+      .sidebar .dd-panel{
+        left: 0;                /* ✅ ancora no início do wrap */
+        right: auto;            /* ✅ remove o right:0 no mobile */
+        max-width: calc(100vw - 40px); /* ✅ nunca passa da tela */
+      }
+
+      .sidebar .dd-panel.dd-lojas{
+        width: min(320px, calc(100vw - 40px)); /* ✅ mantém seu 320, mas respeita a tela */
+      }
     }
   </style>
 </head>
@@ -611,7 +619,8 @@
         <div class="side-stack">
 
           <!-- 1) Atualizar -->
-          <button class="btn btn-refresh" onclick="carregar()">Atualizar</button>
+          <!-- ✅ FIX 2: Atualizar força re-fetch; filtros não fazem fetch -->
+          <button class="btn btn-refresh" onclick="carregar(true)">Atualizar</button>
 
           <!-- 2) Voltar -->
           <button class="btn btn-back" onclick="voltar()">Voltar</button>
@@ -649,8 +658,7 @@
                 <label class="lbl" for="ckPreventiva">Preventiva</label>
               </div>
 
-              <div class="hint">
-              </div>
+              <div class="hint"></div>
             </div>
           </div>
 
@@ -726,7 +734,6 @@
             aria-label="Valor para participação"
             title="Valor Rotativos"
           />
-
         </div>
       </div>
 
@@ -825,8 +832,6 @@
 
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
-
-    // MENU
     const STORAGE_KEY_MENU = "pppSession";
 
     let chartTopLojas = null;
@@ -836,6 +841,17 @@
     let chartGravidade = null;
 
     let totalValorOcorrenciasAtual = 0;
+
+    /* =============================================================================
+       ✅ FIX 2 (Performance): cache dos registros no navegador
+       - Só busca na API quando:
+         a) a página é carregada (1ª vez)
+         b) clica em "Atualizar"
+       - Filtros apenas chamam aplicarFiltros() (sem rede)
+       ============================================================================= */
+    let REGISTROS_CACHE = null;        // Array de registros vindo da API
+    let CACHE_OK = false;             // flag para saber se já carregou
+    let CACHE_ATUALIZADO_EM = null;   // timestamp local (opcional, útil para debug)
 
     const LOJAS_LISTA = [
       { bandeira:"BIG", label:"BIG 01 - 106 NORTE" },
@@ -895,9 +911,7 @@
     }
 
     /* =============================================================================
-       ✅ Sessão para APIs:
-       - Mantém header X-PPP-Session (compatibilidade)
-       - Mantém credentials: "include" (cookie HttpOnly do backend)
+       Sessão para APIs (mantido)
        ============================================================================= */
     function b64EncodeUnicode(str) {
       try {
@@ -935,12 +949,6 @@
       return { "X-PPP-Session": b64EncodeUnicode(JSON.stringify(s)) };
     }
 
-    /* =============================================================================
-       ✅ CORREÇÃO DO PROBLEMA:
-       O dashboard estava bloqueando por depender de chaves temporárias (PPP_DASH_OK/TS)
-       que não estão sendo setadas no seu fluxo atual.
-       Agora a validação é: "tem sessão válida no navegador?".
-       ============================================================================= */
     function validarAcesso() {
       const s = obterSessaoAtual();
       if (!s) return false;
@@ -950,9 +958,6 @@
       return !!permitido;
     }
 
-    /* =============================================================================
-       ✅ VOLTAR deve ir para o MENU (conforme você pediu)
-       ============================================================================= */
     function voltar() {
       window.location.href = "/menu.html";
     }
@@ -965,8 +970,12 @@
 
       document.getElementById("app").style.display = "block";
 
-      document.getElementById("dataInicio")?.addEventListener("change", carregar);
-      document.getElementById("dataFim")?.addEventListener("change", carregar);
+      /* =============================================================================
+         ✅ FIX 2: eventos de filtros NÃO chamam mais carregar()
+         Eles chamam apenas aplicarFiltros() (rápido e offline)
+         ============================================================================= */
+      document.getElementById("dataInicio")?.addEventListener("change", aplicarFiltros);
+      document.getElementById("dataFim")?.addEventListener("change", aplicarFiltros);
 
       const inpVenda = document.getElementById("valorVenda");
       if (inpVenda) {
@@ -983,10 +992,44 @@
       setupFiltroTurno();
       setupFiltroGravidade();
       setupFiltroLojas();
-      setupFiltroAbordagem(); // ✅ NOVO
+      setupFiltroAbordagem();
 
-      carregar();
+      // ✅ Primeira carga: faz fetch e guarda em cache
+      carregar(false);
     });
+
+    /* =============================================================================
+       ✅ FIX 1 (JS): garante que o dropdown não “vaze” para fora do viewport
+       - Importante para aparelhos onde ainda pode sobrar recorte
+       ============================================================================= */
+    function clampDropdownToViewport(wrapEl, panelEl) {
+      if (!wrapEl || !panelEl) return;
+
+      // reseta para deixar o CSS (desktop/mobile) agir primeiro
+      panelEl.style.left = "";
+      panelEl.style.right = "";
+
+      // força cálculo após display:block
+      const rect = panelEl.getBoundingClientRect();
+
+      // margem de segurança
+      const pad = 8;
+      const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+
+      // se passou para esquerda, ancora no lado esquerdo do wrap
+      if (rect.left < pad) {
+        panelEl.style.left = "0";
+        panelEl.style.right = "auto";
+      }
+
+      // recalcula se precisar
+      const rect2 = panelEl.getBoundingClientRect();
+      if (rect2.right > (vw - pad)) {
+        // ancora no lado direito do wrap (caso esteja estourando à direita)
+        panelEl.style.right = "0";
+        panelEl.style.left = "auto";
+      }
+    }
 
     function setupDropdown({ btnId, panelId, wrapId, onChange }) {
       const btn = document.getElementById(btnId);
@@ -996,9 +1039,16 @@
 
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
+
         const aberto = panel.style.display === "block";
         panel.style.display = aberto ? "none" : "block";
         btn.setAttribute("aria-expanded", aberto ? "false" : "true");
+
+        // ✅ FIX 1: ao abrir, ajusta para não cortar os checkboxes no mobile
+        if (!aberto) {
+          // aguarda o navegador aplicar display:block antes de medir
+          requestAnimationFrame(() => clampDropdownToViewport(wrap, panel));
+        }
       });
 
       document.addEventListener("click", (e) => {
@@ -1024,12 +1074,11 @@
       const ckManha = document.getElementById("ckManha");
       const ckTarde = document.getElementById("ckTarde");
       const ckMadrugada = document.getElementById("ckMadrugada");
-
       if (!ckManha || !ckTarde || !ckMadrugada) return;
 
       const onAnyChange = () => {
         atualizarTituloTurno();
-        carregar();
+        aplicarFiltros(); // ✅ FIX 2: sem fetch
       };
 
       ckManha.addEventListener("change", onAnyChange);
@@ -1068,12 +1117,11 @@
       const ckLeve = document.getElementById("ckLeve");
       const ckMedia = document.getElementById("ckMedia");
       const ckGrave = document.getElementById("ckGrave");
-
       if (!ckLeve || !ckMedia || !ckGrave) return;
 
       const onAnyChange = () => {
         atualizarTituloGravidade();
-        carregar();
+        aplicarFiltros(); // ✅ FIX 2: sem fetch
       };
 
       ckLeve.addEventListener("change", onAnyChange);
@@ -1108,18 +1156,14 @@
       btn.textContent = `${titulo} ▾`;
     }
 
-    /* =============================================================================
-       ✅ NOVO: FILTRO TIPO DE ABORDAGEM (coluna T)
-       ============================================================================= */
     function setupFiltroAbordagem(){
       const ckReativa = document.getElementById("ckReativa");
       const ckPreventiva = document.getElementById("ckPreventiva");
-
       if (!ckReativa || !ckPreventiva) return;
 
       const onAnyChange = () => {
         atualizarTituloAbordagem();
-        carregar();
+        aplicarFiltros(); // ✅ FIX 2: sem fetch
       };
 
       ckReativa.addEventListener("change", onAnyChange);
@@ -1199,7 +1243,7 @@
           sincronizarSelecaoLojasDoDOM();
           atualizarChecksBandeira();
           atualizarTituloLojas();
-          carregar();
+          aplicarFiltros(); // ✅ FIX 2: sem fetch
         }
       });
 
@@ -1254,10 +1298,7 @@
         `);
       });
 
-      html.push(`
-        <div class="hint">
-        </div>
-      `);
+      html.push(`<div class="hint"></div>`);
 
       panel.innerHTML = html.join("");
 
@@ -1271,7 +1312,7 @@
 
           atualizarChecksBandeira();
           atualizarTituloLojas();
-          carregar();
+          aplicarFiltros(); // ✅ FIX 2: sem fetch
         });
       });
 
@@ -1292,7 +1333,7 @@
 
           atualizarChecksBandeira();
           atualizarTituloLojas();
-          carregar();
+          aplicarFiltros(); // ✅ FIX 2: sem fetch
         });
       });
 
@@ -1557,19 +1598,29 @@
       el.textContent = `Recup. x Rotativos: ${pctStr}%`;
     }
 
-    async function carregar() {
+    /* =============================================================================
+       ✅ FIX 2: carregar() agora só faz fetch quando necessário
+       - carregar(true): força fetch (botão Atualizar)
+       - carregar(false): usa cache se já existir
+       ============================================================================= */
+    async function carregar(forcarFetch = false) {
       const status = document.getElementById("status");
       const subInfo = document.getElementById("subInfo");
 
       try {
+        // Se já tem cache e não forçou fetch, só aplica filtros
+        if (CACHE_OK && Array.isArray(REGISTROS_CACHE) && !forcarFetch) {
+          status.textContent = "Aplicando filtros (sem atualizar dados)...";
+          aplicarFiltros();
+          return;
+        }
+
         status.textContent = "Carregando relatórios...";
         subInfo.textContent = "Carregando dados...";
 
         const resp = await fetch("/api/relatorios", {
           method: "GET",
-          headers: {
-            ...getAuthHeaders()
-          },
+          headers: { ...getAuthHeaders() },
           credentials: "include"
         });
 
@@ -1581,7 +1632,38 @@
           return;
         }
 
-        const registros = dados.registros;
+        // ✅ salva cache
+        REGISTROS_CACHE = dados.registros;
+        CACHE_OK = true;
+        CACHE_ATUALIZADO_EM = new Date();
+
+        // ✅ agora aplica filtros no cache
+        status.textContent = "Dados atualizados. Aplicando filtros...";
+        aplicarFiltros();
+
+      } catch (e) {
+        console.error("Erro no dashboard:", e);
+        document.getElementById("status").textContent = "Erro de conexão ao montar o dashboard.";
+        document.getElementById("subInfo").textContent = "Erro ao carregar.";
+      }
+    }
+
+    /* =============================================================================
+       ✅ FIX 2: aplicarFiltros() faz todo o processamento em cima do cache
+       (é basicamente o miolo da sua carregar() antiga, sem a parte do fetch)
+       ============================================================================= */
+    function aplicarFiltros() {
+      const status = document.getElementById("status");
+      const subInfo = document.getElementById("subInfo");
+
+      try {
+        if (!CACHE_OK || !Array.isArray(REGISTROS_CACHE)) {
+          status.textContent = "Dados ainda não carregados. Clique em Atualizar.";
+          subInfo.textContent = "Aguardando dados...";
+          return;
+        }
+
+        const registros = REGISTROS_CACHE;
 
         const dataInicio = (document.getElementById("dataInicio")?.value || "").trim();
         const dataFim = (document.getElementById("dataFim")?.value || "").trim();
@@ -1589,7 +1671,7 @@
         const turnosSel = obterTurnosSelecionados();
         const gravSel = obterGravidadesSelecionadas();
         const lojasSel = obterLojasSelecionadas();
-        const abordagemSel = obterAbordagensSelecionadas(); // ✅ NOVO
+        const abordagemSel = obterAbordagensSelecionadas();
 
         const registrosBase = registros.filter(r => {
           {
@@ -1597,7 +1679,6 @@
             if (!lojasSel.has(lojaKey)) return false;
           }
 
-          // ✅ NOVO: filtro por Tipo de abordagem (coluna T)
           {
             const tipo = tipoAbordagemNorm(r);
             if (!abordagemPassaFiltro(tipo, abordagemSel)) return false;
@@ -1625,7 +1706,6 @@
         });
 
         const registrosBaseBandeira = registros.filter(r => {
-          // ✅ NOVO: filtro por Tipo de abordagem (coluna T)
           {
             const tipo = tipoAbordagemNorm(r);
             if (!abordagemPassaFiltro(tipo, abordagemSel)) return false;
@@ -1818,11 +1898,14 @@
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
           `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
 
-        status.textContent = "Dashboard atualizado com sucesso.";
+        // ✅ Mensagem final sem chamar API
+        status.textContent = CACHE_ATUALIZADO_EM
+          ? `Filtros aplicados (dados carregados em: ${CACHE_ATUALIZADO_EM.toLocaleString("pt-BR")}).`
+          : "Filtros aplicados.";
       } catch (e) {
-        console.error("Erro no dashboard:", e);
-        document.getElementById("status").textContent = "Erro de conexão ao montar o dashboard.";
-        document.getElementById("subInfo").textContent = "Erro ao carregar.";
+        console.error("Erro ao aplicar filtros:", e);
+        document.getElementById("status").textContent = "Erro ao aplicar filtros.";
+        document.getElementById("subInfo").textContent = "Erro ao montar.";
       }
     }
 
@@ -1873,18 +1956,8 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
-            x: {
-              ticks: { maxRotation: 0, minRotation: 0, autoSkip: false },
-              grid: { display: false },
-              border: { display: false }
-            },
-            y: {
-              beginAtZero: true,
-              suggestedMax,
-              ticks: { display: false },
-              grid: { display: false },
-              border: { display: false }
-            }
+            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
+            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
           }
         },
         plugins: [valueOnTopPlugin]
@@ -1937,17 +2010,8 @@
           layout: { padding: { right: 46 } },
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
-            x: {
-              beginAtZero: true,
-              ticks: { display: false },
-              grid: { display: false },
-              border: { display: false }
-            },
-            y: {
-              ticks: { autoSkip: false },
-              grid: { display: false },
-              border: { display: false }
-            }
+            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+            y: { ticks: { autoSkip: false }, grid: { display: false }, border: { display: false } }
           }
         },
         plugins: [valueAtEndPlugin]
@@ -1965,14 +2029,9 @@
           const meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data) return;
 
-          const vis = [
-            chart.getDataVisibility(0),
-            chart.getDataVisibility(1)
-          ];
-
+          const vis = [ chart.getDataVisibility(0), chart.getDataVisibility(1) ];
           const dataArr = chart.data.datasets[0].data || [];
           const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
-
           if (!(totalVis > 0)) return;
 
           ctx.save();
@@ -2017,10 +2076,7 @@
                   const v = ctx.raw || 0;
 
                   const chart = ctx.chart;
-                  const vis = [
-                    chart.getDataVisibility(0),
-                    chart.getDataVisibility(1)
-                  ];
+                  const vis = [ chart.getDataVisibility(0), chart.getDataVisibility(1) ];
                   const dataArr = chart.data.datasets[0].data || [];
                   const totalVis = dataArr.reduce((acc, x, i) => acc + (vis[i] ? (Number(x) || 0) : 0), 0);
 
@@ -2035,100 +2091,86 @@
       });
     }
 
-function renderTopProdutos(labels, values, corBarra) {
-  const ctx = document.getElementById("chartTopProdutos");
-  if (chartTopProdutos) chartTopProdutos.destroy();
+    function renderTopProdutos(labels, values, corBarra) {
+      const ctx = document.getElementById("chartTopProdutos");
+      if (chartTopProdutos) chartTopProdutos.destroy();
 
-  // ✅ Detecta celular
-  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
 
-  // ✅ No celular encurta mais (mantém o começo do texto)
-  const maxChars = isMobile ? 18 : 30;
-  const labelsAdj = (labels || []).map((t) => {
-    const s = String(t || "").trim();
-    if (!s) return "N/I";
-    return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s;
-  });
-
-  const valueOutsidePlugin = {
-    id: "valueOutsidePluginProdutos",
-    afterDatasetsDraw(chart) {
-      const { ctx } = chart;
-      const meta = chart.getDatasetMeta(0);
-      if (!meta || !meta.data) return;
-
-      ctx.save();
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.font = "bold 12px Arial";
-      ctx.fillStyle = "#111";
-
-      meta.data.forEach((bar, i) => {
-        const val = chart.data.datasets[0].data[i];
-        const xRaw = bar.x + 8;
-        const x = Math.min(xRaw, chart.width - 8);
-        ctx.fillText(String(val), x, bar.y);
+      const maxChars = isMobile ? 18 : 30;
+      const labelsAdj = (labels || []).map((t) => {
+        const s = String(t || "").trim();
+        if (!s) return "N/I";
+        return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s;
       });
 
-      ctx.restore();
-    }
-  };
+      const valueOutsidePlugin = {
+        id: "valueOutsidePluginProdutos",
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data) return;
 
-  chartTopProdutos = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: labelsAdj,
-      datasets: [{
-        label: "Registros",
-        data: values,
-        backgroundColor: corBarra || "#A98AE8",
-        clip: false
-      }]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
+          ctx.save();
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.font = "bold 12px Arial";
+          ctx.fillStyle = "#111";
 
-      // ✅ Dá “respiro” pra não cortar o início do texto
-      layout: { padding: { left: 16, right: 46 } },
+          meta.data.forEach((bar, i) => {
+            const val = chart.data.datasets[0].data[i];
+            const xRaw = bar.x + 8;
+            const x = Math.min(xRaw, chart.width - 8);
+            ctx.fillText(String(val), x, bar.y);
+          });
 
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } }
-      },
-
-      scales: {
-        x: {
-          beginAtZero: true,
-          ticks: { display: false },
-          grid: { display: false },
-          border: { display: false }
-        },
-        y: {
-          ticks: {
-            autoSkip: false,
-            font: { size: isMobile ? 10 : 11 },
-            padding: 6,
-            align: "start",      // ✅ mantém o começo visível
-            crossAlign: "near"
-          },
-
-          // ✅ Impede o eixo Y de ficar grande demais e “encolher” as barras
-          afterFit: (scale) => {
-            const minW = isMobile ? 140 : 170;  // suficiente p/ não cortar
-            const maxW = isMobile ? 180 : 240;  // impede esmagar as barras
-            scale.width = Math.max(minW, Math.min(scale.width, maxW));
-          },
-
-          grid: { display: false },
-          border: { display: false }
+          ctx.restore();
         }
-      }
-    },
-    plugins: [valueOutsidePlugin]
-  });
-}
+      };
+
+      chartTopProdutos = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labelsAdj,
+          datasets: [{
+            label: "Registros",
+            data: values,
+            backgroundColor: corBarra || "#A98AE8",
+            clip: false
+          }]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { left: 16, right: 46 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } }
+          },
+          scales: {
+            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+            y: {
+              ticks: {
+                autoSkip: false,
+                font: { size: isMobile ? 10 : 11 },
+                padding: 6,
+                align: "start",
+                crossAlign: "near"
+              },
+              afterFit: (scale) => {
+                const minW = isMobile ? 140 : 170;
+                const maxW = isMobile ? 180 : 240;
+                scale.width = Math.max(minW, Math.min(scale.width, maxW));
+              },
+              grid: { display: false },
+              border: { display: false }
+            }
+          }
+        },
+        plugins: [valueOutsidePlugin]
+      });
+    }
 
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
       const ctx = document.getElementById("chartGravidade");
@@ -2149,7 +2191,6 @@ function renderTopProdutos(labels, values, corBarra) {
 
           const dataArr = chart.data.datasets[0].data || [];
           const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
-
           if (!(totalVis > 0)) return;
 
           ctx.save();
