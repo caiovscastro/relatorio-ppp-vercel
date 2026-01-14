@@ -1,8 +1,7 @@
 // /api/carrinhos-listar.js
+// Lê registros da aba CARRINHOS (A:T) e retorna para o dashboard.
 //
-// Lê registros da aba CARRINHOS (A:S) e retorna para o dashboard.
-//
-// Colunas (A..S):
+// Colunas (A..T) — NOVA ORDEM:
 // A: Data/Hora da rede (servidor - São Paulo)  -> string (ex: "06/01/2026 10:22:33")
 // B: Loja (da sessão no lançamento)            -> string
 // C: Usuário (da sessão no lançamento)         -> string
@@ -14,14 +13,15 @@
 // I: Macrocar 300L                             -> int
 // J: Prancha Jacaré                            -> int
 // K: Compra Kids                               -> int
-// L: Bebê Jipinho                              -> int
-// M: Cestinha                                  -> int
-// N: Cadeira de rodas                          -> int
-// O: Carrinhos Quebrados                       -> int
-// P: Carrinhos reserva                         -> int
-// Q: Cestinhas reserva                         -> int
-// R: Quantidade de movimentação                -> int com sinal (pode ser negativo)
-// S: Motivo                                    -> string
+// L: Carrinho gaiola pet                       -> int   (key: gaiolaPet)  ✅ NOVO
+// M: Bebê Jipinho                              -> int
+// N: Cestinha                                  -> int
+// O: Cadeira de rodas                          -> int
+// P: Carrinhos Quebrados                       -> int
+// Q: Carrinhos reserva                         -> int
+// R: Cestinhas reserva                         -> int
+// S: Qtd (Quantidade de movimentação)          -> int com sinal (pode ser negativo)
+// T: Motivo                                    -> string
 //
 // ✅ Ajuste solicitado (necessário para o dashboard):
 // - Expor "horaRegistro" (HH:MM:SS) extraída da coluna A (dataHoraRede)
@@ -57,7 +57,7 @@ function asIntSafe(v) {
   return Math.max(0, Math.trunc(n));
 }
 
-// Converte valor em inteiro COM SINAL, truncando decimais e tratando inválidos como 0 (para movimentação - coluna R)
+// Converte valor em inteiro COM SINAL, truncando decimais e tratando inválidos como 0 (para movimentação - coluna S)
 function asIntSignedSafe(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return 0;
@@ -114,10 +114,10 @@ export default async function handler(req, res) {
   try {
     const sheets = await getSheetsClient();
 
-    // Busca A:S (19 colunas)
+    // ✅ Agora busca A:T (20 colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "CARRINHOS!A:S",
+      range: "CARRINHOS!A:T",
       valueRenderOption: "UNFORMATTED_VALUE",
       dateTimeRenderOption: "FORMATTED_STRING",
     });
@@ -137,19 +137,21 @@ export default async function handler(req, res) {
     for (let i = startIndex; i < values.length; i++) {
       const row = values[i] || [];
 
-      // Garante 19 colunas (A..S) para evitar undefined em linhas incompletas
-      while (row.length < 19) row.push("");
+      // ✅ Garante 20 colunas (A..T) para evitar undefined em linhas incompletas
+      while (row.length < 20) row.push("");
 
+      // Fixos (A..D)
       const dataHoraRede = String(row[0] ?? "").trim(); // A
       const loja         = String(row[1] ?? "").trim(); // B
       const usuario      = String(row[2] ?? "").trim(); // C
       const dataContagem = String(row[3] ?? "").trim(); // D
 
-      // Coluna S (Motivo)
-      const motivo = String(row[18] ?? "").trim();
+      // Motivo (T)
+      const motivo = String(row[19] ?? "").trim(); // T
 
       // ✅ NOVO: extrai data e hora a partir da coluna A
-      const { dataBR: dataRegistro, horaHMS: horaRegistro } = parseDataHoraRedeBR(dataHoraRede);
+      const { dataBR: dataRegistro, horaHMS: horaRegistro } =
+        parseDataHoraRedeBR(dataHoraRede);
 
       // Monta o registro no formato esperado pelo dashboard:
       const rec = {
@@ -158,13 +160,11 @@ export default async function handler(req, res) {
         usuario,
         dataContagem,
 
-        // ✅ NOVOS CAMPOS (necessários para deduplicação correta no front)
-        // - horaRegistro: "HH:MM:SS" (extraído da coluna A)
-        // - dataRegistro: "DD/MM/AAAA" (extraído da coluna A) — útil para debug/consistência
-        horaRegistro,
-        dataRegistro,
+        // ✅ Campos usados no front para deduplicação/ordenamento por timestamp
+        horaRegistro, // "HH:MM:SS"
+        dataRegistro, // "DD/MM/AAAA"
 
-        // (S) Motivo
+        // Motivo (compat)
         motivo,
         movCategoria: motivo, // compat com front
 
@@ -176,15 +176,19 @@ export default async function handler(req, res) {
           macrocar300:        asIntSafe(row[8]),   // I
           pranchaJacare:      asIntSafe(row[9]),   // J
           compraKids:         asIntSafe(row[10]),  // K
-          bebeJipinho:        asIntSafe(row[11]),  // L
-          cestinha:           asIntSafe(row[12]),  // M
-          cadeiraRodas:       asIntSafe(row[13]),  // N
-          carrinhosQuebrados: asIntSafe(row[14]),  // O
-          carrinhosReserva:   asIntSafe(row[15]),  // P
-          cestinhasReserva:   asIntSafe(row[16]),  // Q
 
-          // (R) Quantidade de movimentação (pode ser negativa)
-          movCarrinhos:       asIntSignedSafe(row[17]), // R
+          // ✅ NOVO: Carrinho gaiola pet (L)
+          gaiolaPet:          asIntSafe(row[11]),  // L
+
+          bebeJipinho:        asIntSafe(row[12]),  // M
+          cestinha:           asIntSafe(row[13]),  // N
+          cadeiraRodas:       asIntSafe(row[14]),  // O
+          carrinhosQuebrados: asIntSafe(row[15]),  // P
+          carrinhosReserva:   asIntSafe(row[16]),  // Q
+          cestinhasReserva:   asIntSafe(row[17]),  // R
+
+          // (S) Qtd (movimentação com sinal)
+          movCarrinhos:       asIntSignedSafe(row[18]), // S
         },
       };
 
