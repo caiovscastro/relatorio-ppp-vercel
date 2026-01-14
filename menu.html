@@ -114,6 +114,9 @@
     <button class="btn btn-sec"  id="btnContagemCarrinhos">Contagem de carrinhos</button>
     <button class="btn btn-sec"  id="btnDashboardCarrinhos">Dash carrinhos (Em construção)</button>
 
+    <!-- ✅ NOVO: Bono digital (visível para TODOS os perfis LOGADOS) -->
+    <button class="btn btn-sec" id="btnBonoDigital">Bono digital</button>
+
     <!-- Sessão -->
     <button class="btn btn-danger" id="btnSair">Sair</button>
     <button class="btn btn-sec hidden" id="btnLogin">Ir para o Login</button>
@@ -139,6 +142,9 @@
       // telas futuras
       contagemCarrinhos: "/contagem-carrinhos.html",
       dashboardCarrinhos: "/dashboard-carrinhos.html",
+
+      // ✅ NOVO: tela Bono digital
+      bonoDigital: "/bono-digital.html",
 
       login: "/login.html",
       logoutApi: "/api/logout"
@@ -206,7 +212,8 @@
     }
 
     function esconderTodosBotoesPrivados() {
-      ["btnLancamento","btnGerencial","btnDashboard","btnContagemCarrinhos","btnDashboardCarrinhos"]
+      // ✅ Inclui também o novo botão Bono digital para ficar coerente com o modo deslogado
+      ["btnLancamento","btnGerencial","btnDashboard","btnContagemCarrinhos","btnDashboardCarrinhos","btnBonoDigital"]
         .forEach((id) => document.getElementById(id).classList.add("hidden"));
     }
 
@@ -265,6 +272,7 @@
       const btnDashboard          = document.getElementById("btnDashboard");
       const btnContagemCarrinhos  = document.getElementById("btnContagemCarrinhos");
       const btnDashboardCarrinhos = document.getElementById("btnDashboardCarrinhos");
+      const btnBonoDigital        = document.getElementById("btnBonoDigital");
 
       // default: esconde tudo e libera conforme regra
       esconderTodosBotoesPrivados();
@@ -288,6 +296,10 @@
         btnContagemCarrinhos.classList.remove("hidden");
         btnDashboardCarrinhos.classList.remove("hidden");
       }
+
+      // ✅ NOVO: Bono digital visível para TODOS os perfis LOGADOS
+      // (ou seja: qualquer perfil com sessão válida)
+      btnBonoDigital.classList.remove("hidden");
     }
 
     /* ===================== Sessão do Gestor (mantida) ===================== */
@@ -352,6 +364,12 @@
       document.getElementById("btnDashboardCarrinhos").addEventListener("click", () => {
         if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
         window.location.href = ROTAS.dashboardCarrinhos;
+      });
+
+      // ✅ NOVO: Bono digital (protegido por sessão)
+      document.getElementById("btnBonoDigital").addEventListener("click", () => {
+        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
+        window.location.href = ROTAS.bonoDigital;
       });
 
       // Gerencial (somente GERENTE_PPP/ADMIN)
