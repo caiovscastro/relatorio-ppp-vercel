@@ -300,7 +300,7 @@
         <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
       </div>
 
-      <!-- ✅ 1) Totais lado a lado (inclusive no celular) + título acima -->
+      <!-- ✅ Totais lado a lado -->
       <div class="totais-row">
         <div class="card-total">
           <div class="total-label">Total de carrinhos</div>
@@ -377,6 +377,15 @@
             Compra Kids:
           </label>
           <input id="compraKids" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
+        </div>
+
+        <!-- ✅ NOVO (pedido): Carrinho gaiola pet logo abaixo do Compra Kids -->
+        <div class="campo">
+          <label for="carrinhoGaiolaPet">
+            <img src="https://i.ibb.co/Jwz089CQ/file-0000000058c8720e957da3a8f8ac8d28.png" alt="Carrinho gaiola pet" loading="lazy" />
+            Carrinho gaiola pet:
+          </label>
+          <input id="carrinhoGaiolaPet" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
         </div>
 
         <div class="campo">
@@ -466,12 +475,15 @@
 
           <div class="campo">
             <label for="movCategoria">Motivo:</label>
-            <!-- IMPORTANTE:
-                 value continua sendo o "código" que a API valida.
-                 A abreviação (M.L / M.M) é gerada no JS e enviada em movCategoriaAbrev. -->
+            <!-- ✅ Ajuste (pedido):
+                 - Inclui "Entrada novos"
+                 - Abreviação E.N será gerada no JS e enviada para a planilha -->
             <select id="movCategoria" class="input">
               <option value="MOVI_ENTRE_LOJAS">Movi. entre lojas</option>
               <option value="MOVI_MANUTENCAO">Movi. Manutenção</option>
+
+              <!-- ✅ NOVO (pedido) -->
+              <option value="ENTRADA_NOVOS">Entrada novos</option>
             </select>
           </div>
 
@@ -493,6 +505,11 @@
     const ROTAS = { login: "/login.html", menu: "/menu.html" };
     const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
+    /* =====================================================================================
+      ✅ Ajuste (pedido):
+      - Incluído novo campo "Carrinho gaiola pet"
+      - Ordem do array segue a sequência informada por você
+    ===================================================================================== */
     const CAMPOS_CONTAGEM = [
       { id: "duplocar120",        label: "Duplocar 120L",          key: "duplocar120" },
       { id: "grande160",          label: "Grande 160L",            key: "grande160" },
@@ -501,6 +518,10 @@
       { id: "macrocar300",        label: "Macrocar 300L",          key: "macrocar300" },
       { id: "pranchaJacare",      label: "Prancha Jacaré",         key: "pranchaJacare" },
       { id: "compraKids",         label: "Compra Kids",            key: "compraKids" },
+
+      // ✅ NOVO (pedido)
+      { id: "carrinhoGaiolaPet",  label: "Carrinho gaiola pet",    key: "carrinhoGaiolaPet" },
+
       { id: "bebeJipinho",        label: "Bebê Jipinho",           key: "bebeJipinho" },
 
       { id: "cestinha",           label: "Cestinha",               key: "cestinha" },
@@ -519,6 +540,10 @@
       label: "Movimentação de carrinhos"
     };
 
+    /* =====================================================================================
+      ✅ Ajuste (pedido):
+      - Inclui "carrinhoGaiolaPet" no total de carrinhos
+    ===================================================================================== */
     const IDS_TOTAL_CARRINHOS = [
       "duplocar120",
       "grande160",
@@ -527,6 +552,10 @@
       "macrocar300",
       "pranchaJacare",
       "compraKids",
+
+      // ✅ NOVO (pedido)
+      "carrinhoGaiolaPet",
+
       "bebeJipinho",
       "carrinhosQuebrados",
       "carrinhosReserva",
@@ -612,6 +641,7 @@
       const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
       if (!dataLanc) return "Selecione a Data Contagem.";
 
+      // valida todos os campos definidos em CAMPOS_CONTAGEM (inclui o novo gaiola pet)
       for (const c of CAMPOS_CONTAGEM) {
         const v = (document.getElementById(c.id).value || "").trim();
         if (v === "") return `Preencha: ${c.label}.`;
@@ -632,14 +662,36 @@
       return `${m[3]}/${m[2]}/${m[1]}`;
     }
 
-    // ✅ Abreviação que você quer gravar na coluna S
-    // Você pediu: M.L ou M_L e M.M ou M_M.
-    // Vou usar com ponto (M.L / M.M). Se quiser underscore, troque aqui.
+    /* =====================================================================================
+      ✅ Ajuste (pedido):
+      - Novo motivo "Entrada novos" -> abreviação E.N
+      - Mantidos os motivos já existentes
+    ===================================================================================== */
     function abreviarCodigoMotivo(codigo) {
       const v = String(codigo || "").trim().toUpperCase();
       if (v === "MOVI_ENTRE_LOJAS") return "M.L";
       if (v === "MOVI_MANUTENCAO") return "M.M";
+
+      // ✅ NOVO (pedido)
+      if (v === "ENTRADA_NOVOS") return "E.N";
+
       return "";
+    }
+
+    /* =====================================================================================
+      ✅ Ajuste (pedido):
+      - Se "Entrada novos" for selecionado, Direção deve ir automaticamente para "Entrada"
+    ===================================================================================== */
+    function tratarMudancaMotivoMov() {
+      const motivo = String(document.getElementById(CAMPO_MOV.categoriaId).value || "").toUpperCase();
+
+      if (motivo === "ENTRADA_NOVOS") {
+        // força a direção para Entrada
+        document.getElementById(CAMPO_MOV.tipoId).value = "ENTRADA";
+      }
+
+      // mantém o pill coerente com o que estiver selecionado
+      atualizarPillMov();
     }
 
     async function enviar() {
@@ -662,6 +714,7 @@
       try {
         const dataISO = (document.getElementById("dataLancamento").value || "").trim();
 
+        // monta contagens respeitando a ordem/itens definidos em CAMPOS_CONTAGEM (inclui gaiola pet)
         const contagens = CAMPOS_CONTAGEM.reduce((acc, c) => {
           acc[c.key] = toInt(document.getElementById(c.id).value);
           return acc;
@@ -671,12 +724,13 @@
         const movTipo = document.getElementById(CAMPO_MOV.tipoId).value;
         const movSigned = (movTipo === "SAIDA") ? -movQtd : +movQtd;
 
-        // ✅ IMPORTANTE:
-        // - movCategoria (código) vai para a validação da API
-        // - movCategoriaAbrev (M.L / M.M) é o que você quer gravar na coluna S
+        // código do motivo (para a API)
         const movCategoriaCodigo = document.getElementById(CAMPO_MOV.categoriaId).value;
+
+        // abreviação (para a coluna de motivo na planilha)
         const movCategoriaAbrev = abreviarCodigoMotivo(movCategoriaCodigo);
 
+        // mantém o comportamento atual: movimentação assinada vai junto em contagens.movCarrinhos
         contagens[CAMPO_MOV.key] = movSigned;
 
         const payload = {
@@ -760,13 +814,18 @@
 
       setIconsAndReserveImages();
 
+      // máscara numérica para todos os campos de contagem (inclui gaiola pet)
       CAMPOS_CONTAGEM.forEach(c => {
         const el = document.getElementById(c.id);
         el.addEventListener("input", () => aplicarMascaraSomenteNumero(el));
       });
 
+      // movimentação
       document.getElementById(CAMPO_MOV.qtdId).addEventListener("input", aplicarMascaraMovQtd);
       document.getElementById(CAMPO_MOV.tipoId).addEventListener("change", atualizarPillMov);
+
+      // ✅ NOVO (pedido): quando mudar o motivo, pode forçar direção "Entrada" se for "Entrada novos"
+      document.getElementById(CAMPO_MOV.categoriaId).addEventListener("change", tratarMudancaMotivoMov);
 
       atualizarTotais();
       atualizarPillMov();
@@ -796,6 +855,6 @@
   <!-- Fontes (links confiáveis) -->
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select -->
   <!-- https://developer.mozilla.org/en-US/docs/Web/API/fetch -->
-  <!-- https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout -->
+  <!-- https://developer.mozilla.org/en-US/docs/Web/Events/change -->
 </body>
 </html>
