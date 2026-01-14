@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BONO DIGITAL</title>
+
+  <style>
+    body{
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      margin:2;
+      color:#111;
+    }
+
+    .container{
+      width: 92%;
+      max-width: 520px;
+      background:#fff;
+      padding: 22px 22px 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      box-sizing: border-box;
+    }
+
+    .titulo{
+      text-align:center;
+      margin: 0 0 14px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .card-info{
+      background: #f7f7f7;
+      border: 1px solid #e6e6e6;
+      border-radius: 10px;
+      padding: 12px 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .linha{
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .k{ color:#555; font-weight:700; }
+    .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
+
+    .texto{
+      text-align:center;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 700;
+      margin: 14px 0 10px;
+      color:#111;
+    }
+
+    .btn{
+      width:100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    .btn-sec{ background:#e9e9e9; color:#111; }
+    .btn-sec:hover{ background:#dedede; }
+
+    .mensagem{
+      margin-top: 12px;
+      text-align:center;
+      font-weight:700;
+      font-size: 13px;
+      min-height: 18px;
+      color:#b30000;
+    }
+
+    .hidden{ display:none !important; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2 class="titulo">BONO DIGITAL</h2>
+
+    <!-- Card com dados mínimos da sessão (apenas para referência do usuário) -->
+    <div class="card-info" id="cardInfo">
+      <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
+      <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
+      <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
+    </div>
+
+    <!-- Conteúdo temporário (pedido) -->
+    <div class="texto">
+      Tela em processo de construção, será informado quando for realizado a implantação do código
+    </div>
+
+    <!-- Botão de voltar ao menu (pedido) -->
+    <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
+
+    <div class="mensagem" id="msg"></div>
+  </div>
+
+  <script>
+    /* =====================================================================================
+      SEGURANÇA / CONTROLE DE SESSÃO (mesmo princípio do MENU):
+      - NÃO confia em storage local para autenticação.
+      - Verifica /api/session (cookie HttpOnly).
+      - Respeita expiração (até 8h) usando o "exp" retornado pelo backend.
+      ===================================================================================== */
+
+    const ROTAS = {
+      menu: "/menu.html",   // ajuste se seu menu tiver outro nome/rota
+      login: "/login.html"
+    };
+
+    let sessaoAtual = null; // {usuario, loja, perfil, exp}
+    let expTimerId = null;
+
+    async function obterSessaoDoBackend() {
+      try {
+        const resp = await fetch("/api/session", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Accept": "application/json" }
+        });
+        if (!resp.ok) return null;
+
+        const dados = await resp.json().catch(() => null);
+        if (!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
+        return dados;
+      } catch (e) {
+        console.error("[BONO] Falha ao consultar /api/session:", e);
+        return null;
+      }
+    }
+
+    function normalizarExpParaMs(exp) {
+      const n = Number(exp);
+      if (!Number.isFinite(n) || n <= 0) return null;
+      // exp JWT normalmente vem em segundos (10 dígitos). Em ms seria 13 dígitos.
+      if (n < 10_000_000_000) return n * 1000;
+      return n;
+    }
+
+    function limparTimerExpiracao() {
+      if (expTimerId) {
+        clearTimeout(expTimerId);
+        expTimerId = null;
+      }
+    }
+
+    function setTexto(id, txt) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    }
+
+    function redirecionarParaLogin(motivo) {
+      // Mensagem opcional antes de redirecionar (UX)
+      if (motivo) setTexto("msg", motivo);
+      // Redireciona para login (proteção real é no cookie HttpOnly)
+      window.location.href = ROTAS.login;
+    }
+
+    function agendarRedirecionamentoNaExpiracao(expMs) {
+      limparTimerExpiracao();
+      if (!expMs) return;
+
+      const msRestante = expMs - Date.now();
+      if (msRestante <= 0) {
+        redirecionarParaLogin("Sessão expirada. Faça login novamente.");
+        return;
+      }
+
+      expTimerId = setTimeout(() => {
+        redirecionarParaLogin("Sessão expirada. Faça login novamente.");
+      }, msRestante);
+    }
+
+    function aplicarSessaoNaTela(sessao) {
+      sessaoAtual = sessao;
+
+      setTexto("infoLoja", sessao.loja || "—");
+      setTexto("infoUsuario", sessao.usuario || "—");
+      setTexto("infoPerfil", sessao.perfil || "—");
+
+      // agenda expiração (se veio exp)
+      const expMs = normalizarExpParaMs(sessao.exp);
+      if (expMs) agendarRedirecionamentoNaExpiracao(expMs);
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Voltar ao menu
+      document.getElementById("btnVoltarMenu").addEventListener("click", () => {
+        window.location.href = ROTAS.menu;
+      });
+
+      // 1) Proteção: exige sessão válida
+      const sessao = await obterSessaoDoBackend();
+      if (!sessao) {
+        // Se não tem sessão, não permite abrir a tela (pedido)
+        return redirecionarParaLogin("Sessão inválida. Faça login para acessar.");
+      }
+
+      // 2) Sessão ok -> libera tela
+      aplicarSessaoNaTela(sessao);
+    });
+  </script>
+</body>
+</html>
