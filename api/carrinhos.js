@@ -1,14 +1,13 @@
 // /api/carrinhos.js
-//
 // Grava contagem de carrinhos na aba CARRINHOS do Google Sheets.
 //
-// ✅ MODELO ATUAL (A..S):
+// ✅ MODELO NOVO (A..T):
 // A: Data/Hora da rede (servidor - São Paulo)
 // B: Loja (da sessão)
 // C: Usuário (da sessão)
 // D: Data Contagem (formato "DD/MM/AAAA")
 //
-// Tipos / contagens (E em diante):
+// Tipos / contagens (E em diante) — conforme sua nova ordem:
 // E: Duplocar 120L
 // F: Grande 160L
 // G: Bebê conforto 160L
@@ -16,20 +15,17 @@
 // I: Macrocar 300L
 // J: Prancha Jacaré
 // K: Compra Kids
-// L: Bebê Jipinho
-// M: Cestinha
-// N: Cadeira de rodas
-// O: Carrinhos Quebrados
-//
-// ✅ Reservas:
-// P: Carrinhos de reserva
-// Q: Cestinhas de reserva
+// L: Carrinho gaiola pet   ✅ NOVO
+// M: Bebê Jipinho
+// N: Cestinha
+// O: Cadeira de rodas
+// P: Carrinhos Quebrados
+// Q: Carrinhos reserva
+// R: Cestinhas reserva
 //
 // ✅ Movimentação:
-// R: Movimentação de carrinhos (entrada positivo / saída negativo)
-//
-// ✅ Coluna S (abreviado):
-// S: Motivo abreviado (M.L / M.M) (ou M_L / M_M)
+// S: Qtd movimentação (entrada positivo / saída negativo)  ✅ (equivale ao antigo "movCarrinhos")
+// T: Motivo abreviado (M.L / M.M / E.N) (ou com underscore: M_L / M_M / E_N)
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -45,13 +41,25 @@ const spreadsheetId = process.env.SPREADSHEET_ID;
 
 const PERFIS_PERMITIDOS = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
 
+/* =====================================================================================
+  ✅ Ajuste (pedido):
+  - Inclui novo código ENTRADA_NOVOS como categoria permitida
+===================================================================================== */
 const MOV_CATEGORIAS_PERMITIDAS = new Set([
   "MOVI_ENTRE_LOJAS",
   "MOVI_MANUTENCAO",
+  "ENTRADA_NOVOS", // ✅ NOVO
 ]);
 
-// ✅ abreviações aceitas para gravar na coluna S
-const MOV_ABREV_PERMITIDAS = new Set(["M.L", "M.M", "M_L", "M_M"]);
+/* =====================================================================================
+  ✅ Ajuste (pedido):
+  - Inclui abreviações aceitas para gravar na coluna T
+  - Mantém compatibilidade com variações com underscore
+===================================================================================== */
+const MOV_ABREV_PERMITIDAS = new Set([
+  "M.L", "M.M", "E.N",
+  "M_L", "M_M", "E_N",
+]);
 
 function nowSaoPaulo() {
   const agora = new Date();
@@ -114,10 +122,11 @@ function abreviarCodigoMov(codigo) {
   const v = String(codigo || "").trim().toUpperCase();
   if (v === "MOVI_ENTRE_LOJAS") return "M.L";
   if (v === "MOVI_MANUTENCAO") return "M.M";
+  if (v === "ENTRADA_NOVOS") return "E.N"; // ✅ NOVO
   return "";
 }
 
-// ✅ normaliza/valida abreviação (M.L/M.M ou M_L/M_M)
+// ✅ normaliza/valida abreviação (M.L/M.M/E.N ou M_L/M_M/E_N)
 function validarAbreviacao(raw) {
   const v = String(raw ?? "").trim().toUpperCase();
   if (!v) return { ok: false, value: "" };
@@ -146,24 +155,24 @@ export default async function handler(req, res) {
     const dataLancamento = String(body.dataLancamento || "").trim();
     const contagens = body.contagens || {};
 
-    // ✅ valida o código (para manter robustez)
+    // ✅ valida categoria do motivo (agora incluindo ENTRADA_NOVOS)
     const movCategoriaValid = validarMovCategoria(body.movCategoria);
     if (!movCategoriaValid.ok) {
       return res.status(400).json({
         sucesso: false,
-        message: "Tipo de movimentação inválido. Use: MOVI_ENTRE_LOJAS ou MOVI_MANUTENCAO.",
+        message: "Tipo de movimentação inválido. Use: MOVI_ENTRE_LOJAS, MOVI_MANUTENCAO ou ENTRADA_NOVOS.",
       });
     }
     const movCategoriaCodigo = movCategoriaValid.value;
 
     // ✅ pega abreviação do front (se vier), senão deriva do código
     const ab = validarAbreviacao(body.movCategoriaAbrev);
-    const movCategoriaColS = ab.ok ? ab.value : abreviarCodigoMov(movCategoriaCodigo);
+    const movCategoriaColT = ab.ok ? ab.value : abreviarCodigoMov(movCategoriaCodigo);
 
-    if (!movCategoriaColS) {
+    if (!movCategoriaColT) {
       return res.status(400).json({
         sucesso: false,
-        message: "Motivo abreviado inválido para coluna S. Use M.L/M.M ou M_L/M_M.",
+        message: "Motivo abreviado inválido. Use M.L/M.M/E.N ou M_L/M_M/E_N.",
       });
     }
 
@@ -171,23 +180,32 @@ export default async function handler(req, res) {
       return res.status(400).json({ sucesso: false, message: "Data Contagem inválida. Use DD/MM/AAAA." });
     }
 
-    const duplocar120        = asIntObrigatorioNaoNegativo(contagens.duplocar120);
-    const grande160          = asIntObrigatorioNaoNegativo(contagens.grande160);
-    const bebeConforto160    = asIntObrigatorioNaoNegativo(contagens.bebeConforto160);
-    const maxcar200          = asIntObrigatorioNaoNegativo(contagens.maxcar200);
-    const macrocar300        = asIntObrigatorioNaoNegativo(contagens.macrocar300);
-    const pranchaJacare      = asIntObrigatorioNaoNegativo(contagens.pranchaJacare);
-    const compraKids         = asIntObrigatorioNaoNegativo(contagens.compraKids);
-    const bebeJipinho        = asIntObrigatorioNaoNegativo(contagens.bebeJipinho);
-    const cestinha           = asIntObrigatorioNaoNegativo(contagens.cestinha);
-    const cadeiraRodas       = asIntObrigatorioNaoNegativo(contagens.cadeiraRodas);
-    const carrinhosQuebrados = asIntObrigatorioNaoNegativo(contagens.carrinhosQuebrados);
-    const carrinhosReserva   = asIntObrigatorioNaoNegativo(contagens.carrinhosReserva);
-    const cestinhasReserva   = asIntObrigatorioNaoNegativo(contagens.cestinhasReserva);
+    // =====================================================================================
+    // ✅ Ajuste (pedido): inclui carrinhoGaiolaPet e reorganiza o “mapa” para bater com A..T
+    // =====================================================================================
+    const duplocar120         = asIntObrigatorioNaoNegativo(contagens.duplocar120);
+    const grande160           = asIntObrigatorioNaoNegativo(contagens.grande160);
+    const bebeConforto160     = asIntObrigatorioNaoNegativo(contagens.bebeConforto160);
+    const maxcar200           = asIntObrigatorioNaoNegativo(contagens.maxcar200);
+    const macrocar300         = asIntObrigatorioNaoNegativo(contagens.macrocar300);
+    const pranchaJacare       = asIntObrigatorioNaoNegativo(contagens.pranchaJacare);
+    const compraKids          = asIntObrigatorioNaoNegativo(contagens.compraKids);
 
-    const movCarrinhosRaw = (contagens.movCarrinhos === "" || contagens.movCarrinhos === undefined || contagens.movCarrinhos === null)
-      ? 0
-      : contagens.movCarrinhos;
+    // ✅ NOVO
+    const carrinhoGaiolaPet   = asIntObrigatorioNaoNegativo(contagens.carrinhoGaiolaPet);
+
+    const bebeJipinho         = asIntObrigatorioNaoNegativo(contagens.bebeJipinho);
+    const cestinha            = asIntObrigatorioNaoNegativo(contagens.cestinha);
+    const cadeiraRodas        = asIntObrigatorioNaoNegativo(contagens.cadeiraRodas);
+    const carrinhosQuebrados  = asIntObrigatorioNaoNegativo(contagens.carrinhosQuebrados);
+    const carrinhosReserva    = asIntObrigatorioNaoNegativo(contagens.carrinhosReserva);
+    const cestinhasReserva    = asIntObrigatorioNaoNegativo(contagens.cestinhasReserva);
+
+    // Movimentação (Qtd assinada: Entrada + / Saída -)
+    const movCarrinhosRaw =
+      (contagens.movCarrinhos === "" || contagens.movCarrinhos === undefined || contagens.movCarrinhos === null)
+        ? 0
+        : contagens.movCarrinhos;
 
     const movCarrinhos = asIntObrigatorioComSinal(movCarrinhosRaw);
 
@@ -199,6 +217,7 @@ export default async function handler(req, res) {
       macrocar300,
       pranchaJacare,
       compraKids,
+      carrinhoGaiolaPet,  // ✅ NOVO obrigatório
       bebeJipinho,
       cestinha,
       cadeiraRodas,
@@ -230,36 +249,39 @@ export default async function handler(req, res) {
     const dtRede = nowSaoPaulo();
     const dataHoraRede = formatarDataHoraBR(dtRede);
 
+    // =====================================================================================
+    // ✅ MODELO NOVO A..T (20 colunas)
+    // =====================================================================================
     const values = [[
-      dataHoraRede,       // A
-      loja,               // B
-      usuario,            // C
-      dataLancamento,     // D
+      dataHoraRede,        // A
+      loja,                // B
+      usuario,             // C
+      dataLancamento,      // D
 
-      duplocar120,        // E
-      grande160,          // F
-      bebeConforto160,    // G
-      maxcar200,          // H
-      macrocar300,        // I
-      pranchaJacare,      // J
-      compraKids,         // K
-      bebeJipinho,        // L
-      cestinha,           // M
-      cadeiraRodas,       // N
-      carrinhosQuebrados, // O
+      duplocar120,         // E
+      grande160,           // F
+      bebeConforto160,     // G
+      maxcar200,           // H
+      macrocar300,         // I
+      pranchaJacare,       // J
+      compraKids,          // K
+      carrinhoGaiolaPet,   // L  ✅ NOVO
+      bebeJipinho,         // M
+      cestinha,            // N
+      cadeiraRodas,        // O
+      carrinhosQuebrados,  // P
+      carrinhosReserva,    // Q
+      cestinhasReserva,    // R
 
-      carrinhosReserva,   // P
-      cestinhasReserva,   // Q
-
-      movCarrinhos,       // R
-      movCategoriaColS,   // S  ✅ abreviado (M.L/M.M ou M_L/M_M)
+      movCarrinhos,        // S  ✅ Qtd (Entrada + / Saída -)
+      movCategoriaColT,    // T  ✅ Motivo abreviado (M.L/M.M/E.N ou underscore)
     ]];
 
     const sheets = await getSheetsClient();
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "CARRINHOS!A:S",
+      range: "CARRINHOS!A:T", // ✅ Ajuste (pedido): agora escreve A..T
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values },
@@ -281,7 +303,10 @@ export default async function handler(req, res) {
 
 /*
   Fontes (links confiáveis):
-  - https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
-  - https://github.com/googleapis/google-api-nodejs-client
-  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
+  - Google Sheets API append:
+    https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+  - Google API Node.js Client:
+    https://github.com/googleapis/google-api-nodejs-client
+  - OWASP Input Validation Cheat Sheet:
+    https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
 */
