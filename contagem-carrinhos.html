@@ -1,808 +1,372 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contagem de Carrinhos</title>
-
-  <!-- Evita cache “enganoso” ao voltar (não é segurança, é UX) -->
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-
-  <style>
-    body{
-      background:#f3f3f3;
-      font-family: Arial, sans-serif;
-      margin:2;
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
-      color:#111;
-    }
-
-    .container{
-      width: 95%;
-      max-width: 720px;
-      background:#fff;
-      padding: 22px 22px 18px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      box-sizing:border-box;
-      margin-top: 18px;
-    }
-
-    .titulo{
-      text-align:center;
-      margin: 0 0 12px;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: .2px;
-    }
-
-    .card-info{
-      background: #f7f7f7;
-      border: 1px solid #e6e6e6;
-      border-radius: 10px;
-      padding: 12px 12px;
-      margin-bottom: 12px;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .linha{
-      display:flex;
-      justify-content: space-between;
-      gap: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .k{ color:#555; font-weight:700; }
-    .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
-
-    /* ====== TOTAIS LADO A LADO (inclusive no celular) ====== */
-    .totais-row{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    /* Card total (ajustado: título em cima do valor) */
-    .card-total{
-      background:#f7f8ff;
-      border: 1px solid #e0e3ff;
-      border-radius: 10px;
-      padding: 14px 12px;
-      margin: 0; /* agora o espaçamento é do .totais-row */
-      display:flex;
-      flex-direction: column;
-      align-items:flex-start;
-      gap: 6px;
-      min-width: 0;
-    }
-
-    .total-label{
-      font-weight: 900;
-      color:#111;
-      font-size: 13px;
-      line-height: 1.1;
-    }
-
-    .total-valor{
-      font-weight: 900;
-      font-size: 26px;
-      color:#0066ff;
-      line-height: 1;
-    }
-
-    /* ===== GRID (2 colunas) - contagem principal ===== */
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .campo{
-      display:flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0;
-    }
-
-    /* ===== Label com imagem ao lado ===== */
-    .campo label{
-      font-weight: 800;
-      font-size: 13px;
-      color:#111;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      line-height: 1.2;
-    }
-
-    .campo label img{
-      width: 1.7cm;
-      height: 1.7cm;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid #e6e6e6;
-      background: #fff;
-      flex: 0 0 auto;
-    }
-
-    .input{
-      width:100%;
-      box-sizing:border-box;
-      border-radius: 8px;
-      border: 1px solid #c3c3c3;
-      padding: 10px 12px;
-      font-size: 14px;
-      background:#fff;
-      outline:none;
-    }
-
-    .input:focus{
-      border-color:#0066ff;
-      box-shadow: 0 0 0 1px #0066ff33;
-    }
-
-    .linha-1{
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-    }
-
-    .linha-1 .campo{ flex:1 1 240px; }
-
-    .btn{
-      width:100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 800;
-      margin-top: 12px;
-    }
-
-    .btn-prim{
-      background:#0066ff;
-      color:#fff;
-    }
-    .btn-prim:hover{ background:#0050cc; }
-
-    .btn-sec{
-      background:#e9e9e9;
-      color:#111;
-    }
-    .btn-sec:hover{ background:#dedede; }
-
-    .mensagem{
-      margin-top: 10px;
-      text-align:center;
-      font-weight:800;
-      font-size: 13px;
-      min-height: 18px;
-      color:#b30000;
-    }
-
-    .ok{ color:#1b5e20; }
-    .hidden{ display:none !important; }
-
-    /* Tela “sem sessão” */
-    .tela-erro{
-      width:100%;
-      min-height: 70vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .card-erro{
-      background:#fff;
-      padding: 20px 18px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      max-width: 520px;
-      width: 95%;
-      text-align:center;
-    }
-    .card-erro h2{ margin: 0 0 8px; color:#c00000; }
-    .card-erro p{ margin: 0 0 12px; color:#333; font-weight:700; }
-
-    /* ==== Cards “separadores” ==== */
-    .card-box{
-      margin-top: 12px;
-      background:#fff;
-      border: 1px solid #e6e6e6;
-      border-radius: 10px;
-      padding: 12px;
-    }
-    .card-box h3{
-      margin: 0 0 8px;
-      font-size: 14px;
-      font-weight: 900;
-      display:flex;
-      align-items:center;
-      gap: 8px;
-    }
-    .icon{
-      width: 22px;
-      height: 22px;
-      display:inline-block;
-      vertical-align: middle;
-    }
-
-    /* Fundo cinza clarinho (bem suave) */
-    .card-soft{
-      background:#f7f7f7;
-      border-color:#e6e6e6;
-    }
-
-    /* Grid interna SEMPRE 2 colunas (inclusive no celular) */
-    .card-grid-2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    /* MOVIMENTAÇÃO: 3 colunas iguais */
-    .mov-row{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      align-items: end;
-    }
-
-    @media (max-width: 420px){
-      .mov-row{ gap: 8px; }
-      .totais-row{ gap: 8px; }
-      .total-valor{ font-size: 24px; }
-    }
-
-    .pill{
-      display:inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-weight: 900;
-      font-size: 12px;
-      background:#f3f3f3;
-      border:1px solid #e6e6e6;
-    }
-    .pill.neg{ color:#b30000; }
-    .pill.pos{ color:#1b5e20; }
-  </style>
-</head>
-
-<body>
-  <div class="container">
-    <h2 class="titulo">CONTAGEM DE CARRINHOS</h2>
-
-    <!-- Modo SEM sessão -->
-    <div id="telaSemSessao" class="tela-erro hidden">
-      <div class="card-erro">
-        <h2>Login necessário</h2>
-        <p>Você precisa estar logado para acessar esta página.</p>
-        <button class="btn btn-prim" id="btnIrLogin">Ir para o Login</button>
-      </div>
-    </div>
-
-    <!-- App -->
-    <div id="app" class="hidden">
-      <div class="card-info">
-        <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
-        <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
-        <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
-      </div>
-
-      <!-- ✅ Totais lado a lado -->
-      <div class="totais-row">
-        <div class="card-total">
-          <div class="total-label">Total de carrinhos</div>
-          <div class="total-valor" id="totalCarrinhos">0</div>
-        </div>
-
-        <div class="card-total">
-          <div class="total-label">Total de cestinhas</div>
-          <div class="total-valor" id="totalCestinhas">0</div>
-        </div>
-      </div>
-
-      <!-- Data de contagem (coluna D) -->
-      <div class="linha-1">
-        <div class="campo">
-          <label for="dataLancamento">Data Contagem:</label>
-          <input id="dataLancamento" class="input" type="date" required />
-        </div>
-      </div>
-
-      <!-- ====== CONTAGEM PRINCIPAL (carrinhos) ====== -->
-      <div class="grid" aria-label="Contagem por tipo de carrinho">
-        <div class="campo">
-          <label for="duplocar120">
-            <img src="https://i.ibb.co/d00R9n4p/1001340222.png" alt="Duplocar 120L" loading="lazy" />
-            Duplocar 120L:
-          </label>
-          <input id="duplocar120" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <div class="campo">
-          <label for="grande160">
-            <img src="https://i.ibb.co/21ybNLZL/1001340221.png" alt="Grande 160L" loading="lazy" />
-            Grande 160L:
-          </label>
-          <input id="grande160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <div class="campo">
-          <label for="bebeConforto160">
-            <img src="https://i.ibb.co/ymJqvr5c/1001340229.png" alt="Bebê conforto 160L" loading="lazy" />
-            Bebê conforto 160L:
-          </label>
-          <input id="bebeConforto160" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <div class="campo">
-          <label for="maxcar200">
-            <img src="https://i.ibb.co/ymPcqNWL/1001340230.png" alt="Maxcar 200L" loading="lazy" />
-            Maxcar 200L:
-          </label>
-          <input id="maxcar200" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <div class="campo">
-          <label for="macrocar300">
-            <img src="https://i.ibb.co/x8KD8SMn/1001340231.png" alt="Macrocar 300L" loading="lazy" />
-            Macrocar 300L:
-          </label>
-          <input id="macrocar300" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <div class="campo">
-          <label for="pranchaJacare">
-            <img src="https://i.ibb.co/jvsjrBGM/1001340272.png" alt="Prancha Jacaré" loading="lazy" />
-            Prancha Jacaré:
-          </label>
-          <input id="pranchaJacare" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <div class="campo">
-          <label for="compraKids">
-            <img src="https://i.ibb.co/27mvLyS4/1001340273.png" alt="Compra Kids" loading="lazy" />
-            Compra Kids:
-          </label>
-          <input id="compraKids" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <!-- ✅ NOVO (pedido): Carrinho gaiola pet logo abaixo do Compra Kids -->
-        <div class="campo">
-          <label for="carrinhoGaiolaPet">
-            <img src="https://i.ibb.co/Jwz089CQ/file-0000000058c8720e957da3a8f8ac8d28.png" alt="Carrinho gaiola pet" loading="lazy" />
-            Carrinho gaiola pet:
-          </label>
-          <input id="carrinhoGaiolaPet" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-
-        <div class="campo">
-          <label for="bebeJipinho">
-            <img src="https://i.ibb.co/mFz3xj39/1001340271.png" alt="Bebê Jipinho" loading="lazy" />
-            Bebê Jipinho:
-          </label>
-          <input id="bebeJipinho" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-        </div>
-      </div>
-
-      <!-- ====== CARD: ITENS ESPECIAIS ====== -->
-      <div class="card-box card-soft">
-        <h3>
-          <img class="icon" id="icoEspeciais" alt="Ícone especiais" />
-          Itens especiais
-        </h3>
-
-        <div class="card-grid-2">
-          <div class="campo">
-            <label for="cestinha">
-              <img src="https://i.ibb.co/1fv1GX7R/1001340274.png" alt="Cestinha" loading="lazy" />
-              Cestinha:
-            </label>
-            <input id="cestinha" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-          </div>
-
-          <div class="campo">
-            <label for="cadeiraRodas">
-              <img src="https://i.ibb.co/sdp6hPzN/file-00000000b954720ea6b9b2e95516ed0a.png" alt="Cadeira de rodas" loading="lazy" />
-              Cadeira de rodas:
-            </label>
-            <input id="cadeiraRodas" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-          </div>
-
-          <div class="campo">
-            <label for="carrinhosQuebrados">
-              <img src="https://i.ibb.co/ZpwFJf5H/file-0000000062a0720e86cbcca63bfd8b64.png" alt="Carrinhos Quebrados" loading="lazy" />
-              Carrinhos Quebrados:
-            </label>
-            <input id="carrinhosQuebrados" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-          </div>
-        </div>
-      </div>
-
-      <!-- ====== CARD: RESERVAS ====== -->
-      <div class="card-box card-soft">
-        <h3>
-          <img class="icon" id="icoReserva" alt="Ícone reservas" />
-          Reservas
-        </h3>
-
-        <div class="card-grid-2">
-          <div class="campo">
-            <label for="carrinhosReserva">
-              <img id="imgCarrinhosReserva" alt="Carrinhos de reserva" loading="lazy" />
-              Carrinhos de reserva:
-            </label>
-            <input id="carrinhosReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-          </div>
-
-          <div class="campo">
-            <label for="cestinhasReserva">
-              <img id="imgCestinhasReserva" alt="Cestinhas de reserva" loading="lazy" />
-              Cestinhas de reserva:
-            </label>
-            <input id="cestinhasReserva" class="input" inputmode="numeric" autocomplete="off" placeholder="0" />
-          </div>
-        </div>
-      </div>
-
-      <!-- ====== CARD: MOVIMENTAÇÃO ====== -->
-      <div class="card-box card-soft">
-        <h3>
-          <img class="icon" id="icoMov" alt="Ícone movimentação" />
-          Movimentação de carrinhos <span id="pillMov" class="pill">0</span>
-        </h3>
-
-        <div class="mov-row">
-          <div class="campo">
-            <label for="movTipo">Direção:</label>
-            <select id="movTipo" class="input">
-              <option value="ENTRADA">Entrada</option>
-              <option value="SAIDA">Saída</option>
-            </select>
-          </div>
-
-          <div class="campo">
-            <label for="movCategoria">Motivo:</label>
-            <select id="movCategoria" class="input">
-              <option value="MOVI_ENTRE_LOJAS">Movi. entre lojas</option>
-              <option value="MOVI_MANUTENCAO">Movi. Manutenção</option>
-              <option value="ENTRADA_NOVOS">Entrada novos</option>
-            </select>
-          </div>
-
-          <div class="campo">
-            <label for="movQtd">Qtd.:</label>
-            <input id="movQtd" class="input" inputmode="numeric" autocomplete="off" placeholder="0" required />
-          </div>
-        </div>
-      </div>
-
-      <button class="btn btn-prim" id="btnEnviar">Enviar</button>
-      <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao Menu</button>
-
-      <div class="mensagem" id="msg"></div>
-    </div>
-  </div>
-
-  <script>
-    const ROTAS = { login: "/login.html", menu: "/menu.html" };
-    const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
-
-    const CAMPOS_CONTAGEM = [
-      { id: "duplocar120",        label: "Duplocar 120L",          key: "duplocar120" },
-      { id: "grande160",          label: "Grande 160L",            key: "grande160" },
-      { id: "bebeConforto160",    label: "Bebê conforto 160L",     key: "bebeConforto160" },
-      { id: "maxcar200",          label: "Maxcar 200L",            key: "maxcar200" },
-      { id: "macrocar300",        label: "Macrocar 300L",          key: "macrocar300" },
-      { id: "pranchaJacare",      label: "Prancha Jacaré",         key: "pranchaJacare" },
-      { id: "compraKids",         label: "Compra Kids",            key: "compraKids" },
-      { id: "carrinhoGaiolaPet",  label: "Carrinho gaiola pet",    key: "carrinhoGaiolaPet" },
-      { id: "bebeJipinho",        label: "Bebê Jipinho",           key: "bebeJipinho" },
-
-      { id: "cestinha",           label: "Cestinha",               key: "cestinha" },
-      { id: "cadeiraRodas",       label: "Cadeira de rodas",       key: "cadeiraRodas" },
-      { id: "carrinhosQuebrados", label: "Carrinhos Quebrados",    key: "carrinhosQuebrados" },
-
-      { id: "carrinhosReserva",   label: "Carrinhos de reserva",   key: "carrinhosReserva" },
-      { id: "cestinhasReserva",   label: "Cestinhas de reserva",   key: "cestinhasReserva" },
-    ];
-
-    const CAMPO_MOV = {
-      tipoId: "movTipo",
-      categoriaId: "movCategoria",
-      qtdId: "movQtd",
-      key: "movCarrinhos",
-      label: "Movimentação de carrinhos"
-    };
-
-    const IDS_TOTAL_CARRINHOS = [
-      "duplocar120",
-      "grande160",
-      "bebeConforto160",
-      "maxcar200",
-      "macrocar300",
-      "pranchaJacare",
-      "compraKids",
-      "carrinhoGaiolaPet",
-      "bebeJipinho",
-      "carrinhosQuebrados",
-      "carrinhosReserva",
-    ];
-
-    const IDS_TOTAL_CESTINHAS = [
-      "cestinha",
-      "cestinhasReserva",
-    ];
-
-    let sessaoAtual = null;
-
-    function soDigitos(str) { return String(str || "").replace(/[^\d]/g, ""); }
-    function toInt(str) { const s = soDigitos(str); return s ? parseInt(s, 10) : 0; }
-
-    function atualizarTotais() {
-      const totalCarrinhos = IDS_TOTAL_CARRINHOS.reduce((acc, id) => acc + toInt(document.getElementById(id).value), 0);
-      const totalCestinhas = IDS_TOTAL_CESTINHAS.reduce((acc, id) => acc + toInt(document.getElementById(id).value), 0);
-
-      document.getElementById("totalCarrinhos").textContent = String(totalCarrinhos);
-      document.getElementById("totalCestinhas").textContent = String(totalCestinhas);
-    }
-
-    function aplicarMascaraSomenteNumero(inputEl) {
-      inputEl.value = soDigitos(inputEl.value);
-      atualizarTotais();
-    }
-
-    function atualizarPillMov() {
-      const tipo = document.getElementById(CAMPO_MOV.tipoId).value;
-      const qtd  = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
-
-      const signed = (tipo === "SAIDA") ? -qtd : +qtd;
-      const pill = document.getElementById("pillMov");
-      pill.textContent = String(signed);
-
-      pill.classList.remove("neg","pos");
-      if (signed < 0) pill.classList.add("neg");
-      else if (signed > 0) pill.classList.add("pos");
-    }
-
-    function aplicarMascaraMovQtd() {
-      const el = document.getElementById(CAMPO_MOV.qtdId);
-      el.value = soDigitos(el.value);
-      atualizarPillMov();
-    }
-
-    async function obterSessaoDoBackend() {
-      try {
-        const resp = await fetch("/api/session", {
-          method: "GET",
-          credentials: "include",
-          headers: { "Accept": "application/json" }
-        });
-        if (!resp.ok) return null;
-
-        const dados = await resp.json().catch(() => null);
-        if (!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
-        return dados;
-      } catch (e) {
-        console.error("[CARRINHOS] Falha ao consultar /api/session:", e);
-        return null;
-      }
-    }
-
-    function mostrarSemSessao() {
-      document.getElementById("app").classList.add("hidden");
-      document.getElementById("telaSemSessao").classList.remove("hidden");
-    }
-
-    function mostrarApp() {
-      document.getElementById("telaSemSessao").classList.add("hidden");
-      document.getElementById("app").classList.remove("hidden");
-    }
-
-    function setMsg(texto, ok=false) {
-      const el = document.getElementById("msg");
-      el.classList.toggle("ok", !!ok);
-      el.textContent = texto || "";
-    }
-
-    function validarFormulario() {
-      const dataLanc = (document.getElementById("dataLancamento").value || "").trim();
-      if (!dataLanc) return "Selecione a Data Contagem.";
-
-      for (const c of CAMPOS_CONTAGEM) {
-        const v = (document.getElementById(c.id).value || "").trim();
-        if (v === "") return `Preencha: ${c.label}.`;
-        if (!/^\d+$/.test(v)) return `Use somente números em: ${c.label}.`;
-      }
-
-      const movQtdRaw = (document.getElementById(CAMPO_MOV.qtdId).value || "").trim();
-      if (movQtdRaw === "") return "Preencha: Movimentação de carrinhos (Qtd.).";
-      if (!/^\d+$/.test(movQtdRaw)) return `Use somente números em: ${CAMPO_MOV.label}.`;
-
-      return "";
-    }
-
-    function isoParaBR(iso) {
-      const s = String(iso || "").trim();
-      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (!m) return s;
-      return `${m[3]}/${m[2]}/${m[1]}`;
-    }
-
-    function abreviarCodigoMotivo(codigo) {
-      const v = String(codigo || "").trim().toUpperCase();
-      if (v === "MOVI_ENTRE_LOJAS") return "M.L";
-      if (v === "MOVI_MANUTENCAO") return "M.M";
-      if (v === "ENTRADA_NOVOS") return "E.N";
-      return "";
-    }
-
-    function tratarMudancaMotivoMov() {
-      const motivo = String(document.getElementById(CAMPO_MOV.categoriaId).value || "").toUpperCase();
-      if (motivo === "ENTRADA_NOVOS") {
-        document.getElementById(CAMPO_MOV.tipoId).value = "ENTRADA";
-      }
-      atualizarPillMov();
-    }
-
-    async function enviar() {
-      setMsg("");
-
-      if (!sessaoAtual) { mostrarSemSessao(); return; }
-
-      const perfil = String(sessaoAtual.perfil || "").trim().toUpperCase();
-      if (!PERFIS_PERMITIDOS.includes(perfil)) {
-        setMsg("Acesso negado: seu perfil não tem permissão para esta tela.");
-        return;
-      }
-
-      const erro = validarFormulario();
-      if (erro) { setMsg(erro); return; }
-
-      const btn = document.getElementById("btnEnviar");
-      btn.disabled = true;
-
-      try {
-        const dataISO = (document.getElementById("dataLancamento").value || "").trim();
-
-        const contagens = CAMPOS_CONTAGEM.reduce((acc, c) => {
-          acc[c.key] = toInt(document.getElementById(c.id).value);
-          return acc;
-        }, {});
-
-        const movQtd = toInt(document.getElementById(CAMPO_MOV.qtdId).value);
-        const movTipo = document.getElementById(CAMPO_MOV.tipoId).value;
-        const movSigned = (movTipo === "SAIDA") ? -movQtd : +movQtd;
-
-        const movCategoriaCodigo = document.getElementById(CAMPO_MOV.categoriaId).value;
-        const movCategoriaAbrev = abreviarCodigoMotivo(movCategoriaCodigo);
-
-        contagens[CAMPO_MOV.key] = movSigned;
-
-        const payload = {
-          dataLancamento: isoParaBR(dataISO),
-          contagens,
-          movCategoria: movCategoriaCodigo,
-          movCategoriaAbrev
-        };
-
-        const resp = await fetch("/api/carrinhos", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const dados = await resp.json().catch(() => ({}));
-
-        if (resp.status === 401 || resp.status === 403) {
-          mostrarSemSessao();
-          setMsg("Sessão inválida/expirada. Faça login novamente.");
-          return;
-        }
-
-        if (!resp.ok || !dados.sucesso) {
-          setMsg(dados.message || "Erro ao enviar contagem.");
-          return;
-        }
-
-        setMsg(dados.message || "Contagem enviada com sucesso.", true);
-
-        CAMPOS_CONTAGEM.forEach(c => document.getElementById(c.id).value = "");
-        document.getElementById(CAMPO_MOV.qtdId).value = "";
-        document.getElementById(CAMPO_MOV.tipoId).value = "ENTRADA";
-        document.getElementById(CAMPO_MOV.categoriaId).value = "MOVI_ENTRE_LOJAS";
-
-        atualizarTotais();
-        atualizarPillMov();
-
-      } catch (e) {
-        console.error(e);
-        setMsg("Erro de conexão ao enviar. Tente novamente.");
-      } finally {
-        btn.disabled = false;
-      }
-    }
-
-    function svgDataUri(svg) {
-      return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
-    }
-
-    function svgBadge(emoji) {
-      return `
-        <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
-          <defs>
-            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#f7f8ff"/>
-              <stop offset="1" stop-color="#e0e3ff"/>
-            </linearGradient>
-          </defs>
-          <rect x="6" y="6" width="84" height="84" rx="16" fill="url(#g)" stroke="#e6e6e6" stroke-width="3"/>
-          <text x="48" y="60" text-anchor="middle" font-size="44">${emoji}</text>
-        </svg>
-      `;
-    }
-
-    function setIconsAndReserveImages() {
-      document.getElementById("icoMov").src = svgDataUri(svgBadge("🔁"));
-      document.getElementById("icoEspeciais").src = svgDataUri(svgBadge("🧩"));
-      document.getElementById("icoReserva").src = svgDataUri(svgBadge("📦"));
-
-      document.getElementById("imgCarrinhosReserva").src = "https://i.ibb.co/Hfxhc3ff/file-00000000d2e4720e951cb0a4bdb65b70.png";
-      document.getElementById("imgCestinhasReserva").src = "https://i.ibb.co/prxcgT8L/file-00000000ce88720e9b15f9e9545c779c.png";
-    }
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      document.getElementById("btnIrLogin").addEventListener("click", () => window.location.href = ROTAS.login);
-      document.getElementById("btnVoltarMenu").addEventListener("click", () => window.location.href = ROTAS.menu);
-      document.getElementById("btnEnviar").addEventListener("click", enviar);
-
-      setIconsAndReserveImages();
-
-      CAMPOS_CONTAGEM.forEach(c => {
-        const el = document.getElementById(c.id);
-        el.addEventListener("input", () => aplicarMascaraSomenteNumero(el));
-      });
-
-      document.getElementById(CAMPO_MOV.qtdId).addEventListener("input", aplicarMascaraMovQtd);
-      document.getElementById(CAMPO_MOV.tipoId).addEventListener("change", atualizarPillMov);
-      document.getElementById(CAMPO_MOV.categoriaId).addEventListener("change", tratarMudancaMotivoMov);
-
-      atualizarTotais();
-      atualizarPillMov();
-
-      const s = await obterSessaoDoBackend();
-      if (!s) { mostrarSemSessao(); return; }
-
-      const perfil = String(s.perfil || "").trim().toUpperCase();
-      if (!PERFIS_PERMITIDOS.includes(perfil)) {
-        mostrarApp();
-        document.getElementById("infoLoja").textContent = s.loja;
-        document.getElementById("infoUsuario").textContent = s.usuario;
-        document.getElementById("infoPerfil").textContent = s.perfil;
-        setMsg("Acesso negado: seu perfil não tem permissão para esta tela.");
-        document.getElementById("btnEnviar").disabled = true;
-        return;
-      }
-
-      sessaoAtual = s;
-      mostrarApp();
-      document.getElementById("infoLoja").textContent = s.loja;
-      document.getElementById("infoUsuario").textContent = s.usuario;
-      document.getElementById("infoPerfil").textContent = s.perfil;
+// /api/carrinhos.js
+// Grava contagem de carrinhos na aba CARRINHOS do Google Sheets.
+//
+// ✅ MODELO NOVO (A..U):
+// A: Data/Hora da rede (servidor - São Paulo)
+// B: Loja (da sessão)
+// C: Usuário (da sessão)
+// D: Data Contagem (DD/MM/AAAA)
+//
+// E: Duplocar 120L
+// F: Grande 160L
+// G: Bebê conforto 160L
+// H: Maxcar 200L
+// I: Macrocar 300L
+// J: Prancha Jacaré
+// K: Compra Kids
+// L: Carrinho gaiola pet
+// M: Bebê Jipinho
+// N: Cestinha
+// O: Cadeira de rodas
+// P: Carrinhos Quebrados
+// Q: Carrinhos reserva
+// R: Cestinhas reserva
+//
+// S: Qtd movimentação (entrada positivo / saída negativo)
+// T: Motivo abreviado (M.L / M.M / E.N) (ou com underscore)
+//
+// ✅ NOVO:
+// U: ID único da linha (gerado no backend) com milissegundos (3 dígitos) após os segundos
+//    Formato: [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS][mmm]
+//
+// Segurança:
+// - Exige sessão válida via cookie HttpOnly (requireSession)
+// - Restringe perfis: ADMINISTRADOR, GERENTE_PPP, BASE_PPP
+// - Não confia em loja/usuario vindos do front
+
+import { google } from "googleapis";
+import { requireSession } from "./_authUsuarios.js";
+
+const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+const spreadsheetId = process.env.SPREADSHEET_ID;
+
+const PERFIS_PERMITIDOS = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
+
+const MOV_CATEGORIAS_PERMITIDAS = new Set([
+  "MOVI_ENTRE_LOJAS",
+  "MOVI_MANUTENCAO",
+  "ENTRADA_NOVOS",
+]);
+
+const MOV_ABREV_PERMITIDAS = new Set([
+  "M.L", "M.M", "E.N",
+  "M_L", "M_M", "E_N",
+]);
+
+function nowSaoPaulo() {
+  const agora = new Date();
+  return new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+}
+
+function pad2(n){ return String(n).padStart(2, "0"); }
+function pad3(n){ return String(n).padStart(3, "0"); }
+
+function formatarDataHoraBR(d) {
+  return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+
+function isBRDateDDMMAAAA(s) {
+  const str = String(s || "").trim();
+  const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return false;
+
+  const dd = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+  const yyyy = parseInt(m[3], 10);
+
+  if (yyyy < 2000 || yyyy > 2100) return false;
+  if (mm < 1 || mm > 12) return false;
+
+  const maxDia = new Date(yyyy, mm, 0).getDate();
+  if (dd < 1 || dd > maxDia) return false;
+
+  return true;
+}
+
+function asIntObrigatorioNaoNegativo(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0 || !Number.isInteger(n)) return null;
+  return n;
+}
+
+function asIntObrigatorioComSinal(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n) || !Number.isInteger(n)) return null;
+  return n;
+}
+
+async function getSheetsClient() {
+  const auth = new google.auth.JWT({
+    email: serviceAccountEmail,
+    key: privateKey,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
+  return google.sheets({ version: "v4", auth });
+}
+
+function validarMovCategoria(raw) {
+  const v = String(raw ?? "").trim().toUpperCase();
+  if (!v) return { ok: true, value: "MOVI_ENTRE_LOJAS" };
+  if (!MOV_CATEGORIAS_PERMITIDAS.has(v)) return { ok: false, value: "" };
+  return { ok: true, value: v };
+}
+
+function abreviarCodigoMov(codigo) {
+  const v = String(codigo || "").trim().toUpperCase();
+  if (v === "MOVI_ENTRE_LOJAS") return "M.L";
+  if (v === "MOVI_MANUTENCAO") return "M.M";
+  if (v === "ENTRADA_NOVOS") return "E.N";
+  return "";
+}
+
+function validarAbreviacao(raw) {
+  const v = String(raw ?? "").trim().toUpperCase();
+  if (!v) return { ok: false, value: "" };
+  if (!MOV_ABREV_PERMITIDAS.has(v)) return { ok: false, value: "" };
+  return { ok: true, value: v };
+}
+
+/* =====================================================================================
+  ✅ NOVO: Gerador de ID (coluna U) com milissegundos (3 dígitos) após os segundos.
+  Base: [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS][mmm]
+
+  - LetraBandeira: ULT -> U, BIG -> B
+  - NumLoja2: "01", "02"...
+  - u2+uLast2: 2 primeiras e 2 últimas letras do usuário (somente letras, sem acento)
+  - DDMMYYYY: da Data Contagem
+  - HHMMSS: do relógio do servidor (America/Sao_Paulo)
+  - mmm: 3 dígitos de milissegundos "do clique" (enviado pelo front). Se inválido, usa o ms do servidor.
+===================================================================================== */
+function normalizarUsuarioParaId(usuario){
+  const s0 = String(usuario || "").trim();
+  const semAcento = s0.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const soLetras = semAcento.replace(/[^a-zA-Z]/g, "").toLowerCase();
+  return soLetras;
+}
+
+function extrairLetraENumLoja(loja){
+  const s = String(loja || "").trim().toUpperCase();
+  const m = s.match(/^(ULT|BIG)\s*(\d{1,2})\b/);
+
+  if (m) {
+    const prefix = m[1];       // ULT | BIG
+    const letra  = prefix[0];  // U | B
+    const num    = pad2(parseInt(m[2], 10));
+    return { letra, num };
+  }
+
+  // fallback seguro
+  return { letra: (s[0] || "X"), num: "00" };
+}
+
+function ddmmyyyySemBarra(dataBR){
+  const m = String(dataBR || "").trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return "00000000";
+  return `${m[1]}${m[2]}${m[3]}`;
+}
+
+function hhmmss(dt){
+  return `${pad2(dt.getHours())}${pad2(dt.getMinutes())}${pad2(dt.getSeconds())}`;
+}
+
+function validarMs3(rawMs3){
+  const v = String(rawMs3 ?? "").trim();
+  if (!/^\d{3}$/.test(v)) return { ok: false, value: "" };
+  // 000..999 permitido
+  return { ok: true, value: v };
+}
+
+function montarIdLinha({ loja, usuario, dataLancamentoBR, dtRede, clientMs3 }) {
+  const { letra, num } = extrairLetraENumLoja(loja);
+
+  const u = normalizarUsuarioParaId(usuario);
+  const first2 = (u.slice(0,2) || "xx").padEnd(2, "x");
+  const last2  = (u.slice(-2)  || "xx").padStart(2, "x");
+  const user4  = `${first2}${last2}`;
+
+  const data8 = ddmmyyyySemBarra(dataLancamentoBR);
+  const t6    = hhmmss(dtRede);
+
+  // ✅ milissegundos do clique (front). Se inválido, usa ms do servidor.
+  const msValid = validarMs3(clientMs3);
+  const ms3 = msValid.ok ? msValid.value : pad3(dtRede.getMilliseconds());
+
+  return `${letra}${num}${user4}${data8}${t6}${ms3}`;
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ sucesso: false, message: "Método não permitido. Use POST." });
+  }
+
+  const session = requireSession(req, res, { allowedProfiles: PERFIS_PERMITIDOS });
+  if (!session) return;
+
+  if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
+    return res.status(500).json({
+      sucesso: false,
+      message: "Configuração do servidor incompleta (credenciais/planilha).",
     });
-  </script>
-</body>
-</html>
+  }
+
+  try {
+    const body = req.body || {};
+    const dataLancamento = String(body.dataLancamento || "").trim();
+    const contagens = body.contagens || {};
+
+    const movCategoriaValid = validarMovCategoria(body.movCategoria);
+    if (!movCategoriaValid.ok) {
+      return res.status(400).json({
+        sucesso: false,
+        message: "Tipo de movimentação inválido. Use: MOVI_ENTRE_LOJAS, MOVI_MANUTENCAO ou ENTRADA_NOVOS.",
+      });
+    }
+    const movCategoriaCodigo = movCategoriaValid.value;
+
+    const ab = validarAbreviacao(body.movCategoriaAbrev);
+    const movCategoriaColT = ab.ok ? ab.value : abreviarCodigoMov(movCategoriaCodigo);
+
+    if (!movCategoriaColT) {
+      return res.status(400).json({
+        sucesso: false,
+        message: "Motivo abreviado inválido. Use M.L/M.M/E.N ou M_L/M_M/E_N.",
+      });
+    }
+
+    if (!isBRDateDDMMAAAA(dataLancamento)) {
+      return res.status(400).json({ sucesso: false, message: "Data Contagem inválida. Use DD/MM/AAAA." });
+    }
+
+    const duplocar120         = asIntObrigatorioNaoNegativo(contagens.duplocar120);
+    const grande160           = asIntObrigatorioNaoNegativo(contagens.grande160);
+    const bebeConforto160     = asIntObrigatorioNaoNegativo(contagens.bebeConforto160);
+    const maxcar200           = asIntObrigatorioNaoNegativo(contagens.maxcar200);
+    const macrocar300         = asIntObrigatorioNaoNegativo(contagens.macrocar300);
+    const pranchaJacare       = asIntObrigatorioNaoNegativo(contagens.pranchaJacare);
+    const compraKids          = asIntObrigatorioNaoNegativo(contagens.compraKids);
+    const carrinhoGaiolaPet   = asIntObrigatorioNaoNegativo(contagens.carrinhoGaiolaPet);
+    const bebeJipinho         = asIntObrigatorioNaoNegativo(contagens.bebeJipinho);
+    const cestinha            = asIntObrigatorioNaoNegativo(contagens.cestinha);
+    const cadeiraRodas        = asIntObrigatorioNaoNegativo(contagens.cadeiraRodas);
+    const carrinhosQuebrados  = asIntObrigatorioNaoNegativo(contagens.carrinhosQuebrados);
+    const carrinhosReserva    = asIntObrigatorioNaoNegativo(contagens.carrinhosReserva);
+    const cestinhasReserva    = asIntObrigatorioNaoNegativo(contagens.cestinhasReserva);
+
+    const movCarrinhosRaw =
+      (contagens.movCarrinhos === "" || contagens.movCarrinhos === undefined || contagens.movCarrinhos === null)
+        ? 0
+        : contagens.movCarrinhos;
+
+    const movCarrinhos = asIntObrigatorioComSinal(movCarrinhosRaw);
+
+    const obrigatorios = [
+      duplocar120,
+      grande160,
+      bebeConforto160,
+      maxcar200,
+      macrocar300,
+      pranchaJacare,
+      compraKids,
+      carrinhoGaiolaPet,
+      bebeJipinho,
+      cestinha,
+      cadeiraRodas,
+      carrinhosQuebrados,
+      carrinhosReserva,
+      cestinhasReserva,
+      movCarrinhos,
+    ];
+
+    if (obrigatorios.some((v) => v === null)) {
+      return res.status(400).json({
+        sucesso: false,
+        message: "Preencha as contagens com números inteiros (sem ponto e sem vírgula). Movimentação pode ser negativa.",
+      });
+    }
+
+    const loja = String(session.loja || "").trim();
+    const usuario = String(session.usuario || "").trim();
+    const perfil = String(session.perfil || "").trim().toUpperCase();
+
+    if (!loja || !usuario) {
+      return res.status(401).json({ sucesso: false, message: "Sessão inválida (loja/usuário ausentes)." });
+    }
+
+    if (!PERFIS_PERMITIDOS.includes(perfil)) {
+      return res.status(403).json({ sucesso: false, message: "Perfil sem permissão para esta operação." });
+    }
+
+    const dtRede = nowSaoPaulo();
+    const dataHoraRede = formatarDataHoraBR(dtRede);
+
+    // ✅ NOVO: ID com ms (3 dígitos após os segundos)
+    const idLinha = montarIdLinha({
+      loja,
+      usuario,
+      dataLancamentoBR: dataLancamento,
+      dtRede,
+      clientMs3: body.clientMs3
+    });
+
+    const values = [[
+      dataHoraRede,        // A
+      loja,                // B
+      usuario,             // C
+      dataLancamento,      // D
+
+      duplocar120,         // E
+      grande160,           // F
+      bebeConforto160,     // G
+      maxcar200,           // H
+      macrocar300,         // I
+      pranchaJacare,       // J
+      compraKids,          // K
+      carrinhoGaiolaPet,   // L
+      bebeJipinho,         // M
+      cestinha,            // N
+      cadeiraRodas,        // O
+      carrinhosQuebrados,  // P
+      carrinhosReserva,    // Q
+      cestinhasReserva,    // R
+
+      movCarrinhos,        // S
+      movCategoriaColT,    // T
+      idLinha,             // U ✅ ID
+    ]];
+
+    const sheets = await getSheetsClient();
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: "CARRINHOS!A:U",
+      valueInputOption: "USER_ENTERED",
+      insertDataOption: "INSERT_ROWS",
+      requestBody: { values },
+    });
+
+    return res.status(200).json({
+      sucesso: true,
+      message: "Contagem de carrinhos enviada com sucesso.",
+      id: idLinha
+    });
+  } catch (erro) {
+    console.error("Erro em /api/carrinhos:", erro);
+    return res.status(500).json({
+      sucesso: false,
+      message: "Erro interno ao gravar contagem de carrinhos.",
+      detalhe: erro?.message || String(erro),
+    });
+  }
+}
+
+/*
+  Fontes (links confiáveis):
+  - Google Sheets API append:
+    https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+  - Google API Node.js Client:
+    https://github.com/googleapis/google-api-nodejs-client
+  - OWASP Input Validation:
+    https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+*/
