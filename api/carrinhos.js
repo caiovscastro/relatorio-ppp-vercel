@@ -5,9 +5,8 @@
 // A: Data/Hora da rede (servidor - São Paulo)
 // B: Loja (da sessão)
 // C: Usuário (da sessão)
-// D: Data Contagem (formato "DD/MM/AAAA")
+// D: Data Contagem (DD/MM/AAAA)
 //
-// Tipos / contagens (E em diante):
 // E: Duplocar 120L
 // F: Grande 160L
 // G: Bebê conforto 160L
@@ -24,10 +23,11 @@
 // R: Cestinhas reserva
 //
 // S: Qtd movimentação (entrada positivo / saída negativo)
-// T: Motivo abreviado (M.L / M.M / E.N) (ou com underscore: M_L / M_M / E_N)
+// T: Motivo abreviado (M.L / M.M / E.N) (ou com underscore)
 //
 // ✅ NOVO:
-// U: ID único da linha (gerado no backend)
+// U: ID único da linha (gerado no backend) com milissegundos (3 dígitos) após os segundos
+//    Formato: [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS][mmm]
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -59,12 +59,12 @@ function nowSaoPaulo() {
   return new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
 }
 
+function pad2(n){ return String(n).padStart(2, "0"); }
+function pad3(n){ return String(n).padStart(3, "0"); }
+
 function formatarDataHoraBR(d) {
-  const pad2 = (n) => String(n).padStart(2, "0");
   return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
-
-function pad2(n){ return String(n).padStart(2, "0"); }
 
 function isBRDateDDMMAAAA(s) {
   const str = String(s || "").trim();
@@ -128,9 +128,15 @@ function validarAbreviacao(raw) {
 }
 
 /* =====================================================================================
-   ✅ ID (coluna U)
-   Formato: [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS][mmm]
-   Ex: U01vara10012026145128 + 123 => U01vara10012026145128123
+  ✅ NOVO: Gerador de ID (coluna U) com milissegundos (3 dígitos) após os segundos.
+  Base: [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS][mmm]
+
+  - LetraBandeira: ULT -> U, BIG -> B
+  - NumLoja2: "01", "02"...
+  - u2+uLast2: 2 primeiras e 2 últimas letras do usuário (somente letras, sem acento)
+  - DDMMYYYY: da Data Contagem
+  - HHMMSS: do relógio do servidor (America/Sao_Paulo)
+  - mmm: 3 dígitos de milissegundos "do clique" (enviado pelo front). Se inválido, usa o ms do servidor.
 ===================================================================================== */
 function normalizarUsuarioParaId(usuario){
   const s0 = String(usuario || "").trim();
@@ -139,28 +145,24 @@ function normalizarUsuarioParaId(usuario){
   return soLetras;
 }
 
-function extrairLetraEBairroNumeroLoja(loja){
+function extrairLetraENumLoja(loja){
   const s = String(loja || "").trim().toUpperCase();
-
-  // Espera "ULT 01 - ..." ou "BIG 02 - ..."
   const m = s.match(/^(ULT|BIG)\s*(\d{1,2})\b/);
-  if(m){
-    const prefix = m[1]; // ULT | BIG
-    const letra = prefix.slice(0,1); // U | B
-    const num = pad2(parseInt(m[2], 10));
+
+  if (m) {
+    const prefix = m[1];       // ULT | BIG
+    const letra  = prefix[0];  // U | B
+    const num    = pad2(parseInt(m[2], 10));
     return { letra, num };
   }
 
-  // Fallback seguro
-  const letra = s ? s[0] : "X";
-  const num = "00";
-  return { letra, num };
+  // fallback seguro
+  return { letra: (s[0] || "X"), num: "00" };
 }
 
 function ddmmyyyySemBarra(dataBR){
-  // dataBR: DD/MM/AAAA
   const m = String(dataBR || "").trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if(!m) return "00000000";
+  if (!m) return "00000000";
   return `${m[1]}${m[2]}${m[3]}`;
 }
 
@@ -168,24 +170,29 @@ function hhmmss(dt){
   return `${pad2(dt.getHours())}${pad2(dt.getMinutes())}${pad2(dt.getSeconds())}`;
 }
 
-/* ✅ AJUSTE: agora são 3 dígitos (000..999) */
-function milesimos3(dt){
-  return String(dt.getMilliseconds()).padStart(3, "0");
+function validarMs3(rawMs3){
+  const v = String(rawMs3 ?? "").trim();
+  if (!/^\d{3}$/.test(v)) return { ok: false, value: "" };
+  // 000..999 permitido
+  return { ok: true, value: v };
 }
 
-function montarIdLinha({ loja, usuario, dataLancamentoBR, dtRede }){
-  const { letra, num } = extrairLetraEBairroNumeroLoja(loja);
+function montarIdLinha({ loja, usuario, dataLancamentoBR, dtRede, clientMs3 }) {
+  const { letra, num } = extrairLetraENumLoja(loja);
 
   const u = normalizarUsuarioParaId(usuario);
   const first2 = (u.slice(0,2) || "xx").padEnd(2, "x");
   const last2  = (u.slice(-2)  || "xx").padStart(2, "x");
   const user4  = `${first2}${last2}`;
 
-  const data8  = ddmmyyyySemBarra(dataLancamentoBR);
-  const t6     = hhmmss(dtRede);
+  const data8 = ddmmyyyySemBarra(dataLancamentoBR);
+  const t6    = hhmmss(dtRede);
 
-  // ✅ Base + milissegundos (3 dígitos)
-  return `${letra}${num}${user4}${data8}${t6}${milesimos3(dtRede)}`;
+  // ✅ milissegundos do clique (front). Se inválido, usa ms do servidor.
+  const msValid = validarMs3(clientMs3);
+  const ms3 = msValid.ok ? msValid.value : pad3(dtRede.getMilliseconds());
+
+  return `${letra}${num}${user4}${data8}${t6}${ms3}`;
 }
 
 export default async function handler(req, res) {
@@ -294,12 +301,13 @@ export default async function handler(req, res) {
     const dtRede = nowSaoPaulo();
     const dataHoraRede = formatarDataHoraBR(dtRede);
 
-    // ✅ ID coluna U (agora com 3 dígitos de ms)
+    // ✅ NOVO: ID com ms (3 dígitos após os segundos)
     const idLinha = montarIdLinha({
       loja,
       usuario,
       dataLancamentoBR: dataLancamento,
-      dtRede
+      dtRede,
+      clientMs3: body.clientMs3
     });
 
     const values = [[
@@ -325,7 +333,7 @@ export default async function handler(req, res) {
 
       movCarrinhos,        // S
       movCategoriaColT,    // T
-      idLinha,             // U ✅
+      idLinha,             // U ✅ ID
     ]];
 
     const sheets = await getSheetsClient();
@@ -341,7 +349,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       sucesso: true,
       message: "Contagem de carrinhos enviada com sucesso.",
-      id: idLinha,
+      id: idLinha
     });
   } catch (erro) {
     console.error("Erro em /api/carrinhos:", erro);
@@ -352,3 +360,13 @@ export default async function handler(req, res) {
     });
   }
 }
+
+/*
+  Fontes (links confiáveis):
+  - Google Sheets API append:
+    https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+  - Google API Node.js Client:
+    https://github.com/googleapis/google-api-nodejs-client
+  - OWASP Input Validation:
+    https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+*/
