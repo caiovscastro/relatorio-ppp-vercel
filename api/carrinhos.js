@@ -1,13 +1,13 @@
 // /api/carrinhos.js
 // Grava contagem de carrinhos na aba CARRINHOS do Google Sheets.
 //
-// ✅ MODELO NOVO (A..T):
+// ✅ MODELO NOVO (A..U):
 // A: Data/Hora da rede (servidor - São Paulo)
 // B: Loja (da sessão)
 // C: Usuário (da sessão)
 // D: Data Contagem (formato "DD/MM/AAAA")
 //
-// Tipos / contagens (E em diante) — conforme sua nova ordem:
+// Tipos / contagens (E em diante):
 // E: Duplocar 120L
 // F: Grande 160L
 // G: Bebê conforto 160L
@@ -15,7 +15,7 @@
 // I: Macrocar 300L
 // J: Prancha Jacaré
 // K: Compra Kids
-// L: Carrinho gaiola pet   ✅ NOVO
+// L: Carrinho gaiola pet
 // M: Bebê Jipinho
 // N: Cestinha
 // O: Cadeira de rodas
@@ -23,9 +23,11 @@
 // Q: Carrinhos reserva
 // R: Cestinhas reserva
 //
-// ✅ Movimentação:
-// S: Qtd movimentação (entrada positivo / saída negativo)  ✅ (equivale ao antigo "movCarrinhos")
+// S: Qtd movimentação (entrada positivo / saída negativo)
 // T: Motivo abreviado (M.L / M.M / E.N) (ou com underscore: M_L / M_M / E_N)
+//
+// ✅ NOVO:
+// U: ID único da linha (gerado no backend)
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
@@ -41,21 +43,12 @@ const spreadsheetId = process.env.SPREADSHEET_ID;
 
 const PERFIS_PERMITIDOS = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
 
-/* =====================================================================================
-  ✅ Ajuste (pedido):
-  - Inclui novo código ENTRADA_NOVOS como categoria permitida
-===================================================================================== */
 const MOV_CATEGORIAS_PERMITIDAS = new Set([
   "MOVI_ENTRE_LOJAS",
   "MOVI_MANUTENCAO",
-  "ENTRADA_NOVOS", // ✅ NOVO
+  "ENTRADA_NOVOS",
 ]);
 
-/* =====================================================================================
-  ✅ Ajuste (pedido):
-  - Inclui abreviações aceitas para gravar na coluna T
-  - Mantém compatibilidade com variações com underscore
-===================================================================================== */
 const MOV_ABREV_PERMITIDAS = new Set([
   "M.L", "M.M", "E.N",
   "M_L", "M_M", "E_N",
@@ -70,6 +63,8 @@ function formatarDataHoraBR(d) {
   const pad2 = (n) => String(n).padStart(2, "0");
   return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 }
+
+function pad2(n){ return String(n).padStart(2, "0"); }
 
 function isBRDateDDMMAAAA(s) {
   const str = String(s || "").trim();
@@ -117,21 +112,82 @@ function validarMovCategoria(raw) {
   return { ok: true, value: v };
 }
 
-// ✅ converte o código para abreviação padrão
 function abreviarCodigoMov(codigo) {
   const v = String(codigo || "").trim().toUpperCase();
   if (v === "MOVI_ENTRE_LOJAS") return "M.L";
   if (v === "MOVI_MANUTENCAO") return "M.M";
-  if (v === "ENTRADA_NOVOS") return "E.N"; // ✅ NOVO
+  if (v === "ENTRADA_NOVOS") return "E.N";
   return "";
 }
 
-// ✅ normaliza/valida abreviação (M.L/M.M/E.N ou M_L/M_M/E_N)
 function validarAbreviacao(raw) {
   const v = String(raw ?? "").trim().toUpperCase();
   if (!v) return { ok: false, value: "" };
   if (!MOV_ABREV_PERMITIDAS.has(v)) return { ok: false, value: "" };
   return { ok: true, value: v };
+}
+
+/* =====================================================================================
+   ✅ NOVO: Gerador de ID (coluna U)
+   Formato base (seu padrão): [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS]
+   + ✅ Anti-colisão leve: acrescenta [CC] (centésimos de segundo) no final.
+   Ex: U01vara10012026145128 + 07 => U01vara1001202614512807
+===================================================================================== */
+function normalizarUsuarioParaId(usuario){
+  const s0 = String(usuario || "").trim();
+  const semAcento = s0.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const soLetras = semAcento.replace(/[^a-zA-Z]/g, "").toLowerCase();
+  return soLetras;
+}
+
+function extrairLetraEBairroNumeroLoja(loja){
+  const s = String(loja || "").trim().toUpperCase();
+
+  // Espera "ULT 01 - ..." ou "BIG 02 - ..."
+  const m = s.match(/^(ULT|BIG)\s*(\d{1,2})\b/);
+  if(m){
+    const prefix = m[1]; // ULT | BIG
+    const letra = prefix.slice(0,1); // U | B
+    const num = pad2(parseInt(m[2], 10));
+    return { letra, num };
+  }
+
+  // Fallback seguro
+  const letra = s ? s[0] : "X";
+  const num = "00";
+  return { letra, num };
+}
+
+function ddmmyyyySemBarra(dataBR){
+  // dataBR: DD/MM/AAAA
+  const m = String(dataBR || "").trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(!m) return "00000000";
+  return `${m[1]}${m[2]}${m[3]}`;
+}
+
+function hhmmss(dt){
+  return `${pad2(dt.getHours())}${pad2(dt.getMinutes())}${pad2(dt.getSeconds())}`;
+}
+
+function centesimos(dt){
+  // 0..99 (centésimos) a partir de ms
+  const cs = Math.floor(dt.getMilliseconds() / 10);
+  return pad2(cs);
+}
+
+function montarIdLinha({ loja, usuario, dataLancamentoBR, dtRede }){
+  const { letra, num } = extrairLetraEBairroNumeroLoja(loja);
+
+  const u = normalizarUsuarioParaId(usuario);
+  const first2 = (u.slice(0,2) || "xx").padEnd(2, "x");
+  const last2  = (u.slice(-2)  || "xx").padStart(2, "x");
+  const user4  = `${first2}${last2}`;
+
+  const data8  = ddmmyyyySemBarra(dataLancamentoBR);
+  const t6     = hhmmss(dtRede);
+
+  // Base solicitado + sufixo anti-colisão
+  return `${letra}${num}${user4}${data8}${t6}${centesimos(dtRede)}`;
 }
 
 export default async function handler(req, res) {
@@ -155,7 +211,6 @@ export default async function handler(req, res) {
     const dataLancamento = String(body.dataLancamento || "").trim();
     const contagens = body.contagens || {};
 
-    // ✅ valida categoria do motivo (agora incluindo ENTRADA_NOVOS)
     const movCategoriaValid = validarMovCategoria(body.movCategoria);
     if (!movCategoriaValid.ok) {
       return res.status(400).json({
@@ -165,7 +220,6 @@ export default async function handler(req, res) {
     }
     const movCategoriaCodigo = movCategoriaValid.value;
 
-    // ✅ pega abreviação do front (se vier), senão deriva do código
     const ab = validarAbreviacao(body.movCategoriaAbrev);
     const movCategoriaColT = ab.ok ? ab.value : abreviarCodigoMov(movCategoriaCodigo);
 
@@ -180,9 +234,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ sucesso: false, message: "Data Contagem inválida. Use DD/MM/AAAA." });
     }
 
-    // =====================================================================================
-    // ✅ Ajuste (pedido): inclui carrinhoGaiolaPet e reorganiza o “mapa” para bater com A..T
-    // =====================================================================================
     const duplocar120         = asIntObrigatorioNaoNegativo(contagens.duplocar120);
     const grande160           = asIntObrigatorioNaoNegativo(contagens.grande160);
     const bebeConforto160     = asIntObrigatorioNaoNegativo(contagens.bebeConforto160);
@@ -190,10 +241,7 @@ export default async function handler(req, res) {
     const macrocar300         = asIntObrigatorioNaoNegativo(contagens.macrocar300);
     const pranchaJacare       = asIntObrigatorioNaoNegativo(contagens.pranchaJacare);
     const compraKids          = asIntObrigatorioNaoNegativo(contagens.compraKids);
-
-    // ✅ NOVO
     const carrinhoGaiolaPet   = asIntObrigatorioNaoNegativo(contagens.carrinhoGaiolaPet);
-
     const bebeJipinho         = asIntObrigatorioNaoNegativo(contagens.bebeJipinho);
     const cestinha            = asIntObrigatorioNaoNegativo(contagens.cestinha);
     const cadeiraRodas        = asIntObrigatorioNaoNegativo(contagens.cadeiraRodas);
@@ -201,7 +249,6 @@ export default async function handler(req, res) {
     const carrinhosReserva    = asIntObrigatorioNaoNegativo(contagens.carrinhosReserva);
     const cestinhasReserva    = asIntObrigatorioNaoNegativo(contagens.cestinhasReserva);
 
-    // Movimentação (Qtd assinada: Entrada + / Saída -)
     const movCarrinhosRaw =
       (contagens.movCarrinhos === "" || contagens.movCarrinhos === undefined || contagens.movCarrinhos === null)
         ? 0
@@ -217,7 +264,7 @@ export default async function handler(req, res) {
       macrocar300,
       pranchaJacare,
       compraKids,
-      carrinhoGaiolaPet,  // ✅ NOVO obrigatório
+      carrinhoGaiolaPet,
       bebeJipinho,
       cestinha,
       cadeiraRodas,
@@ -249,9 +296,15 @@ export default async function handler(req, res) {
     const dtRede = nowSaoPaulo();
     const dataHoraRede = formatarDataHoraBR(dtRede);
 
-    // =====================================================================================
-    // ✅ MODELO NOVO A..T (20 colunas)
-    // =====================================================================================
+    // ✅ NOVO: ID coluna U
+    const idLinha = montarIdLinha({
+      loja,
+      usuario,
+      dataLancamentoBR: dataLancamento,
+      dtRede
+    });
+
+    // ✅ MODELO NOVO A..U (21 colunas)
     const values = [[
       dataHoraRede,        // A
       loja,                // B
@@ -265,7 +318,7 @@ export default async function handler(req, res) {
       macrocar300,         // I
       pranchaJacare,       // J
       compraKids,          // K
-      carrinhoGaiolaPet,   // L  ✅ NOVO
+      carrinhoGaiolaPet,   // L
       bebeJipinho,         // M
       cestinha,            // N
       cadeiraRodas,        // O
@@ -273,15 +326,16 @@ export default async function handler(req, res) {
       carrinhosReserva,    // Q
       cestinhasReserva,    // R
 
-      movCarrinhos,        // S  ✅ Qtd (Entrada + / Saída -)
-      movCategoriaColT,    // T  ✅ Motivo abreviado (M.L/M.M/E.N ou underscore)
+      movCarrinhos,        // S
+      movCategoriaColT,    // T
+      idLinha,             // U ✅ NOVO
     ]];
 
     const sheets = await getSheetsClient();
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "CARRINHOS!A:T", // ✅ Ajuste (pedido): agora escreve A..T
+      range: "CARRINHOS!A:U", // ✅ Ajuste: agora escreve até U
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values },
@@ -290,6 +344,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       sucesso: true,
       message: "Contagem de carrinhos enviada com sucesso.",
+      id: idLinha, // opcional: útil para log/UX futuro
     });
   } catch (erro) {
     console.error("Erro em /api/carrinhos:", erro);
@@ -300,13 +355,3 @@ export default async function handler(req, res) {
     });
   }
 }
-
-/*
-  Fontes (links confiáveis):
-  - Google Sheets API append:
-    https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
-  - Google API Node.js Client:
-    https://github.com/googleapis/google-api-nodejs-client
-  - OWASP Input Validation Cheat Sheet:
-    https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
-*/
