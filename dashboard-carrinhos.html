@@ -740,17 +740,17 @@
               <div class="left-col">
                 <div class="kpi-row">
                   <div class="kpi">
-                    <div class="label">Carrinhos ativos</div>
+                    <div class="label">🛒Car. Ativos</div>
                     <div class="value" id="kpiCarrinhos">0</div>
                   </div>
 
                   <div class="kpi">
-                    <div class="label">Carrinhos Quebrados</div>
+                    <div class="label">🛒Car. Quebrados</div>
                     <div class="value" id="kpiQuebrados">0</div>
                   </div>
 
                   <div class="kpi">
-                    <div class="label">Total de Cestinhas</div>
+                    <div class="label">🧺Cestinhas</div>
                     <div class="value" id="kpiCestinhas">0</div>
                   </div>
                 </div>
@@ -944,7 +944,7 @@
   const MOV_OPCOES = [
     { value: "M.L", label: "Movi. entre lojas" },
     { value: "M.M", label: "Movi. Manutenção" },
-    { value: "M.N", label: "Entrada novos" }
+    { value: "E.N", label: "Entrada novos" }
   ];
 
   function _semAcentoUpper(s){
@@ -961,11 +961,11 @@
 
     // Normaliza underscore -> ponto e caixa
     v = v.toUpperCase().replace(/_/g, ".");
-    // Compat: se vier E.N, trata como M.N (seu novo padrão)
-    if(v === "E.N") v = "M.N";
+    // Compat: se vier E.N, trata como E.N (seu novo padrão)
+    if(v === "E.N") v = "E.N";
 
     // Se já for um dos abreviados, ok
-    if(v === "M.L" || v === "M.M" || v === "M.N") return v;
+    if(v === "M.L" || v === "M.M" || v === "E.N") return v;
 
     // Se vier texto humano (ou variação), mapeia
     const key = _semAcentoUpper(v);
@@ -977,7 +977,7 @@
     if(key.includes("MANUT")) return "M.M";
 
     // Entrada novos
-    if(key.includes("ENTRADA") && key.includes("NOV")) return "M.N";
+    if(key.includes("ENTRADA") && key.includes("NOV")) return "E.N";
 
     // Desconhecido: não forçamos (preserva)
     return "";
