@@ -317,9 +317,13 @@
     .content-grid > *{ min-width: 0; }
     .left-col{ display:flex; flex-direction: column; gap: 12px; min-width: 0; overflow-x: hidden; }
     .right-col{ min-width: 0; overflow-x: hidden; }
+
     @media (min-width: 981px){
-      /* cerca de 2cm a menos comparado ao 1fr original, liberando espaço à direita */
-      .content-grid{ grid-template-columns: 360px 1fr; }
+      /* ✅ (1) “Quantidade por Tipo” 1cm mais largo no desktop
+         - Como o card está dentro da left-col, aumentamos a trilha da coluna esquerda em +1cm
+         - Sem quebrar o mobile e sem sobrepor o card da direita
+      */
+      .content-grid{ grid-template-columns: calc(360px + 1cm) 1fr; }
     }
     @media (max-width: 980px){ .content-grid{ grid-template-columns: 1fr; } }
 
@@ -416,6 +420,17 @@
       min-width: 0;
     }
 
+    /* ✅ (2) Cards de tabela com largura “justa” (sem sobrar espaço)
+       - Total geral e demais tabelas seguem a largura real das colunas
+       - Sem quebrar o mobile (max-width:100% + scroll horizontal)
+    */
+    .table-card,
+    .table-fit{
+      width: fit-content;
+      max-width: 100%;
+      justify-self: start; /* evita esticar no grid */
+    }
+
     .msg{
       margin-top: 10px;
       text-align:center;
@@ -427,13 +442,14 @@
     .ok{ color: var(--ok); }
 
     .table-wrap{
-      width: 100%;
+      /* ✅ (2) wrapper “shrink-to-fit” + preserva scroll no mobile */
+      width: max-content;
+      max-width: 100%;
       overflow-x: auto;
       overflow-y: visible;
       border:1px solid #eee;
       border-radius: 10px;
       -webkit-overflow-scrolling: touch;
-      max-width: 100%;
       min-width: 0;
       contain: content;
     }
@@ -441,8 +457,10 @@
     table{
       border-collapse: collapse;
       font-size: 12px;
-      width: auto;
-      min-width: 100%;
+
+      /* ✅ (2) remove o “esticar” forçado e deixa a tabela seguir as colunas reais */
+      width: max-content;
+      min-width: 0;
       max-width: none;
     }
 
@@ -624,7 +642,7 @@
               </div>
             </div>
 
-            <div class="card" style="margin-top:12px;">
+            <div class="card table-fit" style="margin-top:12px;">
               <h3>Carrinhos por modelo</h3>
               <div class="table-wrap">
                 <table>
@@ -634,7 +652,7 @@
               </div>
             </div>
 
-            <div class="card" style="margin-top:12px;">
+            <div class="card table-fit" style="margin-top:12px;">
               <h3>Especiais e Reservas</h3>
               <div class="table-wrap">
                 <table>
@@ -1784,8 +1802,11 @@
 </script>
 
 <!-- Fontes confiáveis -->
-<!-- Chart.js (config, responsive, events): https://www.chartjs.org/docs/latest/ -->
-<!-- Chart.js interaction/events: https://www.chartjs.org/docs/latest/configuration/interactions.html -->
-<!-- Viewport meta tag: https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag -->
+<!-- CSS Length Units (cm, px): https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units -->
+<!-- fit-content / max-content: https://developer.mozilla.org/en-US/docs/Web/CSS/fit-content -->
+<!-- CSS Grid (justify-self): https://developer.mozilla.org/en-US/docs/Web/CSS/justify-self -->
+<!-- overflow-x / scroll containers: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
+<!-- HTML tables sizing behavior: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table -->
+<!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 </body>
 </html>
