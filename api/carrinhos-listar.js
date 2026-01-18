@@ -1,36 +1,32 @@
 // /api/carrinhos-listar.js
-// Lê registros da aba CARRINHOS (A:T) e retorna para o dashboard.
+// Lê registros da aba CARRINHOS (A:U) e retorna para o dashboard.
 //
-// Colunas (A..T) — NOVA ORDEM:
-// A: Data/Hora da rede (servidor - São Paulo)  -> string (ex: "06/01/2026 10:22:33")
-// B: Loja (da sessão no lançamento)            -> string
-// C: Usuário (da sessão no lançamento)         -> string
-// D: Data Contagem (DD/MM/AAAA)                -> string
-// E: Duplocar 120L                             -> int
-// F: Grande 160L                               -> int
-// G: Bebê conforto 160L                        -> int   (key: bebeConforto160)
-// H: Maxcar 200L                               -> int
-// I: Macrocar 300L                             -> int
-// J: Prancha Jacaré                            -> int
-// K: Compra Kids                               -> int
-// L: Carrinho gaiola pet                       -> int   (key: gaiolaPet)  ✅ NOVO
-// M: Bebê Jipinho                              -> int
-// N: Cestinha                                  -> int
-// O: Cadeira de rodas                          -> int
-// P: Carrinhos Quebrados                       -> int
-// Q: Carrinhos reserva                         -> int
-// R: Cestinhas reserva                         -> int
-// S: Qtd (Quantidade de movimentação)          -> int com sinal (pode ser negativo)
-// T: Motivo                                    -> string
-//
-// ✅ Ajuste solicitado (necessário para o dashboard):
-// - Expor "horaRegistro" (HH:MM:SS) extraída da coluna A (dataHoraRede)
-// - (extra) Expor "dataRegistro" (DD/MM/AAAA) extraída da coluna A
+// Colunas (A..U) — ORDEM:
+// A: Data/Hora da rede (servidor - São Paulo)
+// B: Loja
+// C: Usuário
+// D: Data Contagem (DD/MM/AAAA)
+// E: Duplocar 120L
+// F: Grande 160L
+// G: Bebê conforto 160L
+// H: Maxcar 200L
+// I: Macrocar 300L
+// J: Prancha Jacaré
+// K: Compra Kids
+// L: Carrinho gaiola pet                 -> key: carrinhoGaiolaPet
+// M: Bebê Jipinho
+// N: Cestinha
+// O: Cadeira de rodas
+// P: Carrinhos Quebrados
+// Q: Carrinhos reserva
+// R: Cestinhas reserva
+// S: Qtd Mov. (com sinal)
+// T: Motivo
+// U: ID da linha (para edição)
 //
 // Segurança:
 // - Exige sessão válida via cookie HttpOnly (requireSession)
 // - Restringe perfis: ADMINISTRADOR, GERENTE_PPP, BASE_PPP
-// - Não expõe credenciais, não aceita parâmetros sensíveis do front
 
 import { google } from "googleapis";
 import { requireSession } from "./_authUsuarios.js";
@@ -50,33 +46,21 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
-// Converte valor em inteiro >= 0, truncando decimais e tratando inválidos como 0 (para contagens)
 function asIntSafe(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.trunc(n));
 }
 
-// Converte valor em inteiro COM SINAL, truncando decimais e tratando inválidos como 0 (para movimentação - coluna S)
 function asIntSignedSafe(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return 0;
   return Math.trunc(n);
 }
 
-/* =========================================================
-   ✅ Parse seguro do campo A: "DD/MM/AAAA HH:MM:SS"
-   - Retorna { dataBR, horaHMS } ou strings vazias se inválido
-   - Isso habilita o front a deduplicar por:
-     (Loja + DataContagem) pegando o MAIOR horário (horaRegistro)
-   ========================================================= */
 function parseDataHoraRedeBR(dataHoraRede) {
   const s = String(dataHoraRede ?? "").trim();
-
-  // Aceita "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA HH:MM:SS"
-  const m = s.match(
-    /^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/
-  );
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?$/);
   if (!m) return { dataBR: "", horaHMS: "" };
 
   const dd = m[1];
@@ -95,14 +79,11 @@ function parseDataHoraRedeBR(dataHoraRede) {
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
-    return res
-      .status(405)
-      .json({ sucesso: false, message: "Método não permitido. Use GET." });
+    return res.status(405).json({ sucesso: false, message: "Método não permitido. Use GET." });
   }
 
-  // Sessão + perfis permitidos
   const session = requireSession(req, res, { allowedProfiles: PERFIS_PERMITIDOS });
-  if (!session) return; // requireSession já responde 401/403
+  if (!session) return;
 
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
@@ -114,10 +95,10 @@ export default async function handler(req, res) {
   try {
     const sheets = await getSheetsClient();
 
-    // ✅ Agora busca A:T (20 colunas)
+    // ✅ Agora busca A:U (21 colunas)
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "CARRINHOS!A:T",
+      range: "CARRINHOS!A:U",
       valueRenderOption: "UNFORMATTED_VALUE",
       dateTimeRenderOption: "FORMATTED_STRING",
     });
@@ -127,8 +108,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ sucesso: true, registros: [] });
     }
 
-    // Se existir cabeçalho, removemos.
-    // Heurística: se A1 contém "DATA" (ex: "DATA/HORA"), pula a primeira linha.
     const firstCell = String(values?.[0]?.[0] || "").toUpperCase();
     const startIndex = firstCell.includes("DATA") ? 1 : 0;
 
@@ -136,37 +115,31 @@ export default async function handler(req, res) {
 
     for (let i = startIndex; i < values.length; i++) {
       const row = values[i] || [];
+      while (row.length < 21) row.push("");
 
-      // ✅ Garante 20 colunas (A..T) para evitar undefined em linhas incompletas
-      while (row.length < 20) row.push("");
+      const dataHoraRede = String(row[0] ?? "").trim();
+      const loja         = String(row[1] ?? "").trim();
+      const usuario      = String(row[2] ?? "").trim();
+      const dataContagem = String(row[3] ?? "").trim();
 
-      // Fixos (A..D)
-      const dataHoraRede = String(row[0] ?? "").trim(); // A
-      const loja         = String(row[1] ?? "").trim(); // B
-      const usuario      = String(row[2] ?? "").trim(); // C
-      const dataContagem = String(row[3] ?? "").trim(); // D
+      const motivo = String(row[19] ?? "").trim();   // T
+      const idLinha = String(row[20] ?? "").trim();  // U
 
-      // Motivo (T)
-      const motivo = String(row[19] ?? "").trim(); // T
-
-      // ✅ NOVO: extrai data e hora a partir da coluna A
       const { dataBR: dataRegistro, horaHMS: horaRegistro } =
         parseDataHoraRedeBR(dataHoraRede);
 
-      // Monta o registro no formato esperado pelo dashboard:
       const rec = {
+        idLinha,
         dataHoraRede,
         loja,
         usuario,
         dataContagem,
 
-        // ✅ Campos usados no front para deduplicação/ordenamento por timestamp
-        horaRegistro, // "HH:MM:SS"
-        dataRegistro, // "DD/MM/AAAA"
+        horaRegistro,
+        dataRegistro,
 
-        // Motivo (compat)
         motivo,
-        movCategoria: motivo, // compat com front
+        movCategoria: motivo,
 
         contagens: {
           duplocar120:        asIntSafe(row[4]),   // E
@@ -176,32 +149,22 @@ export default async function handler(req, res) {
           macrocar300:        asIntSafe(row[8]),   // I
           pranchaJacare:      asIntSafe(row[9]),   // J
           compraKids:         asIntSafe(row[10]),  // K
-
-          // ✅ NOVO: Carrinho gaiola pet (L)
-          gaiolaPet:          asIntSafe(row[11]),  // L
-
+          carrinhoGaiolaPet:  asIntSafe(row[11]),  // L ✅
           bebeJipinho:        asIntSafe(row[12]),  // M
           cestinha:           asIntSafe(row[13]),  // N
           cadeiraRodas:       asIntSafe(row[14]),  // O
           carrinhosQuebrados: asIntSafe(row[15]),  // P
           carrinhosReserva:   asIntSafe(row[16]),  // Q
           cestinhasReserva:   asIntSafe(row[17]),  // R
-
-          // (S) Qtd (movimentação com sinal)
           movCarrinhos:       asIntSignedSafe(row[18]), // S
         },
       };
 
-      // Descarta linhas totalmente vazias
-      if (!rec.dataHoraRede && !rec.loja && !rec.usuario && !rec.dataContagem) continue;
-
+      if (!rec.dataHoraRede && !rec.loja && !rec.usuario && !rec.dataContagem && !rec.idLinha) continue;
       registros.push(rec);
     }
 
-    return res.status(200).json({
-      sucesso: true,
-      registros,
-    });
+    return res.status(200).json({ sucesso: true, registros });
   } catch (erro) {
     console.error("Erro em /api/carrinhos-listar:", erro);
     return res.status(500).json({
@@ -216,5 +179,5 @@ export default async function handler(req, res) {
   Fontes confiáveis:
   - Google Sheets API (values.get): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
   - Google API Node.js Client (JWT): https://github.com/googleapis/google-api-nodejs-client
-  - Regex (String.prototype.match): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
+  - Regex (match): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
 */
