@@ -1,17 +1,19 @@
 // /api/carrinhos-editar.js
 //
-// Atualiza contagens (E:R) na aba CARRINHOS usando o ID da coluna U.
-// Regras:
-// - Apenas POST
-// - Exige sessão válida (requireSession)
-// - Permite editar SOMENTE a loja da sessão (sem exceção)
-// - Atualiza colunas:
-//   E..R: duplocar120, grande160, bebeConforto160, maxcar200, macrocar300, pranchaJacare,
-//         compraKids, carrinhoGaiolaPet, bebeJipinho, cestinha, cadeiraRodas,
-//         carrinhosQuebrados, carrinhosReserva, cestinhasReserva
+// Atualiza contagens e movimentação na aba CARRINHOS usando o ID da coluna U.
+//
+// Atualiza:
+// - E..R: contagens (14 colunas)
+// - S: movCarrinhos (com sinal)
+// - T: motivo (texto/abreviação)
+// - C: usuário (apenas se perfil GERENTE_PPP)
+//
+// Permissões:
+// - GERENTE_PPP: pode editar qualquer loja
+// - Outros (ADMINISTRADOR, BASE_PPP): somente a loja da sessão
 //
 // Segurança:
-// - Não confia no front: valida loja do registro no servidor
+// - Não confia no front: localiza linha pelo ID (U) e valida loja/perfil no servidor
 
 import { google } from "googleapis";
 import { requireSession } from "./_authUsuarios.js";
@@ -21,6 +23,28 @@ const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
 const PERFIS_PERMITIDOS = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
+
+// Mapeia labels do editor para padrão abreviado (sem obrigar — evita quebrar)
+function normalizarMotivoParaPlanilha(raw){
+  const s = String(raw ?? "").trim();
+  if(!s) return "";
+
+  const up = s.toUpperCase();
+
+  // Já está no padrão aceito pelo teu sistema
+  const permitidos = new Set(["M.L","M.M","E.N","M_L","M_M","E_N"]);
+  if(permitidos.has(up)) return up;
+
+  // Labels do editor (se usuário trocar no select)
+  const low = s.toLowerCase();
+  if(low === "movi. entre lojas") return "M.L";
+  if(low === "movi. manutenção" || low === "movi. manutencao") return "M.M";
+  if(low === "entrada novo" || low === "entrada novos") return "E.N";
+
+  // Fallback: mantém o texto do jeito que veio (sem quebrar)
+  // (Você pode restringir depois se quiser padronizar 100%.)
+  return s;
+}
 
 async function getSheetsClient() {
   const auth = new google.auth.JWT({
@@ -35,6 +59,12 @@ function asIntSafe(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.trunc(n));
+}
+
+function asIntSignedSafe(v){
+  const n = Number(v);
+  if(!Number.isFinite(n)) return 0;
+  return Math.trunc(n);
 }
 
 function badRequest(res, msg) {
@@ -67,7 +97,7 @@ export default async function handler(req, res) {
   try {
     const sheets = await getSheetsClient();
 
-    // Lemos A:U para localizar a linha pelo ID (U)
+    // Localiza linha pelo ID (U) lendo A:U
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "CARRINHOS!A:U",
@@ -83,7 +113,6 @@ export default async function handler(req, res) {
     const firstCell = String(values?.[0]?.[0] || "").toUpperCase();
     const startIndex = firstCell.includes("DATA") ? 1 : 0;
 
-    // Localiza índice (0-based no array) e número real da linha na planilha (1-based)
     let foundIndex = -1;
     for (let i = startIndex; i < values.length; i++) {
       const row = values[i] || [];
@@ -101,20 +130,22 @@ export default async function handler(req, res) {
     const rowFound = values[foundIndex] || [];
     const lojaDaLinha = String(rowFound[1] ?? "").trim(); // B
     const lojaSessao = String(session.loja ?? "").trim();
+    const perfil = String(session.perfil ?? "").trim().toUpperCase();
 
-    // ✅ Regra: apenas loja logada pode editar
-    if (!lojaSessao || lojaDaLinha !== lojaSessao) {
-      return res.status(403).json({
-        sucesso: false,
-        message: "Você não tem permissão para editar dados dessa loja",
-      });
+    // ✅ Permissão alinhada ao HTML
+    // GERENTE_PPP edita qualquer loja; demais só a própria loja
+    if (perfil !== "GERENTE_PPP") {
+      if (!lojaSessao || lojaDaLinha !== lojaSessao) {
+        return res.status(403).json({
+          sucesso: false,
+          message: "Você não tem permissão para editar dados dessa loja",
+        });
+      }
     }
 
-    // Linha real na planilha: (foundIndex + 1) pois values[0] é linha 1
-    // Mesmo com cabeçalho, o índice já corresponde à linha real dentro do range.
-    const sheetRowNumber = foundIndex + 1;
+    const sheetRowNumber = foundIndex + 1; // linha real na planilha (1-based)
 
-    // Monta valores E..R (14 colunas)
+    // E..R (14 colunas)
     const payloadER = [
       asIntSafe(contagens.duplocar120),
       asIntSafe(contagens.grande160),
@@ -132,15 +163,41 @@ export default async function handler(req, res) {
       asIntSafe(contagens.cestinhasReserva),
     ];
 
-    // Atualiza E:R da linha encontrada
+    // S e T (movimentação)
+    const movCarrinhos = asIntSignedSafe(contagens.movCarrinhos);
+    let motivo = normalizarMotivoParaPlanilha(contagens.movCategoria);
+
+    // Regra: se mov = 0, motivo em branco
+    if (movCarrinhos === 0) motivo = "";
+
+    // ✅ Atualiza E:R
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `CARRINHOS!E${sheetRowNumber}:R${sheetRowNumber}`,
       valueInputOption: "USER_ENTERED",
-      requestBody: {
-        values: [payloadER],
-      },
+      requestBody: { values: [payloadER] },
     });
+
+    // ✅ Atualiza S:T
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `CARRINHOS!S${sheetRowNumber}:T${sheetRowNumber}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: { values: [[movCarrinhos, motivo]] },
+    });
+
+    // ✅ Se GERENTE_PPP editou, atualiza também o usuário (coluna C)
+    if (perfil === "GERENTE_PPP") {
+      const usuarioSessao = String(session.usuario ?? "").trim();
+      if (usuarioSessao) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `CARRINHOS!C${sheetRowNumber}:C${sheetRowNumber}`,
+          valueInputOption: "USER_ENTERED",
+          requestBody: { values: [[usuarioSessao]] },
+        });
+      }
+    }
 
     return res.status(200).json({
       sucesso: true,
@@ -155,10 +212,3 @@ export default async function handler(req, res) {
     });
   }
 }
-
-/*
-  Fontes confiáveis:
-  - Google Sheets API (values.get / values.update): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values
-  - valueInputOption (USER_ENTERED): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update
-  - Node Google APIs (JWT): https://github.com/googleapis/google-api-nodejs-client
-*/
