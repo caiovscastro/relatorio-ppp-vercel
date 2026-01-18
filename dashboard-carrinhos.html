@@ -934,12 +934,60 @@
     "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 25 - BRASILINHA",
   ];
 
-  // Opções de movimentação (mesmas da tela de contagem)
-  const MOV_CATEGORIAS_PADRAO = [
-    "Movi. Entre lojas",
-    "Movi. Manutenção",
-    "Entrada Novo"
+  /* =========================================================
+     ✅ AJUSTE SOLICITADO:
+     - Planilha guarda abreviado: M.L / M.M / M.N
+     - Editor mostra texto humano, mas o <option value> é o abreviado
+     - Ao salvar, envia abreviado (M.L/M.M/M.N)
+     - Leitura aceita variantes antigas: E.N, M_L, M_M, M_N, etc.
+     ========================================================= */
+  const MOV_OPCOES = [
+    { value: "M.L", label: "Movi. entre lojas" },
+    { value: "M.M", label: "Movi. Manutenção" },
+    { value: "M.N", label: "Entrada novos" }
   ];
+
+  function _semAcentoUpper(s){
+    return String(s ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .trim();
+  }
+
+  function motivoParaAbrev(raw){
+    let v = String(raw ?? "").trim();
+    if(!v) return "";
+
+    // Normaliza underscore -> ponto e caixa
+    v = v.toUpperCase().replace(/_/g, ".");
+    // Compat: se vier E.N, trata como M.N (seu novo padrão)
+    if(v === "E.N") v = "M.N";
+
+    // Se já for um dos abreviados, ok
+    if(v === "M.L" || v === "M.M" || v === "M.N") return v;
+
+    // Se vier texto humano (ou variação), mapeia
+    const key = _semAcentoUpper(v);
+
+    // Entre lojas
+    if(key.includes("ENTRE") && key.includes("LOJ")) return "M.L";
+
+    // Manutenção
+    if(key.includes("MANUT")) return "M.M";
+
+    // Entrada novos
+    if(key.includes("ENTRADA") && key.includes("NOV")) return "M.N";
+
+    // Desconhecido: não forçamos (preserva)
+    return "";
+  }
+
+  function abrevParaLabel(abrev){
+    const a = motivoParaAbrev(abrev) || String(abrev ?? "").trim().toUpperCase().replace(/_/g, ".");
+    const opt = MOV_OPCOES.find(o => o.value === a);
+    return opt ? opt.label : String(abrev ?? "").trim();
+  }
 
   let registros = [];
   let chartBar = null;
@@ -1654,33 +1702,40 @@
   function preencherSelectCategoriaMov(selectEl, valorAtual){
     selectEl.innerHTML = "";
 
-    const atual = String(valorAtual || "").trim();
+    const atualRaw = String(valorAtual || "").trim();
 
-    // Se o valor atual for diferente das opções padrão, adicionamos para manter "exatamente como está"
-    const base = [...MOV_CATEGORIAS_PADRAO];
-    const temIgual = base.some(x => x.toLowerCase() === atual.toLowerCase());
+    // Se vier abreviado (M.L/M.M/E.N) ou variações, normaliza p/ abreviado padrão
+    const atualAbrev = motivoParaAbrev(atualRaw);
 
-    if(atual && !temIgual){
+    // Se o valor atual for algo fora do mapeamento, preserva (não perde dado)
+    const jaExisteComoOpcao = MOV_OPCOES.some(o => o.value === atualRaw);
+    const desconhecido = (!!atualRaw && !atualAbrev && !jaExisteComoOpcao);
+
+    if(desconhecido){
       const opt = document.createElement("option");
-      opt.value = atual;
-      opt.textContent = atual;
+      opt.value = atualRaw;
+      opt.textContent = atualRaw;
       selectEl.appendChild(opt);
     }
 
-    for(const c of base){
+    // Opções padrão: value abreviado / texto humano
+    for(const o of MOV_OPCOES){
       const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
+      opt.value = o.value;        // ✅ gravação: abreviado
+      opt.textContent = o.label;  // ✅ exibição: humano
       selectEl.appendChild(opt);
     }
 
-    // Seleciona "exatamente" o atual quando possível
-    if(atual){
-      const opts = Array.from(selectEl.options);
-      const found = opts.find(o => o.value.toLowerCase() === atual.toLowerCase());
-      if(found) selectEl.value = found.value;
+    // Seleciona:
+    // - se foi reconhecido, seleciona pelo abreviado
+    // - se desconhecido, fica no desconhecido
+    // - se vazio, default M.L
+    if(atualAbrev){
+      selectEl.value = atualAbrev;
+    }else if(desconhecido){
+      selectEl.value = atualRaw;
     }else{
-      selectEl.value = base[0];
+      selectEl.value = MOV_OPCOES[0].value;
     }
   }
 
@@ -1720,9 +1775,9 @@
       gridEsp.appendChild(wrap);
     }
 
-    // ✅ (2) Movimentação: preenche exatamente como está
+    // ✅ Movimentação: agora o select mostra texto humano, mas mantém value abreviado
     const movSigned = getMovimentoSigned(reg);
-    const motivo = getMotivo(reg);
+    const motivo = getMotivo(reg); // pode vir abreviado (M.L etc) ou texto (legado)
 
     const direcaoEl = document.getElementById("editMovDirecao");
     const catEl = document.getElementById("editMovCategoria");
@@ -1745,17 +1800,20 @@
       out[k] = asInt(inp.value);
     });
 
-    // ✅ (2) Coleta movimentação (com sinal + motivo)
+    // ✅ Coleta movimentação (com sinal + motivo abreviado)
     const direcao = String(document.getElementById("editMovDirecao")?.value || "ENTRADA").trim();
     const qtd = asInt(document.getElementById("editMovQtd")?.value || 0);
-    const cat = String(document.getElementById("editMovCategoria")?.value || "").trim();
+
+    // ✅ agora o value do select é o abreviado (M.L/M.M/E.N)
+    const catValue = String(document.getElementById("editMovCategoria")?.value || "").trim();
+    const catAbrev = motivoParaAbrev(catValue) || catValue; // se já for M.L, mantém; se vier estranho, preserva
 
     const movSigned = (direcao === "SAIDA") ? -qtd : +qtd;
 
     out.movCarrinhos = asIntSigned(movSigned);
 
-    // Regra prática: se mov = 0, motivo deve ir em branco
-    out.movCategoria = (out.movCarrinhos === 0) ? "" : cat;
+    // Regra: se mov = 0, motivo deve ir em branco
+    out.movCategoria = (out.movCarrinhos === 0) ? "" : catAbrev;
 
     return out;
   }
@@ -1767,13 +1825,13 @@
     }
     const idLinha = String(EDIT_REG.idLinha || "").trim();
     if(!idLinha){
-      setMsg("ID da linha não encontrado (coluna U). Não foi possível salvar.");
+      setMsg("ID não encontrado, não foi possível salvar.");
       return;
     }
 
     const loja = String(EDIT_REG.loja || "").trim();
 
-    // ✅ (4) Segurança no front (backend também valida)
+    // ✅ Segurança no front (backend também valida)
     if(!podeEditarRegistro(loja)){
       closeEditor();
       openModal({
@@ -1807,7 +1865,9 @@
 
       // Atualiza registro local
       EDIT_REG.contagens = { ...(EDIT_REG.contagens||{}), ...contagens };
-      EDIT_REG.movCategoria = contagens.movCategoria; // para getMotivo()
+
+      // ✅ agora movCategoria fica abreviado (M.L/M.M/E.N) no objeto local (igual planilha)
+      EDIT_REG.movCategoria = contagens.movCategoria;
       EDIT_REG.motivo = contagens.movCategoria;
 
       // Se GERENTE_PPP editou, usuário do registro vira o usuário logado (espelha a regra do backend)
@@ -1865,9 +1925,6 @@
     });
   }
 
-  /* =========================================================
-     REGISTROS (Carrinhos por modelo) + botão de edição
-     ========================================================= */
   function renderTabelaRegistros(lista, tiposSel){
     const thead = document.getElementById("theadRegistros");
     const tbody = document.getElementById("tbodyRegistros");
@@ -1924,7 +1981,6 @@
       tr.innerHTML = `
         <td>
           <div class="edit-wrap">
-            <!-- ✅ (3) Ícone antes da loja -->
             ${podeEditar ? `<button class="edit-btn" type="button" data-edit="1" data-id="${esc(String(r.idLinha||""))}" title="Editar">✏️</button>` : ``}
             <span>${esc(lojaCurta6(lojaFull))}</span>
           </div>
@@ -1945,7 +2001,6 @@
     `;
     tbody.appendChild(trTot);
 
-    // Bind dos botões de edição (Carrinhos por modelo)
     tbody.querySelectorAll('button[data-edit="1"]').forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const id = String(btn.getAttribute("data-id") || "").trim();
@@ -1959,9 +2014,6 @@
     });
   }
 
-  /* =========================================================
-     ✅ (2) ESPECIAIS: SEM edição (remove ícone e bind)
-     ========================================================= */
   function renderTabelaEspeciais(lista, tiposSel){
     const thead = document.getElementById("theadEspeciais");
     const tbody = document.getElementById("tbodyEspeciais");
@@ -2097,7 +2149,6 @@
     aplicarBandeiraNasLojas("BIG", document.getElementById("bandBIG").checked);
     aplicarBandeiraNasLojas("ULT", document.getElementById("bandULT").checked);
 
-    // Botões editor
     document.getElementById("btnDescartarEdicao").onclick = ()=>{
       closeEditor();
       EDIT_REG = null;
@@ -2267,10 +2318,10 @@
   });
 </script>
 
-<!-- Fontes confiáveis (docs) -->
-<!-- CSS overflow/scroll: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow -->
-<!-- Flexbox (min-height:0 em flex p/ permitir scroll): https://developer.mozilla.org/en-US/docs/Web/CSS/flex -->
+<!-- Fontes confiáveis -->
+<!-- HTML select/option: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select -->
+<!-- DOM manipulation: https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement -->
 <!-- Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API -->
-<!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
+<!-- Unicode normalize (NFD): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize -->
 </body>
 </html>
