@@ -53,14 +53,17 @@
       overflow-x: hidden;
     }
 
-    /* ✅ (3) Sombra mais destacada */
+    /* ✅ (2) Sem drop shadow; com relevo (inset) */
     .shell{
       width: 100%;
       max-width: 100%;
       background:var(--card);
       padding: 18px;
       border-radius: 12px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      border: 1px solid var(--border);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -6px 14px rgba(0,0,0,0.06);
       overflow-x: hidden;
       min-width: 0;
     }
@@ -87,10 +90,6 @@
       overflow-x: hidden;
     }
 
-    /* =========================================================
-       ✅ TOPBAR:
-       - Agora contém SOMENTE o card-info (pedido 4)
-       ========================================================= */
     .card-info{
       flex: 1 1 auto;
       background:#f7f7f7;
@@ -101,8 +100,11 @@
       line-height: 1.45;
       min-width: 260px;
       overflow-x: hidden;
-      /* ✅ (3) sombra mais destacada */
-      box-shadow: 0 10px 22px rgba(0,0,0,0.14);
+
+      /* ✅ (2) sem drop shadow; relevo leve */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -6px 14px rgba(0,0,0,0.06);
     }
 
     .linha{
@@ -150,7 +152,11 @@
       background:#fff;
       padding: 22px 18px;
       border-radius: 12px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      border: 1px solid var(--border);
+      /* ✅ (2) sem drop shadow; relevo */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -6px 14px rgba(0,0,0,0.06);
       max-width: 560px;
       width: 95%;
       text-align:center;
@@ -171,7 +177,6 @@
     .grid > *{ min-width: 0; }
     @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
 
-    /* ✅ (4) Coluna esquerda vira “stack” para: card botões + filtros */
     .left-panel{
       display:flex;
       flex-direction: column;
@@ -180,14 +185,17 @@
       overflow-x: hidden;
     }
 
-    /* ✅ (4) Novo cartão de ações (acima de filtros) */
     .acoes-card{
       background:#fff;
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 12px;
-      /* ✅ (3) sombra mais destacada */
-      box-shadow: 0 10px 22px rgba(0,0,0,0.14);
+
+      /* ✅ (2) sem drop shadow; relevo */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -6px 14px rgba(0,0,0,0.06);
+
       min-width: 0;
       overflow-x: hidden;
     }
@@ -197,7 +205,6 @@
       font-weight: 900;
     }
 
-    /* Desktop: botões um sobre o outro | Mobile: lado a lado */
     .acoes-stack{
       display:flex;
       flex-direction: column;
@@ -205,9 +212,7 @@
       min-width: 0;
     }
     @media (max-width: 520px){
-      .acoes-stack{
-        flex-direction: row;
-      }
+      .acoes-stack{ flex-direction: row; }
       .acoes-stack .btn{
         flex: 1;
         white-space: nowrap;
@@ -224,8 +229,11 @@
       max-width: 100%;
       min-width: 0;
       overflow-x: hidden;
-      /* ✅ (3) sombra mais destacada */
-      box-shadow: 0 10px 22px rgba(0,0,0,0.14);
+
+      /* ✅ (2) sem drop shadow; relevo */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -6px 14px rgba(0,0,0,0.06);
     }
     .painel h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
@@ -238,8 +246,11 @@
       max-width: 100%;
       min-width: 0;
       overflow-x: hidden;
-      /* ✅ (3) sombra mais destacada */
-      box-shadow: 0 8px 18px rgba(0,0,0,0.10);
+
+      /* ✅ (2) sem drop shadow; relevo */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -6px 14px rgba(0,0,0,0.06);
     }
 
     .grupo-titulo{
@@ -305,7 +316,6 @@
     .input:focus{ border-color:var(--primary); box-shadow: 0 0 0 1px #0066ff33; }
     @media (max-width: 520px){ .input{ font-size:16px; } }
 
-    /* ✅ (5) Mais espaço para “Total geral”: left-col mais estreito no desktop */
     .content-grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -319,10 +329,6 @@
     .right-col{ min-width: 0; overflow-x: hidden; }
 
     @media (min-width: 981px){
-      /* ✅ (1) “Quantidade por Tipo” 1cm mais largo no desktop
-         - Como o card está dentro da left-col, aumentamos a trilha da coluna esquerda em +1cm
-         - Sem quebrar o mobile e sem sobrepor o card da direita
-      */
       .content-grid{ grid-template-columns: calc(360px + 1cm) 1fr; }
     }
     @media (max-width: 980px){ .content-grid{ grid-template-columns: 1fr; } }
@@ -335,8 +341,11 @@
       max-width: 100%;
       min-width: 0;
       overflow: hidden;
-      /* ✅ (3) sombra mais destacada */
-      box-shadow: 0 10px 22px rgba(0,0,0,0.14);
+
+      /* ✅ (2) sem drop shadow; relevo */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -6px 14px rgba(0,0,0,0.06);
     }
     .card h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
@@ -361,8 +370,11 @@
       padding: 12px;
       min-width: 0;
       overflow:hidden;
-      /* ✅ (3) sombra mais destacada */
-      box-shadow: 0 10px 22px rgba(0,0,0,0.14);
+
+      /* ✅ (2) sem drop shadow; relevo */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -6px 14px rgba(0,0,0,0.06);
     }
     .kpi .label{
       font-weight: 900;
@@ -378,9 +390,6 @@
       align-self: flex-end;
     }
 
-    /* =========================================================
-       ✅ FIX “GRÁFICO DESCENDO”
-       ========================================================= */
     .chart-card{
       height: 430px;
       display:flex;
@@ -420,15 +429,11 @@
       min-width: 0;
     }
 
-    /* ✅ (2) Cards de tabela com largura “justa” (sem sobrar espaço)
-       - Total geral e demais tabelas seguem a largura real das colunas
-       - Sem quebrar o mobile (max-width:100% + scroll horizontal)
-    */
     .table-card,
     .table-fit{
       width: fit-content;
       max-width: 100%;
-      justify-self: start; /* evita esticar no grid */
+      justify-self: start;
     }
 
     .msg{
@@ -442,7 +447,6 @@
     .ok{ color: var(--ok); }
 
     .table-wrap{
-      /* ✅ (2) wrapper “shrink-to-fit” + preserva scroll no mobile */
       width: max-content;
       max-width: 100%;
       overflow-x: auto;
@@ -457,8 +461,6 @@
     table{
       border-collapse: collapse;
       font-size: 12px;
-
-      /* ✅ (2) remove o “esticar” forçado e deixa a tabela seguir as colunas reais */
       width: max-content;
       min-width: 0;
       max-width: none;
@@ -510,13 +512,137 @@
       border-top: 2px solid #e0d39b;
       border-bottom: 1px solid var(--grid);
     }
+
+    /* =========================================================
+       ✅ (3) Botão pequeno de edição (ícone)
+       ========================================================= */
+    .edit-btn{
+      border: 1px solid #dcdcdc;
+      background: #f3f3f3;
+      border-radius: 8px;
+      padding: 4px 6px;
+      font-weight: 900;
+      cursor: pointer;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      user-select: none;
+    }
+    .edit-btn:hover{ background:#e9e9e9; }
+    .edit-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    /* =========================================================
+       ✅ MODAIS (popup)
+       ========================================================= */
+    .modal-overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+    }
+    .modal-overlay.show{ display:flex; }
+
+    .modal{
+      width: 100%;
+      max-width: 720px;
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 14px;
+
+      /* sem drop shadow, com relevo */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -10px 20px rgba(0,0,0,0.06);
+    }
+    .modal h3{
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .modal p{
+      margin: 0 0 12px;
+      font-weight: 800;
+      color:#222;
+      line-height: 1.35;
+    }
+    .modal-actions{
+      display:flex;
+      gap:10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .modal-actions .btn{
+      width: auto;
+      min-width: 140px;
+    }
+
+    .editor-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media (max-width: 640px){
+      .editor-grid{ grid-template-columns: 1fr; }
+    }
+    .editor-item{
+      border: 1px solid #e8e8e8;
+      border-radius: 12px;
+      padding: 10px;
+      background: #fafafa;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.85),
+        inset 0 -10px 18px rgba(0,0,0,0.04);
+    }
+    .editor-item label{
+      display:block;
+      font-weight: 900;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .editor-item input{
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #cfcfcf;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline:none;
+      background: #fff;
+    }
+    .editor-item input:focus{
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px #0066ff33;
+    }
+    .section-tag{
+      display:inline-block;
+      font-weight: 900;
+      font-size: 12px;
+      color:#333;
+      background:#eee;
+      border:1px solid #ddd;
+      padding: 4px 8px;
+      border-radius: 999px;
+      margin-top: 8px;
+    }
+
   </style>
 </head>
 
 <body>
   <div class="container">
     <div class="shell">
-      <!-- ✅ (4) Card usuário/loja acima de tudo -->
       <div class="topbar">
         <div class="card-info">
           <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
@@ -537,7 +663,6 @@
 
       <div id="app" class="hidden">
         <div class="grid">
-          <!-- ✅ (4) Novo cartão de botões acima do cartão de filtros -->
           <div class="left-panel">
             <div class="acoes-card">
               <h3>Ações</h3>
@@ -554,7 +679,6 @@
                 <div class="grupo-titulo">Datas</div>
 
                 <div class="campo" style="margin-bottom:10px;">
-                  <!-- ✅ (3) Substituído: Data de Filtro -> Data atual -->
                   <label for="dataFinal">Data atual</label>
                   <input id="dataFinal" class="input" type="date" />
                 </div>
@@ -665,6 +789,35 @@
           </div>
         </div>
       </div>
+
+      <!-- ✅ MODAL GENÉRICO -->
+      <div id="modalOverlay" class="modal-overlay" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+          <h3 id="modalTitle">Aviso</h3>
+          <p id="modalText">...</p>
+          <div class="modal-actions" id="modalActions"></div>
+        </div>
+      </div>
+
+      <!-- ✅ MODAL EDITOR -->
+      <div id="editorOverlay" class="modal-overlay" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+          <h3 id="editorTitle">Editar</h3>
+          <p id="editorSub">...</p>
+
+          <div class="section-tag">Modelos de carrinhos</div>
+          <div class="editor-grid" id="editorGridAtivos"></div>
+
+          <div class="section-tag">Especiais e reservas</div>
+          <div class="editor-grid" id="editorGridEspeciais"></div>
+
+          <div class="modal-actions">
+            <button class="btn btn-sec" id="btnDescartarEdicao">Descartar edição</button>
+            <button class="btn btn-prim" id="btnSalvarEdicao">Salvar</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -672,11 +825,9 @@
   const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-  /* =========================================================
-     ✅ (1) Ajuste: incluir Carrinho gaiola pet como “Gaiola Pet”
-     - Em todos os lugares: filtros, gráfico, tabelas
-     - Na tabela “Carrinhos por modelo”: logo após “Compra Kids”
-  ========================================================= */
+  // Sessão em memória (para permissões de edição)
+  let SESSION = null;
+
   const TIPOS = [
     { key: "duplocar120",       label: "Duplocar 120L" },
     { key: "grande160",         label: "Grande 160L" },
@@ -685,7 +836,7 @@
     { key: "macrocar300",       label: "Macrocar 300L" },
     { key: "pranchaJacare",     label: "Prancha Jacaré" },
     { key: "compraKids",        label: "Compra Kids" },
-    { key: "carrinhoGaiolaPet", label: "Gaiola Pet" },     // ✅ NOVO
+    { key: "carrinhoGaiolaPet", label: "Gaiola Pet" },
     { key: "bebeJipinho",       label: "Bebê Jipinho" },
 
     { key: "carrinhosReserva",   label: "Carrinhos reserva" },
@@ -695,9 +846,6 @@
     { key: "cadeiraRodas",       label: "Cadeira de rodas" }
   ];
 
-  /* =========================================================
-     ✅ (1) Ordem de modelos ativos (inclui Gaiola Pet após Compra Kids)
-  ========================================================= */
   const ACTIVE_KEYS = [
     "duplocar120",
     "grande160",
@@ -706,7 +854,7 @@
     "macrocar300",
     "pranchaJacare",
     "compraKids",
-    "carrinhoGaiolaPet", // ✅ NOVO (posição pedida)
+    "carrinhoGaiolaPet",
     "bebeJipinho"
   ];
 
@@ -726,7 +874,7 @@
     macrocar300: "🛒",
     pranchaJacare: "🛒",
     compraKids: "🧸",
-    carrinhoGaiolaPet: "🐶", // ✅ NOVO (ícone apenas visual)
+    carrinhoGaiolaPet: "🐶",
     bebeJipinho: "👶",
     carrinhosReserva: "🅿️",
     carrinhosQuebrados: "⚠️",
@@ -751,9 +899,6 @@
   let registros = [];
   let chartBar = null;
 
-  /* =========================
-     Formatação pt-BR
-     ========================= */
   function fmtInt(n){
     const v = Number(n);
     const safe = Number.isFinite(v) ? Math.trunc(v) : 0;
@@ -798,9 +943,6 @@
     }
   }
 
-  /* =========================================================
-     DEDUP por Loja + Data
-     ========================================================= */
   function brParaISO(br){
     const s = String(br||"").trim();
     const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -840,7 +982,8 @@
     const dataISO = brParaISO(dataBR);
     if(!dataISO) return 0;
 
-    const horaRaw = (reg?.dataHoraRede ?? "").trim();
+    // Preferimos horaRegistro (já extraída pelo backend), mas aceitamos dataHoraRede também.
+    const horaRaw = String(reg?.horaRegistro ?? reg?.dataHoraRede ?? "").trim();
     const hms = normalizarHoraParaHMS(horaRaw);
 
     const dt = new Date(`${dataISO}T${hms}`);
@@ -866,21 +1009,18 @@
     return Array.from(map.values()).map(x => x.reg);
   }
 
-  /* =========================================================
-     ✅ (6) Compatibilidade para nova ordem A:T
-     - Se o listar mudar a forma, garantimos que contagens exista
-     - E que a chave carrinhoGaiolaPet exista (0 se ausente)
-  ========================================================= */
   function normalizarRegistro(r){
     const out = { ...(r || {}) };
 
-    // Garante contagens objeto
+    // ID (coluna U) — usado na edição
+    out.idLinha = String(out.idLinha ?? out.id ?? out.rowId ?? "").trim();
+
     if(!out.contagens || typeof out.contagens !== "object") out.contagens = {};
 
-    // Se o backend mandar alguns campos “soltos” (fallback), puxamos para contagens
+    // Fallback para diferentes chaves
     const keysPossiveis = [
       "duplocar120","grande160","bebeConforto160","maxcar200","macrocar300","pranchaJacare",
-      "compraKids","carrinhoGaiolaPet","bebeJipinho",
+      "compraKids","carrinhoGaiolaPet","gaiolaPet","bebeJipinho",
       "cestinha","cadeiraRodas","carrinhosQuebrados","carrinhosReserva","cestinhasReserva",
       "movCarrinhos"
     ];
@@ -891,7 +1031,10 @@
       }
     }
 
-    // ✅ garante a nova chave
+    // Se vier do backend como "gaiolaPet", convertemos para a chave oficial do front
+    if(out.contagens.carrinhoGaiolaPet === undefined && out.contagens.gaiolaPet !== undefined){
+      out.contagens.carrinhoGaiolaPet = out.contagens.gaiolaPet;
+    }
     if(out.contagens.carrinhoGaiolaPet === undefined) out.contagens.carrinhoGaiolaPet = 0;
 
     return out;
@@ -921,7 +1064,6 @@
         return;
       }
 
-      // ✅ normaliza + dedup
       registros = manterUltimoLancamentoPorLojaEDia(dados.registros.map(normalizarRegistro));
 
       montarFiltros();
@@ -1021,18 +1163,20 @@
   }
 
   /* =========================================================
-     Dimensões (controle colunas tabela Carrinhos)
+     ✅ (1) Dimensões:
+     - Ao iniciar/atualizar: SOMENTE "Qtd Mov." e "Motivo Mov." desmarcadas
      ========================================================= */
   const DIMENSOES = [
-    { key:"qtdMov",    label:"Qtd Mov.",     defaultChecked:false },
-    { key:"motivoMov", label:"Motivo Mov.",  defaultChecked:false },
+    { key:"qtdMov",    label:"Qtd Mov.",     defaultChecked:false }, // desmarcado
+    { key:"motivoMov", label:"Motivo Mov.",  defaultChecked:false }, // desmarcado
+
     { key:"anterior",  label:"Anterior",     defaultChecked:true  },
     { key:"diferenca", label:"Diferença",    defaultChecked:true  },
-    { key:"usuario",   label:"Usuário",      defaultChecked:false },
+    { key:"usuario",   label:"Usuário",      defaultChecked:true  },
     { key:"quebrados", label:"C. Quebrados", defaultChecked:true  },
 
-    { key:"cestinhaCol", label:"Cestinha",   defaultChecked:false },
-    { key:"rodasCol",    label:"C. Rodas",   defaultChecked:false },
+    { key:"cestinhaCol", label:"Cestinha",   defaultChecked:true  },
+    { key:"rodasCol",    label:"C. Rodas",   defaultChecked:true  },
   ];
 
   function getDimensoesSelecionadas(){
@@ -1046,9 +1190,6 @@
     return out;
   }
 
-  /* =========================================================
-     SOMAS (respeitando filtro de Tipos)
-     ========================================================= */
   function somaModelosSelecionados(contagens, tiposSel){
     let s = 0;
     for(const k of ACTIVE_KEYS){
@@ -1076,9 +1217,6 @@
     return tiposSel.has("carrinhosQuebrados") ? asInt(contagens?.carrinhosQuebrados) : 0;
   }
 
-  /* =========================================================
-     ✅ (1) Coluna "Cestinha" (Total geral) respeita os checkboxes
-  ========================================================= */
   function getCestinhaParaTabela(contagens, tiposSel){
     let s = 0;
     if(tiposSel.has("cestinha")) s += asInt(contagens?.cestinha);
@@ -1105,9 +1243,6 @@
     return out;
   }
 
-  /* =========================================================
-     GRÁFICO
-     ========================================================= */
   function recalcularTotaisParaGrafico(baseFinal, tiposSel){
     const out = {};
     for(const k of ACTIVE_KEYS){
@@ -1268,9 +1403,6 @@
     });
   }
 
-  /* =========================================================
-     TABELA POR LOJA (Carrinhos)
-     ========================================================= */
   function renderTabelaPorLoja(listaFinal, listaRef, movPorLoja, tiposSel, dims){
     const thead = document.getElementById("theadPorLoja");
     const tbody = document.getElementById("tbodyPorLoja");
@@ -1291,7 +1423,6 @@
     const mapFinal = {};
     const mapRef = {};
 
-    // --------- FINAL (Atual) ----------
     for(const r of listaFinal){
       const loja = String(r.loja||"").trim();
       if(!mapFinal[loja]) mapFinal[loja] = {
@@ -1299,17 +1430,13 @@
       };
 
       const c = r.contagens || {};
-
       mapFinal[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
       mapFinal[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
-
       mapFinal[loja].cestinha += getCestinhaParaTabela(c, tiposSel);
       mapFinal[loja].rodas    += getCadeiraRodasParaTabela(c, tiposSel);
-
       mapFinal[loja].usuario = String(r.usuario || "").trim();
     }
 
-    // --------- REF (Anterior) ----------
     for(const r of listaRef){
       const loja = String(r.loja||"").trim();
       if(!mapRef[loja]) mapRef[loja] = {
@@ -1317,17 +1444,15 @@
       };
 
       const c = r.contagens || {};
-
       mapRef[loja].ativos += somaAtivosMaisReserva(c, tiposSel);
       mapRef[loja].quebrados += getQuebradosSeSelecionado(c, tiposSel);
-
       mapRef[loja].cestinha  += getCestinhaParaTabela(c, tiposSel);
       mapRef[loja].rodas     += getCadeiraRodasParaTabela(c, tiposSel);
     }
 
     const lojas = Object.keys(mapFinal);
     if(!lojas.length){
-      let cols = 2; // Loja + Atual
+      let cols = 2;
       if(showUsuario) cols += 1;
       if(showAnterior) cols += 1;
       if(showDiferenca) cols += 1;
@@ -1343,9 +1468,6 @@
 
     lojas.sort((a,b)=> lojaCurta6(a).localeCompare(lojaCurta6(b)));
 
-    /* =========================================================
-       ✅ (2) Ajuste de títulos da tabela “Total geral”
-    ========================================================= */
     const trh = document.createElement("tr");
     trh.innerHTML = `
       <th>Loja</th>
@@ -1371,7 +1493,6 @@
       const clsDiff = diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero";
 
       const quebrados = showQuebrados ? asInt(mapFinal[loja].quebrados) : 0;
-
       const cestinha = showCestinha ? asInt(mapFinal[loja].cestinha) : 0;
       const rodas    = showRodas ? asInt(mapFinal[loja].rodas) : 0;
 
@@ -1380,8 +1501,6 @@
       const movCls = mov > 0 ? "mov-pos" : mov < 0 ? "mov-neg" : "mov-zero";
 
       const motivoTxt = movObj ? (movObj.motivoTxt || "") : "";
-
-      // ✅ Se Mov. == 0, Motivo fica em branco
       const motivoExibir = (mov !== 0) ? motivoTxt : "";
 
       totAtual += atual;
@@ -1430,7 +1549,198 @@
   }
 
   /* =========================================================
-     REGISTROS (Carrinhos por modelo)
+     ✅ (3) EDITAÇÃO: Modais
+     ========================================================= */
+  function openModal({ title="Aviso", text="", buttons=[] }){
+    const overlay = document.getElementById("modalOverlay");
+    const t = document.getElementById("modalTitle");
+    const p = document.getElementById("modalText");
+    const actions = document.getElementById("modalActions");
+
+    t.textContent = title;
+    p.textContent = text;
+
+    actions.innerHTML = "";
+    for(const b of buttons){
+      const btn = document.createElement("button");
+      btn.className = `btn ${b.variant === "prim" ? "btn-prim" : "btn-sec"}`;
+      btn.textContent = b.label || "OK";
+      btn.onclick = ()=>{
+        closeModal();
+        if(typeof b.onClick === "function") b.onClick();
+      };
+      actions.appendChild(btn);
+    }
+
+    overlay.classList.add("show");
+    overlay.setAttribute("aria-hidden","false");
+  }
+  function closeModal(){
+    const overlay = document.getElementById("modalOverlay");
+    overlay.classList.remove("show");
+    overlay.setAttribute("aria-hidden","true");
+  }
+
+  function openEditor(){
+    const overlay = document.getElementById("editorOverlay");
+    overlay.classList.add("show");
+    overlay.setAttribute("aria-hidden","false");
+  }
+  function closeEditor(){
+    const overlay = document.getElementById("editorOverlay");
+    overlay.classList.remove("show");
+    overlay.setAttribute("aria-hidden","true");
+  }
+
+  function labelDoTipo(key){
+    const t = TIPOS.find(x=>x.key===key);
+    return t ? t.label : key;
+  }
+
+  // Registro atualmente em edição (referência)
+  let EDIT_REG = null;
+
+  function montarEditorParaRegistro(reg){
+    EDIT_REG = reg;
+
+    const loja = String(reg?.loja || "").trim();
+    const idLinha = String(reg?.idLinha || "").trim();
+
+    document.getElementById("editorTitle").textContent = "Editar dados da loja";
+    document.getElementById("editorSub").textContent = `Loja: ${loja} | ID: ${idLinha || "—"}`;
+
+    const c = reg?.contagens || {};
+
+    const gridAtivos = document.getElementById("editorGridAtivos");
+    const gridEsp = document.getElementById("editorGridEspeciais");
+    gridAtivos.innerHTML = "";
+    gridEsp.innerHTML = "";
+
+    for(const k of ACTIVE_KEYS){
+      const wrap = document.createElement("div");
+      wrap.className = "editor-item";
+      wrap.innerHTML = `
+        <label>${esc(labelDoTipo(k))} ${(TIPO_ICONE[k]||"")}</label>
+        <input type="number" min="0" step="1" data-edit-key="${esc(k)}" value="${asInt(c[k])}" />
+      `;
+      gridAtivos.appendChild(wrap);
+    }
+
+    for(const k of SPECIAL_KEYS){
+      const wrap = document.createElement("div");
+      wrap.className = "editor-item";
+      wrap.innerHTML = `
+        <label>${esc(labelDoTipo(k))} ${(TIPO_ICONE[k]||"")}</label>
+        <input type="number" min="0" step="1" data-edit-key="${esc(k)}" value="${asInt(c[k])}" />
+      `;
+      gridEsp.appendChild(wrap);
+    }
+  }
+
+  function coletarValoresEditor(){
+    const out = {};
+    document.querySelectorAll('input[data-edit-key]').forEach(inp=>{
+      const k = inp.getAttribute("data-edit-key");
+      out[k] = asInt(inp.value);
+    });
+    return out;
+  }
+
+  async function salvarEdicao(){
+    if(!EDIT_REG){
+      setMsg("Nenhum registro selecionado para edição.");
+      return;
+    }
+    const idLinha = String(EDIT_REG.idLinha || "").trim();
+    if(!idLinha){
+      setMsg("ID da linha não encontrado (coluna U). Não foi possível salvar.");
+      return;
+    }
+
+    const loja = String(EDIT_REG.loja || "").trim();
+    const lojaSessao = String(SESSION?.loja || "").trim();
+
+    // Segurança no front (o backend também valida)
+    if(!lojaSessao || lojaSessao !== loja){
+      closeEditor();
+      openModal({
+        title: "Permissão",
+        text: "Você não tem permissão para editar dados dessa loja",
+        buttons:[{ label:"OK" }]
+      });
+      return;
+    }
+
+    const contagens = coletarValoresEditor();
+
+    try{
+      setMsg("Salvando edição...");
+      document.getElementById("btnSalvarEdicao").disabled = true;
+      document.getElementById("btnDescartarEdicao").disabled = true;
+
+      const resp = await fetch("/api/carrinhos-editar", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type":"application/json", "Accept":"application/json" },
+        body: JSON.stringify({ idLinha, contagens })
+      });
+
+      const dados = await resp.json().catch(()=>({}));
+      if(!resp.ok || !dados?.sucesso){
+        const msg = dados?.message || "Falha ao salvar edição.";
+        setMsg(msg);
+        return;
+      }
+
+      // Atualiza registro local
+      EDIT_REG.contagens = { ...(EDIT_REG.contagens||{}), ...contagens };
+      // Atualiza também no array principal (por id)
+      const idx = registros.findIndex(x => String(x.idLinha||"") === idLinha);
+      if(idx >= 0){
+        registros[idx].contagens = { ...(registros[idx].contagens||{}), ...contagens };
+      }
+
+      closeEditor();
+      aplicarFiltrosEAtualizarTudo();
+      setMsg("Edição salva com sucesso.", true);
+
+    }catch(e){
+      console.error(e);
+      setMsg("Erro de conexão ao salvar edição.");
+    }finally{
+      document.getElementById("btnSalvarEdicao").disabled = false;
+      document.getElementById("btnDescartarEdicao").disabled = false;
+    }
+  }
+
+  function iniciarFluxoEdicao(reg){
+    const loja = String(reg?.loja || "").trim();
+    const lojaSessao = String(SESSION?.loja || "").trim();
+
+    if(!lojaSessao || lojaSessao !== loja){
+      openModal({
+        title: "Permissão",
+        text: "Você não tem permissão para editar dados dessa loja",
+        buttons:[{ label:"OK" }]
+      });
+      return;
+    }
+
+    openModal({
+      title: "Editar dados",
+      text: `Deseja editar os dados da loja ${lojaCurta6(loja)}?`,
+      buttons:[
+        { label:"Não", variant:"sec" },
+        { label:"Sim", variant:"prim", onClick: ()=>{
+            montarEditorParaRegistro(reg);
+            openEditor();
+        }}
+      ]
+    });
+  }
+
+  /* =========================================================
+     REGISTROS (Carrinhos por modelo) + botão de edição
      ========================================================= */
   function renderTabelaRegistros(lista, tiposSel){
     const thead = document.getElementById("theadRegistros");
@@ -1438,7 +1748,6 @@
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
-    // ✅ Mantém a ordem do ACTIVE_KEYS (inclui Gaiola Pet após Compra Kids)
     const modelosSel = ACTIVE_KEYS.filter(k => tiposSel.has(k));
 
     const trh = document.createElement("tr");
@@ -1482,9 +1791,15 @@
 
       totGeral += totalLinha;
 
+      const lojaFull = String(r.loja||"").trim();
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${esc(lojaCurta6(r.loja))}</td>
+        <td>
+          <div class="edit-wrap">
+            <span>${esc(lojaCurta6(lojaFull))}</span>
+            <button class="edit-btn" type="button" data-edit="1" data-id="${esc(String(r.idLinha||""))}" title="Editar">✏️</button>
+          </div>
+        </td>
         <td>${esc(r.usuario)}</td>
         ${valores.map(v=>`<td>${fmtInt(v)}</td>`).join("")}
         <td style="font-weight:900;">${fmtInt(totalLinha)}</td>
@@ -1500,10 +1815,23 @@
       <td>${fmtInt(totGeral)}</td>
     `;
     tbody.appendChild(trTot);
+
+    // Bind dos botões de edição (Carrinhos por modelo)
+    tbody.querySelectorAll('button[data-edit="1"]').forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const id = String(btn.getAttribute("data-id") || "").trim();
+        const reg = registros.find(x => String(x.idLinha||"").trim() === id) || ord.find(x => String(x.idLinha||"").trim() === id);
+        if(!reg){
+          openModal({ title:"Edição", text:"Registro não encontrado para edição.", buttons:[{label:"OK"}] });
+          return;
+        }
+        iniciarFluxoEdicao(reg);
+      });
+    });
   }
 
   /* =========================================================
-     ESPECIAIS
+     ESPECIAIS + botão de edição
      ========================================================= */
   function renderTabelaEspeciais(lista, tiposSel){
     const thead = document.getElementById("theadEspeciais");
@@ -1547,9 +1875,15 @@
         return v;
       });
 
+      const lojaFull = String(r.loja||"").trim();
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${esc(lojaCurta6(r.loja))}</td>
+        <td>
+          <div class="edit-wrap">
+            <span>${esc(lojaCurta6(lojaFull))}</span>
+            <button class="edit-btn" type="button" data-edit="1" data-id="${esc(String(r.idLinha||""))}" title="Editar">✏️</button>
+          </div>
+        </td>
         <td>${esc(r.usuario)}</td>
         ${valores.map(v=>`<td>${fmtInt(v)}</td>`).join("")}
       `;
@@ -1563,6 +1897,19 @@
       ${especiaisSel.map(k=>`<td>${fmtInt(totCol[k])}</td>`).join("")}
     `;
     tbody.appendChild(trTot);
+
+    // Bind dos botões de edição (Especiais)
+    tbody.querySelectorAll('button[data-edit="1"]').forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const id = String(btn.getAttribute("data-id") || "").trim();
+        const reg = registros.find(x => String(x.idLinha||"").trim() === id) || ord.find(x => String(x.idLinha||"").trim() === id);
+        if(!reg){
+          openModal({ title:"Edição", text:"Registro não encontrado para edição.", buttons:[{label:"OK"}] });
+          return;
+        }
+        iniciarFluxoEdicao(reg);
+      });
+    });
   }
 
   function montarFiltros(){
@@ -1638,6 +1985,14 @@
 
     aplicarBandeiraNasLojas("BIG", document.getElementById("bandBIG").checked);
     aplicarBandeiraNasLojas("ULT", document.getElementById("bandULT").checked);
+
+    // Botões editor
+    document.getElementById("btnDescartarEdicao").onclick = ()=>{
+      closeEditor();
+      EDIT_REG = null;
+      setMsg("Edição descartada.");
+    };
+    document.getElementById("btnSalvarEdicao").onclick = salvarEdicao;
   }
 
   function setChecks(tipo, valor){
@@ -1781,6 +2136,8 @@
       return;
     }
 
+    SESSION = s;
+
     const perfil = String(s.perfil||"").trim().toUpperCase();
     if(!PERFIS_PERMITIDOS.includes(perfil)){
       mostrarApp();
@@ -1802,11 +2159,10 @@
 </script>
 
 <!-- Fontes confiáveis -->
-<!-- CSS Length Units (cm, px): https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units -->
-<!-- fit-content / max-content: https://developer.mozilla.org/en-US/docs/Web/CSS/fit-content -->
-<!-- CSS Grid (justify-self): https://developer.mozilla.org/en-US/docs/Web/CSS/justify-self -->
-<!-- overflow-x / scroll containers: https://developer.mozilla.org/en-US/docs/Web/CSS/overflow-x -->
-<!-- HTML tables sizing behavior: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table -->
+<!-- CSS box-shadow (inset) e conceitos: https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow -->
+<!-- CSS Grid: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout -->
+<!-- HTML input number: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/number -->
+<!-- Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API -->
 <!-- Chart.js: https://www.chartjs.org/docs/latest/ -->
 </body>
 </html>
