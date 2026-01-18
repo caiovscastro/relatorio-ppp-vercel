@@ -128,10 +128,9 @@ function validarAbreviacao(raw) {
 }
 
 /* =====================================================================================
-   ✅ NOVO: Gerador de ID (coluna U)
-   Formato base (seu padrão): [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS]
-   + ✅ Anti-colisão leve: acrescenta [CC] (centésimos de segundo) no final.
-   Ex: U01vara10012026145128 + 07 => U01vara1001202614512807
+   ✅ ID (coluna U)
+   Formato: [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS][mmm]
+   Ex: U01vara10012026145128 + 123 => U01vara10012026145128123
 ===================================================================================== */
 function normalizarUsuarioParaId(usuario){
   const s0 = String(usuario || "").trim();
@@ -169,10 +168,9 @@ function hhmmss(dt){
   return `${pad2(dt.getHours())}${pad2(dt.getMinutes())}${pad2(dt.getSeconds())}`;
 }
 
-function centesimos(dt){
-  // 0..99 (centésimos) a partir de ms
-  const cs = Math.floor(dt.getMilliseconds() / 10);
-  return pad2(cs);
+/* ✅ AJUSTE: agora são 3 dígitos (000..999) */
+function milesimos3(dt){
+  return String(dt.getMilliseconds()).padStart(3, "0");
 }
 
 function montarIdLinha({ loja, usuario, dataLancamentoBR, dtRede }){
@@ -186,8 +184,8 @@ function montarIdLinha({ loja, usuario, dataLancamentoBR, dtRede }){
   const data8  = ddmmyyyySemBarra(dataLancamentoBR);
   const t6     = hhmmss(dtRede);
 
-  // Base solicitado + sufixo anti-colisão
-  return `${letra}${num}${user4}${data8}${t6}${centesimos(dtRede)}`;
+  // ✅ Base + milissegundos (3 dígitos)
+  return `${letra}${num}${user4}${data8}${t6}${milesimos3(dtRede)}`;
 }
 
 export default async function handler(req, res) {
@@ -296,7 +294,7 @@ export default async function handler(req, res) {
     const dtRede = nowSaoPaulo();
     const dataHoraRede = formatarDataHoraBR(dtRede);
 
-    // ✅ NOVO: ID coluna U
+    // ✅ ID coluna U (agora com 3 dígitos de ms)
     const idLinha = montarIdLinha({
       loja,
       usuario,
@@ -304,7 +302,6 @@ export default async function handler(req, res) {
       dtRede
     });
 
-    // ✅ MODELO NOVO A..U (21 colunas)
     const values = [[
       dataHoraRede,        // A
       loja,                // B
@@ -328,14 +325,14 @@ export default async function handler(req, res) {
 
       movCarrinhos,        // S
       movCategoriaColT,    // T
-      idLinha,             // U ✅ NOVO
+      idLinha,             // U ✅
     ]];
 
     const sheets = await getSheetsClient();
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "CARRINHOS!A:U", // ✅ Ajuste: agora escreve até U
+      range: "CARRINHOS!A:U",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values },
@@ -344,7 +341,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       sucesso: true,
       message: "Contagem de carrinhos enviada com sucesso.",
-      id: idLinha, // opcional: útil para log/UX futuro
+      id: idLinha,
     });
   } catch (erro) {
     console.error("Erro em /api/carrinhos:", erro);
