@@ -110,7 +110,10 @@
        ========================================================= */
     .grid{
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr)); /* ✅ evita “estouro” */
+
+      /* ✅ AJUSTE 1: 1ª coluna 20% mais larga (Ocorrências) */
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+
       gap: 12px;
       min-width: 0;
     }
@@ -970,10 +973,6 @@
 
       document.getElementById("app").style.display = "block";
 
-      /* =============================================================================
-         ✅ FIX 2: eventos de filtros NÃO chamam mais carregar()
-         Eles chamam apenas aplicarFiltros() (rápido e offline)
-         ============================================================================= */
       document.getElementById("dataInicio")?.addEventListener("change", aplicarFiltros);
       document.getElementById("dataFim")?.addEventListener("change", aplicarFiltros);
 
@@ -994,38 +993,27 @@
       setupFiltroLojas();
       setupFiltroAbordagem();
 
-      // ✅ Primeira carga: faz fetch e guarda em cache
       carregar(false);
     });
 
-    /* =============================================================================
-       ✅ FIX 1 (JS): garante que o dropdown não “vaze” para fora do viewport
-       - Importante para aparelhos onde ainda pode sobrar recorte
-       ============================================================================= */
     function clampDropdownToViewport(wrapEl, panelEl) {
       if (!wrapEl || !panelEl) return;
 
-      // reseta para deixar o CSS (desktop/mobile) agir primeiro
       panelEl.style.left = "";
       panelEl.style.right = "";
 
-      // força cálculo após display:block
       const rect = panelEl.getBoundingClientRect();
 
-      // margem de segurança
       const pad = 8;
       const vw = window.innerWidth || document.documentElement.clientWidth || 0;
 
-      // se passou para esquerda, ancora no lado esquerdo do wrap
       if (rect.left < pad) {
         panelEl.style.left = "0";
         panelEl.style.right = "auto";
       }
 
-      // recalcula se precisar
       const rect2 = panelEl.getBoundingClientRect();
       if (rect2.right > (vw - pad)) {
-        // ancora no lado direito do wrap (caso esteja estourando à direita)
         panelEl.style.right = "0";
         panelEl.style.left = "auto";
       }
@@ -1044,9 +1032,7 @@
         panel.style.display = aberto ? "none" : "block";
         btn.setAttribute("aria-expanded", aberto ? "false" : "true");
 
-        // ✅ FIX 1: ao abrir, ajusta para não cortar os checkboxes no mobile
         if (!aberto) {
-          // aguarda o navegador aplicar display:block antes de medir
           requestAnimationFrame(() => clampDropdownToViewport(wrap, panel));
         }
       });
@@ -1078,7 +1064,7 @@
 
       const onAnyChange = () => {
         atualizarTituloTurno();
-        aplicarFiltros(); // ✅ FIX 2: sem fetch
+        aplicarFiltros();
       };
 
       ckManha.addEventListener("change", onAnyChange);
@@ -1121,7 +1107,7 @@
 
       const onAnyChange = () => {
         atualizarTituloGravidade();
-        aplicarFiltros(); // ✅ FIX 2: sem fetch
+        aplicarFiltros();
       };
 
       ckLeve.addEventListener("change", onAnyChange);
@@ -1163,7 +1149,7 @@
 
       const onAnyChange = () => {
         atualizarTituloAbordagem();
-        aplicarFiltros(); // ✅ FIX 2: sem fetch
+        aplicarFiltros();
       };
 
       ckReativa.addEventListener("change", onAnyChange);
@@ -1243,7 +1229,7 @@
           sincronizarSelecaoLojasDoDOM();
           atualizarChecksBandeira();
           atualizarTituloLojas();
-          aplicarFiltros(); // ✅ FIX 2: sem fetch
+          aplicarFiltros();
         }
       });
 
@@ -1312,7 +1298,7 @@
 
           atualizarChecksBandeira();
           atualizarTituloLojas();
-          aplicarFiltros(); // ✅ FIX 2: sem fetch
+          aplicarFiltros();
         });
       });
 
@@ -1333,7 +1319,7 @@
 
           atualizarChecksBandeira();
           atualizarTituloLojas();
-          aplicarFiltros(); // ✅ FIX 2: sem fetch
+          aplicarFiltros();
         });
       });
 
@@ -1598,17 +1584,11 @@
       el.textContent = `Recup. x Rotativos: ${pctStr}%`;
     }
 
-    /* =============================================================================
-       ✅ FIX 2: carregar() agora só faz fetch quando necessário
-       - carregar(true): força fetch (botão Atualizar)
-       - carregar(false): usa cache se já existir
-       ============================================================================= */
     async function carregar(forcarFetch = false) {
       const status = document.getElementById("status");
       const subInfo = document.getElementById("subInfo");
 
       try {
-        // Se já tem cache e não forçou fetch, só aplica filtros
         if (CACHE_OK && Array.isArray(REGISTROS_CACHE) && !forcarFetch) {
           status.textContent = "Aplicando filtros (sem atualizar dados)...";
           aplicarFiltros();
@@ -1632,12 +1612,10 @@
           return;
         }
 
-        // ✅ salva cache
         REGISTROS_CACHE = dados.registros;
         CACHE_OK = true;
         CACHE_ATUALIZADO_EM = new Date();
 
-        // ✅ agora aplica filtros no cache
         status.textContent = "Dados atualizados. Aplicando filtros...";
         aplicarFiltros();
 
@@ -1648,10 +1626,6 @@
       }
     }
 
-    /* =============================================================================
-       ✅ FIX 2: aplicarFiltros() faz todo o processamento em cima do cache
-       (é basicamente o miolo da sua carregar() antiga, sem a parte do fetch)
-       ============================================================================= */
     function aplicarFiltros() {
       const status = document.getElementById("status");
       const subInfo = document.getElementById("subInfo");
@@ -1898,7 +1872,6 @@
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
           `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
 
-        // ✅ Mensagem final sem chamar API
         status.textContent = CACHE_ATUALIZADO_EM
           ? `Filtros aplicados (dados carregados em: ${CACHE_ATUALIZADO_EM.toLocaleString("pt-BR")}).`
           : "Filtros aplicados.";
@@ -2199,6 +2172,16 @@
           ctx.font = "bold 12px Arial";
           ctx.fillStyle = "#fff";
 
+          /* ✅ AJUSTE 2: anti-sobreposição de rótulos no pie (Gravidade)
+             - fatias pequenas sobem um pouco
+             - demais descem um pouco
+             - aplica espaçamento mínimo vertical para evitar cobertura
+          */
+          const area = chart.chartArea || { top: 0, bottom: chart.height, left: 0, right: chart.width };
+          const minGap = 14;
+
+          const labelsPos = [];
+
           meta.data.forEach((arc, i) => {
             if (!vis[i]) return;
 
@@ -2206,8 +2189,42 @@
             if (!(val > 0)) return;
 
             const pct = (val * 100 / totalVis);
-            const pos = arc.tooltipPosition();
-            ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
+
+            const startA = Number(arc.startAngle || 0);
+            const endA = Number(arc.endAngle || 0);
+            const midA = (startA + endA) / 2;
+            const span = Math.abs(endA - startA);
+
+            const isSmall = (span < 0.35) || (pct < 6); // ~20° ou <6% (heurística)
+
+            const outer = Number(arc.outerRadius || 0);
+            const r = outer * (isSmall ? 0.92 : 0.62);
+
+            let x = (Number(arc.x || 0) + Math.cos(midA) * r);
+            let y = (Number(arc.y || 0) + Math.sin(midA) * r);
+
+            y += isSmall ? -12 : 6;
+
+            labelsPos.push({
+              i,
+              x,
+              y,
+              text: `${pct.toFixed(1)}%`
+            });
+          });
+
+          labelsPos.sort((a, b) => a.y - b.y);
+
+          for (let k = 1; k < labelsPos.length; k++) {
+            if ((labelsPos[k].y - labelsPos[k - 1].y) < minGap) {
+              labelsPos[k].y = labelsPos[k - 1].y + minGap;
+            }
+          }
+
+          labelsPos.forEach((p) => {
+            const xClamped = Math.max(area.left + 10, Math.min(p.x, area.right - 10));
+            const yClamped = Math.max(area.top + 10, Math.min(p.y, area.bottom - 10));
+            ctx.fillText(p.text, xClamped, yClamped);
           });
 
           ctx.restore();
