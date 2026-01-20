@@ -438,7 +438,7 @@
     }
 
     /* ==============================
-       NOVO: Modal Cupom Fiscal
+       Modal Cupom Fiscal
        ============================== */
     .modal-cupom {
       max-width: 460px;
@@ -467,15 +467,17 @@
       margin: 10px 0;
     }
 
+    /* ✅ AJUSTE: adiciona coluna do ícone à esquerda */
     .cupom-cab {
       display: grid;
-      grid-template-columns: 1fr 54px 88px 98px;
+      grid-template-columns: 26px 1fr 54px 88px 98px;
       gap: 6px;
       font-size: 12px;
       font-weight: 800;
       padding-bottom: 6px;
       border-bottom: 1px dashed #777;
       margin-bottom: 6px;
+      align-items: center;
     }
 
     .cupom-itens {
@@ -486,7 +488,7 @@
 
     .cupom-row {
       display: grid;
-      grid-template-columns: 1fr 54px 88px 98px;
+      grid-template-columns: 26px 1fr 54px 88px 98px;
       gap: 6px;
       font-size: 12px;
       padding: 6px 0;
@@ -540,6 +542,24 @@
       background: #f44336 !important;
       color: #fff !important;
     }
+
+    /* ✅ NOVO: botão/ícone de editar item dentro do cupom */
+    .btn-editar-item {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1px solid #c9c9c9;
+      background: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+    .btn-editar-item:hover { filter: brightness(0.97); }
   </style>
 </head>
 
@@ -647,7 +667,7 @@
     </div>
   </div>
 
-  <!-- Modal Excluir Documento (NOVO) -->
+  <!-- Modal Excluir Documento (mantido) -->
   <div id="modalExcluirDocumento" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar exclusão</div>
@@ -659,7 +679,7 @@
     </div>
   </div>
 
-  <!-- Modal Editar Observação Documento (NOVO) -->
+  <!-- Modal Editar Observação Documento (mantido, mas agora fecha o CUPOM ao abrir) -->
   <div id="modalEditarObs" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar observação do documento</div>
@@ -676,7 +696,39 @@
     </div>
   </div>
 
-  <!-- Modal Cupom Fiscal (NOVO) -->
+  <!-- ✅ NOVO: Modal Editar Item (Qtd e Valor Un.) -->
+  <div id="modalEditarItem" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-titulo">Editar item</div>
+      <div class="modal-form">
+        <div class="form-group">
+          <label for="editItemProduto">Produto</label>
+          <input id="editItemProduto" type="text" disabled />
+        </div>
+
+        <div class="form-group">
+          <label for="editItemQtd">Qtd.</label>
+          <input id="editItemQtd" type="text" placeholder="Ex.: 2" />
+        </div>
+
+        <div class="form-group">
+          <label for="editItemValorUnit">Valor un.</label>
+          <input id="editItemValorUnit" type="text" placeholder="Ex.: 12,99" />
+        </div>
+      </div>
+
+      <div class="modal-botoes" style="margin-bottom:10px;">
+        <button class="btn-modal-cancelar btn-modal-descartar" onclick="fecharModalEditarItem()">Descartar</button>
+        <button class="btn-modal-sim btn-modal-salvar" onclick="salvarEdicaoItem()">Salvar</button>
+      </div>
+
+      <div class="modal-botoes">
+        <button class="btn-modal-sim btn-danger" onclick="eliminarItem()">Eliminar registro</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cupom Fiscal (mantido) -->
   <div id="modalCupom" class="modal-overlay">
     <div class="modal-content modal-cupom">
       <div class="cupom-titulo">CUPOM / DOCUMENTO</div>
@@ -685,6 +737,7 @@
       <div class="cupom-sep"></div>
 
       <div class="cupom-cab">
+        <div></div>
         <div>Produto</div>
         <div class="cupom-num">Qtd.</div>
         <div class="cupom-num">V. un.</div>
@@ -732,19 +785,17 @@
     let usuarioLogado = null;
     let registrosBase = [];
 
-    // ✅ NOVO: agora trabalhamos com:
-    // - registrosAtuaisItens: itens filtrados (base do XLSX e totais)
-    // - documentosAtuais: lista principal (1 cartão por documento)
     let registrosAtuaisItens = [];
     let documentosAtuais = [];
     let documentoSelecionado = null;
 
+    // ✅ NOVO: controle de edição por item
+    let itemSelecionado = null;
+    let itemSelecionadoIndex = -1;
+
     let loadingInterval = null;
     let loadingProgress = 0;
 
-    /* =============================================================================
-       ✅ header X-PPP-Session + credentials para APIs
-       ============================================================================= */
     function b64EncodeUnicode(str) {
       try { return btoa(unescape(encodeURIComponent(str))); }
       catch (e) { return btoa(str); }
@@ -964,7 +1015,6 @@
       }
     }
 
-    // ✅ Mesmo conceito do seu contarOcorrencias: documento+usuario+loja+data
     function chaveDocumento(reg) {
       const documento = (reg.documento || "").trim();
       const usuario = (reg.usuario || "").trim();
@@ -1010,7 +1060,6 @@
 
       const arr = Array.from(map.values());
 
-      // ordena por data desc, hora desc, doc
       arr.sort((a, b) => {
         const aIso = dataBRParaISO(a.dataOcorrido);
         const bIso = dataBRParaISO(b.dataOcorrido);
@@ -1061,10 +1110,8 @@
         return;
       }
 
-      // ✅ Agora a lista é por documento
       documentosAtuais = agruparDocumentos(itens);
 
-      // Totais continuam por itens (como já era)
       let totalQtd = 0;
       let totalValor = 0;
 
@@ -1085,7 +1132,6 @@
       });
       resumoOcorrencias.textContent = documentosAtuais.length.toLocaleString("pt-BR");
 
-      // ✅ Render 1 cartão por documento: Loja, Usuário, Data/Hora, Doc, Observação
       listaEl.innerHTML = documentosAtuais.map((d, index) => {
         const dataHoraExibicao = dataHoraOcorridoConcatenada(d);
         const relatorioFormatado = String(d.relatorio || "-");
@@ -1152,12 +1198,11 @@
 
     function confirmarDownload() {
       fecharModalDownload();
-      // ✅ Exporta os ITENS como sempre foi
       exportarParaXlsx(registrosAtuaisItens);
     }
 
     // ======================
-    // Cupom Fiscal (NOVO)
+    // Cupom Fiscal
     // ======================
     function abrirCupom(indexDoc) {
       const d = documentosAtuais[indexDoc] || null;
@@ -1181,7 +1226,7 @@
 
       let totalDoc = 0;
 
-      const linhas = (d.itens || []).map((r) => {
+      const linhas = (d.itens || []).map((r, idx) => {
         const produto = escapeHtml(r.produto || "-");
         const qtdNum = parseNumeroBr(r.quantidade);
         const unitNum = parseNumeroBr(r.valorUnitario);
@@ -1194,6 +1239,12 @@
 
         return `
           <div class="cupom-row">
+            <div>
+              <button class="btn-editar-item" type="button" title="Editar item"
+                onclick="abrirModalEditarItem(${idx}); event.stopPropagation();">
+                ✎
+              </button>
+            </div>
             <div class="cupom-prod">${produto}</div>
             <div class="cupom-num">${escapeHtml(qtdFmt)}</div>
             <div class="cupom-num">R$ ${escapeHtml(unitFmt)}</div>
@@ -1218,7 +1269,6 @@
       const obsTxt = String(d.relatorio || "").trim() || "-";
       obsEl.textContent = `Observação: ${obsTxt}`;
 
-      // imagem (se houver)
       imgWrap.innerHTML = "";
       const img = String(d.imageUrl || "").trim();
       if (img) {
@@ -1232,9 +1282,10 @@
       document.getElementById("modalCupom").style.display = "flex";
     }
 
-    function fecharModalCupom() {
+    // ✅ Ajuste: permite fechar o cupom sem limpar a seleção (necessário para "ficar apenas o de edição")
+    function fecharModalCupom(limparSelecao = true) {
       document.getElementById("modalCupom").style.display = "none";
-      documentoSelecionado = null;
+      if (limparSelecao) documentoSelecionado = null;
     }
 
     function abrirImagemEmNovaGuia(url) {
@@ -1243,11 +1294,15 @@
     }
 
     // ======================
-    // Editar Observação do Documento (NOVO)
-    // (Atualiza todas as linhas do documento, preservando qtd e valor unit)
+    // Editar Observação do Documento
+    // ✅ Ajuste: ao clicar em editar, o popup do CUPOM sai e fica apenas o de edição
     // ======================
     function abrirModalEditarObs() {
       if (!documentoSelecionado) return;
+
+      // fecha o cupom sem limpar a seleção (para conseguir salvar e reabrir depois)
+      fecharModalCupom(false);
+
       document.getElementById("editObsTexto").value = String(documentoSelecionado.relatorio || "");
       document.getElementById("modalEditarObs").style.display = "flex";
     }
@@ -1296,7 +1351,6 @@
             throw new Error(dados.message || "Erro ao editar registro.");
           }
 
-          // atualiza base local
           const atualizado = { ...item, relatorio: novoRelatorio };
           registrosBase = registrosBase.map((r) => (registrosIguais(r, item) ? atualizado : r));
         }
@@ -1304,7 +1358,7 @@
         statusEl.textContent = "Observação do documento atualizada com sucesso.";
         fecharModalEditarObs();
 
-        // Reaplica filtros e reabre cupom (se ainda existir)
+        // reaplica filtros e reabre cupom
         const key = documentoSelecionado.key;
         aplicarFiltrosLocal();
         const idx = documentosAtuais.findIndex(d => d.key === key);
@@ -1318,8 +1372,131 @@
     }
 
     // ======================
-    // Excluir Documento (NOVO)
-    // (Exclui todas as linhas do documento chamando a API já existente)
+    // ✅ NOVO: Editar Item (Qtd e Valor Unit)
+    // ======================
+    function abrirModalEditarItem(indexItem) {
+      if (!documentoSelecionado) return;
+
+      const itens = Array.isArray(documentoSelecionado.itens) ? documentoSelecionado.itens : [];
+      const item = itens[indexItem] || null;
+      if (!item) return;
+
+      itemSelecionado = item;
+      itemSelecionadoIndex = indexItem;
+
+      document.getElementById("editItemProduto").value = String(item.produto || "");
+      document.getElementById("editItemQtd").value = String(item.quantidade ?? "");
+      document.getElementById("editItemValorUnit").value = String(item.valorUnitario ?? "");
+
+      document.getElementById("modalEditarItem").style.display = "flex";
+    }
+
+    function fecharModalEditarItem() {
+      document.getElementById("modalEditarItem").style.display = "none";
+      itemSelecionado = null;
+      itemSelecionadoIndex = -1;
+    }
+
+    async function salvarEdicaoItem() {
+      const statusEl = document.getElementById("status");
+      if (!itemSelecionado) return;
+
+      // ✅ Confirmação solicitada
+      const ok = confirm("Você tem certeza que deseja salvar a edição?");
+      if (!ok) return;
+
+      const novaQtd = document.getElementById("editItemQtd").value;
+      const novoValorUnit = document.getElementById("editItemValorUnit").value;
+
+      try {
+        statusEl.textContent = "Salvando edição do item...";
+
+        const payload = {
+          registroOriginal: itemSelecionado,
+          edicoes: {
+            // mantém a observação atual do item (sem alterar nada além de Qtd/Valor un.)
+            relatorio: (itemSelecionado.relatorio || "").toString(),
+            quantidade: (novaQtd ?? "").toString(),
+            valorUnitario: (novoValorUnit ?? "").toString()
+          }
+        };
+
+        const resp = await fetch("/api/relatorios-editar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+
+        const dados = await resp.json().catch(() => ({}));
+        if (!resp.ok || !dados.sucesso) {
+          throw new Error(dados.message || "Erro ao editar registro.");
+        }
+
+        // atualiza base local (somente qtd e valorUnitario)
+        const atualizado = { ...itemSelecionado, quantidade: novaQtd, valorUnitario: novoValorUnit };
+        registrosBase = registrosBase.map((r) => (registrosIguais(r, itemSelecionado) ? atualizado : r));
+
+        statusEl.textContent = "Item editado com sucesso.";
+        fecharModalEditarItem();
+
+        // reaplica filtros e reabre cupom no mesmo documento
+        const key = documentoSelecionado?.key;
+        aplicarFiltrosLocal();
+        const idx = documentosAtuais.findIndex(d => d.key === key);
+        if (idx >= 0) abrirCupom(idx);
+        else fecharModalCupom();
+
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = e.message || "Erro ao salvar edição do item.";
+      }
+    }
+
+    async function eliminarItem() {
+      const statusEl = document.getElementById("status");
+      if (!itemSelecionado) return;
+
+      // ✅ Confirmação solicitada
+      const ok = confirm("Você tem certeza que deseja eliminar definitivamente o registro?");
+      if (!ok) return;
+
+      try {
+        statusEl.textContent = "Eliminando registro...";
+
+        const resp = await fetch("/api/relatorios-excluir", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+          credentials: "include",
+          body: JSON.stringify({ registro: itemSelecionado }),
+        });
+
+        const dados = await resp.json().catch(() => ({}));
+        if (!resp.ok || !dados.sucesso) {
+          throw new Error(dados.message || "Erro ao excluir registro.");
+        }
+
+        // remove da base local
+        registrosBase = registrosBase.filter((r) => !registrosIguais(r, itemSelecionado));
+
+        statusEl.textContent = "Registro eliminado com sucesso.";
+        fecharModalEditarItem();
+
+        // reaplica filtros e tenta reabrir o cupom do mesmo documento
+        const key = documentoSelecionado?.key;
+        aplicarFiltrosLocal();
+        const idx = documentosAtuais.findIndex(d => d.key === key);
+        if (idx >= 0) abrirCupom(idx);
+        else fecharModalCupom();
+
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = e.message || "Erro ao eliminar registro.";
+      }
+    }
+
+    // ======================
+    // Excluir Documento (mantido)
     // ======================
     function abrirModalExcluirDocumento() {
       if (!documentoSelecionado) return;
@@ -1368,7 +1545,7 @@
         statusEl.textContent = "Documento excluído com sucesso.";
 
         fecharModalExcluirDocumento();
-        fecharModalCupom();
+        fecharModalCupom(); // fecha e limpa seleção
         aplicarFiltrosLocal();
       } catch (e) {
         console.error(e);
@@ -1378,7 +1555,7 @@
     }
 
     // ======================
-    // Mantidos para compatibilidade (comparação de registros)
+    // Comparação de registros (mantida)
     // ======================
     function registrosIguais(a, b) {
       const idA = a.idRegistro || a.ID_REGISTRO || a.id;
