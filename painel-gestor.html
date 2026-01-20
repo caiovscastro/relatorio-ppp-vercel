@@ -339,6 +339,7 @@
     .btn-modal-sim { background: #4caf50; color: #fff; }
     .btn-modal-cancelar { background: #e0e0e0; color: #333; }
 
+    /* Overlay de carregamento (já existia) */
     #loadingOverlay {
       position: fixed;
       inset: 0;
@@ -467,7 +468,6 @@
       margin: 10px 0;
     }
 
-    /* ✅ AJUSTE: adiciona coluna do ícone à esquerda */
     .cupom-cab {
       display: grid;
       grid-template-columns: 26px 1fr 54px 88px 98px;
@@ -543,7 +543,6 @@
       color: #fff !important;
     }
 
-    /* ✅ NOVO: botão/ícone de editar item dentro do cupom */
     .btn-editar-item {
       width: 22px;
       height: 22px;
@@ -679,7 +678,7 @@
     </div>
   </div>
 
-  <!-- Modal Editar Observação Documento (mantido, mas agora fecha o CUPOM ao abrir) -->
+  <!-- Modal Editar Observação Documento (mantido) -->
   <div id="modalEditarObs" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar observação do documento</div>
@@ -696,7 +695,7 @@
     </div>
   </div>
 
-  <!-- ✅ NOVO: Modal Editar Item (Qtd e Valor Un.) -->
+  <!-- Modal Editar Item (Qtd e Valor Un.) -->
   <div id="modalEditarItem" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar item</div>
@@ -728,7 +727,7 @@
     </div>
   </div>
 
-  <!-- Modal Cupom Fiscal (mantido) -->
+  <!-- Modal Cupom Fiscal (ajustado: qualquer botão fecha o CUPOM antes) -->
   <div id="modalCupom" class="modal-overlay">
     <div class="modal-content modal-cupom">
       <div class="cupom-titulo">CUPOM / DOCUMENTO</div>
@@ -758,16 +757,17 @@
       <div class="cupom-sep"></div>
 
       <div class="modal-botoes">
-        <button class="btn-modal-cancelar" onclick="fecharModalCupom()">Fechar</button>
-        <button class="btn-modal-sim" onclick="abrirModalEditarObs()">Editar observação</button>
-        <button class="btn-modal-sim btn-danger" onclick="abrirModalExcluirDocumento()">Excluir documento</button>
+        <button class="btn-modal-cancelar" onclick="cupomAcaoFechar()">Fechar</button>
+        <button class="btn-modal-sim" onclick="cupomAcaoEditarObs()">Editar observação</button>
+        <button class="btn-modal-sim btn-danger" onclick="cupomAcaoExcluirDocumento()">Excluir documento</button>
       </div>
     </div>
   </div>
 
+  <!-- Overlay de carregamento (0 a 100% de 5 em 5, finaliza ao concluir) -->
   <div id="loadingOverlay">
     <div class="loading-box">
-      <div>Carregando relatórios...</div>
+      <div id="loadingTitle">Carregando relatórios...</div>
       <div class="loading-bar-container">
         <div id="loadingBar" class="loading-bar"></div>
       </div>
@@ -789,7 +789,6 @@
     let documentosAtuais = [];
     let documentoSelecionado = null;
 
-    // ✅ NOVO: controle de edição por item
     let itemSelecionado = null;
     let itemSelecionadoIndex = -1;
 
@@ -834,10 +833,14 @@
       window.location.href = "/dashboard.html";
     }
 
-    function iniciarProgresso() {
+    // ✅ AJUSTE: inicia progresso com título dinâmico e 0..95 de 5 em 5
+    function iniciarProgresso(titulo = "Carregando relatórios...") {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
       const percentEl = document.getElementById("loadingPercent");
+      const titleEl = document.getElementById("loadingTitle");
+
+      titleEl.textContent = titulo;
 
       loadingProgress = 0;
       bar.style.width = "0%";
@@ -854,6 +857,7 @@
       }, 120);
     }
 
+    // ✅ AJUSTE: finaliza só quando a operação concluir de fato
     function finalizarProgresso() {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
@@ -986,7 +990,7 @@
     async function carregarBaseInicial() {
       const statusEl = document.getElementById("status");
 
-      iniciarProgresso();
+      iniciarProgresso("Carregando relatórios...");
       try {
         statusEl.textContent = "Carregando relatórios...";
 
@@ -1241,7 +1245,7 @@
           <div class="cupom-row">
             <div>
               <button class="btn-editar-item" type="button" title="Editar item"
-                onclick="abrirModalEditarItem(${idx}); event.stopPropagation();">
+                onclick="cupomAcaoEditarItem(${idx}); event.stopPropagation();">
                 ✎
               </button>
             </div>
@@ -1274,15 +1278,15 @@
       if (img) {
         const safeImg = escapeHtml(img);
         imgWrap.innerHTML = `
-          <img src="${safeImg}" alt="Imagem" onclick="abrirImagemEmNovaGuia('${safeImg}')" />
-          <button class="link-abrir-imagem" type="button" onclick="abrirImagemEmNovaGuia('${safeImg}')">Abrir imagem</button>
+          <img src="${safeImg}" alt="Imagem" onclick="cupomAcaoAbrirImagem('${safeImg}')" />
+          <button class="link-abrir-imagem" type="button" onclick="cupomAcaoAbrirImagem('${safeImg}')">Abrir imagem</button>
         `;
       }
 
       document.getElementById("modalCupom").style.display = "flex";
     }
 
-    // ✅ Ajuste: permite fechar o cupom sem limpar a seleção (necessário para "ficar apenas o de edição")
+    // ✅ Mantido: permite fechar o cupom sem limpar seleção quando necessário
     function fecharModalCupom(limparSelecao = true) {
       document.getElementById("modalCupom").style.display = "none";
       if (limparSelecao) documentoSelecionado = null;
@@ -1293,16 +1297,36 @@
       window.open(url, "_blank", "noopener,noreferrer");
     }
 
+    // ✅ NOVO: ações do CUPOM — qualquer botão fecha o CUPOM / DOCUMENTO antes
+    function cupomAcaoFechar() {
+      fecharModalCupom(); // fecha e limpa seleção
+    }
+
+    function cupomAcaoEditarObs() {
+      fecharModalCupom(false); // fecha sem limpar seleção
+      abrirModalEditarObs();   // abre edição
+    }
+
+    function cupomAcaoExcluirDocumento() {
+      fecharModalCupom(false); // fecha sem limpar seleção
+      abrirModalExcluirDocumento(); // abre confirmação
+    }
+
+    function cupomAcaoEditarItem(indexItem) {
+      fecharModalCupom(false); // fecha sem limpar seleção (documento continua selecionado)
+      abrirModalEditarItem(indexItem);
+    }
+
+    function cupomAcaoAbrirImagem(url) {
+      fecharModalCupom(false); // fecha sem limpar seleção
+      abrirImagemEmNovaGuia(url);
+    }
+
     // ======================
     // Editar Observação do Documento
-    // ✅ Ajuste: ao clicar em editar, o popup do CUPOM sai e fica apenas o de edição
     // ======================
     function abrirModalEditarObs() {
       if (!documentoSelecionado) return;
-
-      // fecha o cupom sem limpar a seleção (para conseguir salvar e reabrir depois)
-      fecharModalCupom(false);
-
       document.getElementById("editObsTexto").value = String(documentoSelecionado.relatorio || "");
       document.getElementById("modalEditarObs").style.display = "flex";
     }
@@ -1325,6 +1349,9 @@
         fecharModalEditarObs();
         return;
       }
+
+      // ✅ SOLICITADO: ao clicar em Salvar, mostrar carregamento 0..100 e só finalizar ao concluir de verdade
+      iniciarProgresso("Salvando...");
 
       try {
         statusEl.textContent = "Salvando observação do documento...";
@@ -1358,7 +1385,6 @@
         statusEl.textContent = "Observação do documento atualizada com sucesso.";
         fecharModalEditarObs();
 
-        // reaplica filtros e reabre cupom
         const key = documentoSelecionado.key;
         aplicarFiltrosLocal();
         const idx = documentosAtuais.findIndex(d => d.key === key);
@@ -1368,11 +1394,13 @@
       } catch (e) {
         console.error(e);
         statusEl.textContent = e.message || "Erro ao salvar observação do documento.";
+      } finally {
+        finalizarProgresso();
       }
     }
 
     // ======================
-    // ✅ NOVO: Editar Item (Qtd e Valor Unit)
+    // Editar Item (Qtd e Valor Unit)
     // ======================
     function abrirModalEditarItem(indexItem) {
       if (!documentoSelecionado) return;
@@ -1401,12 +1429,14 @@
       const statusEl = document.getElementById("status");
       if (!itemSelecionado) return;
 
-      // ✅ Confirmação solicitada
       const ok = confirm("Você tem certeza que deseja salvar a edição?");
       if (!ok) return;
 
       const novaQtd = document.getElementById("editItemQtd").value;
       const novoValorUnit = document.getElementById("editItemValorUnit").value;
+
+      // ✅ SOLICITADO: ao clicar em Salvar, mostrar carregamento 0..100 e só finalizar ao concluir de verdade
+      iniciarProgresso("Salvando...");
 
       try {
         statusEl.textContent = "Salvando edição do item...";
@@ -1414,7 +1444,6 @@
         const payload = {
           registroOriginal: itemSelecionado,
           edicoes: {
-            // mantém a observação atual do item (sem alterar nada além de Qtd/Valor un.)
             relatorio: (itemSelecionado.relatorio || "").toString(),
             quantidade: (novaQtd ?? "").toString(),
             valorUnitario: (novoValorUnit ?? "").toString()
@@ -1433,14 +1462,12 @@
           throw new Error(dados.message || "Erro ao editar registro.");
         }
 
-        // atualiza base local (somente qtd e valorUnitario)
         const atualizado = { ...itemSelecionado, quantidade: novaQtd, valorUnitario: novoValorUnit };
         registrosBase = registrosBase.map((r) => (registrosIguais(r, itemSelecionado) ? atualizado : r));
 
         statusEl.textContent = "Item editado com sucesso.";
         fecharModalEditarItem();
 
-        // reaplica filtros e reabre cupom no mesmo documento
         const key = documentoSelecionado?.key;
         aplicarFiltrosLocal();
         const idx = documentosAtuais.findIndex(d => d.key === key);
@@ -1450,6 +1477,8 @@
       } catch (e) {
         console.error(e);
         statusEl.textContent = e.message || "Erro ao salvar edição do item.";
+      } finally {
+        finalizarProgresso();
       }
     }
 
@@ -1457,7 +1486,6 @@
       const statusEl = document.getElementById("status");
       if (!itemSelecionado) return;
 
-      // ✅ Confirmação solicitada
       const ok = confirm("Você tem certeza que deseja eliminar definitivamente o registro?");
       if (!ok) return;
 
@@ -1476,13 +1504,11 @@
           throw new Error(dados.message || "Erro ao excluir registro.");
         }
 
-        // remove da base local
         registrosBase = registrosBase.filter((r) => !registrosIguais(r, itemSelecionado));
 
         statusEl.textContent = "Registro eliminado com sucesso.";
         fecharModalEditarItem();
 
-        // reaplica filtros e tenta reabrir o cupom do mesmo documento
         const key = documentoSelecionado?.key;
         aplicarFiltrosLocal();
         const idx = documentosAtuais.findIndex(d => d.key === key);
