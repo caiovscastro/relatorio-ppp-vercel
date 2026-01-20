@@ -241,23 +241,6 @@
       display: inline-block;
     }
 
-    .cartao-linha {
-      display: grid;
-      grid-template-columns: 38% 62%;
-      padding: 4px 10px;
-      border-bottom: 1px solid #d6d6d6;
-      gap: 4px;
-      cursor: default;
-    }
-
-    .cartao-linha:last-of-type { border-bottom: none; }
-
-    .cartao-linha-produto {
-      background: #f5f5f5;
-      font-weight: 700;
-    }
-
-    .cartao-separador { border-top: 1px solid #c7c7c7; }
     .cartao-divisoria { border-top: 1px solid #c7c7c7; }
 
     .cartao-observacao {
@@ -270,51 +253,6 @@
 
     .cartao-observacao .obs-titulo { font-weight: 700; margin-bottom: 6px; color: #111; }
     .cartao-observacao .obs-texto  { white-space: pre-wrap; word-break: break-word; }
-
-    .cartao-actions {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px 10px;
-      background: #ffffff;
-      border-top: 1px solid #e0e0e0;
-      cursor: default;
-    }
-
-    .btn-excluir {
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: none;
-      background: #f44336;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-excluir:hover { background: #d32f2f; }
-
-    .btn-editar {
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: none;
-      background: #ff9800;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-editar:hover { background: #e68900; }
-
-    .valor-total-linha {
-      margin-left: 18px;
-      font-weight: 700;
-      color: #1b5e20;
-      text-shadow: 0 0 6px rgba(129, 199, 132, 0.9);
-      white-space: nowrap;
-    }
 
     .rodape {
       margin-top: 12px;
@@ -498,6 +436,110 @@
       border: none;
       padding: 0;
     }
+
+    /* ==============================
+       NOVO: Modal Cupom Fiscal
+       ============================== */
+    .modal-cupom {
+      max-width: 460px;
+      width: 92%;
+      text-align: left;
+      font-family: "Courier New", Courier, monospace;
+      padding: 16px 16px 14px;
+    }
+
+    .cupom-titulo {
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .cupom-sub {
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .cupom-sep {
+      border-top: 1px dashed #777;
+      margin: 10px 0;
+    }
+
+    .cupom-cab {
+      display: grid;
+      grid-template-columns: 1fr 54px 88px 98px;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #777;
+      margin-bottom: 6px;
+    }
+
+    .cupom-itens {
+      max-height: 44vh;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .cupom-row {
+      display: grid;
+      grid-template-columns: 1fr 54px 88px 98px;
+      gap: 6px;
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px dotted #bbb;
+      align-items: start;
+    }
+
+    .cupom-prod {
+      word-break: break-word;
+    }
+
+    .cupom-num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .cupom-totais {
+      font-size: 12px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .cupom-obs {
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .cupom-img {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cupom-img img {
+      width: 54px;
+      height: 54px;
+      border-radius: 8px;
+      border: 1px solid #d0d0d0;
+      object-fit: cover;
+      background: #f2f2f2;
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background: #f44336 !important;
+      color: #fff !important;
+    }
   </style>
 </head>
 
@@ -593,6 +635,7 @@
     </div>
   </div>
 
+  <!-- Modal Download (mantido) -->
   <div id="modalDownload" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar download</div>
@@ -604,52 +647,67 @@
     </div>
   </div>
 
-  <div id="modalExcluir" class="modal-overlay">
+  <!-- Modal Excluir Documento (NOVO) -->
+  <div id="modalExcluirDocumento" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar exclusão</div>
-      <div class="modal-texto">Você tem certeza que deseja excluir esse registro?</div>
+      <div class="modal-texto">Você tem certeza que deseja excluir este documento e todos os seus produtos?</div>
       <div class="modal-botoes">
-        <button class="btn-modal-cancelar" onclick="fecharModalExcluir()">Cancelar</button>
-        <button class="btn-modal-sim" onclick="confirmarExclusaoRegistro()">Sim</button>
+        <button class="btn-modal-cancelar" onclick="fecharModalExcluirDocumento()">Cancelar</button>
+        <button class="btn-modal-sim btn-danger" onclick="confirmarExclusaoDocumento()">Sim</button>
       </div>
     </div>
   </div>
 
-  <div id="modalEditarConfirm" class="modal-overlay">
+  <!-- Modal Editar Observação Documento (NOVO) -->
+  <div id="modalEditarObs" class="modal-overlay">
     <div class="modal-content">
-      <div class="modal-titulo">Confirmar edição</div>
-      <div class="modal-texto">Deseja mesmo editar esse registro?</div>
-      <div class="modal-botoes">
-        <button class="btn-modal-cancelar" onclick="fecharModalEditarConfirm()">Não</button>
-        <button class="btn-modal-sim" onclick="confirmarEditarConfirm()">Sim</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalEditarForm" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-titulo">Editar registro</div>
-
+      <div class="modal-titulo">Editar observação do documento</div>
       <div class="modal-form">
         <div class="form-group">
-          <label for="editQuantidade">Quantidade</label>
-          <input id="editQuantidade" type="text" inputmode="decimal" placeholder="Ex.: 1" />
-        </div>
-
-        <div class="form-group">
-          <label for="editValorUnitario">Valor unitário</label>
-          <input id="editValorUnitario" type="text" inputmode="decimal" placeholder="Ex.: 10,50" />
-        </div>
-
-        <div class="form-group">
-          <label for="editRelatorio">Relatório / Observação</label>
-          <textarea id="editRelatorio" placeholder="Digite o relatório..."></textarea>
+          <label for="editObsTexto">Observação</label>
+          <textarea id="editObsTexto" placeholder="Digite a observação..."></textarea>
         </div>
       </div>
+      <div class="modal-botoes">
+        <button class="btn-modal-cancelar" onclick="fecharModalEditarObs()">Cancelar</button>
+        <button class="btn-modal-sim btn-modal-salvar" onclick="salvarEdicaoObservacaoDocumento()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cupom Fiscal (NOVO) -->
+  <div id="modalCupom" class="modal-overlay">
+    <div class="modal-content modal-cupom">
+      <div class="cupom-titulo">CUPOM / DOCUMENTO</div>
+      <div id="cupomSub" class="cupom-sub"></div>
+
+      <div class="cupom-sep"></div>
+
+      <div class="cupom-cab">
+        <div>Produto</div>
+        <div class="cupom-num">Qtd.</div>
+        <div class="cupom-num">V. un.</div>
+        <div class="cupom-num">V. total</div>
+      </div>
+
+      <div id="cupomItens" class="cupom-itens"></div>
+
+      <div class="cupom-sep"></div>
+
+      <div id="cupomTotais" class="cupom-totais"></div>
+
+      <div class="cupom-sep"></div>
+
+      <div id="cupomObsWrap" class="cupom-obs"></div>
+      <div id="cupomImgWrap" class="cupom-img"></div>
+
+      <div class="cupom-sep"></div>
 
       <div class="modal-botoes">
-        <button class="btn-modal-cancelar btn-modal-descartar" onclick="fecharModalEditarForm()">Descartar</button>
-        <button class="btn-modal-sim btn-modal-salvar" onclick="salvarEdicaoRegistro()">Salvar</button>
+        <button class="btn-modal-cancelar" onclick="fecharModalCupom()">Fechar</button>
+        <button class="btn-modal-sim" onclick="abrirModalEditarObs()">Editar observação</button>
+        <button class="btn-modal-sim btn-danger" onclick="abrirModalExcluirDocumento()">Excluir documento</button>
       </div>
     </div>
   </div>
@@ -673,23 +731,23 @@
 
     let usuarioLogado = null;
     let registrosBase = [];
-    let registrosAtuais = [];
+
+    // ✅ NOVO: agora trabalhamos com:
+    // - registrosAtuaisItens: itens filtrados (base do XLSX e totais)
+    // - documentosAtuais: lista principal (1 cartão por documento)
+    let registrosAtuaisItens = [];
+    let documentosAtuais = [];
+    let documentoSelecionado = null;
 
     let loadingInterval = null;
     let loadingProgress = 0;
 
-    let registroParaExcluir = null;
-    let registroParaEditar = null;
-
     /* =============================================================================
-       ✅ NOVO: header X-PPP-Session + credentials para APIs
+       ✅ header X-PPP-Session + credentials para APIs
        ============================================================================= */
     function b64EncodeUnicode(str) {
-      try {
-        return btoa(unescape(encodeURIComponent(str)));
-      } catch (e) {
-        return btoa(str);
-      }
+      try { return btoa(unescape(encodeURIComponent(str))); }
+      catch (e) { return btoa(str); }
     }
 
     function getAuthHeaders() {
@@ -719,7 +777,7 @@
 
       try {
         sessionStorage.setItem(STORAGE_DASH_OK, "1");
-        sessionStorage.setItem(STORAGE_DASH_TS, String(Date.now())); // ✅ CORREÇÃO: sem isso o dashboard bloqueia
+        sessionStorage.setItem(STORAGE_DASH_TS, String(Date.now()));
       } catch (e) {}
 
       window.location.href = "/dashboard.html";
@@ -764,6 +822,16 @@
       }, 200);
     }
 
+    function escapeHtml(v) {
+      const s = String(v ?? "");
+      return s
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
     function dataBRParaISO(dataBR) {
       const s = String(dataBR || "").trim();
       if (!s) return "";
@@ -802,10 +870,10 @@
       const dataFim = document.getElementById("dataFim").value;
 
       return registrosBase.filter((reg) => {
-        if (lojaFiltro && !reg.loja.toLowerCase().includes(lojaFiltro)) return false;
-        if (usuarioFiltro && !reg.usuario.toLowerCase().includes(usuarioFiltro)) return false;
-        if (docFiltro && reg.documento !== docFiltro) return false;
-        if (depFiltro && reg.departamento.toUpperCase() !== depFiltro) return false;
+        if (lojaFiltro && !String(reg.loja || "").toLowerCase().includes(lojaFiltro)) return false;
+        if (usuarioFiltro && !String(reg.usuario || "").toLowerCase().includes(usuarioFiltro)) return false;
+        if (docFiltro && String(reg.documento || "") !== docFiltro) return false;
+        if (depFiltro && String(reg.departamento || "").toUpperCase() !== depFiltro) return false;
 
         if (dataInicio || dataFim) {
           const isoReg = dataBRParaISO(reg.dataOcorrido);
@@ -896,24 +964,422 @@
       }
     }
 
-    function contarOcorrencias(registros) {
-      const setOcorrencias = new Set();
-
-      registros.forEach((r) => {
-        const documento = (r.documento || "").trim();
-        if (!documento) return;
-
-        const usuario = (r.usuario || "").trim();
-        const loja = (r.loja || "").trim();
-        const dataStr = String(r.dataOcorrido || "").trim();
-
-        const chave = `${documento}||${usuario}||${loja}||${dataStr}`;
-        setOcorrencias.add(chave);
-      });
-
-      return setOcorrencias.size;
+    // ✅ Mesmo conceito do seu contarOcorrencias: documento+usuario+loja+data
+    function chaveDocumento(reg) {
+      const documento = (reg.documento || "").trim();
+      const usuario = (reg.usuario || "").trim();
+      const loja = (reg.loja || "").trim();
+      const dataStr = String(reg.dataOcorrido || "").trim();
+      return `${documento}||${usuario}||${loja}||${dataStr}`;
     }
 
+    function agruparDocumentos(itens) {
+      const map = new Map();
+
+      itens.forEach((r) => {
+        const doc = (r.documento || "").trim();
+        if (!doc) return;
+
+        const key = chaveDocumento(r);
+
+        if (!map.has(key)) {
+          map.set(key, {
+            key,
+            documento: doc,
+            usuario: r.usuario || "",
+            loja: r.loja || "",
+            dataOcorrido: r.dataOcorrido || "",
+            horaOcorrido: r.horaOcorrido || "",
+            relatorio: r.relatorio || "",
+            imageUrl: (r.imageUrl || r.imagemUrl || r.urlImagem || "").toString().trim(),
+            itens: []
+          });
+        }
+
+        const g = map.get(key);
+        g.itens.push(r);
+
+        const rel = String(r.relatorio || "").trim();
+        if (rel && !String(g.relatorio || "").trim()) g.relatorio = rel;
+
+        const img = (r.imageUrl || r.imagemUrl || r.urlImagem || "").toString().trim();
+        if (img && !g.imageUrl) g.imageUrl = img;
+
+        if (!g.horaOcorrido && r.horaOcorrido) g.horaOcorrido = r.horaOcorrido;
+      });
+
+      const arr = Array.from(map.values());
+
+      // ordena por data desc, hora desc, doc
+      arr.sort((a, b) => {
+        const aIso = dataBRParaISO(a.dataOcorrido);
+        const bIso = dataBRParaISO(b.dataOcorrido);
+
+        if (aIso && bIso && aIso !== bIso) return aIso < bIso ? 1 : -1;
+
+        const ah = normalizarHoraHHMM(a.horaOcorrido);
+        const bh = normalizarHoraHHMM(b.horaOcorrido);
+        if (ah !== bh) return ah < bh ? 1 : -1;
+
+        return String(a.documento).localeCompare(String(b.documento));
+      });
+
+      return arr;
+    }
+
+    function aplicarFiltrosLocal() {
+      const statusEl = document.getElementById("status");
+      const listaEl = document.getElementById("listaCartoes");
+      const resumoQtd = document.getElementById("resumoQtd");
+      const resumoQtdTotal = document.getElementById("resumoQtdTotal");
+      const resumoValorTotal = document.getElementById("resumoValorTotal");
+      const resumoOcorrencias = document.getElementById("resumoOcorrencias");
+
+      if (!registrosBase.length) {
+        statusEl.textContent = "Base ainda não carregada ou vazia.";
+        listaEl.innerHTML = "";
+        resumoQtd.textContent = "";
+        resumoQtdTotal.textContent = "0";
+        resumoValorTotal.textContent = "0,00";
+        resumoOcorrencias.textContent = "0";
+        registrosAtuaisItens = [];
+        documentosAtuais = [];
+        return;
+      }
+
+      const itens = filtrarLocal();
+      registrosAtuaisItens = itens;
+
+      if (!itens.length) {
+        statusEl.textContent = "Nenhum registro encontrado com os filtros atuais.";
+        resumoQtd.textContent = "";
+        listaEl.innerHTML = "";
+        resumoQtdTotal.textContent = "0";
+        resumoValorTotal.textContent = "0,00";
+        resumoOcorrencias.textContent = "0";
+        documentosAtuais = [];
+        return;
+      }
+
+      // ✅ Agora a lista é por documento
+      documentosAtuais = agruparDocumentos(itens);
+
+      // Totais continuam por itens (como já era)
+      let totalQtd = 0;
+      let totalValor = 0;
+
+      itens.forEach((r) => {
+        const qtd = parseNumeroBr(r.quantidade);
+        const vUnit = parseNumeroBr(r.valorUnitario);
+        totalQtd += qtd;
+        totalValor += qtd * vUnit;
+      });
+
+      statusEl.textContent = `${documentosAtuais.length} documento(s) encontrado(s).`;
+      resumoQtd.textContent = `Itens retornados: ${itens.length} | Documentos: ${documentosAtuais.length}`;
+
+      resumoQtdTotal.textContent = totalQtd.toLocaleString("pt-BR");
+      resumoValorTotal.textContent = totalValor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      resumoOcorrencias.textContent = documentosAtuais.length.toLocaleString("pt-BR");
+
+      // ✅ Render 1 cartão por documento: Loja, Usuário, Data/Hora, Doc, Observação
+      listaEl.innerHTML = documentosAtuais.map((d, index) => {
+        const dataHoraExibicao = dataHoraOcorridoConcatenada(d);
+        const relatorioFormatado = String(d.relatorio || "-");
+
+        return `
+          <div class="cartao" onclick="abrirCupom(${index})">
+            <div class="cartao-pares cartao-pares-superior">
+              <div class="cartao-pareado">
+                <span class="rotulo">Data/Hora:</span>
+                <span class="valor valor-compacto">${escapeHtml(dataHoraExibicao)}</span>
+              </div>
+              <div class="cartao-pareado pareado-usuario">
+                <span class="rotulo">Usuário:</span>
+                <span class="valor">${escapeHtml(d.usuario || "-")}</span>
+              </div>
+            </div>
+
+            <div class="cartao-pares cartao-pares-inferior">
+              <div class="cartao-pareado cartao-pareado-loja pareado-loja">
+                <span class="rotulo">Loja:</span>
+                <span class="valor valor-compacto">${escapeHtml(d.loja || "-")}</span>
+              </div>
+              <div class="cartao-pareado pareado-doc">
+                <span class="rotulo">Doc:</span>
+                <span class="valor valor-documento">${escapeHtml(d.documento || "-")}</span>
+              </div>
+            </div>
+
+            <div class="cartao-divisoria"></div>
+
+            <div class="cartao-observacao">
+              <div class="obs-titulo">Observação:</div>
+              <div class="obs-texto">${escapeHtml(relatorioFormatado)}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function limparFiltros() {
+      document.getElementById("filtroLoja").value = "";
+      document.getElementById("filtroUsuario").value = "";
+      document.getElementById("filtroDocumento").value = "";
+      document.getElementById("filtroDepartamento").value = "";
+      document.getElementById("dataInicio").value = "";
+      document.getElementById("dataFim").value = "";
+      aplicarFiltrosLocal();
+    }
+
+    // ======================
+    // XLSX (mantido)
+    // ======================
+    function abrirModalDownload() {
+      if (!registrosAtuaisItens || !registrosAtuaisItens.length) {
+        alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
+        return;
+      }
+      document.getElementById("modalDownload").style.display = "flex";
+    }
+
+    function fecharModalDownload() {
+      document.getElementById("modalDownload").style.display = "none";
+    }
+
+    function confirmarDownload() {
+      fecharModalDownload();
+      // ✅ Exporta os ITENS como sempre foi
+      exportarParaXlsx(registrosAtuaisItens);
+    }
+
+    // ======================
+    // Cupom Fiscal (NOVO)
+    // ======================
+    function abrirCupom(indexDoc) {
+      const d = documentosAtuais[indexDoc] || null;
+      if (!d) return;
+
+      documentoSelecionado = d;
+
+      const sub = document.getElementById("cupomSub");
+      const itensEl = document.getElementById("cupomItens");
+      const totaisEl = document.getElementById("cupomTotais");
+      const obsEl = document.getElementById("cupomObsWrap");
+      const imgWrap = document.getElementById("cupomImgWrap");
+
+      const dataHora = dataHoraOcorridoConcatenada(d);
+
+      sub.textContent =
+        `Loja: ${d.loja || "-"}\n` +
+        `Usuário: ${d.usuario || "-"}\n` +
+        `Data/Hora: ${dataHora}\n` +
+        `Documento: ${d.documento || "-"}`;
+
+      let totalDoc = 0;
+
+      const linhas = (d.itens || []).map((r) => {
+        const produto = escapeHtml(r.produto || "-");
+        const qtdNum = parseNumeroBr(r.quantidade);
+        const unitNum = parseNumeroBr(r.valorUnitario);
+        const totNum = qtdNum * unitNum;
+        totalDoc += totNum;
+
+        const qtdFmt = qtdNum.toLocaleString("pt-BR");
+        const unitFmt = unitNum.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const totFmt = totNum.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        return `
+          <div class="cupom-row">
+            <div class="cupom-prod">${produto}</div>
+            <div class="cupom-num">${escapeHtml(qtdFmt)}</div>
+            <div class="cupom-num">R$ ${escapeHtml(unitFmt)}</div>
+            <div class="cupom-num">R$ ${escapeHtml(totFmt)}</div>
+          </div>
+        `;
+      }).join("");
+
+      itensEl.innerHTML = linhas || `<div style="font-size:12px;">Nenhum item encontrado para este documento.</div>`;
+
+      totaisEl.innerHTML = `
+        <div>Total de itens:</div>
+        <div>${(d.itens || []).length}</div>
+      `;
+
+      const totalFmt = totalDoc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      totaisEl.innerHTML += `
+        <div style="margin-left:auto;">Total do documento:</div>
+        <div>R$ ${escapeHtml(totalFmt)}</div>
+      `;
+
+      const obsTxt = String(d.relatorio || "").trim() || "-";
+      obsEl.textContent = `Observação: ${obsTxt}`;
+
+      // imagem (se houver)
+      imgWrap.innerHTML = "";
+      const img = String(d.imageUrl || "").trim();
+      if (img) {
+        const safeImg = escapeHtml(img);
+        imgWrap.innerHTML = `
+          <img src="${safeImg}" alt="Imagem" onclick="abrirImagemEmNovaGuia('${safeImg}')" />
+          <button class="link-abrir-imagem" type="button" onclick="abrirImagemEmNovaGuia('${safeImg}')">Abrir imagem</button>
+        `;
+      }
+
+      document.getElementById("modalCupom").style.display = "flex";
+    }
+
+    function fecharModalCupom() {
+      document.getElementById("modalCupom").style.display = "none";
+      documentoSelecionado = null;
+    }
+
+    function abrirImagemEmNovaGuia(url) {
+      if (!url) return;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    // ======================
+    // Editar Observação do Documento (NOVO)
+    // (Atualiza todas as linhas do documento, preservando qtd e valor unit)
+    // ======================
+    function abrirModalEditarObs() {
+      if (!documentoSelecionado) return;
+      document.getElementById("editObsTexto").value = String(documentoSelecionado.relatorio || "");
+      document.getElementById("modalEditarObs").style.display = "flex";
+    }
+
+    function fecharModalEditarObs() {
+      document.getElementById("modalEditarObs").style.display = "none";
+    }
+
+    async function salvarEdicaoObservacaoDocumento() {
+      const statusEl = document.getElementById("status");
+      if (!documentoSelecionado) {
+        fecharModalEditarObs();
+        return;
+      }
+
+      const novoRelatorio = document.getElementById("editObsTexto").value;
+      const itens = Array.isArray(documentoSelecionado.itens) ? documentoSelecionado.itens : [];
+
+      if (!itens.length) {
+        fecharModalEditarObs();
+        return;
+      }
+
+      try {
+        statusEl.textContent = "Salvando observação do documento...";
+
+        for (const item of itens) {
+          const payload = {
+            registroOriginal: item,
+            edicoes: {
+              quantidade: (item.quantidade || "").toString(),
+              valorUnitario: (item.valorUnitario || "").toString(),
+              relatorio: novoRelatorio
+            }
+          };
+
+          const resp = await fetch("/api/relatorios-editar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+            credentials: "include",
+            body: JSON.stringify(payload),
+          });
+
+          const dados = await resp.json().catch(() => ({}));
+          if (!resp.ok || !dados.sucesso) {
+            throw new Error(dados.message || "Erro ao editar registro.");
+          }
+
+          // atualiza base local
+          const atualizado = { ...item, relatorio: novoRelatorio };
+          registrosBase = registrosBase.map((r) => (registrosIguais(r, item) ? atualizado : r));
+        }
+
+        statusEl.textContent = "Observação do documento atualizada com sucesso.";
+        fecharModalEditarObs();
+
+        // Reaplica filtros e reabre cupom (se ainda existir)
+        const key = documentoSelecionado.key;
+        aplicarFiltrosLocal();
+        const idx = documentosAtuais.findIndex(d => d.key === key);
+        if (idx >= 0) abrirCupom(idx);
+        else fecharModalCupom();
+
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = e.message || "Erro ao salvar observação do documento.";
+      }
+    }
+
+    // ======================
+    // Excluir Documento (NOVO)
+    // (Exclui todas as linhas do documento chamando a API já existente)
+    // ======================
+    function abrirModalExcluirDocumento() {
+      if (!documentoSelecionado) return;
+      document.getElementById("modalExcluirDocumento").style.display = "flex";
+    }
+
+    function fecharModalExcluirDocumento() {
+      document.getElementById("modalExcluirDocumento").style.display = "none";
+    }
+
+    async function confirmarExclusaoDocumento() {
+      const statusEl = document.getElementById("status");
+
+      if (!documentoSelecionado) {
+        fecharModalExcluirDocumento();
+        return;
+      }
+
+      const itens = Array.isArray(documentoSelecionado.itens) ? documentoSelecionado.itens : [];
+      if (!itens.length) {
+        fecharModalExcluirDocumento();
+        return;
+      }
+
+      try {
+        statusEl.textContent = "Excluindo documento...";
+
+        for (const item of itens) {
+          const payload = { registro: item };
+
+          const resp = await fetch("/api/relatorios-excluir", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+            credentials: "include",
+            body: JSON.stringify(payload),
+          });
+
+          const dados = await resp.json().catch(() => ({}));
+          if (!resp.ok || !dados.sucesso) {
+            throw new Error(dados.message || "Erro ao excluir registro.");
+          }
+
+          registrosBase = registrosBase.filter((r) => !registrosIguais(r, item));
+        }
+
+        statusEl.textContent = "Documento excluído com sucesso.";
+
+        fecharModalExcluirDocumento();
+        fecharModalCupom();
+        aplicarFiltrosLocal();
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = e.message || "Erro ao excluir documento.";
+        fecharModalExcluirDocumento();
+      }
+    }
+
+    // ======================
+    // Mantidos para compatibilidade (comparação de registros)
+    // ======================
     function registrosIguais(a, b) {
       const idA = a.idRegistro || a.ID_REGISTRO || a.id;
       const idB = b.idRegistro || b.ID_REGISTRO || b.id;
@@ -939,345 +1405,9 @@
       );
     }
 
-    function preencherFiltrosPorRegistro(index) {
-      const r = registrosAtuais[index];
-      if (!r) return;
-
-      document.getElementById("filtroLoja").value = (r.loja || "").toString();
-      document.getElementById("filtroUsuario").value = (r.usuario || "").toString();
-      document.getElementById("filtroDocumento").value = (r.documento || "").toString();
-    }
-
-    function abrirImagemEmNovaGuia(url) {
-      if (!url) return;
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-
-    function aplicarFiltrosLocal() {
-      const statusEl = document.getElementById("status");
-      const listaEl = document.getElementById("listaCartoes");
-      const resumoQtd = document.getElementById("resumoQtd");
-      const resumoQtdTotal = document.getElementById("resumoQtdTotal");
-      const resumoValorTotal = document.getElementById("resumoValorTotal");
-      const resumoOcorrencias = document.getElementById("resumoOcorrencias");
-
-      if (!registrosBase.length) {
-        statusEl.textContent = "Base ainda não carregada ou vazia.";
-        listaEl.innerHTML = "";
-        resumoQtd.textContent = "";
-        resumoQtdTotal.textContent = "0";
-        resumoValorTotal.textContent = "0,00";
-        resumoOcorrencias.textContent = "0";
-        return;
-      }
-
-      const registros = filtrarLocal();
-
-      if (!registros.length) {
-        statusEl.textContent = "Nenhum registro encontrado com os filtros atuais.";
-        resumoQtd.textContent = "";
-        listaEl.innerHTML = "";
-        registrosAtuais = [];
-        resumoQtdTotal.textContent = "0";
-        resumoValorTotal.textContent = "0,00";
-        resumoOcorrencias.textContent = "0";
-        return;
-      }
-
-      registrosAtuais = registros;
-
-      let totalQtd = 0;
-      let totalValor = 0;
-
-      registros.forEach((r) => {
-        const qtd = parseNumeroBr(r.quantidade);
-        const vUnit = parseNumeroBr(r.valorUnitario);
-        totalQtd += qtd;
-        totalValor += qtd * vUnit;
-      });
-
-      const qtdOcorrencias = contarOcorrencias(registros);
-
-      statusEl.textContent = `${registros.length} registro(s) encontrado(s).`;
-      resumoQtd.textContent = `Total de registros retornados: ${registros.length}`;
-
-      resumoQtdTotal.textContent = totalQtd.toLocaleString("pt-BR");
-      resumoValorTotal.textContent = totalValor.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-      resumoOcorrencias.textContent = qtdOcorrencias.toLocaleString("pt-BR");
-
-      listaEl.innerHTML = registros
-        .map((r, index) => {
-          const relatorioFormatado = r.relatorio || "-";
-
-          let totalLinhaFormatado = "";
-          if (r.quantidade && r.valorUnitario) {
-            const qtdNum = parseNumeroBr(r.quantidade);
-            const vUnitNum = parseNumeroBr(r.valorUnitario);
-            const totalNum = qtdNum * vUnitNum;
-
-            totalLinhaFormatado = totalNum.toLocaleString("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            });
-          }
-
-          const imageUrl = (r.imageUrl || r.imagemUrl || r.urlImagem || "").toString().trim();
-          const dataHoraExibicao = dataHoraOcorridoConcatenada(r);
-
-          return `
-            <div class="cartao" onclick="preencherFiltrosPorRegistro(${index})">
-              <div class="cartao-pares cartao-pares-superior">
-                <div class="cartao-pareado">
-                  <span class="rotulo">Data/Hora:</span>
-                  <span class="valor valor-compacto">${dataHoraExibicao}</span>
-                </div>
-                <div class="cartao-pareado pareado-usuario">
-                  <span class="rotulo">Usuário:</span>
-                  <span class="valor">${r.usuario || "-"}</span>
-                </div>
-              </div>
-              <div class="cartao-pares cartao-pares-inferior">
-                <div class="cartao-pareado cartao-pareado-loja pareado-loja">
-                  <span class="rotulo">Loja:</span>
-                  <span class="valor valor-compacto">${r.loja || "-"}</span>
-                </div>
-                <div class="cartao-pareado pareado-doc">
-                  <span class="rotulo">Doc:</span>
-                  <span class="valor valor-documento">${r.documento || "-"}</span>
-                </div>
-              </div>
-
-              <div class="cartao-separador"></div>
-              <div class="cartao-linha">
-                <span class="rotulo">EAN</span>
-                <span class="valor">${r.ean || "-"}</span>
-              </div>
-              <div class="cartao-linha cartao-linha-produto">
-                <span class="rotulo">Produto</span>
-                <span class="valor">${r.produto || "-"}</span>
-              </div>
-
-              <div class="cartao-linha">
-                <span class="rotulo">Seção</span>
-                <span class="valor">${r.secao || "-"}</span>
-              </div>
-              <div class="cartao-linha">
-                <span class="rotulo">Quantidade</span>
-                <span class="valor">${r.quantidade || "-"}</span>
-              </div>
-              <div class="cartao-linha">
-                <span class="rotulo">Valor Unitário</span>
-                <span class="valor">
-                  ${r.valorUnitario || "-"}
-                  ${
-                    totalLinhaFormatado
-                      ? `<span class="valor-total-linha">Total: ${totalLinhaFormatado}</span>`
-                      : ""
-                  }
-                </span>
-              </div>
-
-              <div class="cartao-divisoria"></div>
-              <div class="cartao-observacao">
-                <div class="obs-titulo">Relatório:</div>
-                <div class="obs-texto">${relatorioFormatado}</div>
-              </div>
-
-              <div class="cartao-actions">
-                ${
-                  imageUrl
-                    ? `
-                      <span class="imagem-mini-wrap">
-                        <img
-                          class="imagem-mini"
-                          src="${imageUrl}"
-                          alt="Miniatura"
-                          onclick="event.stopPropagation(); abrirImagemEmNovaGuia('${imageUrl}')"
-                        />
-                        <button
-                          class="link-abrir-imagem"
-                          onclick="event.stopPropagation(); abrirImagemEmNovaGuia('${imageUrl}')"
-                          type="button"
-                        >Abrir imagem</button>
-                      </span>
-                    `
-                    : ``
-                }
-
-                <button class="btn-editar" onclick="event.stopPropagation(); abrirModalEditar(${index})">Editar</button>
-                <button class="btn-excluir" onclick="event.stopPropagation(); abrirModalExcluir(${index})">Excluir</button>
-              </div>
-            </div>
-          `;
-        })
-        .join("");
-    }
-
-    function limparFiltros() {
-      document.getElementById("filtroLoja").value = "";
-      document.getElementById("filtroUsuario").value = "";
-      document.getElementById("filtroDocumento").value = "";
-      document.getElementById("filtroDepartamento").value = "";
-      document.getElementById("dataInicio").value = "";
-      document.getElementById("dataFim").value = "";
-      aplicarFiltrosLocal();
-    }
-
-    function abrirModalDownload() {
-      if (!registrosAtuais || !registrosAtuais.length) {
-        alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
-        return;
-      }
-      document.getElementById("modalDownload").style.display = "flex";
-    }
-
-    function fecharModalDownload() {
-      document.getElementById("modalDownload").style.display = "none";
-    }
-
-    function confirmarDownload() {
-      fecharModalDownload();
-      exportarParaXlsx(registrosAtuais);
-    }
-
-    function abrirModalExcluir(index) {
-      registroParaExcluir = registrosAtuais[index] || null;
-      if (!registroParaExcluir) return;
-      document.getElementById("modalExcluir").style.display = "flex";
-    }
-
-    function fecharModalExcluir() {
-      registroParaExcluir = null;
-      document.getElementById("modalExcluir").style.display = "none";
-    }
-
-    async function confirmarExclusaoRegistro() {
-      const statusEl = document.getElementById("status");
-
-      if (!registroParaExcluir) {
-        fecharModalExcluir();
-        return;
-      }
-
-      const payload = { registro: registroParaExcluir };
-
-      try {
-        statusEl.textContent = "Excluindo registro...";
-        const resp = await fetch("/api/relatorios-excluir", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-
-        const dados = await resp.json().catch(() => ({}));
-
-        if (!resp.ok || !dados.sucesso) {
-          statusEl.textContent = dados.message || "Erro ao excluir registro.";
-          fecharModalExcluir();
-          return;
-        }
-
-        registrosBase = registrosBase.filter((reg) => !registrosIguais(reg, registroParaExcluir));
-        registrosAtuais = registrosAtuais.filter((reg) => !registrosIguais(reg, registroParaExcluir));
-
-        statusEl.textContent = "Registro excluído com sucesso.";
-        fecharModalExcluir();
-        aplicarFiltrosLocal();
-      } catch (erro) {
-        console.error("Erro ao excluir registro:", erro);
-        statusEl.textContent = "Erro de conexão ao excluir registro.";
-        fecharModalExcluir();
-      }
-    }
-
-    function abrirModalEditar(index) {
-      registroParaEditar = registrosAtuais[index] || null;
-      if (!registroParaEditar) return;
-      document.getElementById("modalEditarConfirm").style.display = "flex";
-    }
-
-    function fecharModalEditarConfirm() {
-      document.getElementById("modalEditarConfirm").style.display = "none";
-    }
-
-    function confirmarEditarConfirm() {
-      fecharModalEditarConfirm();
-      if (!registroParaEditar) return;
-
-      document.getElementById("editQuantidade").value = (registroParaEditar.quantidade || "").toString();
-      document.getElementById("editValorUnitario").value = (registroParaEditar.valorUnitario || "").toString();
-      document.getElementById("editRelatorio").value = (registroParaEditar.relatorio || "").toString();
-
-      document.getElementById("modalEditarForm").style.display = "flex";
-    }
-
-    function fecharModalEditarForm() {
-      document.getElementById("modalEditarForm").style.display = "none";
-      registroParaEditar = null;
-    }
-
-    async function salvarEdicaoRegistro() {
-      const statusEl = document.getElementById("status");
-
-      if (!registroParaEditar) {
-        fecharModalEditarForm();
-        return;
-      }
-
-      const novaQtd = document.getElementById("editQuantidade").value.trim();
-      const novoValorUnit = document.getElementById("editValorUnitario").value.trim();
-      const novoRelatorio = document.getElementById("editRelatorio").value;
-
-      const payload = {
-        registroOriginal: registroParaEditar,
-        edicoes: {
-          quantidade: novaQtd,
-          valorUnitario: novoValorUnit,
-          relatorio: novoRelatorio
-        }
-      };
-
-      try {
-        statusEl.textContent = "Salvando edição...";
-
-        const resp = await fetch("/api/relatorios-editar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-
-        const dados = await resp.json().catch(() => ({}));
-
-        if (!resp.ok || !dados.sucesso) {
-          statusEl.textContent = dados.message || "Erro ao editar registro.";
-          return;
-        }
-
-        const registroAtualizado = {
-          ...registroParaEditar,
-          quantidade: novaQtd,
-          valorUnitario: novoValorUnit,
-          relatorio: novoRelatorio
-        };
-
-        registrosBase = registrosBase.map((reg) => (registrosIguais(reg, registroParaEditar) ? registroAtualizado : reg));
-        registrosAtuais = registrosAtuais.map((reg) => (registrosIguais(reg, registroParaEditar) ? registroAtualizado : reg));
-
-        statusEl.textContent = dados.message || "Registro editado com sucesso.";
-
-        fecharModalEditarForm();
-        aplicarFiltrosLocal();
-      } catch (erro) {
-        console.error("Erro ao editar registro:", erro);
-        statusEl.textContent = "Erro de conexão ao editar registro.";
-      }
-    }
-
+    // ======================
+    // XLSX (NÃO ALTERADO)
+    // ======================
     function exportarParaXlsx(registros) {
       const cabecalho = [
         "Loja",
