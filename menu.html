@@ -27,6 +27,22 @@
       box-sizing: border-box;
     }
 
+    /* ✅ NOVO: área do logo no topo do menu (somente isso foi adicionado) */
+    .logo-menu{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin: 0 0 10px;
+    }
+    .logo-menu img{
+      max-width: 220px;
+      width: 70%;
+      height: auto;
+      display:block;
+      user-select:none;
+      -webkit-user-drag: none;
+    }
+
     .titulo{
       text-align:center;
       margin: 0 0 14px;
@@ -92,6 +108,12 @@
 
 <body>
   <div class="container">
+
+    <!-- ✅ NOVO: logo no topo do menu -->
+    <div class="logo-menu">
+      <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo PPP" />
+    </div>
+
     <h2 class="titulo">MENU PPP</h2>
 
     <!-- Card só faz sentido LOGADO (vai ficar oculto quando deslogado) -->
