@@ -1608,11 +1608,63 @@
       el.textContent = `Recup. x Rotativos: ${pctStr}%`;
     }
 
+    /* =========================================================
+       ✅ (NOVO) Progresso 0–100% (5 em 5) e só some após concluir envio
+       ========================================================= */
+    let __envioTimer = null;
+    let __envioPct = 0;
+
+    function iniciarProgressoEnvio() {
+      const overlay = document.getElementById("envioOverlay");
+      const pctEl = document.getElementById("envioPct");
+      if (!overlay || !pctEl) return;
+
+      if (__envioTimer) {
+        clearInterval(__envioTimer);
+        __envioTimer = null;
+      }
+
+      __envioPct = 0;
+      pctEl.textContent = "0%";
+      overlay.style.display = "flex";
+
+      __envioTimer = setInterval(() => {
+        if (__envioPct < 95) {
+          __envioPct += 5;
+          pctEl.textContent = `${__envioPct}%`;
+        }
+      }, 120);
+    }
+
+    function finalizarProgressoEnvio() {
+      const overlay = document.getElementById("envioOverlay");
+      const pctEl = document.getElementById("envioPct");
+      if (!overlay || !pctEl) return;
+
+      if (__envioTimer) {
+        clearInterval(__envioTimer);
+        __envioTimer = null;
+      }
+
+      __envioPct = 100;
+      pctEl.textContent = "100%";
+
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 180);
+    }
+
+    // ✅ garante que o overlay apareça antes do fetch (evita "piscou e não vi")
+    function esperarPintarUI() {
+      return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+    }
+
     async function carregar(forcarFetch = false) {
       const status = document.getElementById("status");
       const subInfo = document.getElementById("subInfo");
 
       try {
+        // ✅ sem fetch: mantém rápido e NÃO mostra overlay
         if (CACHE_OK && Array.isArray(REGISTROS_CACHE) && !forcarFetch) {
           status.textContent = "Aplicando filtros (sem atualizar dados)...";
           aplicarFiltros();
@@ -1622,17 +1674,29 @@
         status.textContent = "Carregando relatórios...";
         subInfo.textContent = "Carregando dados...";
 
-        const resp = await fetch("/api/relatorios", {
-          method: "GET",
-          headers: { ...getAuthHeaders() },
-          credentials: "include"
-        });
+        // ✅ AQUI: progresso real ligado ao fluxo de rede do dashboard
+        iniciarProgressoEnvio();
+        await esperarPintarUI();
 
-        const dados = await resp.json().catch(() => ({}));
+        let resp, dados;
+        try {
+          resp = await fetch("/api/relatorios", {
+            method: "GET",
+            headers: { ...getAuthHeaders() },
+            credentials: "include"
+          });
+
+          // ✅ o "concluído" só acontece depois de parsear o JSON
+          dados = await resp.json().catch(() => ({}));
+        } finally {
+          // ⚠️ não finaliza aqui, porque queremos validar antes.
+          // (a finalização fica após validações abaixo)
+        }
 
         if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
           status.textContent = (dados && dados.message) ? dados.message : "Falha ao carregar dados do dashboard.";
           subInfo.textContent = "Erro ao carregar.";
+          finalizarProgressoEnvio();
           return;
         }
 
@@ -1643,10 +1707,14 @@
         status.textContent = "Dados atualizados. Aplicando filtros...";
         aplicarFiltros();
 
+        // ✅ só fecha depois que terminou tudo com sucesso
+        finalizarProgressoEnvio();
+
       } catch (e) {
         console.error("Erro no dashboard:", e);
         document.getElementById("status").textContent = "Erro de conexão ao montar o dashboard.";
         document.getElementById("subInfo").textContent = "Erro ao carregar.";
+        finalizarProgressoEnvio();
       }
     }
 
@@ -2287,64 +2355,6 @@
         },
         plugins: [pctLabelPlugin]
       });
-    }
-
-    /* =========================================================
-       ✅ (NOVO) Progresso 0–100% (5 em 5) e só some após concluir envio
-       ========================================================= */
-    let __envioTimer = null;
-    let __envioPct = 0;
-
-    function iniciarProgressoEnvio() {
-      const overlay = document.getElementById("envioOverlay");
-      const pctEl = document.getElementById("envioPct");
-      if (!overlay || !pctEl) return;
-
-      if (__envioTimer) {
-        clearInterval(__envioTimer);
-        __envioTimer = null;
-      }
-
-      __envioPct = 0;
-      pctEl.textContent = "0%";
-      overlay.style.display = "flex";
-
-      __envioTimer = setInterval(() => {
-        if (__envioPct < 95) {
-          __envioPct += 5;
-          pctEl.textContent = `${__envioPct}%`;
-        }
-      }, 120);
-    }
-
-    function finalizarProgressoEnvio() {
-      const overlay = document.getElementById("envioOverlay");
-      const pctEl = document.getElementById("envioPct");
-      if (!overlay || !pctEl) return;
-
-      if (__envioTimer) {
-        clearInterval(__envioTimer);
-        __envioTimer = null;
-      }
-
-      __envioPct = 100;
-      pctEl.textContent = "100%";
-
-      setTimeout(() => {
-        overlay.style.display = "none";
-      }, 180);
-    }
-
-    async function runEnvioComProgresso(promiseDeEnvio) {
-      iniciarProgressoEnvio();
-      try {
-        const result = await promiseDeEnvio;
-        finalizarProgressoEnvio();
-        return result;
-      } catch (e) {
-        finalizarProgressoEnvio();
-        throw e;
-      }
     }
   </script>
 </body>
