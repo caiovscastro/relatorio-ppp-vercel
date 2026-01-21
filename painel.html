@@ -621,9 +621,10 @@
     </div>
   </div>
 
+  <!-- ✅ Overlay único de percentual (base e envio) -->
   <div id="overlayCarregando">
     <div class="loader"></div>
-    <div class="texto-carregando">Carregando base de produtos...</div>
+    <div class="texto-carregando" id="textoCarregando">Carregando base de produtos...</div>
     <div id="percentualCarregando">0%</div>
   </div>
 
@@ -695,10 +696,6 @@
         </div>
       </div>
 
-      <!-- =================================================================================
-           ✅ NOVO: Tipo de abordagem (obrigatório escolher Reativa ou Preventiva)
-           - Fica logo abaixo do campo de escolher Data e Hora da ocorrência (como solicitado)
-           ================================================================================= -->
       <div class="finalizar-dtcol" style="margin-bottom:10px;">
         <label for="tipoAbordagem" style="font-weight:700; font-size:13px; color:#111;">
           Tipo de abordagem (obrigatório):
@@ -852,8 +849,11 @@
 
   let produtoPendente = null;
 
+  // ======== CONTROLE ÚNICO DO OVERLAY DE PERCENTUAL (BASE E ENVIO) ========
   let percentual = 0;
   let timerPercent = null;
+  let modoOverlay = "base"; // "base" | "envio"
+  let envioEmAndamento = false; // ✅ evita duplo clique no "Sim"
 
   let streamAtual = null;
   let lendo = false;
@@ -879,11 +879,6 @@
   let timerExpiracao = null;
   let timerRevalidacao = null;
 
-  /**
-   * ✅ Ajuste: fetch seguro
-   * - Sempre envia cookies (credentials: include)
-   * - Se backend responder 401/403, trava UI e mostra tela de sessão inválida.
-   */
   async function fetchAuth(url, options = {}) {
     const opt = {
       method: options.method || "GET",
@@ -893,12 +888,10 @@
       cache: "no-store"
     };
 
-    // Se for JSON e não setaram header, define
     if (opt.body && !opt.headers["Content-Type"]) {
       opt.headers["Content-Type"] = "application/json";
     }
 
-    // Aceita JSON por padrão
     if (!opt.headers["Accept"]) opt.headers["Accept"] = "application/json";
 
     const resp = await fetch(url, opt);
@@ -951,7 +944,6 @@
       }, msRestantes + 500);
     }
 
-    // Revalidação periódica (defesa extra): a cada 2 minutos
     timerRevalidacao = setInterval(async () => {
       const s = await obterSessaoDoBackend();
       if (!s) {
@@ -964,7 +956,6 @@
     try {
       limparTimersSessao();
 
-      // Fecha overlays
       const overlays = [
         "overlayCarregando",
         "overlayProdutoDuplicado",
@@ -990,7 +981,6 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-    // ✅ Valida sessão real no backend
     const sessao = await obterSessaoDoBackend();
 
     if (!sessao) {
@@ -1009,7 +999,6 @@
 
     document.getElementById("appRoot").style.display = "block";
 
-    // UI da foto: nome do arquivo
     const inputFoto = document.getElementById("fotoOcorrencia");
     if (inputFoto) {
       inputFoto.addEventListener("change", () => {
@@ -1130,33 +1119,40 @@
     itensOcorrencia = [];
   }
 
-  /* ===================== Loading overlay base ===================== */
-  function iniciarLoadingPercentual() {
+  /* ===================== Overlay percentual (BASE e ENVIO) ===================== */
+  function iniciarOverlayPercentual({ mensagem, modo }) {
     const overlay = document.getElementById("overlayCarregando");
-    const txt = document.getElementById("percentualCarregando");
+    const txtPerc = document.getElementById("percentualCarregando");
+    const txtMsg = document.getElementById("textoCarregando");
 
+    modoOverlay = modo || "base";
+
+    if (txtMsg) txtMsg.textContent = mensagem || "Carregando...";
     overlay.style.display = "flex";
+
     percentual = 0;
-    txt.textContent = "0%";
+    txtPerc.textContent = "0%";
 
     if (timerPercent) clearInterval(timerPercent);
 
+    // ✅ Regras do usuário: de 0 a 100 pulando de 5 em 5.
+    // A gente deixa subir até 95% (sempre de 5 em 5) e só fecha quando a operação REAL terminar.
     timerPercent = setInterval(() => {
       if (percentual < 95) {
         percentual += 5;
-        txt.textContent = percentual + "%";
+        txtPerc.textContent = percentual + "%";
       }
     }, 120);
   }
 
-  function finalizarLoadingPercentual() {
-    const txt = document.getElementById("percentualCarregando");
+  function finalizarOverlayPercentual() {
     const overlay = document.getElementById("overlayCarregando");
+    const txtPerc = document.getElementById("percentualCarregando");
 
     if (timerPercent) clearInterval(timerPercent);
 
     percentual = 100;
-    txt.textContent = "100%";
+    txtPerc.textContent = "100%";
 
     setTimeout(() => {
       overlay.style.display = "none";
@@ -1188,12 +1184,11 @@
   /* ===================== Carregar base ===================== */
   async function carregarBase() {
     const statusIniciar = document.getElementById("statusIniciar");
-    iniciarLoadingPercentual();
+    iniciarOverlayPercentual({ mensagem: "Carregando base de produtos...", modo: "base" });
 
     try {
       statusIniciar.textContent = "Carregando base de produtos...";
 
-      // ✅ Protege com fetchAuth (se sessão cair, exibe tela de erro)
       const resp = await fetchAuth("/api/produtos", { method: "GET" });
       const dados = await resp.json();
 
@@ -1205,7 +1200,7 @@
       dbProdutos = dados.produtos;
       baseCarregada = true;
 
-      finalizarLoadingPercentual();
+      finalizarOverlayPercentual();
 
       carregarEstadoOcorrencia();
 
@@ -1218,7 +1213,7 @@
     } catch (err) {
       console.error("Erro ao carregar base:", err);
       baseCarregada = false;
-      finalizarLoadingPercentual();
+      finalizarOverlayPercentual();
       statusIniciar.textContent = "Erro ao carregar base de produtos.";
       aplicarModoTela();
     }
@@ -1294,9 +1289,6 @@
     if (dataEl) dataEl.value = "";
     if (horaEl) horaEl.value = "";
 
-    /* =================================================================================
-       ✅ NOVO: ao abrir o popup, reseta o seletor para "Nenhum" (estado inicial)
-       ================================================================================= */
     const tipoEl = document.getElementById("tipoAbordagem");
     if (tipoEl) tipoEl.value = "Nenhum";
 
@@ -1323,26 +1315,24 @@
     const erroEl = document.getElementById("finalizarErro");
     const status = document.getElementById("status");
 
+    // ✅ Qualquer botão fecha o popup: "Não" fecha e sai.
     if (!confirmado) {
       overlay.style.display = "none";
       return;
     }
 
+    // ✅ Evita clique duplo no "Sim"
+    if (envioEmAndamento) return;
+
     const rel = document.getElementById("finalizarRelatorio").value.trim();
     const dataOcorrido = (document.getElementById("dataOcorrido")?.value || "").trim();
     const horaOcorrido = (document.getElementById("horaOcorrido")?.value || "").trim();
 
-    /* =================================================================================
-       ✅ NOVO: lê o tipo de abordagem e valida como obrigatório (Reativa/Preventiva)
-       - "Nenhum" NÃO pode finalizar (conforme solicitado)
-       ================================================================================= */
     const tipoAbordagem = (document.getElementById("tipoAbordagem")?.value || "Nenhum").trim();
     const tipoValido = (tipoAbordagem === "Reativa" || tipoAbordagem === "Preventiva");
 
     if (!rel || !dataOcorrido || !horaOcorrido || !tipoValido) {
       if (erroEl) {
-        // Mensagens específicas sem mudar a lógica existente do bloqueio,
-        // apenas acrescentando a exigência do novo campo.
         if (!rel && (!dataOcorrido || !horaOcorrido) && !tipoValido) {
           erroEl.textContent = "Preencha o relatório, selecione a data, a hora do ocorrido e escolha o Tipo de abordagem (Reativa ou Preventiva) para finalizar.";
         } else if (!rel && !tipoValido) {
@@ -1363,8 +1353,12 @@
       return;
     }
 
+    // ✅ Agora SIM: ao clicar em "Sim", fecha o popup e inicia o carregamento 0..100
     erroEl.style.display = "none";
     overlay.style.display = "none";
+
+    envioEmAndamento = true;
+    iniciarOverlayPercentual({ mensagem: "Enviando ocorrência...", modo: "envio" });
 
     let imagemUrl = (localStorage.getItem(STORAGE_IMG_URL) || "").trim();
 
@@ -1381,10 +1375,10 @@
       // Foto é opcional
     }
 
-    /* =================================================================================
-       ✅ NOVO: passa tipoAbordagem para o envio do lote (vai repetir em cada item)
-       ================================================================================= */
-    enviarLoteFinalizacao(rel, imagemUrl, dataOcorrido, horaOcorrido, tipoAbordagem);
+    // ✅ Envio em lote (overlay só finaliza no término REAL)
+    await enviarLoteFinalizacao(rel, imagemUrl, dataOcorrido, horaOcorrido, tipoAbordagem);
+
+    // Observação: enviarLoteFinalizacao sempre encerra o overlay ao final (sucesso/erro).
   }
 
   /* ===================== Upload de imagem ===================== */
@@ -1436,7 +1430,6 @@
 
     const { base64, mimeType, filename } = await comprimirImagemParaBase64(file);
 
-    // ✅ Ajuste: não enviar loja/usuario no body (backend usa sessão como fonte de verdade)
     const payload = {
       base64,
       mimeType,
@@ -1474,7 +1467,7 @@
   }
 
   /* =====================================================================================
-     ✅ ALTERAÇÃO MINIMALISTA: adiciona parâmetro tipoAbordagem e inclui em cada item do lote
+     ✅ ENVIO EM LOTE + OVERLAY 0..100 (SÓ TERMINA QUANDO CONCLUIR DE VERDADE)
      ===================================================================================== */
   async function enviarLoteFinalizacao(relatorioTexto, imagemUrl, dataOcorrido, horaOcorrido, tipoAbordagem) {
     const status = document.getElementById("status");
@@ -1490,8 +1483,6 @@
       numeroDocumento: item.numeroDocumento,
       dataOcorrido: dataOcorrido,
       horaOcorrido: horaOcorrido,
-
-      /* ✅ NOVO: repete o tipo de abordagem para cada produto (para gravar na coluna T) */
       tipoAbordagem: tipoAbordagem,
     }));
 
@@ -1532,6 +1523,10 @@
     } catch (e) {
       console.error("Erro ao finalizar ocorrência:", e);
       if (status) status.textContent = "Erro de conexão ao finalizar ocorrência.";
+    } finally {
+      // ✅ regra do usuário: só encerra em 100% quando terminou de verdade (sucesso OU erro)
+      finalizarOverlayPercentual();
+      envioEmAndamento = false;
     }
   }
 
@@ -1897,18 +1892,12 @@
     }
 
     if (acao === "descartar") {
-      // Descarta a ocorrência (estado operacional), MAS NÃO faz logout
       descartarOcorrencia();
       sairDoApp();
     }
   }
 
   function sairDoApp() {
-    /**
-     * ✅ Ajuste mantido:
-     * "Sair" aqui = VOLTAR AO MENU mantendo sessão (não é logout).
-     * Não chama /api/logout, não apaga cookie.
-     */
     window.location.href = "/menu.html";
   }
 </script>
