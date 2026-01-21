@@ -27,12 +27,12 @@
       box-sizing: border-box;
     }
 
-    /* ✅ NOVO: área do logo no topo do menu (somente isso foi adicionado) */
+    /* Logo */
     .logo-menu{
       display:flex;
       justify-content:center;
       align-items:center;
-      margin: 0 0 10px;
+      margin: 0 0 8px;
     }
     .logo-menu img{
       max-width: 220px;
@@ -43,12 +43,17 @@
       -webkit-user-drag: none;
     }
 
-    .titulo{
-      text-align:center;
-      margin: 0 0 14px;
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: .2px;
+    /* Linha bem desfaçada abaixo do logo */
+    .linha-logo{
+      border: none;
+      height: 1px;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(0,0,0,0.12),
+        transparent
+      );
+      margin: 6px 0 14px;
     }
 
     .card-info{
@@ -109,34 +114,31 @@
 <body>
   <div class="container">
 
-    <!-- ✅ NOVO: logo no topo do menu -->
+    <!-- Logo -->
     <div class="logo-menu">
       <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo PPP" />
     </div>
 
-    <h2 class="titulo">  </h2>
+    <!-- Linha desfaçada abaixo do logo -->
+    <hr class="linha-logo" />
 
-    <!-- Card só faz sentido LOGADO (vai ficar oculto quando deslogado) -->
+    <!-- Card só faz sentido LOGADO -->
     <div class="card-info" id="cardInfo">
       <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
       <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
       <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
     </div>
 
-    <!-- =================================================================================
-      BOTÕES DO MENU (aparecem conforme sessão/perfil)
-      ================================================================================= -->
-
     <!-- PPP Ocorrências -->
     <button class="btn btn-prim" id="btnLancamento">Lançamento de ocorrências</button>
     <button class="btn btn-sec"  id="btnGerencial">Cupons de ocorrências</button>
     <button class="btn btn-sec"  id="btnDashboard">Dashboard ocorrências</button>
 
-    <!-- Carrinhos (visíveis para GERENTE_PPP e BASE_PPP) -->
+    <!-- Carrinhos -->
     <button class="btn btn-sec"  id="btnContagemCarrinhos">Contagem de carrinhos</button>
     <button class="btn btn-sec"  id="btnDashboardCarrinhos">Dashboard carrinhos</button>
 
-    <!-- ✅ NOVO: Bono digital (visível para TODOS os perfis LOGADOS) -->
+    <!-- Bono digital -->
     <button class="btn btn-sec" id="btnBonoDigital">Bono digital</button>
 
     <!-- Sessão -->
@@ -147,36 +149,22 @@
   </div>
 
   <script>
-    /* =====================================================================================
-      PRINCÍPIO DE SEGURANÇA:
-      - O MENU NÃO confia em localStorage/sessionStorage para autenticar.
-      - Ele consulta /api/session (cookie HttpOnly) e só então libera botões.
-      ===================================================================================== */
-
-    // ✅ usado apenas para “ponte” do painel-gestor (não é autenticação do backend)
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
 
     const ROTAS = {
       lancamento: "/painel.html",
       gerencial: "/painel-gestor.html",
       dashboard: "/dashboard.html",
-
-      // telas futuras
       contagemCarrinhos: "/contagem-carrinhos.html",
       dashboardCarrinhos: "/dashboard-carrinhos.html",
-
-      // ✅ NOVO: tela Bono digital
       bonoDigital: "/bono-digital.html",
-
       login: "/login.html",
       logoutApi: "/api/logout"
     };
 
-    // Estado em memória
-    let sessaoAtual = null;   // {usuario, loja, perfil, exp}
+    let sessaoAtual = null;
     let expTimerId = null;
 
-    /* ===================== Sessão real via backend ===================== */
     async function obterSessaoDoBackend() {
       try {
         const resp = await fetch("/api/session", {
@@ -185,21 +173,17 @@
           headers: { "Accept": "application/json" }
         });
         if (!resp.ok) return null;
-
         const dados = await resp.json().catch(() => null);
         if (!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
         return dados;
-      } catch (e) {
-        console.error("[MENU] Falha ao consultar /api/session:", e);
+      } catch {
         return null;
       }
     }
 
-    /* ===================== Expiração (opcional; UX) ===================== */
     function normalizarExpParaMs(exp) {
       const n = Number(exp);
       if (!Number.isFinite(n) || n <= 0) return null;
-      // exp JWT normalmente vem em segundos (10 dígitos). Em ms seria 13 dígitos.
       if (n < 10_000_000_000) return n * 1000;
       return n;
     }
@@ -214,19 +198,12 @@
     function agendarModoDeslogadoNaExpiracao(expMs) {
       limparTimerExpiracao();
       if (!expMs) return;
-
       const msRestante = expMs - Date.now();
-      if (msRestante <= 0) {
-        entrarModoDeslogado("Sessão expirada. Faça login novamente.");
-        return;
-      }
-
+      if (msRestante <= 0) return entrarModoDeslogado("Sessão expirada. Faça login novamente.");
       expTimerId = setTimeout(() => {
         entrarModoDeslogado("Sessão expirada. Faça login novamente.");
       }, msRestante);
     }
-
-    /* ===================== UI: logado x deslogado ===================== */
 
     function setTexto(id, txt) {
       const el = document.getElementById(id);
@@ -234,199 +211,104 @@
     }
 
     function esconderTodosBotoesPrivados() {
-      // ✅ Inclui também o novo botão Bono digital para ficar coerente com o modo deslogado
       ["btnLancamento","btnGerencial","btnDashboard","btnContagemCarrinhos","btnDashboardCarrinhos","btnBonoDigital"]
-        .forEach((id) => document.getElementById(id).classList.add("hidden"));
+        .forEach(id => document.getElementById(id).classList.add("hidden"));
     }
 
     function entrarModoDeslogado(mensagem) {
       sessaoAtual = null;
       limparTimerExpiracao();
-
-      // 1) Esconde card-info para não ficar “Loja/Usuário/Perfil — — —”
       document.getElementById("cardInfo").classList.add("hidden");
-
-      // 2) Esconde botões privados
       esconderTodosBotoesPrivados();
-
-      // 3) Botão “Sair” NÃO faz sentido deslogado -> some
       document.getElementById("btnSair").classList.add("hidden");
-
-      // 4) Mostra “Ir para o Login”
       document.getElementById("btnLogin").classList.remove("hidden");
-
-      // 5) Mensagem clara
       setTexto("msg", mensagem || "Sessão encerrada. Se precisar, faça login novamente.");
     }
 
     function entrarModoLogado(sessao) {
       sessaoAtual = sessao;
-
-      // Card-info faz sentido logado
       document.getElementById("cardInfo").classList.remove("hidden");
-
       setTexto("infoLoja", sessao.loja || "—");
       setTexto("infoUsuario", sessao.usuario || "—");
       setTexto("infoPerfil", sessao.perfil || "—");
-
       aplicarPermissoes(sessao.perfil);
-
-      // Sair aparece logado
       document.getElementById("btnSair").classList.remove("hidden");
-
-      // Login some logado
       document.getElementById("btnLogin").classList.add("hidden");
-
-      // limpa msg
       setTexto("msg", "");
-
-      // agenda expiração (se veio exp)
       const expMs = normalizarExpParaMs(sessao.exp);
       if (expMs) agendarModoDeslogadoNaExpiracao(expMs);
     }
 
-    /* ===================== Permissões ===================== */
     function aplicarPermissoes(perfil) {
       const p = String(perfil || "").trim().toUpperCase();
-
-      const btnLancamento         = document.getElementById("btnLancamento");
-      const btnGerencial          = document.getElementById("btnGerencial");
-      const btnDashboard          = document.getElementById("btnDashboard");
-      const btnContagemCarrinhos  = document.getElementById("btnContagemCarrinhos");
-      const btnDashboardCarrinhos = document.getElementById("btnDashboardCarrinhos");
-      const btnBonoDigital        = document.getElementById("btnBonoDigital");
-
-      // default: esconde tudo e libera conforme regra
       esconderTodosBotoesPrivados();
-
       const podeTudo = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
       const podeBase = (p === "BASE_PPP");
 
-      // Lançamento e Dashboard ocorrências
       if (podeTudo || podeBase) {
         btnLancamento.classList.remove("hidden");
         btnDashboard.classList.remove("hidden");
-      }
-
-      // Gerencial: só gerente/admin
-      if (podeTudo) {
-        btnGerencial.classList.remove("hidden");
-      }
-
-      // Carrinhos: GERENTE_PPP e BASE_PPP (pedido)
-      if (podeTudo || podeBase) {
         btnContagemCarrinhos.classList.remove("hidden");
         btnDashboardCarrinhos.classList.remove("hidden");
       }
-
-      // ✅ NOVO: Bono digital visível para TODOS os perfis LOGADOS
-      // (ou seja: qualquer perfil com sessão válida)
+      if (podeTudo) btnGerencial.classList.remove("hidden");
       btnBonoDigital.classList.remove("hidden");
     }
 
-    /* ===================== Sessão do Gestor (mantida) ===================== */
     function setSessaoGestor(sessao) {
       try {
-        const payload = {
+        sessionStorage.setItem(STORAGE_KEY_GESTOR, JSON.stringify({
           usuario: sessao.usuario,
           loja: sessao.loja,
           perfil: sessao.perfil,
           ts: Date.now()
-        };
-        sessionStorage.setItem(STORAGE_KEY_GESTOR, JSON.stringify(payload));
+        }));
         return true;
-      } catch (e) {
+      } catch {
         return false;
       }
     }
 
-    /* ===================== Logout backend (cookie HttpOnly) ===================== */
     async function logoutBackendSeguro() {
       try {
-        await fetch(ROTAS.logoutApi, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Accept": "application/json" }
-        }).catch(() => null);
-      } catch (e) {
-        // não quebra fluxo
-      }
+        await fetch(ROTAS.logoutApi, { method:"POST", credentials:"include" });
+      } catch {}
     }
 
-    /* ===================== DOM Ready ===================== */
     document.addEventListener("DOMContentLoaded", async () => {
-      // Botão Login (quando deslogado)
       document.getElementById("btnLogin").addEventListener("click", () => {
         window.location.href = ROTAS.login;
       });
 
-      // 1) Carrega sessão real
       const sessao = await obterSessaoDoBackend();
-
-      // 2) Se não tiver sessão: NÃO redireciona. Fica no menu (modo deslogado).
       if (!sessao) entrarModoDeslogado("Você está no menu, mas sem sessão ativa.");
       else entrarModoLogado(sessao);
 
-      // Navegação (protegida: só funciona se estiver logado)
-      document.getElementById("btnLancamento").addEventListener("click", () => {
-        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
-        window.location.href = ROTAS.lancamento;
-      });
+      btnLancamento.onclick = () => sessaoAtual ? location.href = ROTAS.lancamento : entrarModoDeslogado("Sessão inválida.");
+      btnDashboard.onclick = () => sessaoAtual ? location.href = ROTAS.dashboard : entrarModoDeslogado("Sessão inválida.");
+      btnContagemCarrinhos.onclick = () => sessaoAtual ? location.href = ROTAS.contagemCarrinhos : entrarModoDeslogado("Sessão inválida.");
+      btnDashboardCarrinhos.onclick = () => sessaoAtual ? location.href = ROTAS.dashboardCarrinhos : entrarModoDeslogado("Sessão inválida.");
+      btnBonoDigital.onclick = () => sessaoAtual ? location.href = ROTAS.bonoDigital : entrarModoDeslogado("Sessão inválida.");
 
-      document.getElementById("btnDashboard").addEventListener("click", () => {
-        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
-        window.location.href = ROTAS.dashboard;
-      });
-
-      document.getElementById("btnContagemCarrinhos").addEventListener("click", () => {
-        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
-        window.location.href = ROTAS.contagemCarrinhos;
-      });
-
-      document.getElementById("btnDashboardCarrinhos").addEventListener("click", () => {
-        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
-        window.location.href = ROTAS.dashboardCarrinhos;
-      });
-
-      // ✅ NOVO: Bono digital (protegido por sessão)
-      document.getElementById("btnBonoDigital").addEventListener("click", () => {
-        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
-        window.location.href = ROTAS.bonoDigital;
-      });
-
-      // Gerencial (somente GERENTE_PPP/ADMIN)
-      document.getElementById("btnGerencial").addEventListener("click", () => {
-        const msg = document.getElementById("msg");
-
-        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida. Faça login para acessar.");
-
-        const p = String(sessaoAtual.perfil || "").trim().toUpperCase();
-        const permitido = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
-        if (!permitido) {
+      btnGerencial.onclick = () => {
+        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida.");
+        const p = String(sessaoAtual.perfil || "").toUpperCase();
+        if (p !== "GERENTE_PPP" && p !== "ADMINISTRADOR") {
           msg.textContent = "Acesso negado: seu perfil não tem permissão para o Gerencial PPP.";
           return;
         }
-
-        const ok = setSessaoGestor(sessaoAtual);
-        if (!ok) {
-          msg.textContent = "Não foi possível iniciar sessão do gestor. Faça login novamente.";
+        if (!setSessaoGestor(sessaoAtual)) {
+          msg.textContent = "Não foi possível iniciar sessão do gestor.";
           return;
         }
+        location.href = ROTAS.gerencial;
+      };
 
-        window.location.href = ROTAS.gerencial;
-      });
-
-      // Sair (somente logado)
-      document.getElementById("btnSair").addEventListener("click", async () => {
-        // limpa ponte do gestor
-        try { sessionStorage.removeItem(STORAGE_KEY_GESTOR); } catch(e) {}
-
-        // derruba cookie HttpOnly no backend
+      btnSair.onclick = async () => {
+        try { sessionStorage.removeItem(STORAGE_KEY_GESTOR); } catch {}
         await logoutBackendSeguro();
-
-        // fica no menu, porém em modo deslogado (sem botão Sair, sem card-info)
         entrarModoDeslogado("Sessão encerrada. Se precisar, faça login novamente.");
-      });
+      };
     });
   </script>
 </body>
