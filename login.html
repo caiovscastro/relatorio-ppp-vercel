@@ -30,14 +30,22 @@
         /* Logo acima do título */
         .logo {
             display: block;
-            margin: 0 auto 10px;
+            margin: 0 auto 8px;
             max-width: 160px;
+        }
+
+        /* Linha suave abaixo da imagem */
+        .linha-suave {
+            width: 100%;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.08);
+            margin: 6px 0 14px;
         }
 
         /* Título do login (reduzido conforme solicitado) */
         .titulo {
             text-align: center;
-            font-size: 16px; /* DIMINUÍDO */
+            font-size: 16px;
             margin: 0 0 20px;
             font-weight: 800;
             letter-spacing: 0.2px;
@@ -97,12 +105,15 @@
 <body>
     <div class="container">
 
-        <!-- IMAGEM INSERIDA ACIMA DO TÍTULO -->
+        <!-- IMAGEM -->
         <img 
             src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png"
             alt="Logo Sistema"
             class="logo"
         />
+
+        <!-- LINHA SUAVE -->
+        <div class="linha-suave"></div>
 
         <!-- Título -->
         <h2 class="titulo">Acesso ao Sistema</h2>
@@ -173,10 +184,7 @@
             <option>ULT 25 - BRASILINHA</option>
         </select>
 
-        <!-- Botão de entrar -->
         <button id="btnEntrar">Entrar</button>
-
-        <!-- Mensagem dinâmica -->
         <div id="msg" class="mensagem"></div>
     </div>
 
@@ -213,15 +221,13 @@
             return;
           }
 
-          const perfil = String(dados.perfil || "").trim().toUpperCase();
-
           msg.textContent = "Login autorizado.";
           msg.classList.add("sucesso");
 
           localStorage.setItem(SESSION_KEY, JSON.stringify({
             usuario: dados.usuario || usuario,
             loja: dados.loja || loja,
-            perfil,
+            perfil: String(dados.perfil || "").toUpperCase(),
             criadoEm: Date.now()
           }));
 
@@ -229,7 +235,7 @@
             window.location.href = "/menu.html";
           }, 300);
 
-        } catch (erro) {
+        } catch {
           msg.textContent = "Erro de conexão com o servidor.";
           msg.classList.add("erro");
         }
