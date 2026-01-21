@@ -27,12 +27,17 @@
             box-shadow: 0 6px 18px rgba(0,0,0,0.12);
         }
 
-        /* ✅ AJUSTE AQUI: Título do login mais profissional + fonte menor
-           - Antes: "Acesse com as credenciais" (menos profissional e grande)
-           - Agora: "Acesso ao Sistema" (mais corporativo) + fonte reduzida */
+        /* Logo acima do título */
+        .logo {
+            display: block;
+            margin: 0 auto 10px;
+            max-width: 160px;
+        }
+
+        /* Título do login (reduzido conforme solicitado) */
         .titulo {
             text-align: center;
-            font-size: 20px; /* <-- DIMINUI A FONTE DO TÍTULO AQUI */
+            font-size: 16px; /* DIMINUÍDO */
             margin: 0 0 20px;
             font-weight: 800;
             letter-spacing: 0.2px;
@@ -91,7 +96,15 @@
 
 <body>
     <div class="container">
-        <!-- ✅ Título alterado para um nome mais profissional -->
+
+        <!-- IMAGEM INSERIDA ACIMA DO TÍTULO -->
+        <img 
+            src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png"
+            alt="Logo Sistema"
+            class="logo"
+        />
+
+        <!-- Título -->
         <h2 class="titulo">Acesso ao Sistema</h2>
 
         <!-- Campo Usuário -->
@@ -163,12 +176,11 @@
         <!-- Botão de entrar -->
         <button id="btnEntrar">Entrar</button>
 
-        <!-- Mensagem dinâmica (erro/sucesso) -->
+        <!-- Mensagem dinâmica -->
         <div id="msg" class="mensagem"></div>
     </div>
 
     <script>
-      // Nome da sessão (mantido, porém agora inclui PERFIL)
       const SESSION_KEY = "pppSession";
 
       async function login() {
@@ -201,45 +213,30 @@
             return;
           }
 
-          // ✅ PERFIL vem da aba USUARIOS via API
           const perfil = String(dados.perfil || "").trim().toUpperCase();
 
           msg.textContent = "Login autorizado.";
           msg.classList.add("sucesso");
 
-          // ✅ Salva sessão completa para o menu decidir permissões
-          try {
-            const sessao = {
-              usuario: dados.usuario || usuario,
-              loja: dados.loja || loja,
-              perfil,              // <<<<<< AQUI
-              criadoEm: Date.now()
-            };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(sessao));
-          } catch (e) {
-            console.warn("Não foi possível salvar sessão no localStorage:", e);
-          }
+          localStorage.setItem(SESSION_KEY, JSON.stringify({
+            usuario: dados.usuario || usuario,
+            loja: dados.loja || loja,
+            perfil,
+            criadoEm: Date.now()
+          }));
 
-          // ✅ Agora abre a tela MENU
           setTimeout(() => {
             window.location.href = "/menu.html";
           }, 300);
 
         } catch (erro) {
-          console.error("Erro na requisição de login:", erro);
           msg.textContent = "Erro de conexão com o servidor.";
           msg.classList.add("erro");
         }
       }
 
       document.getElementById("btnEntrar").addEventListener("click", login);
-
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          login();
-        }
-      });
+      document.addEventListener("keydown", e => e.key === "Enter" && login());
     </script>
 </body>
 </html>
