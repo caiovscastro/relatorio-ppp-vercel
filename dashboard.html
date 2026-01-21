@@ -106,13 +106,36 @@
     }
 
     /* =========================================================
+       ✅ (NOVO) Cartão da imagem acima do título "Filtros"
+       ========================================================= */
+    .side-img-card{
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      min-width: 0;
+    }
+    .side-img-card img{
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    /* =========================================================
        Grid base
        ========================================================= */
     .grid{
       display: grid;
 
-      /* ✅ AJUSTE 1: 1ª coluna 20% mais larga (Ocorrências) */
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+      /* ✅ AJUSTE 2: 1ª coluna mais larga (Ocorrências) para caber as 3 legendas lado a lado */
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr);
 
       gap: 12px;
       min-width: 0;
@@ -646,6 +669,12 @@
 
       <!-- ✅ NOVO: CARTÃO ESQUERDO COM TODOS OS FILTROS -->
       <div class="tile sidebar">
+
+        <!-- ✅ (NOVO) Cartão com imagem acima do título "Filtros" -->
+        <div class="side-img-card">
+          <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Imagem do painel" />
+        </div>
+
         <h3>Filtros</h3>
 
         <div class="side-stack">
