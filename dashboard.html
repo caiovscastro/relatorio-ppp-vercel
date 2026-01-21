@@ -600,6 +600,35 @@
         width: min(320px, calc(100vw - 40px)); /* ✅ mantém seu 320, mas respeita a tela */
       }
     }
+
+    /* =========================================================
+       ✅ (NOVO) Overlay de carregamento 0–100% (centro da tela)
+       ========================================================= */
+    #envioOverlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999999;
+    }
+    #envioBox{
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 14px;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.18);
+      padding: 18px 22px;
+      min-width: 220px;
+      text-align: center;
+      font-weight: 900;
+      color: #111;
+    }
+    #envioPct{
+      font-size: 28px;
+      line-height: 1;
+      margin: 0;
+    }
   </style>
 </head>
 
@@ -830,6 +859,13 @@
     <div class="status" id="status">Aguardando...</div>
   </div>
 
+  <!-- ✅ (NOVO) Overlay de progresso (central) -->
+  <div id="envioOverlay" aria-hidden="true">
+    <div id="envioBox">
+      <p id="envioPct">0%</p>
+    </div>
+  </div>
+
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
@@ -845,16 +881,9 @@
 
     let totalValorOcorrenciasAtual = 0;
 
-    /* =============================================================================
-       ✅ FIX 2 (Performance): cache dos registros no navegador
-       - Só busca na API quando:
-         a) a página é carregada (1ª vez)
-         b) clica em "Atualizar"
-       - Filtros apenas chamam aplicarFiltros() (sem rede)
-       ============================================================================= */
-    let REGISTROS_CACHE = null;        // Array de registros vindo da API
-    let CACHE_OK = false;             // flag para saber se já carregou
-    let CACHE_ATUALIZADO_EM = null;   // timestamp local (opcional, útil para debug)
+    let REGISTROS_CACHE = null;
+    let CACHE_OK = false;
+    let CACHE_ATUALIZADO_EM = null;
 
     const LOJAS_LISTA = [
       { bandeira:"BIG", label:"BIG 01 - 106 NORTE" },
@@ -913,9 +942,6 @@
       return String(s || "").trim().toUpperCase();
     }
 
-    /* =============================================================================
-       Sessão para APIs (mantido)
-       ============================================================================= */
     function b64EncodeUnicode(str) {
       try {
         return btoa(unescape(encodeURIComponent(str)));
@@ -925,7 +951,6 @@
     }
 
     function obterSessaoAtual() {
-      // 1) Gestor (sessionStorage)
       try {
         const rawG = sessionStorage.getItem(STORAGE_KEY_GESTOR);
         if (rawG) {
@@ -934,7 +959,6 @@
         }
       } catch (e) {}
 
-      // 2) Menu (localStorage)
       try {
         const rawM = localStorage.getItem(STORAGE_KEY_MENU);
         if (rawM) {
@@ -1859,7 +1883,7 @@
         const COR_DEPT_PADRAO = "#A98AE8";
         const COR_ULT = "#43A047";
 
-        const selArr = [...lojasSel.values()];
+        const selArr = [...obterLojasSelecionadas().values()];
         const hasBIG = selArr.some(x => String(x).startsWith("BIG"));
         const hasULT = selArr.some(x => String(x).startsWith("ULT"));
         const corDeptTopProd = (hasULT && !hasBIG) ? COR_ULT : COR_DEPT_PADRAO;
@@ -2172,11 +2196,6 @@
           ctx.font = "bold 12px Arial";
           ctx.fillStyle = "#fff";
 
-          /* ✅ AJUSTE 2: anti-sobreposição de rótulos no pie (Gravidade)
-             - fatias pequenas sobem um pouco
-             - demais descem um pouco
-             - aplica espaçamento mínimo vertical para evitar cobertura
-          */
           const area = chart.chartArea || { top: 0, bottom: chart.height, left: 0, right: chart.width };
           const minGap = 14;
 
@@ -2195,7 +2214,7 @@
             const midA = (startA + endA) / 2;
             const span = Math.abs(endA - startA);
 
-            const isSmall = (span < 0.35) || (pct < 6); // ~20° ou <6% (heurística)
+            const isSmall = (span < 0.35) || (pct < 6);
 
             const outer = Number(arc.outerRadius || 0);
             const r = outer * (isSmall ? 0.92 : 0.62);
@@ -2268,6 +2287,64 @@
         },
         plugins: [pctLabelPlugin]
       });
+    }
+
+    /* =========================================================
+       ✅ (NOVO) Progresso 0–100% (5 em 5) e só some após concluir envio
+       ========================================================= */
+    let __envioTimer = null;
+    let __envioPct = 0;
+
+    function iniciarProgressoEnvio() {
+      const overlay = document.getElementById("envioOverlay");
+      const pctEl = document.getElementById("envioPct");
+      if (!overlay || !pctEl) return;
+
+      if (__envioTimer) {
+        clearInterval(__envioTimer);
+        __envioTimer = null;
+      }
+
+      __envioPct = 0;
+      pctEl.textContent = "0%";
+      overlay.style.display = "flex";
+
+      __envioTimer = setInterval(() => {
+        if (__envioPct < 95) {
+          __envioPct += 5;
+          pctEl.textContent = `${__envioPct}%`;
+        }
+      }, 120);
+    }
+
+    function finalizarProgressoEnvio() {
+      const overlay = document.getElementById("envioOverlay");
+      const pctEl = document.getElementById("envioPct");
+      if (!overlay || !pctEl) return;
+
+      if (__envioTimer) {
+        clearInterval(__envioTimer);
+        __envioTimer = null;
+      }
+
+      __envioPct = 100;
+      pctEl.textContent = "100%";
+
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 180);
+    }
+
+    async function runEnvioComProgresso(promiseDeEnvio) {
+      iniciarProgressoEnvio();
+      try {
+        const result = await promiseDeEnvio;
+        finalizarProgressoEnvio();
+        return result;
+      } catch (e) {
+        finalizarProgressoEnvio();
+        throw e;
+      }
     }
   </script>
 </body>
