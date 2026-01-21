@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PAINEL GERENTE PPP</title>
+  <title>PAINEL OCORRÊNCIAS</title>
 
   <style>
     body {
@@ -449,6 +449,17 @@
       padding: 16px 16px 14px;
     }
 
+    /* ✅ AJUSTE 1: margem no CUPOM/DOCUMENTO no celular (não encosta nas bordas) */
+    #modalCupom{
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    @media (max-width: 480px){
+      #modalCupom{
+        padding: 14px;
+      }
+    }
+
     .cupom-titulo {
       font-weight: 800;
       text-align: center;
@@ -468,10 +479,11 @@
       margin: 10px 0;
     }
 
+    /* ✅ AJUSTE 2: Qtd/V.un/V.total mais próximos à direita e sobrando mais espaço pro Produto */
     .cupom-cab {
       display: grid;
-      grid-template-columns: 26px 1fr 54px 88px 98px;
-      gap: 6px;
+      grid-template-columns: 26px 1fr 48px 72px 78px;
+      gap: 4px;
       font-size: 12px;
       font-weight: 800;
       padding-bottom: 6px;
@@ -488,12 +500,23 @@
 
     .cupom-row {
       display: grid;
-      grid-template-columns: 26px 1fr 54px 88px 98px;
-      gap: 6px;
+      grid-template-columns: 26px 1fr 48px 72px 78px;
+      gap: 4px;
       font-size: 12px;
       padding: 6px 0;
       border-bottom: 1px dotted #bbb;
       align-items: start;
+    }
+
+    @media (max-width: 480px){
+      .cupom-cab{
+        grid-template-columns: 26px 1fr 44px 66px 70px;
+        gap: 4px;
+      }
+      .cupom-row{
+        grid-template-columns: 26px 1fr 44px 66px 70px;
+        gap: 4px;
+      }
     }
 
     .cupom-prod {
@@ -575,7 +598,7 @@
   <div id="appRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
-        <h1 class="titulo">PAINEL GERENTE PPP</h1>
+        <h1 class="titulo">PAINEL OCORRÊNCIAS</h1>
       </div>
     </div>
 
@@ -1185,9 +1208,6 @@
       aplicarFiltrosLocal();
     }
 
-    // ======================
-    // XLSX (mantido)
-    // ======================
     function abrirModalDownload() {
       if (!registrosAtuaisItens || !registrosAtuaisItens.length) {
         alert("Não há registros carregados para exportar. Aplique um filtro primeiro.");
@@ -1205,9 +1225,6 @@
       exportarParaXlsx(registrosAtuaisItens);
     }
 
-    // ======================
-    // Cupom Fiscal
-    // ======================
     function abrirCupom(indexDoc) {
       const d = documentosAtuais[indexDoc] || null;
       if (!d) return;
@@ -1286,7 +1303,6 @@
       document.getElementById("modalCupom").style.display = "flex";
     }
 
-    // ✅ Mantido: permite fechar o cupom sem limpar seleção quando necessário
     function fecharModalCupom(limparSelecao = true) {
       document.getElementById("modalCupom").style.display = "none";
       if (limparSelecao) documentoSelecionado = null;
@@ -1297,34 +1313,12 @@
       window.open(url, "_blank", "noopener,noreferrer");
     }
 
-    // ✅ NOVO: ações do CUPOM — qualquer botão fecha o CUPOM / DOCUMENTO antes
-    function cupomAcaoFechar() {
-      fecharModalCupom(); // fecha e limpa seleção
-    }
+    function cupomAcaoFechar() { fecharModalCupom(); }
+    function cupomAcaoEditarObs() { fecharModalCupom(false); abrirModalEditarObs(); }
+    function cupomAcaoExcluirDocumento() { fecharModalCupom(false); abrirModalExcluirDocumento(); }
+    function cupomAcaoEditarItem(indexItem) { fecharModalCupom(false); abrirModalEditarItem(indexItem); }
+    function cupomAcaoAbrirImagem(url) { fecharModalCupom(false); abrirImagemEmNovaGuia(url); }
 
-    function cupomAcaoEditarObs() {
-      fecharModalCupom(false); // fecha sem limpar seleção
-      abrirModalEditarObs();   // abre edição
-    }
-
-    function cupomAcaoExcluirDocumento() {
-      fecharModalCupom(false); // fecha sem limpar seleção
-      abrirModalExcluirDocumento(); // abre confirmação
-    }
-
-    function cupomAcaoEditarItem(indexItem) {
-      fecharModalCupom(false); // fecha sem limpar seleção (documento continua selecionado)
-      abrirModalEditarItem(indexItem);
-    }
-
-    function cupomAcaoAbrirImagem(url) {
-      fecharModalCupom(false); // fecha sem limpar seleção
-      abrirImagemEmNovaGuia(url);
-    }
-
-    // ======================
-    // Editar Observação do Documento
-    // ======================
     function abrirModalEditarObs() {
       if (!documentoSelecionado) return;
       document.getElementById("editObsTexto").value = String(documentoSelecionado.relatorio || "");
@@ -1350,7 +1344,6 @@
         return;
       }
 
-      // ✅ SOLICITADO: ao clicar em Salvar, mostrar carregamento 0..100 e só finalizar ao concluir de verdade
       iniciarProgresso("Salvando...");
 
       try {
@@ -1399,9 +1392,6 @@
       }
     }
 
-    // ======================
-    // Editar Item (Qtd e Valor Unit)
-    // ======================
     function abrirModalEditarItem(indexItem) {
       if (!documentoSelecionado) return;
 
@@ -1435,7 +1425,6 @@
       const novaQtd = document.getElementById("editItemQtd").value;
       const novoValorUnit = document.getElementById("editItemValorUnit").value;
 
-      // ✅ SOLICITADO: ao clicar em Salvar, mostrar carregamento 0..100 e só finalizar ao concluir de verdade
       iniciarProgresso("Salvando...");
 
       try {
@@ -1521,9 +1510,6 @@
       }
     }
 
-    // ======================
-    // Excluir Documento (mantido)
-    // ======================
     function abrirModalExcluirDocumento() {
       if (!documentoSelecionado) return;
       document.getElementById("modalExcluirDocumento").style.display = "flex";
@@ -1571,7 +1557,7 @@
         statusEl.textContent = "Documento excluído com sucesso.";
 
         fecharModalExcluirDocumento();
-        fecharModalCupom(); // fecha e limpa seleção
+        fecharModalCupom();
         aplicarFiltrosLocal();
       } catch (e) {
         console.error(e);
@@ -1580,9 +1566,6 @@
       }
     }
 
-    // ======================
-    // Comparação de registros (mantida)
-    // ======================
     function registrosIguais(a, b) {
       const idA = a.idRegistro || a.ID_REGISTRO || a.id;
       const idB = b.idRegistro || b.ID_REGISTRO || b.id;
@@ -1608,9 +1591,6 @@
       );
     }
 
-    // ======================
-    // XLSX (NÃO ALTERADO)
-    // ======================
     function exportarParaXlsx(registros) {
       const cabecalho = [
         "Loja",
