@@ -637,9 +637,7 @@
     }
 
     function formatKgFromDigits(digits) {
-      // digits: string só com números
       if (!digits) return "";
-      // Se tiver até 3 dígitos, mostra inteiro (sem vírgula) para não ficar "0,00x"
       if (digits.length <= 3) {
         const n = Number(digits);
         if (!Number.isFinite(n)) return "";
@@ -649,7 +647,6 @@
       const decPart = digits.slice(-3);
       const nInt = Number(intPart);
       if (!Number.isFinite(nInt)) return "";
-      // milhar no inteiro
       const intFmt = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(nInt);
       return `${intFmt},${decPart}`;
     }
@@ -704,7 +701,6 @@
       } else if (emb === "KG") {
         el.value = formatKgFromDigits(digits);
       } else {
-        // sem embalagem ainda -> mantém apenas dígitos sem formatação agressiva
         el.value = digits;
       }
     }
@@ -750,7 +746,6 @@
       const tipoLancamento = document.getElementById("tipoLancamento").value;
       const lojaDestino = document.getElementById("lojaDestino").value;
 
-      // quantidade vem do dataset (sem pontuação)
       const digits = String(document.getElementById("quantidade").dataset.digits || "");
       const quantidadeNum = quantidadeParaNumero(embalagem, digits);
       const quantidadeFmt = document.getElementById("quantidade").value;
@@ -812,10 +807,10 @@
         encarregado: estado.encarregado,
         itens: estado.itens.map(x => ({
           produto: x.produto,
-          quantidade: x.quantidade,         // número
+          quantidade: x.quantidade,
           embalagem: x.embalagem,
-          tipoLancamento: x.tipoLancamento, // RECEBIMENTO | MOV_INTERNA
-          lojaDestino: x.lojaDestino || ""  // obrigatório só em MOV_INTERNA (validado)
+          tipoLancamento: x.tipoLancamento,
+          lojaDestino: x.lojaDestino || ""
         }))
       };
 
@@ -893,13 +888,11 @@
         document.getElementById(id).addEventListener("input", capturarBaseDoFormulario);
       });
 
-      // ✅ Tipo -> mostra/oculta destino
       document.getElementById("tipoLancamento").addEventListener("change", () => {
         atualizarVisibilidadeDestino();
         capturarBaseDoFormulario();
       });
 
-      // ✅ Quantidade (bloqueia pontuação + máscara)
       const elQtd = document.getElementById("quantidade");
       elQtd.addEventListener("keydown", bloquearPontuacao);
       elQtd.addEventListener("input", () => {
@@ -907,7 +900,6 @@
         capturarBaseDoFormulario();
       });
 
-      // ✅ Se mudar embalagem, refaz máscara
       document.getElementById("embalagem").addEventListener("change", () => {
         aplicarMascaraQuantidade();
         capturarBaseDoFormulario();
@@ -936,7 +928,6 @@
         setMsg("Item adicionado na lista.", true);
       });
 
-      // ✅ Salvar: só abre popup se tiver item, senão mostra msg
       document.getElementById("btnSalvar").addEventListener("click", () => {
         if (!estado.itens.length) {
           setMsg("A lista está vazia. Adicione um item antes de salvar.", false);
