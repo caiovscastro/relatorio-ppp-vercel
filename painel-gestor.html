@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PAINEL OCORRÊNCIAS</title>
+  <title>PAINEL DE OCORRÊNCIAS</title>
 
   <style>
     body {
@@ -582,6 +582,18 @@
       font-size: 14px;
     }
     .btn-editar-item:hover { filter: brightness(0.97); }
+
+    /* ✅ AJUSTE 1 (SOLICITADO AGORA):
+       Na lista de ocorrências, rótulo + valor ficam "colados" com apenas 1 espaço visual.
+       (Remove o layout em colunas só nesses campos) */
+    .pareado-inline {
+      display: block !important; /* sobrescreve display:grid do .cartao-pareado */
+    }
+    .pareado-inline .rotulo,
+    .pareado-inline .valor {
+      display: inline;
+      white-space: normal;
+    }
   </style>
 </head>
 
@@ -598,7 +610,7 @@
   <div id="appRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
-        <h1 class="titulo">PAINEL OCORRÊNCIAS</h1>
+        <h1 class="titulo">PAINEL DE OCORRÊNCIAS</h1>
       </div>
     </div>
 
@@ -856,7 +868,6 @@
       window.location.href = "/dashboard.html";
     }
 
-    // ✅ AJUSTE: inicia progresso com título dinâmico e 0..95 de 5 em 5
     function iniciarProgresso(titulo = "Carregando relatórios...") {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
@@ -880,7 +891,6 @@
       }, 120);
     }
 
-    // ✅ AJUSTE: finaliza só quando a operação concluir de fato
     function finalizarProgresso() {
       const overlay = document.getElementById("loadingOverlay");
       const bar = document.getElementById("loadingBar");
@@ -1166,24 +1176,20 @@
         return `
           <div class="cartao" onclick="abrirCupom(${index})">
             <div class="cartao-pares cartao-pares-superior">
-              <div class="cartao-pareado">
-                <span class="rotulo">Data/Hora:</span>
-                <span class="valor valor-compacto">${escapeHtml(dataHoraExibicao)}</span>
+              <div class="cartao-pareado pareado-inline">
+                <span class="rotulo">Data/Hora:</span><span class="valor valor-compacto"> ${escapeHtml(dataHoraExibicao)}</span>
               </div>
-              <div class="cartao-pareado pareado-usuario">
-                <span class="rotulo">Usuário:</span>
-                <span class="valor">${escapeHtml(d.usuario || "-")}</span>
+              <div class="cartao-pareado pareado-usuario pareado-inline">
+                <span class="rotulo">Usuário:</span><span class="valor"> ${escapeHtml(d.usuario || "-")}</span>
               </div>
             </div>
 
             <div class="cartao-pares cartao-pares-inferior">
-              <div class="cartao-pareado cartao-pareado-loja pareado-loja">
-                <span class="rotulo">Loja:</span>
-                <span class="valor valor-compacto">${escapeHtml(d.loja || "-")}</span>
+              <div class="cartao-pareado cartao-pareado-loja pareado-loja pareado-inline">
+                <span class="rotulo">Loja:</span><span class="valor valor-compacto"> ${escapeHtml(d.loja || "-")}</span>
               </div>
-              <div class="cartao-pareado pareado-doc">
-                <span class="rotulo">Doc:</span>
-                <span class="valor valor-documento">${escapeHtml(d.documento || "-")}</span>
+              <div class="cartao-pareado pareado-doc pareado-inline">
+                <span class="rotulo">Doc:</span><span class="valor valor-documento"> ${escapeHtml(d.documento || "-")}</span>
               </div>
             </div>
 
@@ -1283,7 +1289,7 @@
 
       const totalFmt = totalDoc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       totaisEl.innerHTML += `
-        <div style="margin-left:auto;">Total do documento:</div>
+        <div style="margin-left:auto;">Total do doc:</div>
         <div>R$ ${escapeHtml(totalFmt)}</div>
       `;
 
