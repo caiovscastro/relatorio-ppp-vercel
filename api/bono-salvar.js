@@ -100,7 +100,7 @@ function criarClienteGoogleSheets() {
   const privateKeyRaw = getEnv("CHAVE_PRIVADA_DO_GOOGLE");
 
   if (!spreadsheetId || !clientEmail || !privateKeyRaw) {
-    return { erro: "Variáveis de ambiente do Google Sheets não configuradas." };
+    return { erro: "Variáveis de ambiente não configuradas." };
   }
 
   // Corrige quebras de linha da private key quando armazenada em env var
@@ -202,7 +202,7 @@ export default async function handler(req, res) {
     });
   } catch (e) {
     console.error("[BONO] Falha ao append:", e);
-    return json(res, 500, { sucesso: false, mensagem: "Falha ao gravar na planilha (BONO)." });
+    return json(res, 500, { sucesso: false, mensagem: "Falha ao salvar (BONO)." });
   }
 }
 
