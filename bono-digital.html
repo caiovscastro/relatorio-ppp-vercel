@@ -29,10 +29,30 @@
 
     .titulo{
       text-align:center;
-      margin: 0 0 14px;
+      margin: 0 0 10px;
       font-size: 24px;
       font-weight: 800;
       letter-spacing: .2px;
+    }
+
+    /* ✅ NOVO (pedido #7): logo + linha discreta */
+    .logo-wrap{
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      margin: 6px 0 10px;
+    }
+    .logo-wrap img{
+      max-width: 220px;
+      width: 70%;
+      height: auto;
+      display:block;
+    }
+    .logo-line{
+      width: 100%;
+      border: none;
+      border-top: 1px solid #ededed;
+      margin: 10px 0 0;
     }
 
     .card-info{
@@ -85,19 +105,21 @@
       gap: 10px;
     }
 
-    /* ✅ NOVO: Quantidade 50% menor (antes 50/50, agora 25/75) */
-    .grid-qtd-menor{
+    /* ✅ NOVO (pedido #2): 3 caixas do mesmo tamanho SEMPRE */
+    .grid-3-fixo{
       display:grid;
-      grid-template-columns: 1fr 3fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
     }
 
-    /* ✅ linha interna para Embalagem + Tipo lado a lado */
-    .inline-2{
+    /* ✅ NOVO (pedido #4): botões lado a lado mesmo no celular */
+    .btn-row-2{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
+      margin-top: 10px;
     }
+    .btn-row-2 .btn{ margin-top: 0; }
 
     label{
       display:block;
@@ -233,9 +255,9 @@
 
     @media (max-width: 520px){
       .grid{ grid-template-columns: 1fr; }
-      .inline-2{ grid-template-columns: 1fr 1fr; }
       .grid-2-fixo{ grid-template-columns: 1fr 1fr; }
-      .grid-qtd-menor{ grid-template-columns: 1fr 3fr; } /* mantém 25/75 */
+      .grid-3-fixo{ grid-template-columns: 1fr 1fr 1fr; } /* ✅ mantém 3 */
+      .btn-row-2{ grid-template-columns: 1fr 1fr; }        /* ✅ mantém 2 */
     }
   </style>
 </head>
@@ -244,10 +266,16 @@
   <div class="container">
     <h2 class="titulo">BONO DIGITAL</h2>
 
+    <!-- ✅ NOVO (pedido #7): logo + linha discreta -->
+    <div class="logo-wrap">
+      <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo" />
+      <hr class="logo-line" />
+    </div>
+
+    <!-- ✅ ALTERADO (pedido #6): apenas Loja e Usuário -->
     <div class="card-info" id="cardInfo">
       <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
       <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
-      <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
     </div>
 
     <div class="secao">
@@ -279,10 +307,10 @@
         </div>
       </div>
 
-      <!-- ✅ ALTERADO (pedido #2): Quantidade menor e Embalagem/Tipo maior -->
-      <div class="grid-qtd-menor" style="margin-top:10px;">
+      <!-- ✅ ALTERADO (pedido #2): Qtd / Embalagem / Tipo com o mesmo tamanho -->
+      <div class="grid-3-fixo" style="margin-top:10px;">
         <div>
-          <label for="quantidade">Quantidade</label>
+          <label for="quantidade">Qtd.</label>
           <input
             type="text"
             id="quantidade"
@@ -293,20 +321,21 @@
         </div>
 
         <div>
-          <label>Embalagem / Tipo</label>
-          <div class="inline-2">
-            <select id="embalagem">
-              <option value="">Embalagem</option>
-              <option value="KG">KG</option>
-              <option value="UND">UND</option>
-            </select>
+          <label for="embalagem">Embalagem</label>
+          <select id="embalagem">
+            <option value="">Embalagem</option>
+            <option value="KG">KG</option>
+            <option value="UND">UND</option>
+          </select>
+        </div>
 
-            <select id="tipoLancamento">
-              <option value="">Tipo</option>
-              <option value="RECEBIMENTO">Recebimento de mercadorias</option>
-              <option value="MOV_INTERNA">Movimentação interna</option>
-            </select>
-          </div>
+        <div>
+          <label for="tipoLancamento">Tipo</label>
+          <select id="tipoLancamento">
+            <option value="">Tipo</option>
+            <option value="RECEBIMENTO">Recebimento de mercadorias</option>
+            <option value="MOV_INTERNA">Movimentação interna</option>
+          </select>
         </div>
       </div>
 
@@ -372,13 +401,17 @@
         </div>
       </div>
 
-      <button class="btn btn-sec" id="btnAdicionar">Adicionar item</button>
-      <button class="btn btn-pri" id="btnSalvar">Salvar (Concluir Bono)</button>
+      <!-- ✅ ALTERADO (pedido #4 e #5): botões lado a lado + texto "Salvar Bono" -->
+      <div class="btn-row-2">
+        <button class="btn btn-sec" id="btnAdicionar">Adicionar item</button>
+        <button class="btn btn-pri" id="btnSalvar">Salvar Bono</button>
+      </div>
+
       <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
 
       <div class="mensagem" id="msg"></div>
 
-      <div class="lista" id="listaWrap">
+      <div class="lista hidden" id="listaWrap">
         <div class="secao-titulo" style="margin:0 0 8px;">Itens adicionados</div>
         <div id="listaItens"></div>
       </div>
@@ -437,7 +470,8 @@
         if (!resp.ok) return null;
 
         const dados = await resp.json().catch(() => null);
-        if (!dados || !dados.sucesso || !dados.usuario || !dados.loja || !dados.perfil) return null;
+        // ✅ ALTERADO (pedido #6): não exige perfil
+        if (!dados || !dados.sucesso || !dados.usuario || !dados.loja) return null;
         return dados;
       } catch (e) {
         console.error("[BONO] Falha ao consultar /api/session:", e);
@@ -482,7 +516,6 @@
       sessaoAtual = sessao;
       setTexto("infoLoja", sessao.loja || "—");
       setTexto("infoUsuario", sessao.usuario || "—");
-      setTexto("infoPerfil", sessao.perfil || "—");
 
       const expMs = normalizarExpParaMs(sessao.exp);
       if (expMs) agendarRedirecionamentoNaExpiracao(expMs);
@@ -582,12 +615,13 @@
           ? `<br/>Para onde: <b>${escapeHtml(it.lojaDestino)}</b>`
           : "";
 
+        // ✅ ALTERADO (pedido #3): Embalagem abaixo de Quantidade
         txt.innerHTML = `
           <b>Item ${idx + 1}</b><br/>
           Produto: <b>${escapeHtml(it.produto)}</b><br/>
-          Quantidade: <b>${escapeHtml(String(it.quantidadeFmt || ""))}</b> &nbsp;|&nbsp;
-          Embalagem: <b>${escapeHtml(it.embalagem)}</b>
-          <br/>Tipo: <b>${escapeHtml(tipoLabel)}</b>
+          Quantidade: <b>${escapeHtml(String(it.quantidadeFmt || ""))}</b><br/>
+          Embalagem: <b>${escapeHtml(it.embalagem)}</b><br/>
+          Tipo: <b>${escapeHtml(tipoLabel)}</b>
           ${destinoTxt}
         `;
 
@@ -607,12 +641,7 @@
       });
     }
 
-    /* ====== Quantidade: máscara (mantém formatação pt-BR no input) ======
-       - só aceita dígitos (sem ponto/vírgula)
-       - exibe:
-         * UND -> inteiro com milhar (.)
-         * KG  -> até 3 casas decimais, com vírgula, mantendo milhar
-    */
+    /* ====== Quantidade: máscara (mantém formatação pt-BR no input) ====== */
     function formatIntPtBR(n) {
       return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
     }
@@ -703,7 +732,6 @@
       }
     }
 
-    /* ✅ NOVO (pedido #1): aplicar tipo/destino em todos os itens já adicionados */
     function aplicarTipoEDestinoNosItens() {
       if (!estado.itens.length) return;
 
@@ -714,10 +742,8 @@
         const novo = { ...it, tipoLancamento: tipoAtual || it.tipoLancamento };
 
         if (tipoAtual === "MOV_INTERNA") {
-          // se o usuário escolheu destino, replica para todos
           novo.lojaDestino = destinoAtual || it.lojaDestino || "";
         } else if (tipoAtual === "RECEBIMENTO") {
-          // recebimento não tem destino
           novo.lojaDestino = "";
         }
         return novo;
@@ -750,11 +776,14 @@
 
       const digits = String(document.getElementById("quantidade").dataset.digits || "");
       const quantidadeNum = quantidadeParaNumero(embalagem, digits);
-      const quantidadeFmt = document.getElementById("quantidade").value; // ✅ formatação pt-BR
+      const quantidadeFmt = document.getElementById("quantidade").value;
 
       if (!produto) { setMsg("Informe a descrição.", false); return false; }
       if (embalagem !== "KG" && embalagem !== "UND") { setMsg("Selecione a embalagem (KG ou UND).", false); return false; }
-      if (!tipoLancamento) { setMsg("Selecione o tipo (Movimentação interna ou Recebimento de mercadorias).", false); return false; }
+
+      // ✅ ALTERADO (pedido #1): mensagem específica quando Tipo está vazio
+      if (!tipoLancamento) { setMsg("Selecione um tipo", false); return false; }
+
       if (tipoLancamento === "MOV_INTERNA" && !lojaDestino) { setMsg("Selecione a loja de destino (Para onde está transferindo?).", false); return false; }
       if (!quantidadeNum) { setMsg("Informe uma quantidade válida (maior que 0).", false); return false; }
 
@@ -774,13 +803,15 @@
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
       if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return; }
       if (!estado.encarregado) { setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false); return; }
+
+      // ✅ ALTERADO (pedido #1): mensagem específica quando Tipo está vazio
+      const tipoAtual = document.getElementById("tipoLancamento").value;
+      if (!tipoAtual) { setMsg("Selecione um tipo", false); return; }
+
       if (!estado.itens.length) { setMsg("A lista está vazia. Adicione um item antes de salvar.", false); return; }
 
-      // ✅ garante consistência no momento do salvar
       aplicarTipoEDestinoNosItens();
 
-      // ✅ valida destino se MOV_INTERNA
-      const tipoAtual = document.getElementById("tipoLancamento").value;
       const destinoAtual = document.getElementById("lojaDestino").value;
       if (tipoAtual === "MOV_INTERNA" && !destinoAtual) {
         setMsg("Selecione a loja de destino antes de salvar (Movimentação interna).", false);
@@ -792,8 +823,7 @@
         encarregado: estado.encarregado,
         itens: estado.itens.map(x => ({
           produto: x.produto,
-          // ✅ ALTERADO (pedido #3): envia a quantidade com pontuação/decimais (string pt-BR)
-          quantidade: x.quantidadeFmt,
+          quantidade: x.quantidadeFmt, // string pt-BR (com pontuação)
           embalagem: x.embalagem,
           tipoLancamento: x.tipoLancamento,
           lojaDestino: x.lojaDestino || ""
@@ -874,20 +904,17 @@
         document.getElementById(id).addEventListener("input", capturarBaseDoFormulario);
       });
 
-      // ✅ Tipo -> mostra/oculta destino + replica nos itens (se existirem)
       document.getElementById("tipoLancamento").addEventListener("change", () => {
         atualizarVisibilidadeDestino();
         capturarBaseDoFormulario();
-        aplicarTipoEDestinoNosItens(); // ✅ pedido #1
+        aplicarTipoEDestinoNosItens();
       });
 
-      // ✅ Destino -> replica nos itens (se existirem)
       document.getElementById("lojaDestino").addEventListener("change", () => {
         capturarBaseDoFormulario();
-        aplicarTipoEDestinoNosItens(); // ✅ pedido #1
+        aplicarTipoEDestinoNosItens();
       });
 
-      // ✅ Quantidade (bloqueia pontuação + máscara)
       const elQtd = document.getElementById("quantidade");
       elQtd.addEventListener("keydown", bloquearPontuacao);
       elQtd.addEventListener("input", () => {
@@ -895,7 +922,6 @@
         capturarBaseDoFormulario();
       });
 
-      // ✅ Se mudar embalagem, refaz máscara
       document.getElementById("embalagem").addEventListener("change", () => {
         aplicarMascaraQuantidade();
         capturarBaseDoFormulario();
@@ -907,8 +933,8 @@
 
         estado.itens.push({
           produto: dadosItem.produto,
-          quantidade: dadosItem.quantidadeNum,     // número (interno)
-          quantidadeFmt: dadosItem.quantidadeFmt,  // string pt-BR (envio)
+          quantidade: dadosItem.quantidadeNum,
+          quantidadeFmt: dadosItem.quantidadeFmt,
           embalagem: dadosItem.embalagem,
           tipoLancamento: dadosItem.tipoLancamento,
           lojaDestino: dadosItem.lojaDestino
@@ -925,10 +951,18 @@
       });
 
       document.getElementById("btnSalvar").addEventListener("click", () => {
+        // ✅ ALTERADO (pedido #1): se Tipo vazio, mostra msg específica
+        const tipoAtual = document.getElementById("tipoLancamento").value;
+        if (!tipoAtual) {
+          setMsg("Selecione um tipo", false);
+          return;
+        }
+
         if (!estado.itens.length) {
           setMsg("A lista está vazia. Adicione um item antes de salvar.", false);
           return;
         }
+
         abrirModal("modalConfirmar");
       });
 
@@ -955,6 +989,7 @@
        - Fetch API (MDN): https://developer.mozilla.org/docs/Web/API/Fetch_API
        - Intl.NumberFormat (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
        - addEventListener (MDN): https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener
+       - CSS Grid (MDN): https://developer.mozilla.org/docs/Web/CSS/CSS_grid_layout
   -->
 </body>
 </html>
