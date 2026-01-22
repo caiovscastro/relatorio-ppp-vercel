@@ -7,19 +7,19 @@
 
   <style>
     body{
-      background: #f3f3f3;
+      background:#f3f3f3;
       font-family: Arial, sans-serif;
       display:flex;
       justify-content:center;
       align-items:center;
       min-height:100vh;
-      margin:2;
+      margin:2px;
       color:#111;
     }
 
     .container{
       width: 92%;
-      max-width: 520px;
+      max-width: 640px;
       background:#fff;
       padding: 22px 22px 18px;
       border-radius: 12px;
@@ -57,39 +57,164 @@
     .k{ color:#555; font-weight:700; }
     .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
 
-    .texto{
-      text-align:center;
-      font-size: 14px;
-      line-height: 1.45;
-      font-weight: 700;
-      margin: 14px 0 10px;
-      color:#111;
+    .secao{
+      margin-top: 12px;
+      border: 1px solid #ececec;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
     }
+
+    .secao-titulo{
+      font-size: 14px;
+      font-weight: 900;
+      margin: 0 0 10px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .grid-1{ grid-template-columns: 1fr; }
+
+    label{
+      display:block;
+      font-size: 12px;
+      font-weight: 800;
+      color:#333;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea{
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      outline: none;
+      background:#fff;
+    }
+
+    textarea{ min-height: 44px; resize: vertical; }
 
     .btn{
       width:100%;
       padding: 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 800;
       margin-top: 10px;
     }
 
     .btn-sec{ background:#e9e9e9; color:#111; }
     .btn-sec:hover{ background:#dedede; }
 
+    .btn-pri{ background:#111; color:#fff; }
+    .btn-pri:hover{ opacity:.92; }
+
+    .btn-warn{ background:#b30000; color:#fff; }
+    .btn-warn:hover{ opacity:.92; }
+
     .mensagem{
       margin-top: 12px;
       text-align:center;
-      font-weight:700;
+      font-weight:800;
       font-size: 13px;
       min-height: 18px;
       color:#b30000;
     }
 
+    .ok{ color:#0b6b2f; }
+
+    .lista{
+      margin-top: 10px;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+
+    .item{
+      display:flex;
+      justify-content: space-between;
+      align-items:flex-start;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      background:#fafafa;
+    }
+
+    .item .txt{
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .item .txt b{ font-size: 13px; }
+
+    .btn-mini{
+      border: none;
+      border-radius: 10px;
+      padding: 10px 10px;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 12px;
+      background:#e9e9e9;
+    }
+    .btn-mini:hover{ background:#dedede; }
+
     .hidden{ display:none !important; }
+
+    /* ===== Modais ===== */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.45);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index: 9999;
+      padding: 14px;
+    }
+
+    .modal{
+      width: 100%;
+      max-width: 420px;
+      background:#fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .modal h3{
+      margin:0 0 8px;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .modal p{
+      margin:0 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color:#222;
+      line-height: 1.35;
+    }
+
+    .row-btn{
+      display:flex;
+      gap: 10px;
+    }
+    .row-btn .btn{ margin-top: 0; }
+
+    /* Mobile */
+    @media (max-width: 520px){
+      .grid{ grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 
@@ -97,39 +222,130 @@
   <div class="container">
     <h2 class="titulo">BONO DIGITAL</h2>
 
-    <!-- Card com dados mínimos da sessão (apenas para referência do usuário) -->
+    <!-- Card com dados da sessão -->
     <div class="card-info" id="cardInfo">
       <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
       <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
       <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
     </div>
 
-    <!-- Conteúdo temporário (pedido) -->
-    <div class="texto">
-      Tela em processo de construção, será informado quando for realizado a implantação do código
+    <!-- Formulário -->
+    <div class="secao">
+      <div class="secao-titulo">Dados do lançamento</div>
+
+      <div class="grid">
+        <div>
+          <label for="dataEscolhida">Data</label>
+          <input type="date" id="dataEscolhida" />
+        </div>
+
+        <div>
+          <label for="horaEscolhida">Horário</label>
+          <input type="time" id="horaEscolhida" />
+        </div>
+      </div>
+
+      <div class="grid grid-1" style="margin-top:10px;">
+        <div>
+          <label for="encarregado">Nome do encarregado</label>
+          <input type="text" id="encarregado" placeholder="Ex: João Silva" maxlength="80" />
+        </div>
+      </div>
+
+      <div class="grid grid-1" style="margin-top:10px;">
+        <div>
+          <label for="produto">Descrição do produto</label>
+          <textarea id="produto" placeholder="Ex: Arroz 5kg" maxlength="200"></textarea>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label for="quantidade">Quantidade</label>
+          <input type="number" id="quantidade" min="0" step="0.001" placeholder="Ex: 2" />
+        </div>
+
+        <div>
+          <label for="embalagem">Embalagem</label>
+          <select id="embalagem">
+            <option value="">Selecione</option>
+            <option value="KG">KG</option>
+            <option value="UND">UND</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-sec" id="btnAdicionar">Adicionar item</button>
+      <button class="btn btn-pri" id="btnSalvar">Salvar (finalizar Bono)</button>
+      <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
+
+      <div class="mensagem" id="msg"></div>
+
+      <!-- Lista -->
+      <div class="lista" id="listaWrap">
+        <div class="secao-titulo" style="margin:0 0 8px;">Itens adicionados</div>
+        <div id="listaItens"></div>
+      </div>
     </div>
+  </div>
 
-    <!-- Botão de voltar ao menu (pedido) -->
-    <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
+  <!-- Modal: pendente -->
+  <div class="overlay hidden" id="modalPendente">
+    <div class="modal">
+      <h3>Bono pendente de finalização</h3>
+      <p>Foi encontrado um bono não finalizado. Deseja continuar de onde parou ou descartar e iniciar um novo?</p>
+      <div class="row-btn">
+        <button class="btn btn-pri" id="btnContinuar">Continuar</button>
+        <button class="btn btn-warn" id="btnDescartar">Descartar</button>
+      </div>
+    </div>
+  </div>
 
-    <div class="mensagem" id="msg"></div>
+  <!-- Modal: confirmar salvar -->
+  <div class="overlay hidden" id="modalConfirmar">
+    <div class="modal">
+      <h3>Finalizar Bono</h3>
+      <p>Tem certeza que deseja finalizar o Bono?</p>
+      <div class="row-btn">
+        <button class="btn btn-pri" id="btnConfirmarSim">Sim</button>
+        <button class="btn btn-sec" id="btnConfirmarNao">Não</button>
+      </div>
+    </div>
   </div>
 
   <script>
     /* =====================================================================================
-      SEGURANÇA / CONTROLE DE SESSÃO (mesmo princípio do MENU):
-      - NÃO confia em storage local para autenticação.
+      SESSÃO / SEGURANÇA
       - Verifica /api/session (cookie HttpOnly).
-      - Respeita expiração (até 8h) usando o "exp" retornado pelo backend.
       ===================================================================================== */
-
     const ROTAS = {
-      menu: "/menu.html",   // ajuste se seu menu tiver outro nome/rota
+      menu: "/menu.html",
       login: "/login.html"
     };
 
-    let sessaoAtual = null; // {usuario, loja, perfil, exp}
+    const LS_KEY = "PPP_BONO_PENDENTE_V1";
+
+    let sessaoAtual = null;
     let expTimerId = null;
+
+    // Estado do bono pendente
+    let estado = {
+      data: "",        // yyyy-mm-dd
+      hora: "",        // HH:MM
+      encarregado: "",
+      itens: []        // {produto, quantidade, embalagem}
+    };
+
+    function setTexto(id, txt) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    }
+
+    function setMsg(txt, ok=false){
+      const el = document.getElementById("msg");
+      el.textContent = txt || "";
+      el.classList.toggle("ok", !!ok);
+    }
 
     async function obterSessaoDoBackend() {
       try {
@@ -152,8 +368,7 @@
     function normalizarExpParaMs(exp) {
       const n = Number(exp);
       if (!Number.isFinite(n) || n <= 0) return null;
-      // exp JWT normalmente vem em segundos (10 dígitos). Em ms seria 13 dígitos.
-      if (n < 10_000_000_000) return n * 1000;
+      if (n < 10_000_000_000) return n * 1000; // segundos -> ms
       return n;
     }
 
@@ -164,15 +379,8 @@
       }
     }
 
-    function setTexto(id, txt) {
-      const el = document.getElementById(id);
-      if (el) el.textContent = txt;
-    }
-
     function redirecionarParaLogin(motivo) {
-      // Mensagem opcional antes de redirecionar (UX)
-      if (motivo) setTexto("msg", motivo);
-      // Redireciona para login (proteção real é no cookie HttpOnly)
+      if (motivo) setMsg(motivo, false);
       window.location.href = ROTAS.login;
     }
 
@@ -185,7 +393,6 @@
         redirecionarParaLogin("Sessão expirada. Faça login novamente.");
         return;
       }
-
       expTimerId = setTimeout(() => {
         redirecionarParaLogin("Sessão expirada. Faça login novamente.");
       }, msRestante);
@@ -193,32 +400,334 @@
 
     function aplicarSessaoNaTela(sessao) {
       sessaoAtual = sessao;
-
       setTexto("infoLoja", sessao.loja || "—");
       setTexto("infoUsuario", sessao.usuario || "—");
       setTexto("infoPerfil", sessao.perfil || "—");
 
-      // agenda expiração (se veio exp)
       const expMs = normalizarExpParaMs(sessao.exp);
       if (expMs) agendarRedirecionamentoNaExpiracao(expMs);
     }
 
+    /* =====================================================================================
+      PERSISTÊNCIA LOCAL (pendência)
+      ===================================================================================== */
+    function salvarLocal() {
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify(estado));
+      } catch (e) {
+        console.warn("[BONO] Não foi possível salvar no localStorage:", e);
+      }
+    }
+
+    function carregarLocal() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (!obj || typeof obj !== "object") return null;
+        if (!Array.isArray(obj.itens)) obj.itens = [];
+        return obj;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function limparLocal() {
+      try { localStorage.removeItem(LS_KEY); } catch(e) {}
+    }
+
+    function temPendenciaValida(obj) {
+      if (!obj) return false;
+      const temAlgo = (obj.data || obj.hora || obj.encarregado || (obj.itens && obj.itens.length));
+      return !!temAlgo;
+    }
+
+    /* =====================================================================================
+      UTILITÁRIOS
+      ===================================================================================== */
+    function pad2(n){ return String(n).padStart(2, "0"); }
+
+    function formatarDataHoraParaPlanilha(dataYYYYMMDD, horaHHMM) {
+      // retorna "DD/MM/AAAA HH:MM"
+      if (!dataYYYYMMDD || !horaHHMM) return "";
+      const [y,m,d] = dataYYYYMMDD.split("-");
+      if (!y || !m || !d) return "";
+      const [hh,mm] = horaHHMM.split(":");
+      if (hh == null || mm == null) return "";
+      return `${pad2(d)}/${pad2(m)}/${y} ${pad2(hh)}:${pad2(mm)}`;
+    }
+
+    function normalizarTexto(t) {
+      return String(t || "").trim();
+    }
+
+    function quantidadeValida(q) {
+      const n = Number(q);
+      return Number.isFinite(n) && n > 0;
+    }
+
+    function atualizarCamposNaTela() {
+      document.getElementById("dataEscolhida").value = estado.data || "";
+      document.getElementById("horaEscolhida").value = estado.hora || "";
+      document.getElementById("encarregado").value = estado.encarregado || "";
+    }
+
+    function renderLista() {
+      const wrap = document.getElementById("listaWrap");
+      const lista = document.getElementById("listaItens");
+
+      lista.innerHTML = "";
+
+      if (!estado.itens.length) {
+        wrap.classList.add("hidden");
+        return;
+      }
+      wrap.classList.remove("hidden");
+
+      estado.itens.forEach((it, idx) => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        const txt = document.createElement("div");
+        txt.className = "txt";
+        txt.innerHTML = `
+          <b>Item ${idx + 1}</b><br/>
+          Produto: <b>${escapeHtml(it.produto)}</b><br/>
+          Quantidade: <b>${escapeHtml(String(it.quantidade))}</b> &nbsp;|&nbsp;
+          Embalagem: <b>${escapeHtml(it.embalagem)}</b>
+        `;
+
+        const btn = document.createElement("button");
+        btn.className = "btn-mini";
+        btn.textContent = "Retirar";
+        btn.addEventListener("click", () => {
+          estado.itens.splice(idx, 1);
+          salvarLocal();
+          renderLista();
+          setMsg("Item removido da lista.", true);
+        });
+
+        div.appendChild(txt);
+        div.appendChild(btn);
+        lista.appendChild(div);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function abrirModal(id) {
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function fecharModal(id) {
+      document.getElementById(id).classList.add("hidden");
+    }
+
+    /* =====================================================================================
+      AÇÕES
+      ===================================================================================== */
+    function capturarBaseDoFormulario() {
+      estado.data = document.getElementById("dataEscolhida").value || "";
+      estado.hora = document.getElementById("horaEscolhida").value || "";
+      estado.encarregado = normalizarTexto(document.getElementById("encarregado").value);
+      salvarLocal();
+    }
+
+    function validarParaAdicionarItem() {
+      capturarBaseDoFormulario();
+
+      const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
+      if (!dataHoraPlanilha) {
+        setMsg("Preencha a Data e o Horário do bono.", false);
+        return false;
+      }
+
+      if (!estado.encarregado) {
+        setMsg("Informe o nome do encarregado.", false);
+        return false;
+      }
+
+      const produto = normalizarTexto(document.getElementById("produto").value);
+      const quantidade = document.getElementById("quantidade").value;
+      const embalagem = document.getElementById("embalagem").value;
+
+      if (!produto) {
+        setMsg("Informe a descrição do produto.", false);
+        return false;
+      }
+      if (!quantidadeValida(quantidade)) {
+        setMsg("Informe uma quantidade válida (maior que 0).", false);
+        return false;
+      }
+      if (embalagem !== "KG" && embalagem !== "UND") {
+        setMsg("Selecione a embalagem (KG ou UND).", false);
+        return false;
+      }
+
+      return { produto, quantidade: Number(quantidade), embalagem };
+    }
+
+    async function finalizarBono() {
+      // Revalida tudo antes de enviar
+      capturarBaseDoFormulario();
+      const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
+      if (!dataHoraPlanilha) {
+        setMsg("Preencha a Data e o Horário do bono.", false);
+        return;
+      }
+      if (!estado.encarregado) {
+        setMsg("Informe o nome do encarregado.", false);
+        return;
+      }
+      if (!estado.itens.length) {
+        setMsg("Adicione pelo menos 1 item antes de salvar.", false);
+        return;
+      }
+
+      // Monta payload
+      const payload = {
+        dataHoraEscolhida: dataHoraPlanilha,      // Coluna B
+        encarregado: estado.encarregado,          // Coluna E
+        itens: estado.itens.map(x => ({
+          produto: x.produto,                     // Coluna F
+          quantidade: x.quantidade,               // Coluna G
+          embalagem: x.embalagem                  // Coluna H
+        }))
+      };
+
+      setMsg("Salvando... aguarde.", true);
+
+      try {
+        const resp = await fetch("/api/bono-salvar", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const dados = await resp.json().catch(() => null);
+
+        if (!resp.ok || !dados || !dados.sucesso) {
+          const m = (dados && dados.mensagem) ? dados.mensagem : "Falha ao salvar o bono.";
+          setMsg(m, false);
+          return;
+        }
+
+        // Sucesso: limpa tudo
+        limparLocal();
+        estado = { data: "", hora: "", encarregado: "", itens: [] };
+        atualizarCamposNaTela();
+        renderLista();
+
+        // Limpa campos de item
+        document.getElementById("produto").value = "";
+        document.getElementById("quantidade").value = "";
+        document.getElementById("embalagem").value = "";
+
+        setMsg("Bono finalizado e salvo com sucesso.", true);
+      } catch (e) {
+        console.error(e);
+        setMsg("Erro de rede ao salvar. Tente novamente.", false);
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
-      // Voltar ao menu
+      // Botões gerais
       document.getElementById("btnVoltarMenu").addEventListener("click", () => {
         window.location.href = ROTAS.menu;
       });
 
+      // Modais
+      document.getElementById("btnContinuar").addEventListener("click", () => {
+        fecharModal("modalPendente");
+        atualizarCamposNaTela();
+        renderLista();
+      });
+
+      document.getElementById("btnDescartar").addEventListener("click", () => {
+        limparLocal();
+        estado = { data:"", hora:"", encarregado:"", itens:[] };
+        fecharModal("modalPendente");
+        atualizarCamposNaTela();
+        renderLista();
+        setMsg("Pendência descartada. Você pode iniciar um novo bono.", true);
+      });
+
+      document.getElementById("btnConfirmarNao").addEventListener("click", () => {
+        fecharModal("modalConfirmar");
+      });
+
+      document.getElementById("btnConfirmarSim").addEventListener("click", async () => {
+        fecharModal("modalConfirmar");
+        await finalizarBono();
+      });
+
+      // Eventos que atualizam o estado base
+      ["dataEscolhida","horaEscolhida","encarregado"].forEach(id => {
+        document.getElementById(id).addEventListener("change", () => {
+          capturarBaseDoFormulario();
+        });
+        document.getElementById(id).addEventListener("input", () => {
+          capturarBaseDoFormulario();
+        });
+      });
+
+      // Adicionar item
+      document.getElementById("btnAdicionar").addEventListener("click", () => {
+        const dadosItem = validarParaAdicionarItem();
+        if (!dadosItem) return;
+
+        estado.itens.push({
+          produto: dadosItem.produto,
+          quantidade: dadosItem.quantidade,
+          embalagem: dadosItem.embalagem
+        });
+
+        salvarLocal();
+        renderLista();
+
+        // Limpa campos do item para o próximo
+        document.getElementById("produto").value = "";
+        document.getElementById("quantidade").value = "";
+        document.getElementById("embalagem").value = "";
+
+        setMsg("Item adicionado na lista.", true);
+      });
+
+      // Salvar (finalizar)
+      document.getElementById("btnSalvar").addEventListener("click", () => {
+        abrirModal("modalConfirmar");
+      });
+
       // 1) Proteção: exige sessão válida
       const sessao = await obterSessaoDoBackend();
-      if (!sessao) {
-        // Se não tem sessão, não permite abrir a tela (pedido)
-        return redirecionarParaLogin("Sessão inválida. Faça login para acessar.");
-      }
+      if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login para acessar.");
 
-      // 2) Sessão ok -> libera tela
       aplicarSessaoNaTela(sessao);
+
+      // 2) Carrega pendência (se houver)
+      const pendente = carregarLocal();
+      if (temPendenciaValida(pendente)) {
+        estado = pendente;
+        abrirModal("modalPendente");
+      } else {
+        atualizarCamposNaTela();
+        renderLista();
+      }
     });
   </script>
+
+  <!-- Fontes úteis:
+       - localStorage (MDN): https://developer.mozilla.org/docs/Web/API/Window/localStorage
+       - input date/time (MDN): https://developer.mozilla.org/docs/Web/HTML/Element/input/date
+       - Fetch API (MDN): https://developer.mozilla.org/docs/Web/API/Fetch_API
+  -->
 </body>
 </html>
