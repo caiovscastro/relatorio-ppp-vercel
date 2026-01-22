@@ -29,7 +29,7 @@
 
     .titulo{
       text-align:center;
-      margin: 0 0 10px;
+      margin: 10px 0 10px; /* ✅ ajuste: título agora fica abaixo da linha */
       font-size: 24px;
       font-weight: 800;
       letter-spacing: .2px;
@@ -40,7 +40,7 @@
       display:flex;
       flex-direction: column;
       align-items:center;
-      margin: 6px 0 10px;
+      margin: 6px 0 0; /* ✅ ajuste: tira espaço inferior para encaixar título abaixo da linha */
     }
     .logo-wrap img{
       max-width: 220px;
@@ -253,6 +253,53 @@
     }
     .row-btn .btn{ margin-top: 0; }
 
+    /* ✅ NOVO (pedido #2): overlay de carregamento com barra */
+    .load-overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.45);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index: 10050; /* acima dos modais */
+      padding: 14px;
+    }
+    .load-box{
+      width: 100%;
+      max-width: 420px;
+      background:#fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .load-title{
+      margin:0 0 10px;
+      font-size: 14px;
+      font-weight: 900;
+      text-align:center;
+    }
+    .load-bar{
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: #eee;
+      overflow:hidden;
+      border: 1px solid #e3e3e3;
+    }
+    .load-fill{
+      height: 100%;
+      width: 0%;
+      background: #111;
+      transition: width .18s ease;
+    }
+    .load-pct{
+      margin-top: 10px;
+      text-align:center;
+      font-weight: 900;
+      font-size: 13px;
+      color:#111;
+    }
+
     @media (max-width: 520px){
       .grid{ grid-template-columns: 1fr; }
       .grid-2-fixo{ grid-template-columns: 1fr 1fr; }
@@ -264,15 +311,15 @@
 
 <body>
   <div class="container">
-    <h2 class="titulo">BONO DIGITAL</h2>
-
-    <!-- ✅ NOVO (pedido #7): logo + linha discreta -->
+    <!-- ✅ logo + linha -->
     <div class="logo-wrap">
       <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo" />
       <hr class="logo-line" />
     </div>
 
-    <!-- ✅ ALTERADO (pedido #6): apenas Loja e Usuário -->
+    <!-- ✅ ALTERADO (pedido #1): título abaixo da linha -->
+    <h2 class="titulo">BONO DIGITAL</h2>
+
     <div class="card-info" id="cardInfo">
       <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
       <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
@@ -295,8 +342,8 @@
 
       <div class="grid grid-1" style="margin-top:10px;">
         <div>
-          <label for="encarregado">Encarregado (Operação)</label>
-          <input type="text" id="encarregado" placeholder="Nome e sobrenome do encarregado da operação que acompanhou." maxlength="80" />
+          <label for="encarregado">Responsavel (Operação)</label>
+          <input type="text" id="encarregado" placeholder="Nome e sobrenome do responsavel que acompanhou." maxlength="80" />
         </div>
       </div>
 
@@ -307,7 +354,6 @@
         </div>
       </div>
 
-      <!-- ✅ ALTERADO (pedido #2): Qtd / Embalagem / Tipo com o mesmo tamanho -->
       <div class="grid-3-fixo" style="margin-top:10px;">
         <div>
           <label for="quantidade">Qtd.</label>
@@ -401,7 +447,6 @@
         </div>
       </div>
 
-      <!-- ✅ ALTERADO (pedido #4 e #5): botões lado a lado + texto "Salvar Bono" -->
       <div class="btn-row-2">
         <button class="btn btn-sec" id="btnAdicionar">Adicionar item</button>
         <button class="btn btn-pri" id="btnSalvar">Salvar Bono</button>
@@ -440,6 +485,17 @@
     </div>
   </div>
 
+  <!-- ✅ NOVO (pedido #2): overlay de carregamento -->
+  <div class="load-overlay hidden" id="loadingOverlay" aria-live="polite">
+    <div class="load-box">
+      <div class="load-title">Enviando informações...</div>
+      <div class="load-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="load-fill" id="loadFill"></div>
+      </div>
+      <div class="load-pct" id="loadPct">0%</div>
+    </div>
+  </div>
+
   <script>
     const ROTAS = { menu: "/menu.html", login: "/login.html" };
     const LS_KEY = "PPP_BONO_PENDENTE_V1";
@@ -470,7 +526,6 @@
         if (!resp.ok) return null;
 
         const dados = await resp.json().catch(() => null);
-        // ✅ ALTERADO (pedido #6): não exige perfil
         if (!dados || !dados.sucesso || !dados.usuario || !dados.loja) return null;
         return dados;
       } catch (e) {
@@ -581,6 +636,39 @@
     function abrirModal(id) { document.getElementById(id).classList.remove("hidden"); }
     function fecharModal(id) { document.getElementById(id).classList.add("hidden"); }
 
+    /* ✅ NOVO (pedido #2): Loading overlay control + progress */
+    let loadTimer = null;
+    function showLoading(){
+      document.getElementById("loadingOverlay").classList.remove("hidden");
+      setLoadingPct(0);
+    }
+    function hideLoading(){
+      document.getElementById("loadingOverlay").classList.add("hidden");
+      stopLoadingTimer();
+    }
+    function setLoadingPct(pct){
+      const p = Math.max(0, Math.min(100, Number(pct) || 0));
+      document.getElementById("loadFill").style.width = p + "%";
+      document.getElementById("loadPct").textContent = p + "%";
+      const bar = document.querySelector(".load-bar");
+      if (bar) bar.setAttribute("aria-valuenow", String(p));
+    }
+    function stopLoadingTimer(){
+      if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }
+    }
+    function startLoadingTimer(){
+      stopLoadingTimer();
+      let p = 0;
+      setLoadingPct(p);
+      loadTimer = setInterval(() => {
+        if (p < 95) { // ✅ mantém até 95% enquanto aguarda o fetch concluir
+          p += 5;
+          if (p > 95) p = 95;
+          setLoadingPct(p);
+        }
+      }, 180);
+    }
+
     function atualizarCamposNaTela() {
       document.getElementById("dataEscolhida").value = estado.data || "";
       document.getElementById("horaEscolhida").value = estado.hora || "";
@@ -615,7 +703,6 @@
           ? `<br/>Para onde: <b>${escapeHtml(it.lojaDestino)}</b>`
           : "";
 
-        // ✅ ALTERADO (pedido #3): Embalagem abaixo de Quantidade
         txt.innerHTML = `
           <b>Item ${idx + 1}</b><br/>
           Produto: <b>${escapeHtml(it.produto)}</b><br/>
@@ -641,7 +728,6 @@
       });
     }
 
-    /* ====== Quantidade: máscara (mantém formatação pt-BR no input) ====== */
     function formatIntPtBR(n) {
       return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
     }
@@ -718,7 +804,6 @@
       }
     }
 
-    /* ====== Tipo / Destino ====== */
     function atualizarVisibilidadeDestino() {
       const tipo = document.getElementById("tipoLancamento").value;
       const wrap = document.getElementById("wrapDestino");
@@ -754,7 +839,6 @@
       setMsg("Itens atualizados com o Tipo/Destino selecionados.", true);
     }
 
-    /* ====== Ações ====== */
     function capturarBaseDoFormulario() {
       estado.data = document.getElementById("dataEscolhida").value || "";
       estado.hora = document.getElementById("horaEscolhida").value || "";
@@ -780,10 +864,7 @@
 
       if (!produto) { setMsg("Informe a descrição.", false); return false; }
       if (embalagem !== "KG" && embalagem !== "UND") { setMsg("Selecione a embalagem (KG ou UND).", false); return false; }
-
-      // ✅ ALTERADO (pedido #1): mensagem específica quando Tipo está vazio
       if (!tipoLancamento) { setMsg("Selecione um tipo", false); return false; }
-
       if (tipoLancamento === "MOV_INTERNA" && !lojaDestino) { setMsg("Selecione a loja de destino (Para onde está transferindo?).", false); return false; }
       if (!quantidadeNum) { setMsg("Informe uma quantidade válida (maior que 0).", false); return false; }
 
@@ -804,7 +885,6 @@
       if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return; }
       if (!estado.encarregado) { setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false); return; }
 
-      // ✅ ALTERADO (pedido #1): mensagem específica quando Tipo está vazio
       const tipoAtual = document.getElementById("tipoLancamento").value;
       if (!tipoAtual) { setMsg("Selecione um tipo", false); return; }
 
@@ -823,7 +903,7 @@
         encarregado: estado.encarregado,
         itens: estado.itens.map(x => ({
           produto: x.produto,
-          quantidade: x.quantidadeFmt, // string pt-BR (com pontuação)
+          quantidade: x.quantidadeFmt,
           embalagem: x.embalagem,
           tipoLancamento: x.tipoLancamento,
           lojaDestino: x.lojaDestino || ""
@@ -831,6 +911,10 @@
       };
 
       setMsg("Salvando... aguarde.", true);
+
+      /* ✅ NOVO (pedido #2): inicia overlay e progresso */
+      showLoading();
+      startLoadingTimer();
 
       try {
         const resp = await fetch("/api/bono-salvar", {
@@ -846,9 +930,21 @@
           const m =
             (dados && (dados.message || dados.mensagem)) ? (dados.message || dados.mensagem) :
             "Falha ao salvar o bono.";
+
+          stopLoadingTimer();
+          setLoadingPct(100);
+          hideLoading();
+
           setMsg(m, false);
           return;
         }
+
+        /* ✅ NOVO (pedido #2): finaliza progresso e só então some */
+        stopLoadingTimer();
+        setLoadingPct(100);
+        setTimeout(() => {
+          hideLoading();
+        }, 250);
 
         limparLocal();
         estado = { data: "", hora: "", encarregado: "", itens: [] };
@@ -866,6 +962,11 @@
         setMsg("Bono finalizado e salvo com sucesso.", true);
       } catch (e) {
         console.error(e);
+
+        stopLoadingTimer();
+        setLoadingPct(100);
+        hideLoading();
+
         setMsg("Erro de rede ao salvar. Tente novamente.", false);
       }
     }
@@ -951,7 +1052,6 @@
       });
 
       document.getElementById("btnSalvar").addEventListener("click", () => {
-        // ✅ ALTERADO (pedido #1): se Tipo vazio, mostra msg específica
         const tipoAtual = document.getElementById("tipoLancamento").value;
         if (!tipoAtual) {
           setMsg("Selecione um tipo", false);
@@ -990,6 +1090,7 @@
        - Intl.NumberFormat (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
        - addEventListener (MDN): https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener
        - CSS Grid (MDN): https://developer.mozilla.org/docs/Web/CSS/CSS_grid_layout
+       - setInterval / clearInterval (MDN): https://developer.mozilla.org/docs/Web/API/setInterval
   -->
 </body>
 </html>
