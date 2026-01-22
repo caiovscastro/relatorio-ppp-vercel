@@ -247,7 +247,7 @@
 
       <div class="grid grid-1" style="margin-top:10px;">
         <div>
-          <label for="encarregado">Nome do encarregado</label>
+          <label for="encarregado">Encarregado (Operação)</label>
           <input type="text" id="encarregado" placeholder="Ex: João Silva" maxlength="80" />
         </div>
       </div>
@@ -550,7 +550,7 @@
       }
 
       if (!estado.encarregado) {
-        setMsg("Informe o nome do encarregado.", false);
+        setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false);
         return false;
       }
 
@@ -583,7 +583,7 @@
         return;
       }
       if (!estado.encarregado) {
-        setMsg("Informe o nome do encarregado.", false);
+        setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false);
         return;
       }
       if (!estado.itens.length) {
