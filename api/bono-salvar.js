@@ -1,19 +1,36 @@
 // /api/bono-salvar.js
+// Grava itens do Bono na aba BONO (A..H) em lote.
+//
+// Colunas:
+// A: Data/Hora da rede (server SP)  -> "DD/MM/AAAA HH:MM:SS"
+// B: Data/Hora escolhida            -> "DD/MM/AAAA HH:MM"
+// C: Loja (sessão)
+// D: Usuário (sessão)
+// E: Encarregado
+// F: Descrição do produto
+// G: Quantidade
+// H: Embalagem (KG/UND)
+//
+// Variáveis de ambiente (PADRÃO DO PROJETO):
+// - GOOGLE_SERVICE_ACCOUNT_EMAIL
+// - GOOGLE_PRIVATE_KEY
+// - SPREADSHEET_ID
+
 import { google } from "googleapis";
+import { requireSession } from "./_authUsuarios.js";
 
-function json(res, status, obj) {
-  res.statusCode = status;
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.end(JSON.stringify(obj));
+const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+const spreadsheetId = process.env.SPREADSHEET_ID;
+
+function ok(res, obj) {
+  return res.status(200).json(obj);
 }
-
-function getEnv(name) {
-  const v = process.env[name];
-  return (v && String(v).trim()) ? v : null;
+function bad(res, status, message) {
+  return res.status(status).json({ sucesso: false, message });
 }
 
 function agoraSP_ddmmyyyy_hhmmss() {
-  // Data/hora da rede (servidor) no fuso de São Paulo
   const dtf = new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
     day: "2-digit",
@@ -22,26 +39,28 @@ function agoraSP_ddmmyyyy_hhmmss() {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-    hour12: false
+    hour12: false,
   });
-  // Ex: "22/01/2026 11:46:10" (alguns ambientes inserem vírgula; removemos)
   return dtf.format(new Date()).replace(",", "");
 }
 
 function validarDataHoraEscolhida(str) {
-  // Esperado: "DD/MM/AAAA HH:MM"
+  // "DD/MM/AAAA HH:MM"
   if (!str || typeof str !== "string") return false;
   const s = str.trim();
   const re = /^(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2})$/;
   const m = s.match(re);
   if (!m) return false;
+
   const dd = Number(m[1]), mm = Number(m[2]), yyyy = Number(m[3]);
   const hh = Number(m[4]), min = Number(m[5]);
+
   if (mm < 1 || mm > 12) return false;
   if (dd < 1 || dd > 31) return false;
   if (hh < 0 || hh > 23) return false;
   if (min < 0 || min > 59) return false;
   if (yyyy < 2020 || yyyy > 2100) return false;
+
   return true;
 }
 
@@ -65,150 +84,102 @@ function validarItem(it) {
   return { produto, embalagem, quantidade };
 }
 
-async function obterSessaoViaApiSession(req) {
-  // Usa o mesmo cookie HttpOnly do navegador.
-  // Faz uma chamada interna ao seu próprio /api/session
-  const host =
-    req.headers["x-forwarded-host"] ||
-    req.headers["host"] ||
-    (process.env.VERCEL_URL ? process.env.VERCEL_URL : "");
-
-  const proto = (req.headers["x-forwarded-proto"] || "https").toString();
-  const base = host.startsWith("http") ? host : `${proto}://${host}`;
-
-  const cookie = req.headers.cookie || "";
-  if (!cookie) return null;
-
-  const r = await fetch(`${base}/api/session`, {
-    method: "GET",
-    headers: {
-      "Accept": "application/json",
-      "Cookie": cookie
-    }
-  });
-
-  if (!r.ok) return null;
-  const data = await r.json().catch(() => null);
-  if (!data || !data.sucesso || !data.usuario || !data.loja || !data.perfil) return null;
-
-  return data; // {sucesso, usuario, loja, perfil, exp...}
-}
-
-function criarClienteGoogleSheets() {
-  const spreadsheetId = getEnv("ID_DA_PLANILHA");
-  const clientEmail = getEnv("E-MAIL DA CONTA DE SERVIÇO DO GOOGLE");
-  const privateKeyRaw = getEnv("CHAVE_PRIVADA_DO_GOOGLE");
-
-  if (!spreadsheetId || !clientEmail || !privateKeyRaw) {
-    return { erro: "Variáveis de ambiente não configuradas." };
-  }
-
-  // Corrige quebras de linha da private key quando armazenada em env var
-  const privateKey = privateKeyRaw.replace(/\\n/g, "\n");
-
+async function getSheetsClient() {
   const auth = new google.auth.JWT({
-    email: clientEmail,
+    email: serviceAccountEmail,
     key: privateKey,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
-
-  const sheets = google.sheets({ version: "v4", auth });
-  return { sheets, spreadsheetId };
+  return google.sheets({ version: "v4", auth });
 }
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-    return json(res, 405, { sucesso: false, mensagem: "Método não permitido." });
+    return bad(res, 405, "Método não permitido. Use POST.");
   }
 
-  // 1) Sessão
-  let sessao = null;
-  try {
-    sessao = await obterSessaoViaApiSession(req);
-  } catch (e) {
-    console.error("[BONO] Erro ao consultar /api/session:", e);
+  // ✅ Exige sessão válida (igual ao resto do projeto)
+  const session = requireSession(req, res);
+  if (!session) return;
+
+  // ✅ Fail-fast env (igual ao seu padrão)
+  if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
+    console.error("[BONO] ENV ausente:", {
+      hasEmail: !!serviceAccountEmail,
+      hasKey: !!privateKey,
+      hasSheet: !!spreadsheetId,
+    });
+    return bad(res, 500, "Configuração do servidor incompleta (credenciais/planilha).");
   }
 
-  if (!sessao) {
-    return json(res, 401, { sucesso: false, mensagem: "Sessão inválida. Faça login novamente." });
-  }
-
-  // 2) Payload
-  let body = null;
-  try {
-    body = req.body;
-    if (!body || typeof body !== "object") throw new Error("body inválido");
-  } catch (e) {
-    return json(res, 400, { sucesso: false, mensagem: "JSON inválido." });
-  }
-
-  const dataHoraEscolhida = normalizarTexto(body.dataHoraEscolhida, 20); // "DD/MM/AAAA HH:MM"
+  const body = req.body || {};
+  const dataHoraEscolhida = normalizarTexto(body.dataHoraEscolhida, 20);
   const encarregado = normalizarTexto(body.encarregado, 80);
   const itens = Array.isArray(body.itens) ? body.itens : [];
 
   if (!validarDataHoraEscolhida(dataHoraEscolhida)) {
-    return json(res, 400, { sucesso: false, mensagem: "Data/Hora escolhida inválida." });
+    return bad(res, 400, "Data/Hora escolhida inválida.");
   }
   if (!encarregado) {
-    return json(res, 400, { sucesso: false, mensagem: "Nome do encarregado é obrigatório." });
+    return bad(res, 400, "Nome do encarregado é obrigatório.");
   }
   if (!itens.length) {
-    return json(res, 400, { sucesso: false, mensagem: "Adicione pelo menos 1 item." });
+    return bad(res, 400, "Adicione pelo menos 1 item.");
   }
 
   const itensValidos = [];
   for (const it of itens) {
     const v = validarItem(it);
-    if (!v) {
-      return json(res, 400, { sucesso: false, mensagem: "Existe item inválido na lista." });
-    }
+    if (!v) return bad(res, 400, "Existe item inválido na lista.");
     itensValidos.push(v);
   }
 
-  // 3) Sheets client
-  const { sheets, spreadsheetId, erro } = criarClienteGoogleSheets();
-  if (erro) return json(res, 500, { sucesso: false, mensagem: erro });
+  const loja = String(session.loja || "").trim();
+  const usuario = String(session.usuario || "").trim();
+  if (!loja || !usuario) {
+    return bad(res, 401, "Sessão inválida (loja/usuário ausentes).");
+  }
 
-  // 4) Monta linhas (A..H)
   const dataHoraRede = agoraSP_ddmmyyyy_hhmmss();
-  const loja = String(sessao.loja || "").trim();
-  const usuario = String(sessao.usuario || "").trim();
 
   const values = itensValidos.map((it) => ([
-    dataHoraRede,          // A
-    dataHoraEscolhida,     // B
-    loja,                  // C
-    usuario,               // D
-    encarregado,           // E
-    it.produto,            // F
-    it.quantidade,         // G
-    it.embalagem           // H
+    dataHoraRede,        // A
+    dataHoraEscolhida,   // B
+    loja,                // C
+    usuario,             // D
+    encarregado,         // E
+    it.produto,          // F
+    it.quantidade,       // G
+    it.embalagem,        // H
   ]));
 
   try {
+    const sheets = await getSheetsClient();
+
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: "BONO!A:H",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
-      requestBody: { values }
+      requestBody: { values },
     });
 
-    return json(res, 200, {
+    return ok(res, {
       sucesso: true,
-      mensagem: "Bono salvo com sucesso.",
-      totalItens: values.length
+      message: "Bono salvo com sucesso.",
+      totalItens: values.length,
     });
   } catch (e) {
     console.error("[BONO] Falha ao append:", e);
-    return json(res, 500, { sucesso: false, mensagem: "Falha ao salvar (BONO)." });
+    return bad(res, 500, "Falha ao salvar (BONO).");
   }
 }
 
 /*
-Fontes oficiais:
-- Google Sheets API (append): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+Fontes confiáveis:
+- Sheets API (append): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
 - googleapis (Node): https://github.com/googleapis/google-api-nodejs-client
 - Vercel env vars: https://vercel.com/docs/projects/environment-variables
+- OWASP validação de entrada: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
 */
