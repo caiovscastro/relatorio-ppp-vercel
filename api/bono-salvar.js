@@ -19,8 +19,6 @@ function pad3(n){ return String(n).padStart(3, "0"); }
 
 /* ==========================
    ✅ São Paulo SEM perder ms
-   - O erro do "000" vinha de reconstruir Date via toLocaleString().
-   - Aqui pegamos data/hora em SP por formatToParts e usamos ms reais do Date().
 ========================== */
 function getSaoPauloStamp() {
   const now = new Date();
@@ -80,12 +78,82 @@ function normalizarTexto(x, max) {
   return s.length > max ? s.slice(0, max) : s;
 }
 
+/* =========================================
+   ✅ NOVO: parser de número pt-BR
+   Aceita:
+   - number (já numérico)
+   - string "1.234" (milhar)
+   - string "1.234,567" (milhar + decimais)
+   - string "1234,567"
+   Regras:
+   - remove espaços
+   - permite apenas dígitos, '.' e ','
+   - interpreta '.' como separador de milhar e ',' como separador decimal
+   Retorna: { num, decDigits }
+========================================= */
+function parseNumeroPtBR(valor) {
+  if (typeof valor === "number") {
+    if (!Number.isFinite(valor)) return null;
+    // decDigits: melhor esforço (não é crítico para number)
+    const s = String(valor);
+    const decPart = (s.split(".")[1] || "");
+    return { num: valor, decDigits: decPart.length };
+  }
+
+  const s0 = String(valor ?? "").trim();
+  if (!s0) return null;
+
+  // remove espaços internos (ex: "1 234,567")
+  const s = s0.replace(/\s+/g, "");
+
+  // só aceita dígitos, ponto e vírgula
+  if (!/^[0-9.,]+$/.test(s)) return null;
+
+  // se tiver mais de uma vírgula, inválido
+  const commas = (s.match(/,/g) || []).length;
+  if (commas > 1) return null;
+
+  // separa decimal (vírgula)
+  let decDigits = 0;
+  let inteiroParte = s;
+  let decimalParte = "";
+
+  if (s.includes(",")) {
+    const [a, b] = s.split(",");
+    inteiroParte = a;
+    decimalParte = b || "";
+    decDigits = decimalParte.length;
+  }
+
+  // remove separadores de milhar (.)
+  const inteiroSemPontos = inteiroParte.replace(/\./g, "");
+
+  // inteiro deve ter pelo menos 1 dígito
+  if (!/^\d+$/.test(inteiroSemPontos)) return null;
+
+  // decimal (se existir) também só dígitos
+  if (decimalParte && !/^\d+$/.test(decimalParte)) return null;
+
+  // monta número em padrão JS
+  const numStr = decimalParte ? `${inteiroSemPontos}.${decimalParte}` : inteiroSemPontos;
+  const num = Number(numStr);
+  if (!Number.isFinite(num)) return null;
+
+  return { num, decDigits };
+}
+
 function validarItem(it) {
   if (!it || typeof it !== "object") return null;
 
   const produto = normalizarTexto(it.produto, 200);
   const embalagem = normalizarTexto(it.embalagem, 3);
-  const quantidade = Number(it.quantidade);
+
+  // ✅ ALTERADO: agora aceita string pt-BR e converte para número
+  const parsed = parseNumeroPtBR(it.quantidade);
+  if (!parsed) return null;
+
+  const quantidade = parsed.num;
+  const decDigits = parsed.decDigits;
 
   const tipoLancamento = normalizarTexto(it.tipoLancamento, 20).toUpperCase(); // RECEBIMENTO | MOV_INTERNA
   const lojaDestino = normalizarTexto(it.lojaDestino, 60);
@@ -93,6 +161,16 @@ function validarItem(it) {
   if (!produto) return null;
   if (!Number.isFinite(quantidade) || quantidade <= 0) return null;
   if (embalagem !== "KG" && embalagem !== "UND") return null;
+
+  // ✅ Regras por embalagem:
+  // - UND: não pode ter casas decimais (no máximo 0) e deve ser inteiro
+  // - KG : pode ter até 3 casas decimais (como no seu input)
+  if (embalagem === "UND") {
+    if (decDigits > 0) return null;
+    if (!Number.isInteger(quantidade)) return null;
+  } else if (embalagem === "KG") {
+    if (decDigits > 3) return null;
+  }
 
   if (tipoLancamento !== "RECEBIMENTO" && tipoLancamento !== "MOV_INTERNA") return null;
   if (tipoLancamento === "MOV_INTERNA" && !lojaDestino) return null;
@@ -109,10 +187,7 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
-/* ===== Documento único (coluna L) =====
-   Formato: [LetraBandeira][NumLoja2][u2+uLast2][DDMMYYYY][HHMMSS][mmm]
-   Ex: B16gava22012026124710256
-*/
+/* ===== Documento único (coluna L) ===== */
 function normalizarUsuarioParaId(usuario){
   const s0 = String(usuario || "").trim();
   const semAcento = s0.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -198,10 +273,7 @@ export default async function handler(req, res) {
     return bad(res, 401, "Sessão inválida (loja/usuário ausentes).");
   }
 
-  // ✅ Stamp SP (sem perder ms)
   const spStamp = getSaoPauloStamp();
-
-  // ✅ Documento único do envio (coluna L)
   const documentoUnico = montarDocumentoUnico({ loja, usuario, spStamp });
 
   // ✅ Monta linhas (A..L) na ordem solicitada
@@ -217,7 +289,7 @@ export default async function handler(req, res) {
       usuario,                 // D: Usuario
       encarregado,             // E: Encarregado
       it.produto,              // F: Descrição
-      it.quantidade,           // G: Quantidade
+      it.quantidade,           // G: Quantidade (✅ agora sempre número, com decimais preservadas)
       it.embalagem,            // H: Embalagem
       destino,                 // I: Loja destino
       tipoTxt,                 // J: Tipo (texto)
@@ -252,7 +324,9 @@ export default async function handler(req, res) {
 /*
 Fontes confiáveis:
 - Sheets API append: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+- valueInputOption USER_ENTERED: https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
 - Intl.DateTimeFormat + formatToParts (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/formatToParts
 - Date.getMilliseconds (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Date/getMilliseconds
+- Number.isFinite (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite
 - OWASP Input Validation: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
 */
