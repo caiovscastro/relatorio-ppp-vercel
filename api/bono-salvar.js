@@ -110,7 +110,7 @@ export default async function handler(req, res) {
       hasKey: !!privateKey,
       hasSheet: !!spreadsheetId,
     });
-    return bad(res, 500, "Configuração do servidor incompleta (credenciais/planilha).");
+    return bad(res, 500, "Configuração do servidor incompleta (credenciais).");
   }
 
   const body = req.body || {};
