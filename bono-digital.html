@@ -76,8 +76,21 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-
     .grid-1{ grid-template-columns: 1fr; }
+
+    /* ✅ NOVO: 2 colunas SEMPRE (mesmo no celular) */
+    .grid-2-fixo{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* ✅ NOVO: linha interna para Embalagem + Tipo lado a lado */
+    .inline-2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
 
     label{
       display:block;
@@ -211,9 +224,11 @@
     }
     .row-btn .btn{ margin-top: 0; }
 
-    /* Mobile */
+    /* Mobile: mantém o resto empilhado, MAS não mexe nas grids fixas */
     @media (max-width: 520px){
       .grid{ grid-template-columns: 1fr; }
+      .inline-2{ grid-template-columns: 1fr 1fr; } /* continua 2 */
+      .grid-2-fixo{ grid-template-columns: 1fr 1fr; } /* continua 2 */
     }
   </style>
 </head>
@@ -233,7 +248,8 @@
     <div class="secao">
       <div class="secao-titulo">Dados do lançamento</div>
 
-      <div class="grid">
+      <!-- ✅ Data e Hora lado a lado mesmo no celular -->
+      <div class="grid-2-fixo">
         <div>
           <label for="dataEscolhida">Data</label>
           <input type="date" id="dataEscolhida" />
@@ -259,18 +275,98 @@
         </div>
       </div>
 
-      <div class="grid" style="margin-top:10px;">
+      <!-- ✅ Quantidade e Embalagem lado a lado mesmo no celular.
+           ✅ Tipo ao lado da Embalagem (dentro da mesma coluna) -->
+      <div class="grid-2-fixo" style="margin-top:10px;">
         <div>
           <label for="quantidade">Quantidade</label>
-          <input type="number" id="quantidade" min="0" step="0.001" placeholder="Ex: 2" />
+          <!-- ✅ ALTERADO: agora é text para mascarar e impedir ponto/vírgula -->
+          <input
+            type="text"
+            id="quantidade"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="Ex: 2"
+          />
         </div>
 
         <div>
-          <label for="embalagem">Embalagem</label>
-          <select id="embalagem">
+          <label>Embalagem / Tipo</label>
+          <div class="inline-2">
+            <select id="embalagem">
+              <option value="">Embalagem</option>
+              <option value="KG">KG</option>
+              <option value="UND">UND</option>
+            </select>
+
+            <select id="tipoLancamento">
+              <option value="">Tipo</option>
+              <option value="RECEBIMENTO">Recebimento de mercadorias</option>
+              <option value="MOV_INTERNA">Movimentação interna</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Se Movimentação interna: mostra selector obrigatório -->
+      <div class="grid grid-1 hidden" style="margin-top:10px;" id="wrapDestino">
+        <div>
+          <label for="lojaDestino">Para onde está transferindo?</label>
+          <select id="lojaDestino">
             <option value="">Selecione</option>
-            <option value="KG">KG</option>
-            <option value="UND">UND</option>
+            <option value="BIG 01 - 106 NORTE">BIG 01 - 106 NORTE</option>
+            <option value="BIG 02 - 402 NORTE">BIG 02 - 402 NORTE</option>
+            <option value="BIG 03 - 413 SUL">BIG 03 - 413 SUL</option>
+            <option value="BIG 04 - 301 SW">BIG 04 - 301 SW</option>
+            <option value="BIG 05 - 408 NORTE">BIG 05 - 408 NORTE</option>
+            <option value="BIG 06 - SIBERIA">BIG 06 - SIBERIA</option>
+            <option value="BIG 08 - 503 SUL">BIG 08 - 503 SUL</option>
+            <option value="BIG 09 - PENÍNSULA">BIG 09 - PENÍNSULA</option>
+            <option value="BIG 10 - PAINEIRAS">BIG 10 - PAINEIRAS</option>
+            <option value="BIG 11 - 310 NORTE">BIG 11 - 310 NORTE</option>
+            <option value="BIG 12 - 208 NORTE">BIG 12 - 208 NORTE</option>
+            <option value="BIG 13 - QI-05 L. NORTE">BIG 13 - QI-05 L. NORTE</option>
+            <option value="BIG 14 - 508 SUL">BIG 14 - 508 SUL</option>
+            <option value="BIG 15 - 105 SW">BIG 15 - 105 SW</option>
+            <option value="BIG 16 - 512 SUL">BIG 16 - 512 SUL</option>
+            <option value="BIG 17 - QI-11 LAGO SUL">BIG 17 - QI-11 LAGO SUL</option>
+            <option value="BIG 18 - 211 NORTE">BIG 18 - 211 NORTE</option>
+            <option value="BIG 19 - CASTANHEIRA">BIG 19 - CASTANHEIRA</option>
+            <option value="BIG 20 - TAGUATINGA C1">BIG 20 - TAGUATINGA C1</option>
+            <option value="BIG 21 - CNB12">BIG 21 - CNB12</option>
+            <option value="BIG 22 - 102 NOROESTE">BIG 22 - 102 NOROESTE</option>
+            <option value="BIG 23 - QI-23 LAGO SUL">BIG 23 - QI-23 LAGO SUL</option>
+            <option value="BIG 24 - 314 NORTE">BIG 24 - 314 NORTE</option>
+            <option value="BIG 25 - 410 SUL">BIG 25 - 410 SUL</option>
+
+            <option value="ULT 01 - PLANALTINA">ULT 01 - PLANALTINA</option>
+            <option value="ULT 02 - GAMA">ULT 02 - GAMA</option>
+            <option value="ULT 03 - COLORADO">ULT 03 - COLORADO</option>
+            <option value="ULT 04 - CEI SUL">ULT 04 - CEI SUL</option>
+            <option value="ULT 05 - POLO JK">ULT 05 - POLO JK</option>
+            <option value="ULT 06 - SOBRADINHO">ULT 06 - SOBRADINHO</option>
+            <option value="ULT 07 - ADE">ULT 07 - ADE</option>
+            <option value="ULT 08 - ARAPOANGA">ULT 08 - ARAPOANGA</option>
+            <option value="ULT 09 - CEI NORTE">ULT 09 - CEI NORTE</option>
+            <option value="ULT 10 - ESTRUTURAL">ULT 10 - ESTRUTURAL</option>
+            <option value="ULT 11 - ITAPOA">ULT 11 - ITAPOA</option>
+            <option value="ULT 12 - SAO SEBASTIAO">ULT 12 - SAO SEBASTIAO</option>
+            <option value="ULT 13 - RECANTO">ULT 13 - RECANTO</option>
+            <option value="ULT 14 - AGUAS LINDAS">ULT 14 - AGUAS LINDAS</option>
+            <option value="ULT 15 - SOL NASCENTE">ULT 15 - SOL NASCENTE</option>
+            <option value="ULT 16 - PARANOA PARK">ULT 16 - PARANOA PARK</option>
+            <option value="ULT 17 - SAMAMBAIA">ULT 17 - SAMAMBAIA</option>
+            <option value="ULT 18 - BRAZLANDIA">ULT 18 - BRAZLANDIA</option>
+            <option value="ULT 19 - VIA PARK">ULT 19 - VIA PARK</option>
+            <option value="ULT 20 - TAGUATINGA">ULT 20 - TAGUATINGA</option>
+            <option value="ULT 22 - VICENTE PIRES">ULT 22 - VICENTE PIRES</option>
+            <option value="ULT 23 - SANTA MARIA">ULT 23 - SANTA MARIA</option>
+            <option value="ULT 24 - PAUL BRASIL">ULT 24 - PAUL BRASIL</option>
+            <option value="ULT 25 - BRASILINHA">ULT 25 - BRASILINHA</option>
+
+            <option value="TOTAL DISTRIBUICAO">TOTAL DISTRIBUICAO</option>
+            <option value="INDUSPAN">INDUSPAN</option>
+            <option value="MATRIZ">MATRIZ</option>
           </select>
         </div>
       </div>
@@ -314,10 +410,6 @@
   </div>
 
   <script>
-    /* =====================================================================================
-      SESSÃO / SEGURANÇA
-      - Verifica /api/session (cookie HttpOnly).
-      ===================================================================================== */
     const ROTAS = {
       menu: "/menu.html",
       login: "/login.html"
@@ -330,10 +422,10 @@
 
     // Estado do bono pendente
     let estado = {
-      data: "",        // yyyy-mm-dd
-      hora: "",        // HH:MM
+      data: "",
+      hora: "",
       encarregado: "",
-      itens: []        // {produto, quantidade, embalagem}
+      itens: []
     };
 
     function setTexto(id, txt) {
@@ -368,7 +460,7 @@
     function normalizarExpParaMs(exp) {
       const n = Number(exp);
       if (!Number.isFinite(n) || n <= 0) return null;
-      if (n < 10_000_000_000) return n * 1000; // segundos -> ms
+      if (n < 10_000_000_000) return n * 1000;
       return n;
     }
 
@@ -408,9 +500,7 @@
       if (expMs) agendarRedirecionamentoNaExpiracao(expMs);
     }
 
-    /* =====================================================================================
-      PERSISTÊNCIA LOCAL (pendência)
-      ===================================================================================== */
+    /* ===== Persistência ===== */
     function salvarLocal() {
       try {
         localStorage.setItem(LS_KEY, JSON.stringify(estado));
@@ -442,13 +532,11 @@
       return !!temAlgo;
     }
 
-    /* =====================================================================================
-      UTILITÁRIOS
-      ===================================================================================== */
+    /* ===== Util ===== */
     function pad2(n){ return String(n).padStart(2, "0"); }
+    function pad3(n){ return String(n).padStart(3, "0"); }
 
     function formatarDataHoraParaPlanilha(dataYYYYMMDD, horaHHMM) {
-      // retorna "DD/MM/AAAA HH:MM"
       if (!dataYYYYMMDD || !horaHHMM) return "";
       const [y,m,d] = dataYYYYMMDD.split("-");
       if (!y || !m || !d) return "";
@@ -461,9 +549,21 @@
       return String(t || "").trim();
     }
 
-    function quantidadeValida(q) {
-      const n = Number(q);
-      return Number.isFinite(n) && n > 0;
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function abrirModal(id) {
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function fecharModal(id) {
+      document.getElementById(id).classList.add("hidden");
     }
 
     function atualizarCamposNaTela() {
@@ -490,11 +590,23 @@
 
         const txt = document.createElement("div");
         txt.className = "txt";
+
+        const tipoLabel =
+          it.tipoLancamento === "MOV_INTERNA"
+            ? "Movimentação interna"
+            : (it.tipoLancamento === "RECEBIMENTO" ? "Recebimento de mercadorias" : "");
+
+        const destinoTxt = (it.tipoLancamento === "MOV_INTERNA" && it.lojaDestino)
+          ? `<br/>Para onde: <b>${escapeHtml(it.lojaDestino)}</b>`
+          : "";
+
         txt.innerHTML = `
           <b>Item ${idx + 1}</b><br/>
           Produto: <b>${escapeHtml(it.produto)}</b><br/>
-          Quantidade: <b>${escapeHtml(String(it.quantidade))}</b> &nbsp;|&nbsp;
+          Quantidade: <b>${escapeHtml(String(it.quantidadeFmt || ""))}</b> &nbsp;|&nbsp;
           Embalagem: <b>${escapeHtml(it.embalagem)}</b>
+          <br/>Tipo: <b>${escapeHtml(tipoLabel)}</b>
+          ${destinoTxt}
         `;
 
         const btn = document.createElement("button");
@@ -513,26 +625,105 @@
       });
     }
 
-    function escapeHtml(s) {
-      return String(s)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    /* ====== Quantidade: máscara (sem ponto e vírgula) ======
+       Regra:
+       - só aceita dígitos
+       - formata automaticamente pt-BR:
+         * UND -> inteiro com milhar (.)
+         * KG  -> até 3 casas decimais (vírgula), assumindo que os últimos 3 dígitos são decimais quando houver 4+ dígitos
+    */
+    function formatIntPtBR(n) {
+      return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
     }
 
-    function abrirModal(id) {
-      document.getElementById(id).classList.remove("hidden");
+    function formatKgFromDigits(digits) {
+      // digits: string só com números
+      if (!digits) return "";
+      // Se tiver até 3 dígitos, mostra inteiro (sem vírgula) para não ficar "0,00x"
+      if (digits.length <= 3) {
+        const n = Number(digits);
+        if (!Number.isFinite(n)) return "";
+        return formatIntPtBR(n);
+      }
+      const intPart = digits.slice(0, -3);
+      const decPart = digits.slice(-3);
+      const nInt = Number(intPart);
+      if (!Number.isFinite(nInt)) return "";
+      // milhar no inteiro
+      const intFmt = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(nInt);
+      return `${intFmt},${decPart}`;
     }
 
-    function fecharModal(id) {
-      document.getElementById(id).classList.add("hidden");
+    function quantidadeParaNumero(embalagem, digits) {
+      if (!digits) return null;
+      if (embalagem === "UND") {
+        const n = Number(digits);
+        if (!Number.isFinite(n) || n <= 0) return null;
+        return n;
+      }
+      if (embalagem === "KG") {
+        if (digits.length <= 3) {
+          const n = Number(digits);
+          if (!Number.isFinite(n) || n <= 0) return null;
+          return n;
+        }
+        const intPart = digits.slice(0, -3);
+        const decPart = digits.slice(-3);
+        const n = Number(`${intPart}.${decPart}`);
+        if (!Number.isFinite(n) || n <= 0) return null;
+        return n;
+      }
+      return null;
     }
 
-    /* =====================================================================================
-      AÇÕES
-      ===================================================================================== */
+    function bloquearPontuacao(e){
+      const k = e.key;
+      if (k === "." || k === "," || k === ";" || k === "-" || k === "+" ) {
+        e.preventDefault();
+      }
+    }
+
+    function limparParaDigitos(value){
+      return String(value || "").replace(/\D/g, "");
+    }
+
+    function aplicarMascaraQuantidade() {
+      const el = document.getElementById("quantidade");
+      const emb = document.getElementById("embalagem").value;
+
+      const digits = limparParaDigitos(el.value);
+      el.dataset.digits = digits;
+
+      if (!digits) {
+        el.value = "";
+        return;
+      }
+
+      if (emb === "UND") {
+        el.value = formatIntPtBR(Number(digits));
+      } else if (emb === "KG") {
+        el.value = formatKgFromDigits(digits);
+      } else {
+        // sem embalagem ainda -> mantém apenas dígitos sem formatação agressiva
+        el.value = digits;
+      }
+    }
+
+    /* ====== Tipo / Destino ====== */
+    function atualizarVisibilidadeDestino() {
+      const tipo = document.getElementById("tipoLancamento").value;
+      const wrap = document.getElementById("wrapDestino");
+      const sel = document.getElementById("lojaDestino");
+
+      if (tipo === "MOV_INTERNA") {
+        wrap.classList.remove("hidden");
+      } else {
+        wrap.classList.add("hidden");
+        sel.value = "";
+      }
+    }
+
+    /* ====== Ações ====== */
     function capturarBaseDoFormulario() {
       estado.data = document.getElementById("dataEscolhida").value || "";
       estado.hora = document.getElementById("horaEscolhida").value || "";
@@ -555,28 +746,53 @@
       }
 
       const produto = normalizarTexto(document.getElementById("produto").value);
-      const quantidade = document.getElementById("quantidade").value;
       const embalagem = document.getElementById("embalagem").value;
+      const tipoLancamento = document.getElementById("tipoLancamento").value;
+      const lojaDestino = document.getElementById("lojaDestino").value;
+
+      // quantidade vem do dataset (sem pontuação)
+      const digits = String(document.getElementById("quantidade").dataset.digits || "");
+      const quantidadeNum = quantidadeParaNumero(embalagem, digits);
+      const quantidadeFmt = document.getElementById("quantidade").value;
 
       if (!produto) {
         setMsg("Informe a descrição.", false);
         return false;
       }
-      if (!quantidadeValida(quantidade)) {
-        setMsg("Informe uma quantidade válida (maior que 0).", false);
-        return false;
-      }
+
       if (embalagem !== "KG" && embalagem !== "UND") {
         setMsg("Selecione a embalagem (KG ou UND).", false);
         return false;
       }
 
-      return { produto, quantidade: Number(quantidade), embalagem };
+      if (!tipoLancamento) {
+        setMsg("Selecione o tipo (Movimentação interna ou Recebimento de mercadorias).", false);
+        return false;
+      }
+
+      if (tipoLancamento === "MOV_INTERNA" && !lojaDestino) {
+        setMsg("Selecione a loja de destino (Para onde está transferindo?).", false);
+        return false;
+      }
+
+      if (!quantidadeNum) {
+        setMsg("Informe uma quantidade válida (maior que 0).", false);
+        return false;
+      }
+
+      return {
+        produto,
+        embalagem,
+        tipoLancamento,
+        lojaDestino: (tipoLancamento === "MOV_INTERNA" ? lojaDestino : ""),
+        quantidadeNum,
+        quantidadeFmt
+      };
     }
 
     async function finalizarBono() {
-      // Revalida tudo antes de enviar
       capturarBaseDoFormulario();
+
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
       if (!dataHoraPlanilha) {
         setMsg("Preencha a Data e o Horário do bono.", false);
@@ -587,18 +803,19 @@
         return;
       }
       if (!estado.itens.length) {
-        setMsg("Adicione pelo menos 1 item antes de salvar.", false);
+        setMsg("A lista está vazia. Adicione um item antes de salvar.", false);
         return;
       }
 
-      // Monta payload
       const payload = {
-        dataHoraEscolhida: dataHoraPlanilha,      // Coluna B
-        encarregado: estado.encarregado,          // Coluna E
+        dataHoraEscolhida: dataHoraPlanilha,
+        encarregado: estado.encarregado,
         itens: estado.itens.map(x => ({
-          produto: x.produto,                     // Coluna F
-          quantidade: x.quantidade,               // Coluna G
-          embalagem: x.embalagem                  // Coluna H
+          produto: x.produto,
+          quantidade: x.quantidade,         // número
+          embalagem: x.embalagem,
+          tipoLancamento: x.tipoLancamento, // RECEBIMENTO | MOV_INTERNA
+          lojaDestino: x.lojaDestino || ""  // obrigatório só em MOV_INTERNA (validado)
         }))
       };
 
@@ -615,21 +832,25 @@
         const dados = await resp.json().catch(() => null);
 
         if (!resp.ok || !dados || !dados.sucesso) {
-          const m = (dados && dados.mensagem) ? dados.mensagem : "Falha ao salvar o bono.";
+          const m =
+            (dados && (dados.message || dados.mensagem)) ? (dados.message || dados.mensagem) :
+            "Falha ao salvar o bono.";
           setMsg(m, false);
           return;
         }
 
-        // Sucesso: limpa tudo
         limparLocal();
         estado = { data: "", hora: "", encarregado: "", itens: [] };
         atualizarCamposNaTela();
         renderLista();
 
-        // Limpa campos de item
         document.getElementById("produto").value = "";
         document.getElementById("quantidade").value = "";
+        document.getElementById("quantidade").dataset.digits = "";
         document.getElementById("embalagem").value = "";
+        document.getElementById("tipoLancamento").value = "";
+        document.getElementById("lojaDestino").value = "";
+        atualizarVisibilidadeDestino();
 
         setMsg("Bono finalizado e salvo com sucesso.", true);
       } catch (e) {
@@ -639,12 +860,10 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      // Botões gerais
       document.getElementById("btnVoltarMenu").addEventListener("click", () => {
         window.location.href = ROTAS.menu;
       });
 
-      // Modais
       document.getElementById("btnContinuar").addEventListener("click", () => {
         fecharModal("modalPendente");
         atualizarCamposNaTela();
@@ -669,65 +888,86 @@
         await finalizarBono();
       });
 
-      // Eventos que atualizam o estado base
       ["dataEscolhida","horaEscolhida","encarregado"].forEach(id => {
-        document.getElementById(id).addEventListener("change", () => {
-          capturarBaseDoFormulario();
-        });
-        document.getElementById(id).addEventListener("input", () => {
-          capturarBaseDoFormulario();
-        });
+        document.getElementById(id).addEventListener("change", capturarBaseDoFormulario);
+        document.getElementById(id).addEventListener("input", capturarBaseDoFormulario);
       });
 
-      // Adicionar item
+      // ✅ Tipo -> mostra/oculta destino
+      document.getElementById("tipoLancamento").addEventListener("change", () => {
+        atualizarVisibilidadeDestino();
+        capturarBaseDoFormulario();
+      });
+
+      // ✅ Quantidade (bloqueia pontuação + máscara)
+      const elQtd = document.getElementById("quantidade");
+      elQtd.addEventListener("keydown", bloquearPontuacao);
+      elQtd.addEventListener("input", () => {
+        aplicarMascaraQuantidade();
+        capturarBaseDoFormulario();
+      });
+
+      // ✅ Se mudar embalagem, refaz máscara
+      document.getElementById("embalagem").addEventListener("change", () => {
+        aplicarMascaraQuantidade();
+        capturarBaseDoFormulario();
+      });
+
       document.getElementById("btnAdicionar").addEventListener("click", () => {
         const dadosItem = validarParaAdicionarItem();
         if (!dadosItem) return;
 
         estado.itens.push({
           produto: dadosItem.produto,
-          quantidade: dadosItem.quantidade,
-          embalagem: dadosItem.embalagem
+          quantidade: dadosItem.quantidadeNum,
+          quantidadeFmt: dadosItem.quantidadeFmt,
+          embalagem: dadosItem.embalagem,
+          tipoLancamento: dadosItem.tipoLancamento,
+          lojaDestino: dadosItem.lojaDestino
         });
 
         salvarLocal();
         renderLista();
 
-        // Limpa campos do item para o próximo
         document.getElementById("produto").value = "";
         document.getElementById("quantidade").value = "";
-        document.getElementById("embalagem").value = "";
+        document.getElementById("quantidade").dataset.digits = "";
 
         setMsg("Item adicionado na lista.", true);
       });
 
-      // Salvar (finalizar)
+      // ✅ Salvar: só abre popup se tiver item, senão mostra msg
       document.getElementById("btnSalvar").addEventListener("click", () => {
+        if (!estado.itens.length) {
+          setMsg("A lista está vazia. Adicione um item antes de salvar.", false);
+          return;
+        }
         abrirModal("modalConfirmar");
       });
 
-      // 1) Proteção: exige sessão válida
       const sessao = await obterSessaoDoBackend();
       if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login para acessar.");
 
       aplicarSessaoNaTela(sessao);
 
-      // 2) Carrega pendência (se houver)
       const pendente = carregarLocal();
       if (temPendenciaValida(pendente)) {
         estado = pendente;
+        atualizarVisibilidadeDestino();
         abrirModal("modalPendente");
       } else {
         atualizarCamposNaTela();
+        atualizarVisibilidadeDestino();
         renderLista();
       }
     });
   </script>
 
-  <!-- Fontes úteis:
+  <!-- Fontes confiáveis:
        - localStorage (MDN): https://developer.mozilla.org/docs/Web/API/Window/localStorage
        - input date/time (MDN): https://developer.mozilla.org/docs/Web/HTML/Element/input/date
        - Fetch API (MDN): https://developer.mozilla.org/docs/Web/API/Fetch_API
+       - Intl.NumberFormat (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
   -->
 </body>
 </html>
