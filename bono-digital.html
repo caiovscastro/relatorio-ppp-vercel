@@ -78,14 +78,21 @@
     }
     .grid-1{ grid-template-columns: 1fr; }
 
-    /* ✅ NOVO: 2 colunas SEMPRE (mesmo no celular) */
+    /* ✅ 2 colunas SEMPRE (mesmo no celular) */
     .grid-2-fixo{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
 
-    /* ✅ NOVO: linha interna para Embalagem + Tipo lado a lado */
+    /* ✅ NOVO: Quantidade 50% menor (antes 50/50, agora 25/75) */
+    .grid-qtd-menor{
+      display:grid;
+      grid-template-columns: 1fr 3fr;
+      gap: 10px;
+    }
+
+    /* ✅ linha interna para Embalagem + Tipo lado a lado */
     .inline-2{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -224,11 +231,11 @@
     }
     .row-btn .btn{ margin-top: 0; }
 
-    /* Mobile: mantém o resto empilhado, MAS não mexe nas grids fixas */
     @media (max-width: 520px){
       .grid{ grid-template-columns: 1fr; }
-      .inline-2{ grid-template-columns: 1fr 1fr; } /* continua 2 */
-      .grid-2-fixo{ grid-template-columns: 1fr 1fr; } /* continua 2 */
+      .inline-2{ grid-template-columns: 1fr 1fr; }
+      .grid-2-fixo{ grid-template-columns: 1fr 1fr; }
+      .grid-qtd-menor{ grid-template-columns: 1fr 3fr; } /* mantém 25/75 */
     }
   </style>
 </head>
@@ -237,18 +244,15 @@
   <div class="container">
     <h2 class="titulo">BONO DIGITAL</h2>
 
-    <!-- Card com dados da sessão -->
     <div class="card-info" id="cardInfo">
       <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
       <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
       <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
     </div>
 
-    <!-- Formulário -->
     <div class="secao">
       <div class="secao-titulo">Dados do lançamento</div>
 
-      <!-- ✅ Data e Hora lado a lado mesmo no celular -->
       <div class="grid-2-fixo">
         <div>
           <label for="dataEscolhida">Data</label>
@@ -275,12 +279,10 @@
         </div>
       </div>
 
-      <!-- ✅ Quantidade e Embalagem lado a lado mesmo no celular.
-           ✅ Tipo ao lado da Embalagem (dentro da mesma coluna) -->
-      <div class="grid-2-fixo" style="margin-top:10px;">
+      <!-- ✅ ALTERADO (pedido #2): Quantidade menor e Embalagem/Tipo maior -->
+      <div class="grid-qtd-menor" style="margin-top:10px;">
         <div>
           <label for="quantidade">Quantidade</label>
-          <!-- ✅ ALTERADO: agora é text para mascarar e impedir ponto/vírgula -->
           <input
             type="text"
             id="quantidade"
@@ -308,7 +310,6 @@
         </div>
       </div>
 
-      <!-- ✅ Se Movimentação interna: mostra selector obrigatório -->
       <div class="grid grid-1 hidden" style="margin-top:10px;" id="wrapDestino">
         <div>
           <label for="lojaDestino">Para onde está transferindo?</label>
@@ -377,7 +378,6 @@
 
       <div class="mensagem" id="msg"></div>
 
-      <!-- Lista -->
       <div class="lista" id="listaWrap">
         <div class="secao-titulo" style="margin:0 0 8px;">Itens adicionados</div>
         <div id="listaItens"></div>
@@ -385,7 +385,6 @@
     </div>
   </div>
 
-  <!-- Modal: pendente -->
   <div class="overlay hidden" id="modalPendente">
     <div class="modal">
       <h3>Bono pendente de finalização</h3>
@@ -397,7 +396,6 @@
     </div>
   </div>
 
-  <!-- Modal: confirmar salvar -->
   <div class="overlay hidden" id="modalConfirmar">
     <div class="modal">
       <h3>Finalizar Bono</h3>
@@ -410,23 +408,13 @@
   </div>
 
   <script>
-    const ROTAS = {
-      menu: "/menu.html",
-      login: "/login.html"
-    };
-
+    const ROTAS = { menu: "/menu.html", login: "/login.html" };
     const LS_KEY = "PPP_BONO_PENDENTE_V1";
 
     let sessaoAtual = null;
     let expTimerId = null;
 
-    // Estado do bono pendente
-    let estado = {
-      data: "",
-      hora: "",
-      encarregado: "",
-      itens: []
-    };
+    let estado = { data: "", hora: "", encarregado: "", itens: [] };
 
     function setTexto(id, txt) {
       const el = document.getElementById(id);
@@ -534,7 +522,6 @@
 
     /* ===== Util ===== */
     function pad2(n){ return String(n).padStart(2, "0"); }
-    function pad3(n){ return String(n).padStart(3, "0"); }
 
     function formatarDataHoraParaPlanilha(dataYYYYMMDD, horaHHMM) {
       if (!dataYYYYMMDD || !horaHHMM) return "";
@@ -558,13 +545,8 @@
         .replaceAll("'", "&#039;");
     }
 
-    function abrirModal(id) {
-      document.getElementById(id).classList.remove("hidden");
-    }
-
-    function fecharModal(id) {
-      document.getElementById(id).classList.add("hidden");
-    }
+    function abrirModal(id) { document.getElementById(id).classList.remove("hidden"); }
+    function fecharModal(id) { document.getElementById(id).classList.add("hidden"); }
 
     function atualizarCamposNaTela() {
       document.getElementById("dataEscolhida").value = estado.data || "";
@@ -625,12 +607,11 @@
       });
     }
 
-    /* ====== Quantidade: máscara (sem ponto e vírgula) ======
-       Regra:
-       - só aceita dígitos
-       - formata automaticamente pt-BR:
+    /* ====== Quantidade: máscara (mantém formatação pt-BR no input) ======
+       - só aceita dígitos (sem ponto/vírgula)
+       - exibe:
          * UND -> inteiro com milhar (.)
-         * KG  -> até 3 casas decimais (vírgula), assumindo que os últimos 3 dígitos são decimais quando houver 4+ dígitos
+         * KG  -> até 3 casas decimais, com vírgula, mantendo milhar
     */
     function formatIntPtBR(n) {
       return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
@@ -653,11 +634,13 @@
 
     function quantidadeParaNumero(embalagem, digits) {
       if (!digits) return null;
+
       if (embalagem === "UND") {
         const n = Number(digits);
         if (!Number.isFinite(n) || n <= 0) return null;
         return n;
       }
+
       if (embalagem === "KG") {
         if (digits.length <= 3) {
           const n = Number(digits);
@@ -670,6 +653,7 @@
         if (!Number.isFinite(n) || n <= 0) return null;
         return n;
       }
+
       return null;
     }
 
@@ -719,6 +703,31 @@
       }
     }
 
+    /* ✅ NOVO (pedido #1): aplicar tipo/destino em todos os itens já adicionados */
+    function aplicarTipoEDestinoNosItens() {
+      if (!estado.itens.length) return;
+
+      const tipoAtual = document.getElementById("tipoLancamento").value;
+      const destinoAtual = document.getElementById("lojaDestino").value;
+
+      estado.itens = estado.itens.map(it => {
+        const novo = { ...it, tipoLancamento: tipoAtual || it.tipoLancamento };
+
+        if (tipoAtual === "MOV_INTERNA") {
+          // se o usuário escolheu destino, replica para todos
+          novo.lojaDestino = destinoAtual || it.lojaDestino || "";
+        } else if (tipoAtual === "RECEBIMENTO") {
+          // recebimento não tem destino
+          novo.lojaDestino = "";
+        }
+        return novo;
+      });
+
+      salvarLocal();
+      renderLista();
+      setMsg("Itens atualizados com o Tipo/Destino selecionados.", true);
+    }
+
     /* ====== Ações ====== */
     function capturarBaseDoFormulario() {
       estado.data = document.getElementById("dataEscolhida").value || "";
@@ -731,15 +740,8 @@
       capturarBaseDoFormulario();
 
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
-      if (!dataHoraPlanilha) {
-        setMsg("Preencha a Data e o Horário do bono.", false);
-        return false;
-      }
-
-      if (!estado.encarregado) {
-        setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false);
-        return false;
-      }
+      if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return false; }
+      if (!estado.encarregado) { setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false); return false; }
 
       const produto = normalizarTexto(document.getElementById("produto").value);
       const embalagem = document.getElementById("embalagem").value;
@@ -748,32 +750,13 @@
 
       const digits = String(document.getElementById("quantidade").dataset.digits || "");
       const quantidadeNum = quantidadeParaNumero(embalagem, digits);
-      const quantidadeFmt = document.getElementById("quantidade").value;
+      const quantidadeFmt = document.getElementById("quantidade").value; // ✅ formatação pt-BR
 
-      if (!produto) {
-        setMsg("Informe a descrição.", false);
-        return false;
-      }
-
-      if (embalagem !== "KG" && embalagem !== "UND") {
-        setMsg("Selecione a embalagem (KG ou UND).", false);
-        return false;
-      }
-
-      if (!tipoLancamento) {
-        setMsg("Selecione o tipo (Movimentação interna ou Recebimento de mercadorias).", false);
-        return false;
-      }
-
-      if (tipoLancamento === "MOV_INTERNA" && !lojaDestino) {
-        setMsg("Selecione a loja de destino (Para onde está transferindo?).", false);
-        return false;
-      }
-
-      if (!quantidadeNum) {
-        setMsg("Informe uma quantidade válida (maior que 0).", false);
-        return false;
-      }
+      if (!produto) { setMsg("Informe a descrição.", false); return false; }
+      if (embalagem !== "KG" && embalagem !== "UND") { setMsg("Selecione a embalagem (KG ou UND).", false); return false; }
+      if (!tipoLancamento) { setMsg("Selecione o tipo (Movimentação interna ou Recebimento de mercadorias).", false); return false; }
+      if (tipoLancamento === "MOV_INTERNA" && !lojaDestino) { setMsg("Selecione a loja de destino (Para onde está transferindo?).", false); return false; }
+      if (!quantidadeNum) { setMsg("Informe uma quantidade válida (maior que 0).", false); return false; }
 
       return {
         produto,
@@ -789,16 +772,18 @@
       capturarBaseDoFormulario();
 
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
-      if (!dataHoraPlanilha) {
-        setMsg("Preencha a Data e o Horário do bono.", false);
-        return;
-      }
-      if (!estado.encarregado) {
-        setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false);
-        return;
-      }
-      if (!estado.itens.length) {
-        setMsg("A lista está vazia. Adicione um item antes de salvar.", false);
+      if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return; }
+      if (!estado.encarregado) { setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false); return; }
+      if (!estado.itens.length) { setMsg("A lista está vazia. Adicione um item antes de salvar.", false); return; }
+
+      // ✅ garante consistência no momento do salvar
+      aplicarTipoEDestinoNosItens();
+
+      // ✅ valida destino se MOV_INTERNA
+      const tipoAtual = document.getElementById("tipoLancamento").value;
+      const destinoAtual = document.getElementById("lojaDestino").value;
+      if (tipoAtual === "MOV_INTERNA" && !destinoAtual) {
+        setMsg("Selecione a loja de destino antes de salvar (Movimentação interna).", false);
         return;
       }
 
@@ -807,7 +792,8 @@
         encarregado: estado.encarregado,
         itens: estado.itens.map(x => ({
           produto: x.produto,
-          quantidade: x.quantidade,
+          // ✅ ALTERADO (pedido #3): envia a quantidade com pontuação/decimais (string pt-BR)
+          quantidade: x.quantidadeFmt,
           embalagem: x.embalagem,
           tipoLancamento: x.tipoLancamento,
           lojaDestino: x.lojaDestino || ""
@@ -888,11 +874,20 @@
         document.getElementById(id).addEventListener("input", capturarBaseDoFormulario);
       });
 
+      // ✅ Tipo -> mostra/oculta destino + replica nos itens (se existirem)
       document.getElementById("tipoLancamento").addEventListener("change", () => {
         atualizarVisibilidadeDestino();
         capturarBaseDoFormulario();
+        aplicarTipoEDestinoNosItens(); // ✅ pedido #1
       });
 
+      // ✅ Destino -> replica nos itens (se existirem)
+      document.getElementById("lojaDestino").addEventListener("change", () => {
+        capturarBaseDoFormulario();
+        aplicarTipoEDestinoNosItens(); // ✅ pedido #1
+      });
+
+      // ✅ Quantidade (bloqueia pontuação + máscara)
       const elQtd = document.getElementById("quantidade");
       elQtd.addEventListener("keydown", bloquearPontuacao);
       elQtd.addEventListener("input", () => {
@@ -900,6 +895,7 @@
         capturarBaseDoFormulario();
       });
 
+      // ✅ Se mudar embalagem, refaz máscara
       document.getElementById("embalagem").addEventListener("change", () => {
         aplicarMascaraQuantidade();
         capturarBaseDoFormulario();
@@ -911,8 +907,8 @@
 
         estado.itens.push({
           produto: dadosItem.produto,
-          quantidade: dadosItem.quantidadeNum,
-          quantidadeFmt: dadosItem.quantidadeFmt,
+          quantidade: dadosItem.quantidadeNum,     // número (interno)
+          quantidadeFmt: dadosItem.quantidadeFmt,  // string pt-BR (envio)
           embalagem: dadosItem.embalagem,
           tipoLancamento: dadosItem.tipoLancamento,
           lojaDestino: dadosItem.lojaDestino
@@ -956,9 +952,9 @@
 
   <!-- Fontes confiáveis:
        - localStorage (MDN): https://developer.mozilla.org/docs/Web/API/Window/localStorage
-       - input date/time (MDN): https://developer.mozilla.org/docs/Web/HTML/Element/input/date
        - Fetch API (MDN): https://developer.mozilla.org/docs/Web/API/Fetch_API
        - Intl.NumberFormat (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
+       - addEventListener (MDN): https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener
   -->
 </body>
 </html>
