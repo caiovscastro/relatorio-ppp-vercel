@@ -254,7 +254,7 @@
 
       <div class="grid grid-1" style="margin-top:10px;">
         <div>
-          <label for="produto">Descrição do produto</label>
+          <label for="produto">Descrição</label>
           <textarea id="produto" placeholder="Ex: Arroz 5kg" maxlength="200"></textarea>
         </div>
       </div>
@@ -559,7 +559,7 @@
       const embalagem = document.getElementById("embalagem").value;
 
       if (!produto) {
-        setMsg("Informe a descrição do produto.", false);
+        setMsg("Informe a descrição.", false);
         return false;
       }
       if (!quantidadeValida(quantidade)) {
