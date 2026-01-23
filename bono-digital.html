@@ -898,19 +898,45 @@
       }
     }
 
-    function montarMensagemWhats({ lojaOrigem, lojaDestino, usuario, dataHora, linkLogin }) {
-      const linhas = [
-        `Bono de MOVIMENTAÇÃO INTERNA pendente para sua aprovação.`,
-        ``,
-        `Destino: ${lojaDestino}`,
-        `Origem: ${lojaOrigem || "—"}`,
-        `Usuário: ${usuario || "—"}`,
-        `Data/Hora: ${dataHora || "—"}`,
-        ``,
-        `Acesse para aprovar: ${linkLogin}`
-      ];
-      return linhas.join("\n");
-    }
+function montarMensagemWhats({
+  lojaOrigem,
+  lojaDestino,
+  usuario,
+  dataHora,
+  linkLogin,
+  itens = []
+}) {
+  const linhas = [];
+
+  linhas.push("🚨 *Bono de MOVIMENTAÇÃO INTERNA pendente para aprovação*");
+  linhas.push("");
+
+  linhas.push(`📍 *Destino:* ${lojaDestino || "—"}`);
+  linhas.push(`🏪 *Origem:* ${lojaOrigem || "—"}`);
+  linhas.push(`👤 *Usuário:* ${usuario || "—"}`);
+  linhas.push(`🕒 *Data/Hora:* ${dataHora || "—"}`);
+  linhas.push("");
+
+  linhas.push("📦 *Itens do Bono:*");
+
+  if (itens.length) {
+    itens.forEach((it, idx) => {
+      const qtd = it.quantidadeFmt || it.quantidade || "—";
+      const emb = it.embalagem || "";
+      linhas.push(
+        `• ${idx + 1}. ${it.produto || "—"} — ${qtd} ${emb}`
+      );
+    });
+  } else {
+    linhas.push("• Nenhum item informado");
+  }
+
+  linhas.push("");
+  linhas.push(`🔗 *Acesse para aprovar:*`);
+  linhas.push(linkLogin || "—");
+
+  return linhas.join("\n");
+}
 
     async function buscarTelefoneResponsavel(lojaDestino) {
       const loja = normalizarTexto(lojaDestino);
