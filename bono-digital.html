@@ -898,43 +898,44 @@
       }
     }
 
-function montarMensagemWhats({
-  lojaOrigem,
-  lojaDestino,
-  usuario,
-  dataHora,
-  linkLogin,
-  itens = []
-}) {
-  const linhas = [];
+    function montarMensagemWhats({
+      lojaOrigem,
+      lojaDestino,
+      usuario,
+      dataHora,
+      linkLogin,
+      itens = []
+    }) {
+      const linhas = [];
 
-  linhas.push("🚨 *Bono de MOVIMENTAÇÃO INTERNA pendente para aprovação*");
-  linhas.push("");
+      linhas.push("🚨 *Bono de MOVIMENTAÇÃO INTERNA pendente para aprovação*");
+      linhas.push("");
 
-  linhas.push(`📍 *Destino:* ${lojaDestino || "—"}`);
-  linhas.push(`🏪 *Origem:* ${lojaOrigem || "—"}`);
-  linhas.push(`👤 *Usuário:* ${usuario || "—"}`);
-  linhas.push(`🕒 *Data/Hora:* ${dataHora || "—"}`);
-  linhas.push("");
+      linhas.push(`📍 *Destino:* ${lojaDestino || "—"}`);
+      linhas.push(`🏪 *Origem:* ${lojaOrigem || "—"}`);
+      linhas.push(`👤 *Usuário:* ${usuario || "—"}`);
+      linhas.push(`🕒 *Data/Hora:* ${dataHora || "—"}`);
+      linhas.push("");
 
-  linhas.push("📦 *Itens do Bono:*");
+      linhas.push("📦 *Itens do Bono:*");
 
-  if (itens.length) {
-    itens.forEach((it, idx) => {
-      const qtd = it.quantidadeFmt || it.quantidade || "—";
-      const emb = it.embalagem || "";
-      linhas.push(`• ${idx + 1}. ${it.produto || "—"} — ${qtd} ${emb}`);
-    });
-  } else {
-    linhas.push("• Nenhum item informado");
-  }
+      if (Array.isArray(itens) && itens.length) {
+        itens.forEach((it, idx) => {
+          const qtd = (it && (it.quantidadeFmt || it.quantidade)) ? (it.quantidadeFmt || it.quantidade) : "—";
+          const emb = (it && it.embalagem) ? it.embalagem : "";
+          const prod = (it && it.produto) ? it.produto : "—";
+          linhas.push(`• ${idx + 1}. ${prod} — ${qtd} ${emb}`.trim());
+        });
+      } else {
+        linhas.push("• Nenhum item informado");
+      }
 
-  linhas.push("");
-  linhas.push("🔗 *Acesse para aprovar:*");
-  linhas.push(linkLogin || "—");
+      linhas.push("");
+      linhas.push("🔗 *Acesse para aprovar:*");
+      linhas.push(linkLogin || "—");
 
-  return linhas.join("\n");
-}
+      return linhas.join("\n");
+    }
 
     async function buscarTelefoneResponsavel(lojaDestino) {
       const loja = normalizarTexto(lojaDestino);
@@ -1047,6 +1048,9 @@ function montarMensagemWhats({
       const tipoNoEnvio = tipoAtual;
       const destinoNoEnvio = destinoAtual;
 
+      // ✅ FIX (itens no WhatsApp): snapshot dos itens ANTES de limpar/resetar
+      const itensNoEnvio = Array.isArray(estado.itens) ? estado.itens.map(it => ({ ...it })) : [];
+
       const payload = {
         dataHoraEscolhida: dataHoraPlanilha,
         encarregado: estado.encarregado,
@@ -1120,7 +1124,8 @@ function montarMensagemWhats({
             lojaDestino: destinoNoEnvio,
             usuario: (sessaoAtual && sessaoAtual.usuario) ? sessaoAtual.usuario : "",
             dataHora: dataHoraPlanilha,
-            linkLogin
+            linkLogin,
+            itens: itensNoEnvio // ✅ FIX (itens no WhatsApp)
           });
 
           abrirModalWhats({
