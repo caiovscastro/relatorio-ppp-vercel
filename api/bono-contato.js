@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     const privateKeyRaw = getEnv("GOOGLE_PRIVATE_KEY").replace(/\\n/g, "\n");
 
     if (!spreadsheetId || !clientEmail || !privateKeyRaw) {
-      return json(res, 500, { sucesso: false, mensagem: "Variáveis de ambiente do Google não configuradas." });
+      return json(res, 500, { sucesso: false, mensagem: "Variáveis de ambiente não configuradas." });
     }
 
     const auth = new google.auth.JWT({
