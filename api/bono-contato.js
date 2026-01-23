@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     const loja = normalizeKey(req.query?.loja);
     if (!loja) return json(res, 400, { sucesso: false, mensagem: "Parâmetro 'loja' é obrigatório." });
 
-    const spreadsheetId = getEnv("SHEETS_ID");
+    const spreadsheetId = getEnv("SPREADSHEET_ID");
     const clientEmail = getEnv("GOOGLE_SERVICE_ACCOUNT_EMAIL");
     const privateKeyRaw = getEnv("GOOGLE_PRIVATE_KEY").replace(/\\n/g, "\n");
 
