@@ -906,36 +906,33 @@ function montarMensagemWhats({
   linkLogin,
   itens = []
 }) {
-  const linhas = [
-    `Bono de MOVIMENTAÇÃO INTERNA pendente para sua aprovação.`,
-    ``,
-    `Destino: ${lojaDestino}`,
-    `Origem: ${lojaOrigem || "—"}`,
-    `Usuário: ${usuario || "—"}`,
-    `Data/Hora: ${dataHora || "—"}`,
-    ``,
-    `Itens do Bono:`
-  ];
+  const linhas = [];
 
-  if (Array.isArray(itens) && itens.length) {
+  linhas.push("🚨 *Bono de MOVIMENTAÇÃO INTERNA pendente para aprovação*");
+  linhas.push("");
+
+  linhas.push(`📍 *Destino:* ${lojaDestino || "—"}`);
+  linhas.push(`🏪 *Origem:* ${lojaOrigem || "—"}`);
+  linhas.push(`👤 *Usuário:* ${usuario || "—"}`);
+  linhas.push(`🕒 *Data/Hora:* ${dataHora || "—"}`);
+  linhas.push("");
+
+  linhas.push("📦 *Itens do Bono:*");
+
+  if (itens.length) {
     itens.forEach((it, idx) => {
-      const desc = (it && (it.produto || it.descricao || it.nome)) ? String(it.produto || it.descricao || it.nome).trim() : "—";
-      const qtd  = (it && (it.quantidadeFmt || it.quantidade || it.qtd)) ? String(it.quantidadeFmt || it.quantidade || it.qtd).trim() : "—";
-      const emb  = (it && (it.embalagem || it.unidade)) ? String(it.embalagem || it.unidade).trim() : "—";
-
-      // Ex:
-      // 1) Arroz 5kg
-      //    Qtd: 2 UND
-      linhas.push(`${idx + 1}) ${desc}`);
-      linhas.push(`   Qtd: ${qtd} ${emb}`.trim());
+      const qtd = it.quantidadeFmt || it.quantidade || "—";
+      const emb = it.embalagem || "";
+      linhas.push(`• ${idx + 1}. ${it.produto || "—"} — ${qtd} ${emb}`);
     });
   } else {
-    linhas.push(`- Nenhum item informado`);
+    linhas.push("• Nenhum item informado");
   }
 
-  linhas.push(``, `Acesse para aprovar: ${linkLogin}`);
+  linhas.push("");
+  linhas.push("🔗 *Acesse para aprovar:*");
+  linhas.push(linkLogin || "—");
 
-  // WhatsApp usa \n, e encodeURIComponent depois preserva.
   return linhas.join("\n");
 }
 
