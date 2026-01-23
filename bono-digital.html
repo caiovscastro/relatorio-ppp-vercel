@@ -972,7 +972,7 @@
 
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
       if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return false; }
-      if (!estado.encarregado) { setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false); return false; }
+      if (!estado.encarregado) { setMsg("Informe o nome do responsavel(operação) que fez o acompanhamento.", false); return false; }
 
       const produto = normalizarTexto(document.getElementById("produto").value);
       const embalagem = document.getElementById("embalagem").value;
@@ -1004,12 +1004,12 @@
 
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
       if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return; }
-      if (!estado.encarregado) { setMsg("Informe o nome do encarregado(Operação) que fez o acompanhamento.", false); return; }
+      if (!estado.encarregado) { setMsg("Informe o nome do responsavel(operação) que fez o acompanhamento.", false); return; }
 
       const tipoAtual = document.getElementById("tipoLancamento").value;
       if (!tipoAtual) { setMsg("Selecione um tipo", false); return; }
 
-      if (!estado.itens.length) { setMsg("A lista está vazia. Adicione um item antes de salvar.", false); return; }
+      if (!estado.itens.length) { setMsg("A lista está vazia. Adicione item's antes de salvar.", false); return; }
 
       aplicarTipoEDestinoNosItens();
 
