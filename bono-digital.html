@@ -29,18 +29,18 @@
 
     .titulo{
       text-align:center;
-      margin: 10px 0 10px; /* ✅ ajuste: título agora fica abaixo da linha */
+      margin: 10px 0 10px; /* ✅ título abaixo da linha */
       font-size: 24px;
       font-weight: 800;
       letter-spacing: .2px;
     }
 
-    /* ✅ NOVO (pedido #7): logo + linha discreta */
+    /* ✅ logo + linha discreta */
     .logo-wrap{
       display:flex;
       flex-direction: column;
       align-items:center;
-      margin: 6px 0 0; /* ✅ ajuste: tira espaço inferior para encaixar título abaixo da linha */
+      margin: 6px 0 0;
     }
     .logo-wrap img{
       max-width: 220px;
@@ -98,21 +98,18 @@
     }
     .grid-1{ grid-template-columns: 1fr; }
 
-    /* ✅ 2 colunas SEMPRE (mesmo no celular) */
     .grid-2-fixo{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
 
-    /* ✅ NOVO (pedido #2): 3 caixas do mesmo tamanho SEMPRE */
     .grid-3-fixo{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
     }
 
-    /* ✅ NOVO (pedido #4): botões lado a lado mesmo no celular */
     .btn-row-2{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -253,7 +250,7 @@
     }
     .row-btn .btn{ margin-top: 0; }
 
-    /* ✅ NOVO (pedido #2): overlay de carregamento com barra */
+    /* ✅ overlay de carregamento com barra */
     .load-overlay{
       position:fixed;
       inset:0;
@@ -261,7 +258,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      z-index: 10050; /* acima dos modais */
+      z-index: 10050;
       padding: 14px;
     }
     .load-box{
@@ -300,24 +297,44 @@
       color:#111;
     }
 
+    /* ✅ NOVO: modal WhatsApp (fica acima do overlay padrão, mas abaixo do loading) */
+    .overlay-whats{
+      z-index: 10020;
+    }
+    .whats-hint{
+      font-size: 12px;
+      color:#444;
+      font-weight: 700;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      background: #f3f3f3;
+      border: 1px solid #e5e5e5;
+      padding: 8px;
+      border-radius: 10px;
+      word-break: break-word;
+      margin-top: 8px;
+    }
+
     @media (max-width: 520px){
       .grid{ grid-template-columns: 1fr; }
       .grid-2-fixo{ grid-template-columns: 1fr 1fr; }
-      .grid-3-fixo{ grid-template-columns: 1fr 1fr 1fr; } /* ✅ mantém 3 */
-      .btn-row-2{ grid-template-columns: 1fr 1fr; }        /* ✅ mantém 2 */
+      .grid-3-fixo{ grid-template-columns: 1fr 1fr 1fr; }
+      .btn-row-2{ grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <!-- ✅ logo + linha -->
     <div class="logo-wrap">
       <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo" />
       <hr class="logo-line" />
     </div>
 
-    <!-- ✅ ALTERADO (pedido #1): título abaixo da linha -->
     <h2 class="titulo">BONO DIGITAL</h2>
 
     <div class="card-info" id="cardInfo">
@@ -485,7 +502,7 @@
     </div>
   </div>
 
-  <!-- ✅ NOVO (pedido #2): overlay de carregamento -->
+  <!-- ✅ overlay de carregamento -->
   <div class="load-overlay hidden" id="loadingOverlay" aria-live="polite">
     <div class="load-box">
       <div class="load-title">Enviando informações...</div>
@@ -493,6 +510,21 @@
         <div class="load-fill" id="loadFill"></div>
       </div>
       <div class="load-pct" id="loadPct">0%</div>
+    </div>
+  </div>
+
+  <!-- ✅ NOVO: Modal WhatsApp pós-envio (somente MOV_INTERNA) -->
+  <div class="overlay overlay-whats hidden" id="modalWhats">
+    <div class="modal">
+      <h3>Notificar responsável</h3>
+      <p id="whatsResumo">Bono salvo. Deseja notificar o responsável da loja destino no WhatsApp?</p>
+      <div class="whats-hint" id="whatsHint"></div>
+      <div class="mono hidden" id="whatsPreview"></div>
+
+      <div class="row-btn" style="margin-top:12px;">
+        <button class="btn btn-pri" id="btnWhatsAbrir">Abrir WhatsApp</button>
+        <button class="btn btn-sec" id="btnWhatsFechar">Agora não</button>
+      </div>
     </div>
   </div>
 
@@ -636,7 +668,7 @@
     function abrirModal(id) { document.getElementById(id).classList.remove("hidden"); }
     function fecharModal(id) { document.getElementById(id).classList.add("hidden"); }
 
-    /* ✅ NOVO (pedido #2): Loading overlay control + progress */
+    /* ===== Loading overlay + progresso ===== */
     let loadTimer = null;
     function showLoading(){
       document.getElementById("loadingOverlay").classList.remove("hidden");
@@ -661,7 +693,7 @@
       let p = 0;
       setLoadingPct(p);
       loadTimer = setInterval(() => {
-        if (p < 95) { // ✅ mantém até 95% enquanto aguarda o fetch concluir
+        if (p < 95) {
           p += 5;
           if (p > 95) p = 95;
           setLoadingPct(p);
@@ -728,6 +760,7 @@
       });
     }
 
+    /* ===== Quantidade máscara ===== */
     function formatIntPtBR(n) {
       return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
     }
@@ -804,6 +837,7 @@
       }
     }
 
+    /* ===== Tipo / Destino ===== */
     function atualizarVisibilidadeDestino() {
       const tipo = document.getElementById("tipoLancamento").value;
       const wrap = document.getElementById("wrapDestino");
@@ -839,6 +873,93 @@
       setMsg("Itens atualizados com o Tipo/Destino selecionados.", true);
     }
 
+    /* ===== WhatsApp (NOVO) ===== */
+    let ultimoWhats = { lojaDestino: "", telefone: "", mensagem: "", url: "" };
+
+    function normalizarTelefoneParaWa(dado) {
+      const digits = String(dado || "").replace(/\D/g, "");
+      if (!digits) return "";
+
+      // Se já vem com DDI 55
+      if (digits.startsWith("55") && (digits.length === 12 || digits.length === 13)) return digits;
+
+      // Se veio só com DDD+numero (10 ou 11 dígitos)
+      if (digits.length === 10 || digits.length === 11) return "55" + digits;
+
+      // Se veio com outro padrão, devolve o que tem (melhor do que quebrar)
+      return digits;
+    }
+
+    function montarLinkLoginAbsoluto() {
+      try {
+        return new URL(ROTAS.login, window.location.origin).toString();
+      } catch (e) {
+        return window.location.origin + ROTAS.login;
+      }
+    }
+
+    function montarMensagemWhats({ lojaOrigem, lojaDestino, usuario, dataHora, linkLogin }) {
+      const linhas = [
+        `Bono de MOVIMENTAÇÃO INTERNA pendente para sua aprovação.`,
+        ``,
+        `Destino: ${lojaDestino}`,
+        `Origem: ${lojaOrigem || "—"}`,
+        `Usuário: ${usuario || "—"}`,
+        `Data/Hora: ${dataHora || "—"}`,
+        ``,
+        `Acesse para aprovar: ${linkLogin}`
+      ];
+      return linhas.join("\n");
+    }
+
+    async function buscarTelefoneResponsavel(lojaDestino) {
+      const loja = normalizarTexto(lojaDestino);
+      if (!loja) return "";
+
+      try {
+        const resp = await fetch(`/api/bono-contato?loja=${encodeURIComponent(loja)}`, {
+          method: "GET",
+          credentials: "include",
+          headers: { "Accept": "application/json" }
+        });
+        if (!resp.ok) return "";
+
+        const dados = await resp.json().catch(() => null);
+        if (!dados || !dados.sucesso) return "";
+
+        return String(dados.whatsapp || "");
+      } catch (e) {
+        console.error("[BONO] Falha ao buscar contato:", e);
+        return "";
+      }
+    }
+
+    function abrirModalWhats({ lojaDestino, telefoneRaw, mensagem }) {
+      const tel = normalizarTelefoneParaWa(telefoneRaw);
+      if (!tel) {
+        setMsg("Não foi possível encontrar o WhatsApp do responsável para a loja destino.", false);
+        return;
+      }
+
+      const url = `https://wa.me/${tel}?text=${encodeURIComponent(mensagem)}`;
+
+      ultimoWhats = { lojaDestino, telefone: tel, mensagem, url };
+
+      setTexto("whatsResumo", `Bono salvo. Notificar o responsável de ${lojaDestino} no WhatsApp?`);
+      setTexto("whatsHint", `O WhatsApp será aberto com a mensagem pronta (basta tocar em Enviar).`);
+      const prev = document.getElementById("whatsPreview");
+      prev.classList.remove("hidden");
+      prev.textContent = mensagem;
+
+      abrirModal("modalWhats");
+    }
+
+    function fecharModalWhats() {
+      fecharModal("modalWhats");
+      ultimoWhats = { lojaDestino: "", telefone: "", mensagem: "", url: "" };
+    }
+
+    /* ===== Ações ===== */
     function capturarBaseDoFormulario() {
       estado.data = document.getElementById("dataEscolhida").value || "";
       estado.hora = document.getElementById("horaEscolhida").value || "";
@@ -898,6 +1019,10 @@
         return;
       }
 
+      // ✅ guarda antes de resetar (para WhatsApp pós-sucesso)
+      const tipoNoEnvio = tipoAtual;
+      const destinoNoEnvio = destinoAtual;
+
       const payload = {
         dataHoraEscolhida: dataHoraPlanilha,
         encarregado: estado.encarregado,
@@ -912,7 +1037,6 @@
 
       setMsg("Salvando... aguarde.", true);
 
-      /* ✅ NOVO (pedido #2): inicia overlay e progresso */
       showLoading();
       startLoadingTimer();
 
@@ -939,13 +1063,14 @@
           return;
         }
 
-        /* ✅ NOVO (pedido #2): finaliza progresso e só então some */
+        // ✅ termina loading
         stopLoadingTimer();
         setLoadingPct(100);
         setTimeout(() => {
           hideLoading();
         }, 250);
 
+        // ✅ limpa estado como já fazia
         limparLocal();
         estado = { data: "", hora: "", encarregado: "", itens: [] };
         atualizarCamposNaTela();
@@ -960,6 +1085,27 @@
         atualizarVisibilidadeDestino();
 
         setMsg("Bono finalizado e salvo com sucesso.", true);
+
+        /* ✅ NOVO (WhatsApp): se foi MOV_INTERNA, abre popup para notificar */
+        if (tipoNoEnvio === "MOV_INTERNA" && destinoNoEnvio) {
+          const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
+
+          const linkLogin = montarLinkLoginAbsoluto();
+          const msgWhats = montarMensagemWhats({
+            lojaOrigem: (sessaoAtual && sessaoAtual.loja) ? sessaoAtual.loja : "",
+            lojaDestino: destinoNoEnvio,
+            usuario: (sessaoAtual && sessaoAtual.usuario) ? sessaoAtual.usuario : "",
+            dataHora: dataHoraPlanilha,
+            linkLogin
+          });
+
+          abrirModalWhats({
+            lojaDestino: destinoNoEnvio,
+            telefoneRaw: telefoneResp,
+            mensagem: msgWhats
+          });
+        }
+
       } catch (e) {
         console.error(e);
 
@@ -998,6 +1144,19 @@
       document.getElementById("btnConfirmarSim").addEventListener("click", async () => {
         fecharModal("modalConfirmar");
         await finalizarBono();
+      });
+
+      // ✅ WhatsApp modal actions
+      document.getElementById("btnWhatsFechar").addEventListener("click", () => {
+        fecharModalWhats();
+      });
+
+      document.getElementById("btnWhatsAbrir").addEventListener("click", () => {
+        if (!ultimoWhats.url) return;
+        // abre WhatsApp com mensagem pronta
+        window.location.href = ultimoWhats.url;
+        // mantém modal aberto? melhor fechar para não “travar” tela ao voltar
+        fecharModalWhats();
       });
 
       ["dataEscolhida","horaEscolhida","encarregado"].forEach(id => {
@@ -1085,12 +1244,11 @@
   </script>
 
   <!-- Fontes confiáveis:
-       - localStorage (MDN): https://developer.mozilla.org/docs/Web/API/Window/localStorage
+       - WhatsApp Click to Chat (wa.me): https://faq.whatsapp.com/591339899867293
+       - encodeURIComponent (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
        - Fetch API (MDN): https://developer.mozilla.org/docs/Web/API/Fetch_API
-       - Intl.NumberFormat (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
-       - addEventListener (MDN): https://developer.mozilla.org/docs/Web/API/EventTarget/addEventListener
-       - CSS Grid (MDN): https://developer.mozilla.org/docs/Web/CSS/CSS_grid_layout
-       - setInterval / clearInterval (MDN): https://developer.mozilla.org/docs/Web/API/setInterval
+       - localStorage (MDN): https://developer.mozilla.org/docs/Web/API/Window/localStorage
+       - setInterval/clearInterval (MDN): https://developer.mozilla.org/docs/Web/API/setInterval
   -->
 </body>
 </html>
