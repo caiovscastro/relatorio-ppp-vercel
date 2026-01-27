@@ -372,6 +372,16 @@
       </div>
 
       <div class="grid-3-fixo" style="margin-top:10px;">
+        <!-- ✅ (1) TROCA: Embalagem vem antes da Qtd. -->
+        <div>
+          <label for="embalagem">Embalagem</label>
+          <select id="embalagem">
+            <option value="">Embalagem</option>
+            <option value="KG">KG</option>
+            <option value="UND">UND</option>
+          </select>
+        </div>
+
         <div>
           <label for="quantidade">Qtd.</label>
           <input
@@ -381,15 +391,6 @@
             autocomplete="off"
             placeholder="Ex: 2"
           />
-        </div>
-
-        <div>
-          <label for="embalagem">Embalagem</label>
-          <select id="embalagem">
-            <option value="">Embalagem</option>
-            <option value="KG">KG</option>
-            <option value="UND">UND</option>
-          </select>
         </div>
 
         <div>
@@ -837,6 +838,21 @@
       }
     }
 
+    /* ✅ (2) NOVO: Qtd só habilita após escolher Embalagem */
+    function atualizarHabilitacaoQuantidade() {
+      const emb = document.getElementById("embalagem").value;
+      const elQtd = document.getElementById("quantidade");
+
+      const pode = (emb === "KG" || emb === "UND");
+
+      elQtd.disabled = !pode;
+
+      if (!pode) {
+        elQtd.value = "";
+        elQtd.dataset.digits = "";
+      }
+    }
+
     /* ===== Tipo / Destino ===== */
     function atualizarVisibilidadeDestino() {
       const tipo = document.getElementById("tipoLancamento").value;
@@ -1112,6 +1128,9 @@
         document.getElementById("lojaDestino").value = "";
         atualizarVisibilidadeDestino();
 
+        // ✅ (2) garante Qtd bloqueada quando embalagem resetar
+        atualizarHabilitacaoQuantidade();
+
         setMsg("Bono finalizado e salvo com sucesso.", true);
 
         /* ✅ NOVO (WhatsApp): se foi MOV_INTERNA, abre popup para notificar */
@@ -1182,9 +1201,19 @@
 
       document.getElementById("btnWhatsAbrir").addEventListener("click", () => {
         if (!ultimoWhats.url) return;
-        // abre WhatsApp com mensagem pronta
-        window.location.href = ultimoWhats.url;
-        // mantém modal aberto? melhor fechar para não “travar” tela ao voltar
+
+        // ✅ (3) Melhor esforço: tenta abrir direto no app (whatsapp://) e faz fallback para wa.me
+        // Obs: por restrição do WhatsApp, a mensagem vai pré-preenchida e o envio exige ação do usuário.
+        const urlApp = `whatsapp://send?phone=${ultimoWhats.telefone}&text=${encodeURIComponent(ultimoWhats.mensagem)}`;
+        const urlWeb = ultimoWhats.url;
+
+        window.location.href = urlApp;
+
+        setTimeout(() => {
+          // fallback (desktop/navegador sem handler do scheme)
+          window.location.href = urlWeb;
+        }, 400);
+
         fecharModalWhats();
       });
 
@@ -1212,6 +1241,9 @@
       });
 
       document.getElementById("embalagem").addEventListener("change", () => {
+        // ✅ (2) habilita/desabilita Qtd conforme embalagem
+        atualizarHabilitacaoQuantidade();
+
         aplicarMascaraQuantidade();
         capturarBaseDoFormulario();
       });
@@ -1269,15 +1301,16 @@
         atualizarVisibilidadeDestino();
         renderLista();
       }
+
+      // ✅ (2) estado inicial: Qtd bloqueada até escolher embalagem
+      atualizarHabilitacaoQuantidade();
     });
   </script>
 
   <!-- Fontes confiáveis:
-       - WhatsApp Click to Chat (wa.me): https://faq.whatsapp.com/591339899867293
-       - encodeURIComponent (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
-       - Fetch API (MDN): https://developer.mozilla.org/docs/Web/API/Fetch_API
-       - localStorage (MDN): https://developer.mozilla.org/docs/Web/API/Window/localStorage
-       - setInterval/clearInterval (MDN): https://developer.mozilla.org/docs/Web/API/setInterval
+       - WhatsApp Click to Chat (wa.me): https://faq.whatsapp.com/5913398998672934/?locale=pt_BR
+       - encodeURIComponent (MDN): https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+       - WhatsApp Business Platform / Cloud API: https://developers.facebook.com/documentation/business-messaging/whatsapp/
   -->
 </body>
 </html>
