@@ -80,21 +80,10 @@ function normalizarTexto(x, max) {
 
 /* =========================================
    ✅ NOVO: parser de número pt-BR
-   Aceita:
-   - number (já numérico)
-   - string "1.234" (milhar)
-   - string "1.234,567" (milhar + decimais)
-   - string "1234,567"
-   Regras:
-   - remove espaços
-   - permite apenas dígitos, '.' e ','
-   - interpreta '.' como separador de milhar e ',' como separador decimal
-   Retorna: { num, decDigits }
 ========================================= */
 function parseNumeroPtBR(valor) {
   if (typeof valor === "number") {
     if (!Number.isFinite(valor)) return null;
-    // decDigits: melhor esforço (não é crítico para number)
     const s = String(valor);
     const decPart = (s.split(".")[1] || "");
     return { num: valor, decDigits: decPart.length };
@@ -103,17 +92,12 @@ function parseNumeroPtBR(valor) {
   const s0 = String(valor ?? "").trim();
   if (!s0) return null;
 
-  // remove espaços internos (ex: "1 234,567")
   const s = s0.replace(/\s+/g, "");
-
-  // só aceita dígitos, ponto e vírgula
   if (!/^[0-9.,]+$/.test(s)) return null;
 
-  // se tiver mais de uma vírgula, inválido
   const commas = (s.match(/,/g) || []).length;
   if (commas > 1) return null;
 
-  // separa decimal (vírgula)
   let decDigits = 0;
   let inteiroParte = s;
   let decimalParte = "";
@@ -125,16 +109,10 @@ function parseNumeroPtBR(valor) {
     decDigits = decimalParte.length;
   }
 
-  // remove separadores de milhar (.)
   const inteiroSemPontos = inteiroParte.replace(/\./g, "");
-
-  // inteiro deve ter pelo menos 1 dígito
   if (!/^\d+$/.test(inteiroSemPontos)) return null;
-
-  // decimal (se existir) também só dígitos
   if (decimalParte && !/^\d+$/.test(decimalParte)) return null;
 
-  // monta número em padrão JS
   const numStr = decimalParte ? `${inteiroSemPontos}.${decimalParte}` : inteiroSemPontos;
   const num = Number(numStr);
   if (!Number.isFinite(num)) return null;
@@ -148,23 +126,19 @@ function validarItem(it) {
   const produto = normalizarTexto(it.produto, 200);
   const embalagem = normalizarTexto(it.embalagem, 3);
 
-  // ✅ ALTERADO: agora aceita string pt-BR e converte para número
   const parsed = parseNumeroPtBR(it.quantidade);
   if (!parsed) return null;
 
   const quantidade = parsed.num;
   const decDigits = parsed.decDigits;
 
-  const tipoLancamento = normalizarTexto(it.tipoLancamento, 20).toUpperCase(); // RECEBIMENTO | MOV_INTERNA
+  const tipoLancamento = normalizarTexto(it.tipoLancamento, 20).toUpperCase();
   const lojaDestino = normalizarTexto(it.lojaDestino, 60);
 
   if (!produto) return null;
   if (!Number.isFinite(quantidade) || quantidade <= 0) return null;
   if (embalagem !== "KG" && embalagem !== "UND") return null;
 
-  // ✅ Regras por embalagem:
-  // - UND: não pode ter casas decimais (no máximo 0) e deve ser inteiro
-  // - KG : pode ter até 3 casas decimais (como no seu input)
   if (embalagem === "UND") {
     if (decDigits > 0) return null;
     if (!Number.isInteger(quantidade)) return null;
@@ -200,7 +174,7 @@ function extrairLetraENumLoja(loja){
   const m = s.match(/^(ULT|BIG)\s*(\d{1,2})\b/);
   if (m) {
     const prefix = m[1];
-    const letra  = prefix[0]; // U ou B
+    const letra  = prefix[0];
     const num    = pad2(parseInt(m[2], 10));
     return { letra, num };
   }
@@ -230,6 +204,49 @@ function statusPorTipo(tipoLancamento) {
   return (tipoLancamento === "MOV_INTERNA")
     ? "PENDENTE"
     : "Validado";
+}
+
+/* ==========================
+   ✅ NOTIF WhatsApp (Cloud API)
+   - dispara sem bloquear o sucesso do bono
+========================== */
+async function dispararNotificacaoWhatsApp({ req, lojaOrigem, usuario, dataHoraEscolhida, documento, totalItens, lojaDestino }) {
+  try {
+    const base = process.env.APP_BASE_URL ? String(process.env.APP_BASE_URL).replace(/\/+$/, "") : "";
+    const url = base ? `${base}/api/bono-notificar` : null;
+    if (!url) return { sucesso: false, mensagem: "APP_BASE_URL não configurada (sem URL para /api/bono-notificar)." };
+
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 12_000);
+
+    // ✅ importante: reenviar cookie da sessão (para requireSession do endpoint)
+    const cookie = req.headers?.cookie || "";
+
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Cookie": cookie
+      },
+      body: JSON.stringify({
+        lojaOrigem,
+        usuario,
+        dataHora: dataHoraEscolhida,
+        documento,
+        totalItens,
+        lojaDestino
+      }),
+      signal: ctrl.signal
+    });
+
+    clearTimeout(t);
+
+    const data = await resp.json().catch(() => null);
+    return data || { sucesso: false, mensagem: "Sem resposta JSON do /api/bono-notificar." };
+  } catch (e) {
+    console.error("[BONO][NOTIF] falha:", e);
+    return { sucesso: false, mensagem: String(e?.message || e) };
+  }
 }
 
 export default async function handler(req, res) {
@@ -276,25 +293,24 @@ export default async function handler(req, res) {
   const spStamp = getSaoPauloStamp();
   const documentoUnico = montarDocumentoUnico({ loja, usuario, spStamp });
 
-  // ✅ Monta linhas (A..L) na ordem solicitada
   const values = itensValidos.map((it) => {
-    const tipoTxt = tipoLabel(it.tipoLancamento);      // J
-    const status = statusPorTipo(it.tipoLancamento);   // K
-    const destino = it.lojaDestino || "";              // I (vazio quando Recebimento)
+    const tipoTxt = tipoLabel(it.tipoLancamento);
+    const status = statusPorTipo(it.tipoLancamento);
+    const destino = it.lojaDestino || "";
 
     return [
-      spStamp.dataHoraRede,    // A: Data/Hora Rede
-      dataHoraEscolhida,       // B: Data/Hora (escolhida)
-      loja,                    // C: Loja
-      usuario,                 // D: Usuario
-      encarregado,             // E: Encarregado
-      it.produto,              // F: Descrição
-      it.quantidade,           // G: Quantidade (✅ agora sempre número, com decimais preservadas)
-      it.embalagem,            // H: Embalagem
-      destino,                 // I: Loja destino
-      tipoTxt,                 // J: Tipo (texto)
-      status,                  // K: Status
-      documentoUnico           // L: Documento
+      spStamp.dataHoraRede,
+      dataHoraEscolhida,
+      loja,
+      usuario,
+      encarregado,
+      it.produto,
+      it.quantidade,
+      it.embalagem,
+      destino,
+      tipoTxt,
+      status,
+      documentoUnico
     ];
   });
 
@@ -309,11 +325,28 @@ export default async function handler(req, res) {
       requestBody: { values }
     });
 
+    // ✅ NOTIFICA automaticamente se for MOV_INTERNA
+    const primeiroMov = itensValidos.find(x => x.tipoLancamento === "MOV_INTERNA" && x.lojaDestino);
+    let notif = null;
+
+    if (primeiroMov && primeiroMov.lojaDestino) {
+      notif = await dispararNotificacaoWhatsApp({
+        req,
+        lojaOrigem: loja,
+        usuario,
+        dataHoraEscolhida,
+        documento: documentoUnico,
+        totalItens: values.length,
+        lojaDestino: primeiroMov.lojaDestino
+      });
+    }
+
     return ok(res, {
       sucesso: true,
       message: "Bono salvo com sucesso.",
       totalItens: values.length,
-      documento: documentoUnico
+      documento: documentoUnico,
+      whatsapp: notif ? notif : undefined
     });
   } catch (e) {
     console.error("[BONO] Falha ao append:", e);
@@ -326,7 +359,5 @@ Fontes confiáveis:
 - Sheets API append: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
 - valueInputOption USER_ENTERED: https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
 - Intl.DateTimeFormat + formatToParts (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/formatToParts
-- Date.getMilliseconds (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Date/getMilliseconds
-- Number.isFinite (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite
-- OWASP Input Validation: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+- Fetch API (MDN): https://developer.mozilla.org/docs/Web/API/fetch
 */
