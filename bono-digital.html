@@ -944,12 +944,18 @@
       const urlApp = `whatsapp://send?phone=${tel}&text=${encodeURIComponent(mensagem)}`;
       const urlWeb = `https://wa.me/${tel}?text=${encodeURIComponent(mensagem)}`;
 
-      window.location.href = urlApp;
+      // ✅ CORREÇÃO: NÃO trocar a página do Bono (não usar window.location.href)
+      // Abre em nova aba/janela para manter o Bono aberto ao voltar.
+      const opened = window.open(urlApp, "_blank");
 
-      setTimeout(() => {
-        // fallback (desktop/navegador sem handler do scheme)
-        window.location.href = urlWeb;
-      }, 400);
+      if (!opened) {
+        window.open(urlWeb, "_blank");
+      } else {
+        // fallback leve: alguns aparelhos ignoram whatsapp:// em _blank
+        setTimeout(() => {
+          try { window.open(urlWeb, "_blank"); } catch(e) {}
+        }, 500);
+      }
 
       return true;
     }
