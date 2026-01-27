@@ -86,6 +86,10 @@
       padding: 14px;
       background:#fff;
       margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      color:#333;
+      font-weight: 800;
     }
 
     /* ===== Filtros ===== */
@@ -183,7 +187,7 @@
       color:#222;
     }
 
-    /* ===== Cartão modelo (semelhante à imagem) ===== */
+    /* ===== Cartão modelo ===== */
     .doc-card{
       border: 1px solid #dfe6f2;
       border-radius: 14px;
@@ -325,8 +329,7 @@
     </div>
 
     <div class="box">
-      <b>Dados:</b>  (agrupados<br/>
-      <span style="font-weight:800;color:#444;">Obs.:</span> ettt
+      Use os filtros abaixo para localizar documentos e itens.
     </div>
 
     <!-- ===== Filtros ===== -->
@@ -336,7 +339,7 @@
       <div class="grid">
         <!-- Loja (somente GERENCIAL / ADMIN) -->
         <div id="wrapFiltroLoja" class="hidden">
-          <label for="fLoja">Loja adm</label>
+          <label for="fLoja">Loja (visível só para Gerencial/ADM)</label>
           <select id="fLoja">
             <option value="">Todas</option>
           </select>
@@ -375,14 +378,14 @@
           <select id="fStatus">
             <option value="">Todos</option>
             <option value="VERIFICADO">Verificado</option>
-            <option value="PENDENTE">PENDENTE</option>
+            <option value="PENDENTE">Pendente</option>
           </select>
         </div>
       </div>
 
       <div class="actions">
         <button class="btn btn-sec" id="btnLimpar">Limpar filtros</button>
-        <button class="btn btn-pri" id="btnAtualizar">Atualizar</button>
+        <button class="btn btn-pri" id="btnAtualizar">Atualizar (refazer busca)</button>
         <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
       </div>
 
@@ -399,8 +402,35 @@
   <script>
     const ROTAS = { menu: "/menu.html", login: "/login.html" };
 
-    // ✅ Ajuste aqui se seu endpoint tiver outro nome
-    const ENDPOINT_LISTAR = "/api/bono-listar";
+    /*
+      ✅ CORREÇÃO DO ERRO DO PRINT:
+      - Antes: endpoint fixo (se estiver errado/inexistente -> "Falha ao carregar dados")
+      - Agora: tenta uma lista de endpoints (fallback automático), evitando quebrar em ambiente diferente.
+
+      ✅ IMPORTANTE:
+      - Não há menções visíveis a nomes de planilha/aba/intervalo.
+      - Caso você queira documentar o mapeamento de colunas, deixei abaixo (comentário não visível).
+
+      Mapeamento interno (NÃO VISÍVEL):
+      A: Data/Hora da rede
+      B: Data/Hora do documento (usada no filtro de data)
+      C: Loja origem
+      D: Usuário / Encarregado
+      E: Responsável (operação)
+      F: Descrição do produto
+      G: Quantidade
+      H: Embalagem
+      I: Loja destino
+      J: Tipo
+      K: Status
+      L: Documento
+    */
+
+    const ENDPOINTS_LISTAR = [
+      "/api/movimentacoes-listar",
+      "/api/recebimentos-listar",
+      "/api/bono-listar"
+    ];
 
     // ===== Estado =====
     let sessaoAtual = null;
@@ -454,12 +484,7 @@
 
     function perfilEhGerencialOuAdm(perfil){
       const p = normKey(perfil);
-      // cobre variações comuns
-      return (
-        p.includes("ADMIN") ||
-        p.includes("GERENC") ||
-        p.includes("GERENTE")
-      );
+      return (p.includes("ADMIN") || p.includes("GERENC") || p.includes("GERENTE"));
     }
 
     // Converte "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA" para "AAAA-MM-DD"
@@ -477,10 +502,9 @@
 
     function tipoToCanon(tipo){
       const t = normKey(tipo);
-      // aceita tanto "MOV_INTERNA" quanto label humano
       if (t.includes("MOV") && (t.includes("INTERNA") || t.includes("INTERNO") || t.includes("MOV_INTERNA"))) return "MOVIMENTACAO_INTERNA";
       if (t.includes("RECEB") || t.includes("MERCADORIA")) return "RECEBIMENTO_MERCADORIAS";
-      return ""; // desconhecido
+      return "";
     }
 
     function statusToCanon(status){
@@ -532,7 +556,6 @@
         sel.appendChild(op);
       });
 
-      // tenta manter seleção
       if (atual) sel.value = atual;
     }
 
@@ -543,45 +566,76 @@
       const podeVer = perfilEhGerencialOuAdm(sessaoAtual.perfil);
       wrap.classList.toggle("hidden", !podeVer);
 
-      // Loja (se visível) carrega todas
       if (podeVer){
         preencherSelectComLojas("fLoja", true);
       } else {
-        // se não pode ver, garante vazio
         const sel = document.getElementById("fLoja");
         sel.innerHTML = '<option value="">Todas</option>';
       }
     }
 
     // ===== Buscar dados =====
-    /*
-      Esperado do endpoint:
-      - Pode retornar {sucesso:true, dados:[ [A,B,C,...,L], ... ] }
-      - Ou {sucesso:true, dados:[ {a:..., b:..., ...}, ... ] }
-      Esta tela normaliza.
-    */
+    async function fetchJsonSeguro(url) {
+      const resp = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Accept": "application/json" }
+      });
+
+      let dados = null;
+      try {
+        const txt = await resp.text();
+        dados = txt ? JSON.parse(txt) : null;
+      } catch {
+        dados = null;
+      }
+
+      return { resp, dados };
+    }
+
     async function buscarDados() {
       setMsg("Carregando dados...", true);
 
       try {
-        const resp = await fetch(ENDPOINT_LISTAR, {
-          method: "GET",
-          credentials: "include",
-          headers: { "Accept": "application/json" }
-        });
+        let ultimoErro = null;
+        let ok = false;
+        let payload = null;
+        let endpointUsado = "";
 
-        const dados = await resp.json().catch(() => null);
+        for (const ep of ENDPOINTS_LISTAR) {
+          endpointUsado = ep;
 
-        if (!resp.ok || !dados || !dados.sucesso) {
+          const { resp, dados } = await fetchJsonSeguro(ep);
+
+          // se sessão caiu, para e manda login
+          if (resp.status === 401 || resp.status === 403) {
+            redirecionarParaLogin("Sessão inválida. Faça login novamente.");
+            return;
+          }
+
+          if (resp.ok && dados && dados.sucesso) {
+            ok = true;
+            payload = dados;
+            break;
+          }
+
+          const msgErro =
+            (dados && (dados.message || dados.mensagem)) ? (dados.message || dados.mensagem) :
+            (!resp.ok ? `HTTP ${resp.status}` : "Resposta inválida");
+
+          ultimoErro = `Falha em ${ep}: ${msgErro}`;
+        }
+
+        if (!ok || !payload) {
+          console.error("[LISTAR] Nenhum endpoint retornou sucesso. Último erro:", ultimoErro);
           setMsg("Falha ao carregar dados (endpoint).", false);
           linhas = [];
           render();
           return;
         }
 
-        const arr = Array.isArray(dados.dados) ? dados.dados : (Array.isArray(dados.data) ? dados.data : []);
+        const arr = Array.isArray(payload.dados) ? payload.dados : (Array.isArray(payload.data) ? payload.data : []);
 
-        // normaliza para objetos com chaves fixas A..L
         linhas = arr.map((row) => {
           if (Array.isArray(row)) {
             return {
@@ -591,7 +645,6 @@
             };
           }
           if (row && typeof row === "object") {
-            // tenta várias grafias
             return {
               A: row.A ?? row.a ?? row.dataHoraRede ?? "",
               B: row.B ?? row.b ?? row.dataHora ?? row.dataHoraFiltro ?? "",
@@ -628,8 +681,8 @@
         data: normStr(document.getElementById("fData").value), // YYYY-MM-DD
         origem: normStr(document.getElementById("fOrigem").value),
         destino: normStr(document.getElementById("fDestino").value),
-        tipo: normStr(document.getElementById("fTipo").value),     // canon
-        status: normStr(document.getElementById("fStatus").value)  // canon
+        tipo: normStr(document.getElementById("fTipo").value),
+        status: normStr(document.getElementById("fStatus").value)
       };
     }
 
@@ -638,7 +691,6 @@
       const perfil = sessaoAtual ? sessaoAtual.perfil : "";
       const lojaSessao = sessaoAtual ? sessaoAtual.loja : "";
 
-      // regra: BASE_PPP já abre filtrado pela loja logada, iniciando por DESTINO.
       const ehBase = normKey(perfil).includes("BASE");
       const destinoDefaultBase = ehBase ? lojaSessao : "";
 
@@ -650,13 +702,10 @@
         const tipoCanon = tipoToCanon(r.J);
         const statusCanon = statusToCanon(r.K);
 
-        // filtro "Loja" (somente gerencial/adm) - aqui interpretei como:
-        // se escolher uma loja, mantém documentos onde a loja aparece como origem OU destino.
         if (f.loja) {
           if (normKey(lojaOrigem) !== normKey(f.loja) && normKey(lojaDestino) !== normKey(f.loja)) return false;
         }
 
-        // BASE_PPP: se ainda não foi escolhido origem/destino manualmente, aplica DESTINO = lojaSessao
         const origemEfetiva = f.origem;
         const destinoEfetivo = (f.destino || origemEfetiva) ? f.destino : destinoDefaultBase;
 
@@ -679,7 +728,6 @@
         map.get(doc).push(r);
       });
 
-      // ordena documentos pela Data/Hora (coluna B) desc, usando string BR como fallback
       const itens = Array.from(map.entries()).map(([documento, items]) => {
         const primeiro = items[0] || {};
         const dataISO = extrairDataISO(primeiro.B);
@@ -692,7 +740,6 @@
 
     // ===== Render =====
     function render(){
-      // popula origem/destino sempre com todas as lojas (conforme seu requisito: todos têm acesso)
       preencherSelectComLojas("fOrigem", true);
       preencherSelectComLojas("fDestino", true);
 
@@ -710,10 +757,9 @@
       }
 
       docs.forEach(({documento, items}) => {
-        // topo do documento vem do primeiro item (assumindo consistência por doc)
         const x = items[0];
 
-        const dataHora = normStr(x.B) || "—";         // coluna B (filtro)
+        const dataHora = normStr(x.B) || "—";
         const lojaOrigem = normStr(x.C) || "—";
         const lojaDestino = normStr(x.I) || "—";
         const tipoCanon = tipoToCanon(x.J);
@@ -723,18 +769,15 @@
         const statusCanon = statusToCanon(x.K);
         const statusTxt = statusCanon === "VERIFICADO"
           ? "Verificado"
-          : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—"));
+          : (statusCanon === "PENDENTE" ? "Pendente" : (normStr(x.K) || "—"));
 
-        const responsavel = normStr(x.E) || "—"; // "Nome e Ass. do Responsável"
-        const usuario = normStr(x.D) || "—";     // "Nome e Ass. do Encarregado"
+        const responsavel = normStr(x.E) || "—";
+        const usuario = normStr(x.D) || "—";
 
-        // monta linhas de itens (tabela)
         const rowsHtml = items.map(it => {
           const desc = escapeHtml(normStr(it.F) || "—");
           const qtd  = escapeHtml(normStr(it.G) || "—");
           const emb  = escapeHtml(normStr(it.H) || "—");
-          // na imagem tem "Und". Como você já tem Embalagem, eu deixei "Und" repetindo o mesmo valor
-          // para manter o layout 4 colunas.
           const und  = emb;
 
           return `
@@ -798,7 +841,6 @@
 
     // ===== Ações UI =====
     function limparFiltros(){
-      // loja (se existir)
       document.getElementById("fLoja").value = "";
       document.getElementById("fData").value = "";
       document.getElementById("fOrigem").value = "";
@@ -806,7 +848,6 @@
       document.getElementById("fTipo").value = "";
       document.getElementById("fStatus").value = "";
 
-      // BASE_PPP: volta ao padrão DESTINO = loja logada
       if (sessaoAtual && normKey(sessaoAtual.perfil).includes("BASE")) {
         document.getElementById("fDestino").value = sessaoAtual.loja || "";
       }
@@ -821,7 +862,6 @@
       const perfil = normKey(sessaoAtual.perfil);
       const loja = sessaoAtual.loja || "";
 
-      // BASE_PPP: iniciar filtrando por DESTINO (sua regra)
       if (perfil.includes("BASE")) {
         document.getElementById("fDestino").value = loja;
         document.getElementById("fOrigem").value = "";
@@ -841,13 +881,11 @@
         limparFiltros();
       });
 
-      // re-render ao mexer nos filtros
       ["fLoja","fData","fOrigem","fDestino","fTipo","fStatus"].forEach(id => {
         document.getElementById(id).addEventListener("change", () => render());
         document.getElementById(id).addEventListener("input", () => render());
       });
 
-      // sessão
       const sessao = await obterSessaoDoBackend();
       if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login novamente.");
 
@@ -859,13 +897,11 @@
 
       aplicarVisibilidadeFiltroLoja();
 
-      // popular selects iniciais
       preencherSelectComLojas("fOrigem", true);
       preencherSelectComLojas("fDestino", true);
 
       aplicarDefaultsPorPerfil();
 
-      // busca dados
       await buscarDados();
     });
   </script>
