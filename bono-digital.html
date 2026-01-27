@@ -563,6 +563,33 @@
       }, msRestante);
     }
 
+    /* =========================================================
+       ✅ NOVO: bloquear seleção da própria loja (origem)
+       - desabilita a opção do <select id="lojaDestino"> que
+         corresponde à loja da sessão (sessaoAtual.loja)
+    ========================================================= */
+    function normalizarLojaComparacao(s){
+      return String(s || "").trim().toUpperCase().replace(/\s+/g, " ");
+    }
+
+    function bloquearLojaOrigemNoDestino(){
+      const sel = document.getElementById("lojaDestino");
+      if (!sel || !sessaoAtual || !sessaoAtual.loja) return;
+
+      const origemN = normalizarLojaComparacao(sessaoAtual.loja);
+
+      Array.from(sel.options).forEach(opt => {
+        if (!opt.value) return; // mantém "Selecione"
+        const optN = normalizarLojaComparacao(opt.value);
+        opt.disabled = (optN === origemN);
+      });
+
+      // Se por algum motivo já estiver selecionada a própria loja, limpa.
+      if (sel.value && normalizarLojaComparacao(sel.value) === origemN) {
+        sel.value = "";
+      }
+    }
+
     function aplicarSessaoNaTela(sessao) {
       sessaoAtual = sessao;
       setTexto("infoLoja", sessao.loja || "—");
@@ -570,6 +597,9 @@
 
       const expMs = normalizarExpParaMs(sessao.exp);
       if (expMs) agendarRedirecionamentoNaExpiracao(expMs);
+
+      // ✅ NOVO: aplica bloqueio da loja de origem no seletor de destino
+      bloquearLojaOrigemNoDestino();
     }
 
     /* ===== Persistência ===== */
