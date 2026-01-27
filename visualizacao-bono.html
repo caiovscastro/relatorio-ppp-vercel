@@ -183,7 +183,6 @@
       color:#222;
     }
 
-    /* ===== Cartão modelo ===== */
     .doc-card{
       border: 1px solid #dfe6f2;
       border-radius: 14px;
@@ -334,7 +333,7 @@
       <div class="filtros-titulo">Filtros</div>
 
       <div class="grid">
-        <!-- Filtro "Loja adm" (apenas GERENTE_PPP e ADMINISTRADOR; invisível em BASE_PPP) -->
+        <!-- ✅ ÚNICO filtro de Loja: só aparece para ADMINISTRADOR e GERENTE_PPP -->
         <div id="wrapFiltroLoja" class="hidden">
           <label for="fLoja">Loja</label>
           <select id="fLoja">
@@ -345,22 +344,6 @@
         <div>
           <label for="fData">Data</label>
           <input type="date" id="fData" />
-        </div>
-
-        <!-- ✅ ÚNICO seletor de loja + modo (origem/destino) -->
-        <div>
-          <label for="fLojaModo">Filtrar por</label>
-          <select id="fLojaModo">
-            <option value="DESTINO">Loja destino</option>
-            <option value="ORIGEM">Loja origem</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="fLojaFiltro">Loja</label>
-          <select id="fLojaFiltro">
-            <option value="">Todas</option>
-          </select>
         </div>
 
         <div>
@@ -401,8 +384,21 @@
   <script>
     const ROTAS = { menu: "/menu.html", login: "/login.html" };
 
-    // ✅ Ajuste aqui se seu endpoint tiver outro nome
-    const ENDPOINT_LISTAR = "/api/bono-listar";
+    /*
+      ✅ ERRO DO PRINT (404 /api/bono-listar):
+      Isso significa que a rota NÃO existe no deploy atual, ou tem outro nome.
+      Para parar de quebrar, aqui eu faço “auto-fallback”: tenta algumas rotas possíveis e usa a primeira que responder.
+
+      Se você já souber o nome exato da sua rota, coloque ela como a primeira opção na lista.
+    */
+    const ENDPOINT_CANDIDATOS = [
+      "/api/bono-listar",
+      "/api/bono-listar.js",
+      "/api/bonoListar",
+      "/api/bono_listar",
+      "/api/listar-bono",
+      "/api/bono"
+    ];
 
     // ===== Estado =====
     let sessaoAtual = null;
@@ -410,7 +406,10 @@
     // dados brutos (linhas A:L normalizadas)
     let linhas = [];
 
-    // lojas (para popular selects)
+    // endpoint resolvido em runtime
+    let ENDPOINT_LISTAR_RESOLVIDO = "";
+
+    // lojas (para popular select)
     const LOJAS = [
       "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE",
       "BIG 06 - SIBERIA","BIG 08 - 503 SUL","BIG 09 - PENÍNSULA","BIG 10 - PAINEIRAS","BIG 11 - 310 NORTE",
@@ -454,10 +453,9 @@
         .replaceAll("'", "&#039;");
     }
 
-    // perfis (regras EXATAS pedidas)
+    // perfis (regras exatas)
     function perfilEhAdmin(perfil){
-      const p = normKey(perfil);
-      return p.includes("ADMIN");
+      return normKey(perfil).includes("ADMIN");
     }
     function perfilEhGerentePPP(perfil){
       const p = normKey(perfil);
@@ -511,7 +509,6 @@
         const dados = await resp.json().catch(() => null);
         if (!dados) return null;
 
-        // tolera sucesso/success/ok
         const ok = !!(dados.sucesso ?? dados.success ?? dados.ok);
         if (!ok || !dados.usuario || !dados.loja || !dados.perfil) return null;
 
@@ -526,7 +523,7 @@
       window.location.href = ROTAS.login;
     }
 
-    // ===== Popular selects =====
+    // ===== Select lojas (apenas 1) =====
     function preencherSelectComLojas(selId, incluirTodas = true){
       const sel = document.getElementById(selId);
       if (!sel) return;
@@ -551,11 +548,12 @@
       if (atual) sel.value = atual;
     }
 
-    function aplicarVisibilidadeFiltroLojaAdm(){
+    function aplicarVisibilidadeFiltroLoja(){
       const wrap = document.getElementById("wrapFiltroLoja");
       if (!sessaoAtual || !wrap) return;
 
-      // ✅ Regra pedida: invisível no BASE_PPP e visível apenas em GERENTE_PPP e ADMINISTRADOR
+      // ✅ BASE_PPP NÃO tem filtro de loja (sempre usa a loja logada)
+      // ✅ GERENTE_PPP e ADMINISTRADOR têm filtro para escolher a loja (ou Todas)
       const podeVer = perfilEhAdmin(sessaoAtual.perfil) || perfilEhGerentePPP(sessaoAtual.perfil);
 
       wrap.classList.toggle("hidden", !podeVer);
@@ -568,34 +566,63 @@
       }
     }
 
-    function initSelectsUmaVez(){
-      preencherSelectComLojas("fLojaFiltro", true);
-      // fLoja (adm) é preenchido só se estiver visível (aplicarVisibilidadeFiltroLojaAdm)
+    // ===== Resolver endpoint (corrige 404 do print) =====
+    async function resolverEndpointListar(){
+      // se já resolveu, retorna
+      if (ENDPOINT_LISTAR_RESOLVIDO) return ENDPOINT_LISTAR_RESOLVIDO;
+
+      for (const ep of ENDPOINT_CANDIDATOS){
+        try{
+          const r = await fetch(ep, {
+            method: "GET",
+            credentials: "include",
+            headers: { "Accept": "application/json" }
+          });
+
+          // 404 = não existe
+          if (r.status === 404) continue;
+
+          // se não for 404, consideramos candidato válido (mesmo que 401/403/500)
+          ENDPOINT_LISTAR_RESOLVIDO = ep;
+          return ep;
+        } catch {
+          // falha de rede -> tenta próximo
+          continue;
+        }
+      }
+
+      // não achou nenhum
+      ENDPOINT_LISTAR_RESOLVIDO = ENDPOINT_CANDIDATOS[0];
+      return ENDPOINT_LISTAR_RESOLVIDO;
     }
 
     // ===== Buscar dados =====
-    /*
-      Esperado do endpoint (tolerante):
-      - {sucesso:true, dados:[ [A,B,C,...,L], ... ] }
-      - {success:true, data:[ ... ] }
-      - {ok:true, rows:[ ... ] }
-    */
     async function buscarDados() {
       setMsg("Carregando dados...", true);
 
       try {
-        const resp = await fetch(ENDPOINT_LISTAR, {
+        const endpoint = await resolverEndpointListar();
+
+        const resp = await fetch(endpoint, {
           method: "GET",
           credentials: "include",
           headers: { "Accept": "application/json" }
         });
 
-        // ✅ Corrige o erro da imagem: trata resposta não-JSON e mensagens mais diagnósticas
+        // ✅ se o endpoint estiver errado (HTML/Texto), evita quebrar o JSON.parse
         const ct = (resp.headers.get("content-type") || "").toLowerCase();
+
+        if (resp.status === 404) {
+          console.error("Falha no endpoint (404):", endpoint);
+          setMsg("Falha ao carregar dados (endpoint não encontrado).", false);
+          linhas = [];
+          render();
+          return;
+        }
 
         if (!ct.includes("application/json")) {
           const txt = await resp.text().catch(() => "");
-          console.error("Endpoint não retornou JSON:", { status: resp.status, ct, body: txt?.slice?.(0, 600) });
+          console.error("Endpoint não retornou JSON:", { endpoint, status: resp.status, ct, body: (txt || "").slice(0, 600) });
           setMsg("Falha ao carregar dados (endpoint).", false);
           linhas = [];
           render();
@@ -603,10 +630,10 @@
         }
 
         const dados = await resp.json().catch(() => null);
-
         const ok = !!(dados && (dados.sucesso ?? dados.success ?? dados.ok));
+
         if (!resp.ok || !ok) {
-          console.error("Falha no endpoint:", { status: resp.status, dados });
+          console.error("Falha no endpoint:", { endpoint, status: resp.status, dados });
           setMsg("Falha ao carregar dados (endpoint).", false);
           linhas = [];
           render();
@@ -618,6 +645,7 @@
           (Array.isArray(dados.data) ? dados.data :
           (Array.isArray(dados.rows) ? dados.rows : []));
 
+        // normaliza para A..L
         linhas = arr.map((row) => {
           if (Array.isArray(row)) {
             return {
@@ -656,53 +684,52 @@
       }
     }
 
-    // ===== Regras de filtro =====
+    // ===== Filtros =====
     function lerFiltros(){
+      const elLoja = document.getElementById("fLoja");
       return {
-        lojaAdm: normStr(document.getElementById("fLoja").value),         // visível só gerente/admin
-        data: normStr(document.getElementById("fData").value),           // YYYY-MM-DD
-        lojaModo: normStr(document.getElementById("fLojaModo").value),   // ORIGEM | DESTINO
-        loja: normStr(document.getElementById("fLojaFiltro").value),     // loja escolhida
-        tipo: normStr(document.getElementById("fTipo").value),           // canon
-        status: normStr(document.getElementById("fStatus").value)        // canon
+        loja: normStr(elLoja ? elLoja.value : ""),      // (admin/gerente) loja escolhida; vazio = todas
+        data: normStr(document.getElementById("fData").value),
+        tipo: normStr(document.getElementById("fTipo").value),
+        status: normStr(document.getElementById("fStatus").value)
       };
+    }
+
+    function lojaSelecionadaEfetiva(){
+      if (!sessaoAtual) return "";
+
+      // BASE_PPP: loja efetiva é SEMPRE a loja logada (sem seletor)
+      if (perfilEhBasePPP(sessaoAtual.perfil)) return normStr(sessaoAtual.loja);
+
+      // GERENTE/ADMIN: usa o seletor (vazio = todas)
+      const f = lerFiltros();
+      return f.loja;
     }
 
     function aplicarFiltrosNasLinhas(){
       const f = lerFiltros();
-      const perfil = sessaoAtual ? sessaoAtual.perfil : "";
-      const lojaSessao = sessaoAtual ? sessaoAtual.loja : "";
-
-      const ehBase = perfilEhBasePPP(perfil);
-
-      // BASE_PPP: padrão destino + loja logada
-      const modoEfetivo = (f.lojaModo || (ehBase ? "DESTINO" : "DESTINO"));
-      const lojaEfetiva = (f.loja || (ehBase ? lojaSessao : ""));
+      const lojaEfetiva = lojaSelecionadaEfetiva();
 
       return linhas.filter(r => {
         const dataISO = extrairDataISO(r.B);
 
-        const lojaOrigem = normStr(r.C);  // COLUNA C
-        const lojaDestino = normStr(r.I); // COLUNA I
+        // (comentário interno) regras por loja:
+        // - Loja origem = coluna C
+        // - Loja destino = coluna I
+        const lojaOrigem = normStr(r.C);
+        const lojaDestino = normStr(r.I);
+
         const tipoCanon = tipoToCanon(r.J);
         const statusCanon = statusToCanon(r.K);
 
-        // Loja adm (se selecionar, aceita origem OU destino)
-        if (f.lojaAdm) {
-          const okAdm = (normKey(lojaOrigem) === normKey(f.lojaAdm)) || (normKey(lojaDestino) === normKey(f.lojaAdm));
-          if (!okAdm) return false;
-        }
-
-        // Data
         if (f.data && dataISO !== f.data) return false;
 
-        // ✅ Único filtro de loja controlado por modo
+        // ✅ filtro único de loja: quando escolher uma loja, mostra tudo onde ela aparece como ORIGEM OU DESTINO
         if (lojaEfetiva) {
-          if (modoEfetivo === "ORIGEM") {
-            if (normKey(lojaOrigem) !== normKey(lojaEfetiva)) return false;
-          } else { // DESTINO (default)
-            if (normKey(lojaDestino) !== normKey(lojaEfetiva)) return false;
-          }
+          const okLoja =
+            (normKey(lojaOrigem) === normKey(lojaEfetiva)) ||
+            (normKey(lojaDestino) === normKey(lojaEfetiva));
+          if (!okLoja) return false;
         }
 
         if (f.tipo && f.tipo !== tipoCanon) return false;
@@ -833,35 +860,16 @@
 
     // ===== Ações UI =====
     function limparFiltros(){
-      const elLojaAdm = document.getElementById("fLoja");
-      if (elLojaAdm) elLojaAdm.value = "";
+      // BASE_PPP não tem filtro de loja, então aqui só limpa os demais
+      const elLoja = document.getElementById("fLoja");
+      if (elLoja) elLoja.value = "";
 
       document.getElementById("fData").value = "";
       document.getElementById("fTipo").value = "";
       document.getElementById("fStatus").value = "";
 
-      // modo e loja
-      document.getElementById("fLojaModo").value = "DESTINO";
-      document.getElementById("fLojaFiltro").value = "";
-
-      // BASE_PPP: volta ao padrão DESTINO = loja logada
-      if (sessaoAtual && perfilEhBasePPP(sessaoAtual.perfil)) {
-        document.getElementById("fLojaModo").value = "DESTINO";
-        document.getElementById("fLojaFiltro").value = sessaoAtual.loja || "";
-      }
-
       render();
       setMsg("Filtros limpos.", true);
-    }
-
-    function aplicarDefaultsPorPerfil(){
-      if (!sessaoAtual) return;
-
-      // BASE_PPP: iniciar filtrando por DESTINO (coluna I) na loja logada
-      if (perfilEhBasePPP(sessaoAtual.perfil)) {
-        document.getElementById("fLojaModo").value = "DESTINO";
-        document.getElementById("fLojaFiltro").value = sessaoAtual.loja || "";
-      }
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -877,7 +885,7 @@
         limparFiltros();
       });
 
-      // Sessão
+      // sessão
       const sessao = await obterSessaoDoBackend();
       if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login novamente.");
 
@@ -887,20 +895,23 @@
       setTexto("infoUsuario", sessao.usuario || "—");
       setTexto("infoPerfil", sessao.perfil || "—");
 
-      // selects
-      initSelectsUmaVez();
-      aplicarVisibilidadeFiltroLojaAdm();
-      aplicarDefaultsPorPerfil();
+      // visibilidade do único seletor de loja
+      aplicarVisibilidadeFiltroLoja();
 
-      // re-render ao mexer nos filtros (inclui o novo filtro único)
-      ["fLoja","fData","fLojaModo","fLojaFiltro","fTipo","fStatus"].forEach(id => {
+      // popula lojas só uma vez (quando visível)
+      if (perfilEhAdmin(sessao.perfil) || perfilEhGerentePPP(sessao.perfil)) {
+        preencherSelectComLojas("fLoja", true);
+      }
+
+      // re-render ao mexer nos filtros (inclui fLoja, mesmo se hidden não atrapalha)
+      ["fLoja","fData","fTipo","fStatus"].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener("change", () => render());
         el.addEventListener("input", () => render());
       });
 
-      // Busca dados
+      // busca dados
       await buscarDados();
     });
   </script>
