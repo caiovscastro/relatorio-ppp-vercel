@@ -141,6 +141,9 @@
     <!-- Bono digital -->
     <button class="btn btn-sec" id="btnBonoDigital">Bono digital</button>
 
+    <!-- ✅ NOVO -->
+    <button class="btn btn-sec" id="btnVisualizacaoBono">Visualização Lançamentos Bono</button>
+
     <!-- Sessão -->
     <button class="btn btn-danger" id="btnSair">Sair</button>
     <button class="btn btn-sec hidden" id="btnLogin">Ir para o Login</button>
@@ -158,6 +161,8 @@
       contagemCarrinhos: "/contagem-carrinhos.html",
       dashboardCarrinhos: "/dashboard-carrinhos.html",
       bonoDigital: "/bono-digital.html",
+      // ✅ NOVO
+      visualizacaoBono: "/visualizacao-bono.html",
       login: "/login.html",
       logoutApi: "/api/logout"
     };
@@ -211,7 +216,7 @@
     }
 
     function esconderTodosBotoesPrivados() {
-      ["btnLancamento","btnGerencial","btnDashboard","btnContagemCarrinhos","btnDashboardCarrinhos","btnBonoDigital"]
+      ["btnLancamento","btnGerencial","btnDashboard","btnContagemCarrinhos","btnDashboardCarrinhos","btnBonoDigital","btnVisualizacaoBono"]
         .forEach(id => document.getElementById(id).classList.add("hidden"));
     }
 
@@ -252,7 +257,10 @@
         btnDashboardCarrinhos.classList.remove("hidden");
       }
       if (podeTudo) btnGerencial.classList.remove("hidden");
+
+      // ✅ Bono (sempre visível logado)
       btnBonoDigital.classList.remove("hidden");
+      btnVisualizacaoBono.classList.remove("hidden");
     }
 
     function setSessaoGestor(sessao) {
@@ -289,6 +297,9 @@
       btnContagemCarrinhos.onclick = () => sessaoAtual ? location.href = ROTAS.contagemCarrinhos : entrarModoDeslogado("Sessão inválida.");
       btnDashboardCarrinhos.onclick = () => sessaoAtual ? location.href = ROTAS.dashboardCarrinhos : entrarModoDeslogado("Sessão inválida.");
       btnBonoDigital.onclick = () => sessaoAtual ? location.href = ROTAS.bonoDigital : entrarModoDeslogado("Sessão inválida.");
+
+      // ✅ NOVO
+      btnVisualizacaoBono.onclick = () => sessaoAtual ? location.href = ROTAS.visualizacaoBono : entrarModoDeslogado("Sessão inválida.");
 
       btnGerencial.onclick = () => {
         if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida.");
