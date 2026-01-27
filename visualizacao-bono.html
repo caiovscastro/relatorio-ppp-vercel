@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visualização Lançamentos Bono</title>
+  <title>Visualização - Movimentações / Recebimentos</title>
 
   <style>
+    html, body{ width:100%; max-width:100%; overflow-x:hidden; }
     body{
       background:#f3f3f3;
       font-family: Arial, sans-serif;
       display:flex;
       justify-content:center;
-      align-items:center;
+      align-items:flex-start;
       min-height:100vh;
       margin:2px;
       color:#111;
@@ -19,12 +20,13 @@
 
     .container{
       width: 92%;
-      max-width: 980px;
+      max-width: 1100px;
       background:#fff;
       padding: 22px 22px 18px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
       box-sizing: border-box;
+      margin-top: 10px;
     }
 
     .logo-menu{
@@ -61,7 +63,7 @@
       border: 1px solid #e6e6e6;
       border-radius: 10px;
       padding: 12px 12px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       font-size: 13px;
       line-height: 1.45;
     }
@@ -83,30 +85,226 @@
       border-radius: 12px;
       padding: 14px;
       background:#fff;
+      margin-bottom: 12px;
+    }
+
+    /* ===== Filtros ===== */
+    .filtros{
+      border: 1px solid #ececec;
+      border-radius: 12px;
+      padding: 12px;
+      background:#fff;
+      margin-bottom: 14px;
+    }
+
+    .filtros-titulo{
+      font-size: 14px;
+      font-weight: 900;
+      margin: 0 0 10px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      font-weight: 800;
+      color:#333;
+      margin-bottom: 6px;
+    }
+    input, select{
+      width:100%;
+      box-sizing:border-box;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      outline:none;
+      background:#fff;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media (max-width: 560px){
+      .actions{ grid-template-columns: 1fr; }
     }
 
     .btn{
       width:100%;
       padding: 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 15px;
       font-weight: 800;
-      margin-top: 10px;
     }
-
     .btn-sec{ background:#e9e9e9; color:#111; }
     .btn-sec:hover{ background:#dedede; }
+    .btn-pri{ background:#111; color:#fff; }
+    .btn-pri:hover{ opacity:.92; }
 
     .mensagem{
-      margin-top: 12px;
+      margin-top: 10px;
       text-align:center;
       font-weight:800;
       font-size: 13px;
       min-height: 18px;
       color:#b30000;
     }
+    .ok{ color:#0b6b2f; }
+
+    /* ===== Lista de cartões ===== */
+    .resultados-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin: 10px 0 8px;
+      flex-wrap: wrap;
+    }
+    .contador{
+      font-weight: 900;
+      font-size: 13px;
+      color:#222;
+    }
+
+    /* ===== Cartão modelo (semelhante à imagem) ===== */
+    .doc-card{
+      border: 1px solid #dfe6f2;
+      border-radius: 14px;
+      background: #f7f9ff;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      padding: 12px;
+      margin-bottom: 12px;
+      overflow:hidden;
+    }
+
+    .doc-top{
+      background: #eef3ff;
+      border: 1px solid #d8e2ff;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .doc-top .meta{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+      align-items:center;
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#243b6b;
+    }
+
+    @media (max-width: 650px){
+      .doc-top .meta{ grid-template-columns: 1fr; }
+    }
+
+    .meta .row{
+      display:flex;
+      gap: 8px;
+      align-items:baseline;
+      min-width: 0;
+    }
+    .meta .lbl{
+      color:#1f2f57;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .meta .val{
+      color:#111;
+      font-weight: 900;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space: nowrap;
+    }
+
+    .doc-table-wrap{
+      margin-top: 10px;
+      border-radius: 12px;
+      overflow:hidden;
+      border: 1px solid #d8e2ff;
+      background:#fff;
+    }
+
+    .doc-table-head{
+      background: linear-gradient(to bottom, #1f4f95, #173f78);
+      color:#fff;
+      font-weight: 900;
+      padding: 10px 12px;
+      display:grid;
+      grid-template-columns: 1fr 90px 120px 90px;
+      gap: 8px;
+      font-size: 12.5px;
+      align-items:center;
+    }
+
+    .doc-table{
+      width:100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .doc-table td{
+      border-top: 1px solid #e8eeff;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#111;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+    .doc-table tr:nth-child(even) td{ background:#fafcff; }
+
+    .col-desc{ width:auto; }
+    .col-qtd{ width:90px; text-align:right; }
+    .col-emb{ width:120px; text-align:center; }
+    .col-und{ width:90px; text-align:center; }
+
+    .assinaturas{
+      margin-top: 10px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .ass-box{
+      background:#eef3ff;
+      border: 1px solid #d8e2ff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      font-weight: 900;
+      color:#1f2f57;
+      display:flex;
+      gap: 8px;
+      align-items:baseline;
+      min-width:0;
+    }
+    .ass-box .val{
+      color:#111;
+      font-weight: 900;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .hidden{ display:none !important; }
   </style>
 </head>
 
@@ -118,7 +316,7 @@
 
     <hr class="linha-logo" />
 
-    <div class="titulo">Visualização Lançamentos Bono</div>
+    <div class="titulo">Visualização - Movimentações / Recebimentos</div>
 
     <div class="card-info" id="cardInfo">
       <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
@@ -127,22 +325,172 @@
     </div>
 
     <div class="box">
-      Essa tela vai listar os dados de lançamentos do <b>BONO</b>
-      Próximo passo: criar o endpoint (ex.: <code>/api/bono-listar</code>) e renderizar.
+      <b>Dados:</b> A:L (agrupados por <b>Documento</b>) e renderizados em cartões no modelo da imagem.<br/>
+      <span style="font-weight:800;color:#444;">Obs.:</span> esta tela busca os dados uma vez e filtra no navegador. Para refazer a busca, use <b>Atualizar</b>.
     </div>
 
-    <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
-    <div class="mensagem" id="msg"></div>
+    <!-- ===== Filtros ===== -->
+    <div class="filtros">
+      <div class="filtros-titulo">Filtros</div>
+
+      <div class="grid">
+        <!-- Loja (somente GERENCIAL / ADMIN) -->
+        <div id="wrapFiltroLoja" class="hidden">
+          <label for="fLoja">Loja (visível só para Gerencial/ADM)</label>
+          <select id="fLoja">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="fData">Data (considera coluna B - Data/Hora)</label>
+          <input type="date" id="fData" />
+        </div>
+
+        <div>
+          <label for="fOrigem">Loja origem</label>
+          <select id="fOrigem">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="fDestino">Loja destino</label>
+          <select id="fDestino">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="fTipo">Tipo</label>
+          <select id="fTipo">
+            <option value="">Todos</option>
+            <option value="MOVIMENTACAO_INTERNA">Movimentação interna</option>
+            <option value="RECEBIMENTO_MERCADORIAS">Recebimento de mercadorias</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="fStatus">Status</label>
+          <select id="fStatus">
+            <option value="">Todos</option>
+            <option value="VERIFICADO">Verificado</option>
+            <option value="PENDENTE">PENDENTE</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-sec" id="btnLimpar">Limpar filtros</button>
+        <button class="btn btn-pri" id="btnAtualizar">Atualizar (refazer busca)</button>
+        <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
+      </div>
+
+      <div class="mensagem" id="msg"></div>
+    </div>
+
+    <div class="resultados-top">
+      <div class="contador" id="contador">0 documento(s)</div>
+    </div>
+
+    <div id="listaDocs"></div>
   </div>
 
   <script>
     const ROTAS = { menu: "/menu.html", login: "/login.html" };
 
+    // ✅ Ajuste aqui se seu endpoint tiver outro nome
+    const ENDPOINT_LISTAR = "/api/bono-listar";
+
+    // ===== Estado =====
+    let sessaoAtual = null;
+
+    // dados brutos (linhas A:L normalizadas)
+    let linhas = [];
+
+    // lojas (para popular selects)
+    const LOJAS = [
+      "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE",
+      "BIG 06 - SIBERIA","BIG 08 - 503 SUL","BIG 09 - PENÍNSULA","BIG 10 - PAINEIRAS","BIG 11 - 310 NORTE",
+      "BIG 12 - 208 NORTE","BIG 13 - QI-05 L. NORTE","BIG 14 - 508 SUL","BIG 15 - 105 SW","BIG 16 - 512 SUL",
+      "BIG 17 - QI-11 LAGO SUL","BIG 18 - 211 NORTE","BIG 19 - CASTANHEIRA","BIG 20 - TAGUATINGA C1","BIG 21 - CNB12",
+      "BIG 22 - 102 NOROESTE","BIG 23 - QI-23 LAGO SUL","BIG 24 - 314 NORTE","BIG 25 - 410 SUL",
+      "ULT 01 - PLANALTINA","ULT 02 - GAMA","ULT 03 - COLORADO","ULT 04 - CEI SUL","ULT 05 - POLO JK",
+      "ULT 06 - SOBRADINHO","ULT 07 - ADE","ULT 08 - ARAPOANGA","ULT 09 - CEI NORTE","ULT 10 - ESTRUTURAL",
+      "ULT 11 - ITAPOA","ULT 12 - SAO SEBASTIAO","ULT 13 - RECANTO","ULT 14 - AGUAS LINDAS","ULT 15 - SOL NASCENTE",
+      "ULT 16 - PARANOA PARK","ULT 17 - SAMAMBAIA","ULT 18 - BRAZLANDIA","ULT 19 - VIA PARK","ULT 20 - TAGUATINGA",
+      "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 24 - PAUL BRASIL","ULT 25 - BRASILINHA",
+      "TOTAL DISTRIBUICAO","INDUSPAN","MATRIZ"
+    ];
+
+    // ===== Util =====
     function setTexto(id, txt) {
       const el = document.getElementById(id);
       if (el) el.textContent = txt;
     }
 
+    function setMsg(txt, ok=false){
+      const el = document.getElementById("msg");
+      el.textContent = txt || "";
+      el.classList.toggle("ok", !!ok);
+    }
+
+    function normStr(s){
+      return String(s ?? "").trim();
+    }
+
+    function normKey(s){
+      return normStr(s).toUpperCase().replace(/\s+/g, " ");
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function perfilEhGerencialOuAdm(perfil){
+      const p = normKey(perfil);
+      // cobre variações comuns
+      return (
+        p.includes("ADMIN") ||
+        p.includes("GERENC") ||
+        p.includes("GERENTE")
+      );
+    }
+
+    // Converte "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA" para "AAAA-MM-DD"
+    function extrairDataISO(dataHoraBR){
+      const t = normStr(dataHoraBR);
+      if (!t) return "";
+      const parteData = t.split(" ")[0];
+      const [dd,mm,aa] = parteData.split("/");
+      if (!dd || !mm || !aa) return "";
+      const d = String(dd).padStart(2,"0");
+      const m = String(mm).padStart(2,"0");
+      const a = String(aa).padStart(4,"0");
+      return `${a}-${m}-${d}`;
+    }
+
+    function tipoToCanon(tipo){
+      const t = normKey(tipo);
+      // aceita tanto "MOV_INTERNA" quanto label humano
+      if (t.includes("MOV") && (t.includes("INTERNA") || t.includes("INTERNO") || t.includes("MOV_INTERNA"))) return "MOVIMENTACAO_INTERNA";
+      if (t.includes("RECEB") || t.includes("MERCADORIA")) return "RECEBIMENTO_MERCADORIAS";
+      return ""; // desconhecido
+    }
+
+    function statusToCanon(status){
+      const s = normKey(status);
+      if (s.includes("VERIF")) return "VERIFICADO";
+      if (s.includes("PEND")) return "PENDENTE";
+      return "";
+    }
+
+    // ===== Sessão =====
     async function obterSessaoDoBackend() {
       try {
         const resp = await fetch("/api/session", {
@@ -159,21 +507,366 @@
       }
     }
 
+    function redirecionarParaLogin(motivo) {
+      if (motivo) setMsg(motivo, false);
+      window.location.href = ROTAS.login;
+    }
+
+    // ===== Popular selects =====
+    function preencherSelectComLojas(selId, incluirTodas = true){
+      const sel = document.getElementById(selId);
+      const atual = sel.value;
+
+      sel.innerHTML = "";
+      if (incluirTodas){
+        const op = document.createElement("option");
+        op.value = "";
+        op.textContent = "Todas";
+        sel.appendChild(op);
+      }
+
+      LOJAS.forEach(lj => {
+        const op = document.createElement("option");
+        op.value = lj;
+        op.textContent = lj;
+        sel.appendChild(op);
+      });
+
+      // tenta manter seleção
+      if (atual) sel.value = atual;
+    }
+
+    function aplicarVisibilidadeFiltroLoja(){
+      const wrap = document.getElementById("wrapFiltroLoja");
+      if (!sessaoAtual) return;
+
+      const podeVer = perfilEhGerencialOuAdm(sessaoAtual.perfil);
+      wrap.classList.toggle("hidden", !podeVer);
+
+      // Loja (se visível) carrega todas
+      if (podeVer){
+        preencherSelectComLojas("fLoja", true);
+      } else {
+        // se não pode ver, garante vazio
+        const sel = document.getElementById("fLoja");
+        sel.innerHTML = '<option value="">Todas</option>';
+      }
+    }
+
+    // ===== Buscar dados =====
+    /*
+      Esperado do endpoint:
+      - Pode retornar {sucesso:true, dados:[ [A,B,C,...,L], ... ] }
+      - Ou {sucesso:true, dados:[ {a:..., b:..., ...}, ... ] }
+      Esta tela normaliza.
+    */
+    async function buscarDados() {
+      setMsg("Carregando dados...", true);
+
+      try {
+        const resp = await fetch(ENDPOINT_LISTAR, {
+          method: "GET",
+          credentials: "include",
+          headers: { "Accept": "application/json" }
+        });
+
+        const dados = await resp.json().catch(() => null);
+
+        if (!resp.ok || !dados || !dados.sucesso) {
+          setMsg("Falha ao carregar dados (endpoint).", false);
+          linhas = [];
+          render();
+          return;
+        }
+
+        const arr = Array.isArray(dados.dados) ? dados.dados : (Array.isArray(dados.data) ? dados.data : []);
+
+        // normaliza para objetos com chaves fixas A..L
+        linhas = arr.map((row) => {
+          if (Array.isArray(row)) {
+            return {
+              A: row[0] ?? "", B: row[1] ?? "", C: row[2] ?? "", D: row[3] ?? "",
+              E: row[4] ?? "", F: row[5] ?? "", G: row[6] ?? "", H: row[7] ?? "",
+              I: row[8] ?? "", J: row[9] ?? "", K: row[10] ?? "", L: row[11] ?? ""
+            };
+          }
+          if (row && typeof row === "object") {
+            // tenta várias grafias
+            return {
+              A: row.A ?? row.a ?? row.dataHoraRede ?? "",
+              B: row.B ?? row.b ?? row.dataHora ?? row.dataHoraFiltro ?? "",
+              C: row.C ?? row.c ?? row.lojaOrigem ?? "",
+              D: row.D ?? row.d ?? row.usuario ?? "",
+              E: row.E ?? row.e ?? row.responsavel ?? "",
+              F: row.F ?? row.f ?? row.descricao ?? "",
+              G: row.G ?? row.g ?? row.quantidade ?? "",
+              H: row.H ?? row.h ?? row.embalagem ?? "",
+              I: row.I ?? row.i ?? row.lojaDestino ?? "",
+              J: row.J ?? row.j ?? row.tipo ?? "",
+              K: row.K ?? row.k ?? row.status ?? "",
+              L: row.L ?? row.l ?? row.documento ?? ""
+            };
+          }
+          return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:""};
+        });
+
+        setMsg(`Dados carregados: ${linhas.length} linha(s).`, true);
+        render();
+
+      } catch (e) {
+        console.error(e);
+        setMsg("Erro de rede ao carregar dados.", false);
+        linhas = [];
+        render();
+      }
+    }
+
+    // ===== Regras de filtro =====
+    function lerFiltros(){
+      return {
+        loja: normStr(document.getElementById("fLoja").value),
+        data: normStr(document.getElementById("fData").value), // YYYY-MM-DD
+        origem: normStr(document.getElementById("fOrigem").value),
+        destino: normStr(document.getElementById("fDestino").value),
+        tipo: normStr(document.getElementById("fTipo").value),     // canon
+        status: normStr(document.getElementById("fStatus").value)  // canon
+      };
+    }
+
+    function aplicarFiltrosNasLinhas(){
+      const f = lerFiltros();
+      const perfil = sessaoAtual ? sessaoAtual.perfil : "";
+      const lojaSessao = sessaoAtual ? sessaoAtual.loja : "";
+
+      // regra: BASE_PPP já abre filtrado pela loja logada, iniciando por DESTINO.
+      const ehBase = normKey(perfil).includes("BASE");
+      const destinoDefaultBase = ehBase ? lojaSessao : "";
+
+      return linhas.filter(r => {
+        const dataISO = extrairDataISO(r.B);
+
+        const lojaOrigem = normStr(r.C);
+        const lojaDestino = normStr(r.I);
+        const tipoCanon = tipoToCanon(r.J);
+        const statusCanon = statusToCanon(r.K);
+
+        // filtro "Loja" (somente gerencial/adm) - aqui interpretei como:
+        // se escolher uma loja, mantém documentos onde a loja aparece como origem OU destino.
+        if (f.loja) {
+          if (normKey(lojaOrigem) !== normKey(f.loja) && normKey(lojaDestino) !== normKey(f.loja)) return false;
+        }
+
+        // BASE_PPP: se ainda não foi escolhido origem/destino manualmente, aplica DESTINO = lojaSessao
+        const origemEfetiva = f.origem;
+        const destinoEfetivo = (f.destino || origemEfetiva) ? f.destino : destinoDefaultBase;
+
+        if (f.data && dataISO !== f.data) return false;
+        if (origemEfetiva && normKey(lojaOrigem) !== normKey(origemEfetiva)) return false;
+        if (destinoEfetivo && normKey(lojaDestino) !== normKey(destinoEfetivo)) return false;
+        if (f.tipo && f.tipo !== tipoCanon) return false;
+        if (f.status && f.status !== statusCanon) return false;
+
+        return true;
+      });
+    }
+
+    // ===== Agrupar por Documento =====
+    function agruparPorDocumento(linhasFiltradas){
+      const map = new Map();
+      linhasFiltradas.forEach(r => {
+        const doc = normStr(r.L) || "SEM_DOCUMENTO";
+        if (!map.has(doc)) map.set(doc, []);
+        map.get(doc).push(r);
+      });
+
+      // ordena documentos pela Data/Hora (coluna B) desc, usando string BR como fallback
+      const itens = Array.from(map.entries()).map(([documento, items]) => {
+        const primeiro = items[0] || {};
+        const dataISO = extrairDataISO(primeiro.B);
+        return { documento, items, dataISO };
+      });
+
+      itens.sort((a,b) => (b.dataISO || "").localeCompare(a.dataISO || ""));
+      return itens;
+    }
+
+    // ===== Render =====
+    function render(){
+      // popula origem/destino sempre com todas as lojas (conforme seu requisito: todos têm acesso)
+      preencherSelectComLojas("fOrigem", true);
+      preencherSelectComLojas("fDestino", true);
+
+      const linhasFiltradas = aplicarFiltrosNasLinhas();
+      const docs = agruparPorDocumento(linhasFiltradas);
+
+      setTexto("contador", `${docs.length} documento(s)`);
+
+      const wrap = document.getElementById("listaDocs");
+      wrap.innerHTML = "";
+
+      if (!docs.length){
+        wrap.innerHTML = `<div class="box" style="font-weight:900;color:#444;">Nenhum documento encontrado com os filtros atuais.</div>`;
+        return;
+      }
+
+      docs.forEach(({documento, items}) => {
+        // topo do documento vem do primeiro item (assumindo consistência por doc)
+        const x = items[0];
+
+        const dataHora = normStr(x.B) || "—";         // coluna B (filtro)
+        const lojaOrigem = normStr(x.C) || "—";
+        const lojaDestino = normStr(x.I) || "—";
+        const tipoCanon = tipoToCanon(x.J);
+        const tipoTxt = tipoCanon === "MOVIMENTACAO_INTERNA"
+          ? "Movimentação interna"
+          : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "Recebimento de mercadorias" : (normStr(x.J) || "—"));
+        const statusCanon = statusToCanon(x.K);
+        const statusTxt = statusCanon === "VERIFICADO"
+          ? "Verificado"
+          : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—"));
+
+        const responsavel = normStr(x.E) || "—"; // "Nome e Ass. do Responsável"
+        const usuario = normStr(x.D) || "—";     // "Nome e Ass. do Encarregado"
+
+        // monta linhas de itens (tabela)
+        const rowsHtml = items.map(it => {
+          const desc = escapeHtml(normStr(it.F) || "—");
+          const qtd  = escapeHtml(normStr(it.G) || "—");
+          const emb  = escapeHtml(normStr(it.H) || "—");
+          // na imagem tem "Und". Como você já tem Embalagem, eu deixei "Und" repetindo o mesmo valor
+          // para manter o layout 4 colunas.
+          const und  = emb;
+
+          return `
+            <tr>
+              <td class="col-desc">${desc}</td>
+              <td class="col-qtd">${qtd}</td>
+              <td class="col-emb">${emb}</td>
+              <td class="col-und">${und}</td>
+            </tr>
+          `;
+        }).join("");
+
+        const card = document.createElement("div");
+        card.className = "doc-card";
+
+        card.innerHTML = `
+          <div class="doc-top">
+            <div class="meta">
+              <div class="row"><span class="lbl">DATA/HORA:</span> <span class="val">${escapeHtml(dataHora)}</span></div>
+              <div class="row"><span class="lbl">DOCUMENTO:</span> <span class="val">${escapeHtml(documento)}</span></div>
+
+              <div class="row"><span class="lbl">LOJA ORIGEM:</span> <span class="val">${escapeHtml(lojaOrigem)}</span></div>
+              <div class="row"><span class="lbl">LOJA DESTINO:</span> <span class="val">${escapeHtml(lojaDestino)}</span></div>
+
+              <div class="row"><span class="lbl">TIPO:</span> <span class="val">${escapeHtml(tipoTxt)}</span></div>
+              <div class="row"><span class="lbl">STATUS:</span> <span class="val">${escapeHtml(statusTxt)}</span></div>
+            </div>
+          </div>
+
+          <div class="doc-table-wrap">
+            <div class="doc-table-head">
+              <div>DESCRIÇÃO DO PRODUTO</div>
+              <div style="text-align:right;">QTD</div>
+              <div style="text-align:center;">Embalagem</div>
+              <div style="text-align:center;">Und</div>
+            </div>
+
+            <table class="doc-table" aria-label="Itens do documento">
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="assinaturas">
+            <div class="ass-box">
+              <span>Nome e Ass. do Responsável:</span>
+              <span class="val">${escapeHtml(responsavel)}</span>
+            </div>
+
+            <div class="ass-box">
+              <span>Nome e Ass. do Encarregado:</span>
+              <span class="val">${escapeHtml(usuario)}</span>
+            </div>
+          </div>
+        `;
+
+        wrap.appendChild(card);
+      });
+    }
+
+    // ===== Ações UI =====
+    function limparFiltros(){
+      // loja (se existir)
+      document.getElementById("fLoja").value = "";
+      document.getElementById("fData").value = "";
+      document.getElementById("fOrigem").value = "";
+      document.getElementById("fDestino").value = "";
+      document.getElementById("fTipo").value = "";
+      document.getElementById("fStatus").value = "";
+
+      // BASE_PPP: volta ao padrão DESTINO = loja logada
+      if (sessaoAtual && normKey(sessaoAtual.perfil).includes("BASE")) {
+        document.getElementById("fDestino").value = sessaoAtual.loja || "";
+      }
+
+      render();
+      setMsg("Filtros limpos.", true);
+    }
+
+    function aplicarDefaultsPorPerfil(){
+      if (!sessaoAtual) return;
+
+      const perfil = normKey(sessaoAtual.perfil);
+      const loja = sessaoAtual.loja || "";
+
+      // BASE_PPP: iniciar filtrando por DESTINO (sua regra)
+      if (perfil.includes("BASE")) {
+        document.getElementById("fDestino").value = loja;
+        document.getElementById("fOrigem").value = "";
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("btnVoltarMenu").addEventListener("click", () => {
         window.location.href = ROTAS.menu;
       });
 
+      document.getElementById("btnAtualizar").addEventListener("click", async () => {
+        await buscarDados();
+      });
+
+      document.getElementById("btnLimpar").addEventListener("click", () => {
+        limparFiltros();
+      });
+
+      // re-render ao mexer nos filtros
+      ["fLoja","fData","fOrigem","fDestino","fTipo","fStatus"].forEach(id => {
+        document.getElementById(id).addEventListener("change", () => render());
+        document.getElementById(id).addEventListener("input", () => render());
+      });
+
+      // sessão
       const sessao = await obterSessaoDoBackend();
-      if (!sessao) {
-        document.getElementById("msg").textContent = "Sessão inválida. Faça login novamente.";
-        window.location.href = ROTAS.login;
-        return;
-      }
+      if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login novamente.");
+
+      sessaoAtual = sessao;
 
       setTexto("infoLoja", sessao.loja || "—");
       setTexto("infoUsuario", sessao.usuario || "—");
       setTexto("infoPerfil", sessao.perfil || "—");
+
+      aplicarVisibilidadeFiltroLoja();
+
+      // popular selects iniciais
+      preencherSelectComLojas("fOrigem", true);
+      preencherSelectComLojas("fDestino", true);
+
+      aplicarDefaultsPorPerfil();
+
+      // busca dados
+      await buscarDados();
     });
   </script>
 </body>
