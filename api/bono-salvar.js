@@ -79,7 +79,7 @@ function normalizarTexto(x, max) {
 }
 
 /* =========================================
-   ✅ NOVO: parser de número pt-BR
+   ✅ parser de número pt-BR
 ========================================= */
 function parseNumeroPtBR(valor) {
   if (typeof valor === "number") {
@@ -206,49 +206,6 @@ function statusPorTipo(tipoLancamento) {
     : "Validado";
 }
 
-/* ==========================
-   ✅ NOTIF WhatsApp (Cloud API)
-   - dispara sem bloquear o sucesso do bono
-========================== */
-async function dispararNotificacaoWhatsApp({ req, lojaOrigem, usuario, dataHoraEscolhida, documento, totalItens, lojaDestino }) {
-  try {
-    const base = process.env.APP_BASE_URL ? String(process.env.APP_BASE_URL).replace(/\/+$/, "") : "";
-    const url = base ? `${base}/api/bono-notificar` : null;
-    if (!url) return { sucesso: false, mensagem: "APP_BASE_URL não configurada (sem URL para /api/bono-notificar)." };
-
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 12_000);
-
-    // ✅ importante: reenviar cookie da sessão (para requireSession do endpoint)
-    const cookie = req.headers?.cookie || "";
-
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Cookie": cookie
-      },
-      body: JSON.stringify({
-        lojaOrigem,
-        usuario,
-        dataHora: dataHoraEscolhida,
-        documento,
-        totalItens,
-        lojaDestino
-      }),
-      signal: ctrl.signal
-    });
-
-    clearTimeout(t);
-
-    const data = await resp.json().catch(() => null);
-    return data || { sucesso: false, mensagem: "Sem resposta JSON do /api/bono-notificar." };
-  } catch (e) {
-    console.error("[BONO][NOTIF] falha:", e);
-    return { sucesso: false, mensagem: String(e?.message || e) };
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -325,28 +282,11 @@ export default async function handler(req, res) {
       requestBody: { values }
     });
 
-    // ✅ NOTIFICA automaticamente se for MOV_INTERNA
-    const primeiroMov = itensValidos.find(x => x.tipoLancamento === "MOV_INTERNA" && x.lojaDestino);
-    let notif = null;
-
-    if (primeiroMov && primeiroMov.lojaDestino) {
-      notif = await dispararNotificacaoWhatsApp({
-        req,
-        lojaOrigem: loja,
-        usuario,
-        dataHoraEscolhida,
-        documento: documentoUnico,
-        totalItens: values.length,
-        lojaDestino: primeiroMov.lojaDestino
-      });
-    }
-
     return ok(res, {
       sucesso: true,
       message: "Bono salvo com sucesso.",
       totalItens: values.length,
-      documento: documentoUnico,
-      whatsapp: notif ? notif : undefined
+      documento: documentoUnico
     });
   } catch (e) {
     console.error("[BONO] Falha ao append:", e);
@@ -359,5 +299,4 @@ Fontes confiáveis:
 - Sheets API append: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
 - valueInputOption USER_ENTERED: https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
 - Intl.DateTimeFormat + formatToParts (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/formatToParts
-- Fetch API (MDN): https://developer.mozilla.org/docs/Web/API/fetch
 */
