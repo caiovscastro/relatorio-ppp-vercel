@@ -155,67 +155,151 @@
 
     /* ✅ Mais destaque/relevo */
     .doc-card{
-      border: 1px solid #dfe6f2;
-      border-radius: 14px;
-      background: #f7f9ff;
+      border: 1px solid #e7e7e7;
+      border-radius: 16px;
+      background: #ffffff;
       box-shadow: 0 14px 34px rgba(0,0,0,0.16);
       padding: 12px;
       margin-bottom: 14px;
       overflow:hidden;
     }
 
-    .doc-top{
-      background: #eef3ff;
-      border: 1px solid #d8e2ff;
-      border-radius: 12px;
-      padding: 10px;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    /* ====== CABEÇALHO (Captura 1 e 3) ====== */
+    .doc-head{
+      border-radius: 14px;
+      border: 1px solid #eeeeee;
+      background: #f7f7f7;
+      padding: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
     }
 
-    .doc-top .meta{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 12px;
-      align-items:center;
-      font-size: 12.5px;
-      font-weight: 800;
-      color:#243b6b;
+    .doc-head-title{
+      font-size: 22px;
+      font-weight: 900;
+      color:#153b6f;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      margin: 2px 2px 10px;
     }
 
-    @media (max-width: 650px){
-      .doc-top .meta{ grid-template-columns: 1fr; }
-    }
-
-    .meta .row{
+    .doc-statusbar{
       display:flex;
-      gap: 8px;
-      align-items:baseline;
-      min-width: 0;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      background:#f2f2f2;
+      border: 1px solid #e7e7e7;
+      border-radius: 999px;
+      padding: 10px 12px;
     }
-    .meta .lbl{
-      color:#1f2f57;
+
+    .doc-status-left{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 900;
+      color:#1b2c55;
+    }
+
+    .doc-status-left .lbl{
+      font-weight: 900;
+      color:#1b2c55;
+      white-space: nowrap;
+    }
+
+    .doc-status-left .st{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      min-width:0;
       font-weight: 900;
       white-space: nowrap;
     }
-    .meta .val{
-      color:#111;
+
+    .doc-badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
       font-weight: 900;
+      letter-spacing: .2px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    /* variações de badge */
+    .badge-pendente{
+      background:#f6eadc;
+      border-color:#f0ddc1;
+      color:#a85d10;
+    }
+    .badge-recebido{
+      background:#deefe3;
+      border-color:#cfe6d6;
+      color:#0b6b2f;
+    }
+    .badge-validado{
+      background:#deefe3;
+      border-color:#cfe6d6;
+      color:#0b6b2f;
+    }
+
+    /* ====== “corpo” do cabeçalho (linhas com ícones azuis) ====== */
+    .doc-head-body{
+      margin-top: 12px;
+      background:#ffffff;
+      border: 1px solid #ededed;
+      border-radius: 14px;
+      padding: 12px 12px;
+    }
+
+    .info-row{
+      display:flex;
+      align-items:flex-start;
+      gap: 10px;
+      padding: 7px 2px;
+      font-weight: 900;
+      color:#1b2c55;
+    }
+
+    .info-row .txt{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items:baseline;
+      min-width:0;
+    }
+
+    .info-row .k{
+      color:#1b2c55;
+      white-space: nowrap;
+    }
+    .info-row .v{
+      color:#111;
       overflow:hidden;
       text-overflow:ellipsis;
       white-space: nowrap;
+      max-width: 100%;
     }
 
-    /* ✅ Status cores */
-    .status-pendente{ color:#b30000 !important; }
-    .status-validado{ color:#0b6b2f !important; }
-
-    /* ✅ Botão ícone de validação */
-    .status-wrap{
-      display:flex;
-      align-items:center;
-      gap: 8px;
-      min-width: 0;
+    .ic{
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      display:inline-block;
     }
+
+    .ic-blue path, .ic-blue rect, .ic-blue circle, .ic-blue line, .ic-blue polyline{
+      stroke:#1f4f95;
+    }
+
+    .ic-solid-blue path{
+      fill:#1f4f95;
+    }
+
+    /* ✅ Botão ícone de validação (mantido) */
     .btn-status{
       border: none;
       background: transparent;
@@ -274,6 +358,10 @@
 
     /* ✅ No celular: fonte menor para caber */
     @media (max-width: 560px){
+      .doc-head-title{ font-size: 18px; }
+      .doc-statusbar{ padding: 9px 10px; }
+      .doc-badge{ padding: 7px 12px; }
+
       .doc-table-head{
         grid-template-columns: 1fr 66px 92px;
         font-size: 10.5px;
@@ -288,37 +376,54 @@
       .col-emb{ width:92px; }
     }
 
+    .hidden{ display:none !important; }
+
+    /* ===== RODAPÉ (Captura 2) ===== */
     .assinaturas{
       margin-top: 10px;
       display:grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 650px){
+      .assinaturas{ grid-template-columns: 1fr; }
     }
 
     .ass-box{
-      background:#eef3ff;
-      border: 1px solid #d8e2ff;
-      border-radius: 12px;
+      background:#ffffff;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
       padding: 10px 12px;
-      font-size: 12.5px;
-      font-weight: 900;
-      color:#1f2f57;
       display:flex;
-      gap: 8px;
-      align-items:baseline;
-      min-width:0;
+      align-items:flex-start;
+      gap: 10px;
       box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+      min-width: 0;
     }
-    .ass-box .val{
-      color:#111;
+
+    .ass-box .ass-txt{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+    }
+
+    .ass-box .ass-k{
+      font-size: 14px;
       font-weight: 900;
+      color:#4b4b4b;
+      line-height: 1.1;
+    }
+
+    .ass-box .ass-v{
+      font-size: 22px;
+      font-weight: 900;
+      color:#111;
       overflow:hidden;
       text-overflow:ellipsis;
       white-space: nowrap;
-      flex: 1;
+      line-height: 1.1;
     }
-
-    .hidden{ display:none !important; }
 
     /* ✅ Modal (popup) de validação */
     .modal-backdrop{
@@ -547,12 +652,6 @@
       return "";
     }
 
-    function statusClasse(statusCanon){
-      if (statusCanon === "PENDENTE") return "status-pendente";
-      if (statusCanon === "VALIDADO") return "status-validado";
-      return "";
-    }
-
     async function obterSessaoDoBackend() {
       try {
         const resp = await fetch("/api/session", {
@@ -697,7 +796,8 @@
             return {
               A: row[0] ?? "", B: row[1] ?? "", C: row[2] ?? "", D: row[3] ?? "",
               E: row[4] ?? "", F: row[5] ?? "", G: row[6] ?? "", H: row[7] ?? "",
-              I: row[8] ?? "", J: row[9] ?? "", K: row[10] ?? "", L: row[11] ?? ""
+              I: row[8] ?? "", J: row[9] ?? "", K: row[10] ?? "", L: row[11] ?? "",
+              M: row[12] ?? "" // ✅ NOVO (Fornecedor)
             };
           }
           if (row && typeof row === "object") {
@@ -713,10 +813,11 @@
               I: row.I ?? row.i ?? row.lojaDestino ?? "",
               J: row.J ?? row.j ?? row.tipo ?? "",
               K: row.K ?? row.k ?? row.status ?? "",
-              L: row.L ?? row.l ?? row.documento ?? ""
+              L: row.L ?? row.l ?? row.documento ?? "",
+              M: row.M ?? row.m ?? row.fornecedor ?? "" // ✅ NOVO (Fornecedor)
             };
           }
-          return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:""};
+          return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:""};
         });
 
         setMsg(`Dados carregados: ${linhas.length} itens.`, true);
@@ -855,6 +956,86 @@
       });
     }
 
+    // ===== Ícones (SVG) =====
+    function svgInfo(){
+      return `
+        <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
+          <line x1="12" y1="10" x2="12" y2="17" stroke-width="2" stroke-linecap="round"></line>
+          <circle cx="12" cy="7" r="1" fill="#1f4f95"></circle>
+        </svg>
+      `;
+    }
+
+    function svgClock(){ // Data/Hora
+      return `
+        <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4" y="5" width="16" height="15" rx="3" stroke-width="2"></rect>
+          <line x1="8" y1="3.5" x2="8" y2="7" stroke-width="2" stroke-linecap="round"></line>
+          <line x1="16" y1="3.5" x2="16" y2="7" stroke-width="2" stroke-linecap="round"></line>
+          <line x1="4" y1="10" x2="20" y2="10" stroke-width="2" stroke-linecap="round"></line>
+        </svg>
+      `;
+    }
+
+    function svgStore(){ // Loja
+      return `
+        <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4" y="4" width="16" height="16" rx="3" stroke-width="2"></rect>
+          <rect x="7.2" y="7.2" width="3.2" height="3.2" stroke-width="2"></rect>
+          <rect x="13.6" y="7.2" width="3.2" height="3.2" stroke-width="2"></rect>
+          <rect x="7.2" y="13.6" width="9.6" height="3.2" stroke-width="2"></rect>
+        </svg>
+      `;
+    }
+
+    function svgTruck(){ // Fornecedor
+      return `
+        <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="7" width="11" height="10" rx="2" stroke-width="2"></rect>
+          <path d="M14 10h4l3 3v4h-7" stroke-width="2" stroke-linejoin="round"></path>
+          <circle cx="7" cy="18" r="1.8" stroke-width="2"></circle>
+          <circle cx="18" cy="18" r="1.8" stroke-width="2"></circle>
+        </svg>
+      `;
+    }
+
+    function svgHourglass(){ // Pendente
+      return `
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 3h10M7 21h10" stroke="#a85d10" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M8 3c0 4 4 5 4 9s-4 5-4 9" stroke="#a85d10" stroke-width="2" stroke-linecap="round"></path>
+          <path d="M16 3c0 4-4 5-4 9s4 5 4 9" stroke="#a85d10" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      `;
+    }
+
+    function svgCheck(){ // Recebido/Validado
+      return `
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 7L10 17l-4-4" stroke="#0b6b2f" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      `;
+    }
+
+    function svgPerson(){
+      return `
+        <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.2" stroke-width="2"></circle>
+          <path d="M5.5 20c1.4-3.8 11.6-3.8 13 0" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      `;
+    }
+
+    function svgShield(){
+      return `
+        <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3l7 4v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V7l7-4z" stroke-width="2" stroke-linejoin="round"></path>
+          <path d="M9 12l2 2 4-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      `;
+    }
+
     function render(){
       const linhasFiltradas = aplicarFiltrosNasLinhas();
       const docs = agruparPorDocumento(linhasFiltradas);
@@ -878,17 +1059,22 @@
         const destinoVazio = !normStr(lojaDestino);
 
         const tipoCanon = tipoToCanon(x.J);
-        const tipoTxt = tipoCanon === "MOVIMENTACAO_INTERNA"
-          ? "Movimentação interna"
-          : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "Recebimento de mercadorias" : (normStr(x.J) || "—"));
+        const tituloTopo = (tipoCanon === "MOVIMENTACAO_INTERNA")
+          ? "MOVIMENTAÇÃO INTERNA"
+          : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "RECEBIMENTO DE MERCADORIAS" : (normStr(x.J) || "—").toUpperCase());
 
         const statusCanon = statusToCanon(x.K);
-        const statusTxt = statusCanon === "VALIDADO"
-          ? "Validado"
-          : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—"));
+
+        // Texto status conforme capturas:
+        // - Recebimento: mostrar "RECEBIDO"
+        // - Movimentação: "PENDENTE" ou "VALIDADO"
+        const statusTxtTopo = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+          ? "RECEBIDO"
+          : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
 
         const responsavel = normStr(x.E) || "—";
         const usuario = normStr(x.D) || "—";
+        const fornecedor = normStr(x.M) || "—"; // ✅ NOVO
 
         const rowsHtml = items.map(it => {
           const desc = escapeHtml(normStr(it.F) || "—");
@@ -908,43 +1094,78 @@
         card.className = "doc-card";
 
         const linhaLojaHtml = destinoVazio
-          ? `<div class="row"><span class="lbl">LOJA RECEPÇÃO:</span> <span class="val">${escapeHtml(lojaOrigem)}</span></div>`
+          ? `
+            <div class="info-row">
+              ${svgStore()}
+              <div class="txt"><span class="k">Loja Recepção:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
+            </div>
+          `
           : `
-              <div class="row"><span class="lbl">LOJA ORIGEM:</span> <span class="val">${escapeHtml(lojaOrigem)}</span></div>
-              <div class="row"><span class="lbl">LOJA DESTINO:</span> <span class="val">${escapeHtml(lojaDestino)}</span></div>
-            `;
+            <div class="info-row">
+              ${svgStore()}
+              <div class="txt"><span class="k">Loja Origem:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
+            </div>
+            <div class="info-row">
+              ${svgStore()}
+              <div class="txt"><span class="k">Loja Destino:</span> <span class="v">${escapeHtml(lojaDestino)}</span></div>
+            </div>
+          `;
 
-        // (5) Se tipo for Recebimento de mercadorias, ocultar status no card
-        const ocultarStatusNoCard = (tipoCanon === "RECEBIMENTO_MERCADORIAS");
+        // Fornecedor só aparece no card de recebimento (Coluna M)
+        const fornecedorHtml = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+          ? `
+            <div class="info-row">
+              ${svgTruck()}
+              <div class="txt"><span class="k">Fornecedor:</span> <span class="v">${escapeHtml(fornecedor)}</span></div>
+            </div>
+          `
+          : ``;
 
-        // (6) Botão validar: só pendente + usuário logado na loja destino + movimentação interna
+        // Botão validar: só pendente + usuário logado na loja destino + movimentação interna
         const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
 
-        const statusHtml = ocultarStatusNoCard ? "" : `
-          <div class="row">
-            <span class="lbl">STATUS:</span>
-            <span class="val ${statusClasse(statusCanon)}">
-              <span class="status-wrap">
-                <span>${escapeHtml(statusTxt)}</span>
-                ${
-                  mostrarBtnValidar
-                    ? `<button class="btn-status" type="button" title="Validar" aria-label="Validar" data-acao="validar" data-doc="${escapeHtml(documento)}">✅</button>`
-                    : ``
-                }
-              </span>
-            </span>
-          </div>
-        `;
+        const badgeClass = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+          ? "badge-recebido"
+          : (statusCanon === "PENDENTE" ? "badge-pendente" : "badge-validado");
+
+        const badgeIcon = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+          ? svgCheck()
+          : (statusCanon === "PENDENTE" ? svgHourglass() : svgCheck());
 
         card.innerHTML = `
-          <div class="doc-top">
-            <div class="meta">
-              <div class="row"><span class="lbl">DATA/HORA:</span> <span class="val">${escapeHtml(dataHora)}</span></div>
+          <div class="doc-head">
+            <div class="doc-head-title">${escapeHtml(tituloTopo)}</div>
+
+            <div class="doc-statusbar">
+              <div class="doc-status-left">
+                ${svgInfo()}
+                <span class="lbl">Status:</span>
+                <span class="st">
+                  ${tipoCanon === "RECEBIMENTO_MERCADORIAS" ? svgCheck() : (statusCanon === "PENDENTE" ? svgHourglass() : svgCheck())}
+                  <span>${escapeHtml(statusTxtTopo)}</span>
+                  ${
+                    mostrarBtnValidar
+                      ? `<button class="btn-status" type="button" title="Validar" aria-label="Validar" data-acao="validar" data-doc="${escapeHtml(documento)}">✅</button>`
+                      : ``
+                  }
+                </span>
+              </div>
+
+              <div class="doc-badge ${badgeClass}">
+                ${badgeIcon}
+                <span>${escapeHtml(statusTxtTopo)}</span>
+              </div>
+            </div>
+
+            <div class="doc-head-body">
+              <div class="info-row">
+                ${svgClock()}
+                <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
+              </div>
 
               ${linhaLojaHtml}
 
-              <div class="row"><span class="lbl">TIPO:</span> <span class="val">${escapeHtml(tipoTxt)}</span></div>
-              ${statusHtml}
+              ${fornecedorHtml}
             </div>
           </div>
 
@@ -964,13 +1185,19 @@
 
           <div class="assinaturas">
             <div class="ass-box">
-              <span>Nome Responsável Op:</span>
-              <span class="val">${escapeHtml(responsavel)}</span>
+              ${svgPerson()}
+              <div class="ass-txt">
+                <div class="ass-k">Responsável</div>
+                <div class="ass-v">${escapeHtml(responsavel)}</div>
+              </div>
             </div>
 
             <div class="ass-box">
-              <span>Assinatura ppp:</span>
-              <span class="val">${escapeHtml(usuario)}</span>
+              ${svgShield()}
+              <div class="ass-txt">
+                <div class="ass-k">Validação PPP</div>
+                <div class="ass-v">${escapeHtml(usuario)}</div>
+              </div>
             </div>
           </div>
         `;
@@ -992,7 +1219,6 @@
       const elLoja = document.getElementById("fLoja");
       if (elLoja) elLoja.value = "";
 
-      // (4) Ao limpar, mantém a data vazia (você não pediu pra manter hoje aqui)
       document.getElementById("fData").value = "";
       document.getElementById("fTipo").value = "";
       document.getElementById("fStatus").value = "";
@@ -1063,7 +1289,7 @@
         preencherSelectComLojas("fLoja", true);
       }
 
-      // (4) iniciar com a data atual no filtro
+      // iniciar com a data atual no filtro
       setDataHojeNoFiltro();
 
       ["fLoja","fData","fTipo","fStatus"].forEach(id => {
