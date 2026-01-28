@@ -443,6 +443,14 @@
         </div>
       </div>
 
+      <!-- ✅ NOVO: Fornecedor (só aparece quando Tipo = RECEBIMENTO) -->
+      <div class="grid grid-1 hidden" style="margin-top:10px;" id="wrapFornecedor">
+        <div>
+          <label for="fornecedor">Fornecedor</label>
+          <input type="text" id="fornecedor" placeholder="Informe o fornecedor" maxlength="80" />
+        </div>
+      </div>
+
       <div class="btn-row-2">
         <button class="btn btn-sec" id="btnAdicionar">Adicionar item</button>
         <button class="btn btn-pri" id="btnSalvar">Salvar Bono</button>
@@ -499,7 +507,8 @@
     let sessaoAtual = null;
     let expTimerId = null;
 
-    let estado = { data: "", hora: "", encarregado: "", itens: [] };
+    // ✅ NOVO: fornecedor no estado (persistência)
+    let estado = { data: "", hora: "", encarregado: "", fornecedor: "", itens: [] };
 
     function setTexto(id, txt) {
       const el = document.getElementById(id);
@@ -618,6 +627,7 @@
         const obj = JSON.parse(raw);
         if (!obj || typeof obj !== "object") return null;
         if (!Array.isArray(obj.itens)) obj.itens = [];
+        if (typeof obj.fornecedor !== "string") obj.fornecedor = "";
         return obj;
       } catch (e) {
         return null;
@@ -630,7 +640,7 @@
 
     function temPendenciaValida(obj) {
       if (!obj) return false;
-      const temAlgo = (obj.data || obj.hora || obj.encarregado || (obj.itens && obj.itens.length));
+      const temAlgo = (obj.data || obj.hora || obj.encarregado || obj.fornecedor || (obj.itens && obj.itens.length));
       return !!temAlgo;
     }
 
@@ -699,6 +709,7 @@
       document.getElementById("dataEscolhida").value = estado.data || "";
       document.getElementById("horaEscolhida").value = estado.hora || "";
       document.getElementById("encarregado").value = estado.encarregado || "";
+      document.getElementById("fornecedor").value = estado.fornecedor || "";
     }
 
     function renderLista() {
@@ -860,6 +871,23 @@
       }
     }
 
+    /* ✅ NOVO: Fornecedor (visibilidade/obrigatoriedade dinâmica) */
+    function atualizarVisibilidadeFornecedor() {
+      const tipo = document.getElementById("tipoLancamento").value;
+      const wrap = document.getElementById("wrapFornecedor");
+      const inp = document.getElementById("fornecedor");
+
+      if (tipo === "RECEBIMENTO") {
+        wrap.classList.remove("hidden");
+      } else {
+        wrap.classList.add("hidden");
+        inp.value = "";
+        // fornecedor não é obrigatório quando invisível e deve sair do estado
+        estado.fornecedor = "";
+        salvarLocal();
+      }
+    }
+
     function aplicarTipoEDestinoNosItens() {
       if (!estado.itens.length) return;
 
@@ -995,6 +1023,15 @@
       estado.data = document.getElementById("dataEscolhida").value || "";
       estado.hora = document.getElementById("horaEscolhida").value || "";
       estado.encarregado = normalizarTexto(document.getElementById("encarregado").value);
+
+      // ✅ NOVO: fornecedor só é relevante quando Tipo = RECEBIMENTO
+      const tipoAtual = document.getElementById("tipoLancamento").value;
+      if (tipoAtual === "RECEBIMENTO") {
+        estado.fornecedor = normalizarTexto(document.getElementById("fornecedor").value);
+      } else {
+        estado.fornecedor = "";
+      }
+
       salvarLocal();
     }
 
@@ -1009,6 +1046,12 @@
       const embalagem = document.getElementById("embalagem").value;
       const tipoLancamento = document.getElementById("tipoLancamento").value;
       const lojaDestino = document.getElementById("lojaDestino").value;
+
+      // ✅ NOVO: fornecedor obrigatório apenas quando Tipo = RECEBIMENTO
+      if (tipoLancamento === "RECEBIMENTO" && !estado.fornecedor) {
+        setMsg('Informe o "Fornecedor" (obrigatório para Recebimento de mercadorias).', false);
+        return false;
+      }
 
       const digits = String(document.getElementById("quantidade").dataset.digits || "");
       const quantidadeNum = quantidadeParaNumero(embalagem, digits);
@@ -1026,7 +1069,8 @@
         tipoLancamento,
         lojaDestino: (tipoLancamento === "MOV_INTERNA" ? lojaDestino : ""),
         quantidadeNum,
-        quantidadeFmt
+        quantidadeFmt,
+        fornecedor: (tipoLancamento === "RECEBIMENTO" ? estado.fornecedor : "")
       };
     }
 
@@ -1039,6 +1083,12 @@
 
       const tipoAtual = document.getElementById("tipoLancamento").value;
       if (!tipoAtual) { setMsg("Selecione um tipo", false); return; }
+
+      // ✅ NOVO: fornecedor obrigatório apenas quando Tipo = RECEBIMENTO
+      if (tipoAtual === "RECEBIMENTO" && !estado.fornecedor) {
+        setMsg('Informe o "Fornecedor" (obrigatório para Recebimento de mercadorias).', false);
+        return;
+      }
 
       if (!estado.itens.length) { setMsg("A lista está vazia. Adicione item's antes de salvar.", false); return; }
 
@@ -1060,12 +1110,19 @@
       const payload = {
         dataHoraEscolhida: dataHoraPlanilha,
         encarregado: estado.encarregado,
+
+        // ✅ NOVO: Fornecedor (coluna M no backend, conforme sua regra)
+        fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : ""),
+
         itens: estado.itens.map(x => ({
           produto: x.produto,
           quantidade: x.quantidadeFmt,
           embalagem: x.embalagem,
           tipoLancamento: x.tipoLancamento,
-          lojaDestino: x.lojaDestino || ""
+          lojaDestino: x.lojaDestino || "",
+
+          // ✅ NOVO: também manda por item (se o backend ignorar, não quebra)
+          fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : "")
         }))
       };
 
@@ -1106,7 +1163,7 @@
 
         // ✅ limpa estado como já fazia
         limparLocal();
-        estado = { data: "", hora: "", encarregado: "", itens: [] };
+        estado = { data: "", hora: "", encarregado: "", fornecedor: "", itens: [] };
         atualizarCamposNaTela();
         renderLista();
 
@@ -1116,7 +1173,9 @@
         document.getElementById("embalagem").value = "";
         document.getElementById("tipoLancamento").value = "";
         document.getElementById("lojaDestino").value = "";
+        document.getElementById("fornecedor").value = "";
         atualizarVisibilidadeDestino();
+        atualizarVisibilidadeFornecedor();
 
         // ✅ garante Qtd bloqueada quando embalagem resetar
         atualizarHabilitacaoQuantidade();
@@ -1163,14 +1222,18 @@
       document.getElementById("btnContinuar").addEventListener("click", () => {
         fecharModal("modalPendente");
         atualizarCamposNaTela();
+        atualizarVisibilidadeDestino();
+        atualizarVisibilidadeFornecedor();
         renderLista();
       });
 
       document.getElementById("btnDescartar").addEventListener("click", () => {
         limparLocal();
-        estado = { data:"", hora:"", encarregado:"", itens:[] };
+        estado = { data:"", hora:"", encarregado:"", fornecedor:"", itens:[] };
         fecharModal("modalPendente");
         atualizarCamposNaTela();
+        atualizarVisibilidadeDestino();
+        atualizarVisibilidadeFornecedor();
         renderLista();
         setMsg("Pendência descartada. Você pode iniciar um novo bono.", true);
       });
@@ -1189,8 +1252,13 @@
         document.getElementById(id).addEventListener("input", capturarBaseDoFormulario);
       });
 
+      // ✅ NOVO: fornecedor também salva no estado
+      document.getElementById("fornecedor").addEventListener("change", capturarBaseDoFormulario);
+      document.getElementById("fornecedor").addEventListener("input", capturarBaseDoFormulario);
+
       document.getElementById("tipoLancamento").addEventListener("change", () => {
         atualizarVisibilidadeDestino();
+        atualizarVisibilidadeFornecedor();
         capturarBaseDoFormulario();
         aplicarTipoEDestinoNosItens();
       });
@@ -1225,7 +1293,9 @@
           quantidadeFmt: dadosItem.quantidadeFmt,
           embalagem: dadosItem.embalagem,
           tipoLancamento: dadosItem.tipoLancamento,
-          lojaDestino: dadosItem.lojaDestino
+          lojaDestino: dadosItem.lojaDestino,
+          // ✅ NOVO: guarda fornecedor no item (não muda a UI)
+          fornecedor: dadosItem.fornecedor || ""
         });
 
         salvarLocal();
@@ -1245,6 +1315,15 @@
           return;
         }
 
+        // ✅ NOVO: fornecedor obrigatório apenas quando Tipo = RECEBIMENTO
+        if (tipoAtual === "RECEBIMENTO") {
+          capturarBaseDoFormulario();
+          if (!estado.fornecedor) {
+            setMsg('Informe o "Fornecedor" (obrigatório para Recebimento de mercadorias).', false);
+            return;
+          }
+        }
+
         if (!estado.itens.length) {
           setMsg("A lista está vazia. Adicione um item antes de salvar.", false);
           return;
@@ -1262,10 +1341,12 @@
       if (temPendenciaValida(pendente)) {
         estado = pendente;
         atualizarVisibilidadeDestino();
+        atualizarVisibilidadeFornecedor();
         abrirModal("modalPendente");
       } else {
         atualizarCamposNaTela();
         atualizarVisibilidadeDestino();
+        atualizarVisibilidadeFornecedor();
         renderLista();
       }
 
