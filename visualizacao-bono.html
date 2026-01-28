@@ -358,9 +358,20 @@
 
     /* ✅ No celular: fonte menor para caber */
     @media (max-width: 560px){
-      .doc-head-title{ font-size: 18px; }
+      /* ===== ajuste solicitado: reduzir fontes “das partes da imagem” ~55% ===== */
+      .doc-head-title{ font-size: 12px; }                 /* 22px -> ~55% */
+      .doc-status-left{ font-size: 9px; }                 /* texto do status à esquerda */
+      .doc-status-left .lbl{ font-size: 9px; }
+      .doc-status-left .st{ font-size: 9px; }
+      .doc-badge{ font-size: 9px; padding: 6px 10px; }    /* badge da direita */
+      .info-row{ font-size: 9px; }                        /* Data/Hora / Lojas / Fornecedor */
+      .btn-status{ font-size: 12px; }                     /* ícone ✅ do botão (mantendo proporção visual) */
+
+      .ass-box .ass-k{ font-size: 8px; }                  /* 14px -> ~55% */
+      .ass-box .ass-v{ font-size: 12px; }                 /* 22px -> ~55% */
+
+      /* ===== bloco existente (mantido, só com ajustes de padding/colunas da tabela) ===== */
       .doc-statusbar{ padding: 9px 10px; }
-      .doc-badge{ padding: 7px 12px; }
 
       .doc-table-head{
         grid-template-columns: 1fr 66px 92px;
@@ -492,7 +503,7 @@
 
     <hr class="linha-logo" />
 
-    <div class="titulo">Bono de Recepção / Movimentação</div>
+    <div class="titulo">Bono de Recepção</div>
 
     <!-- ===== Filtros ===== -->
     <div class="filtros">
