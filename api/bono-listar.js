@@ -6,8 +6,8 @@ const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
-// ajuste aqui se mudar a aba/colunas
-const RANGE_LISTAR = "BONO!A:L";
+// ✅ Agora inclui a coluna M (Fornecedor)
+const RANGE_LISTAR = "BONO!A:M";
 
 function bad(res, status, message) {
   return res.status(status).json({ sucesso: false, message });
@@ -45,24 +45,24 @@ function normalizarLinha(row = []) {
     J: row[9] ?? "",  // Tipo
     K: row[10] ?? "", // Status (ex.: "Validado" / "PENDENTE")
     L: row[11] ?? "", // Documento
+    M: row[12] ?? "", // ✅ Fornecedor
   };
 }
 
 function linhaEhVazia(row = []) {
-  // considera "vazia" se todas as células estiverem vazias/blank
   return row.every((c) => normStr(c) === "");
 }
 
 function primeiraLinhaPareceCabecalho(row = []) {
-  // Heurística segura: detecta cabeçalho por palavras comuns
   const r = row.map((c) => normStr(c).toLowerCase());
   const joined = r.join(" ");
   const pistas = [
     "data", "hora", "loja", "origem", "destino", "usuário", "usuario",
-    "respons", "produto", "quant", "embal", "tipo", "status", "documento", "doc"
+    "respons", "produto", "quant", "embal", "tipo", "status", "documento", "doc",
+    "fornecedor"
   ];
   const hits = pistas.reduce((acc, p) => acc + (joined.includes(p) ? 1 : 0), 0);
-  return hits >= 3; // precisa bater várias pistas, pra não cortar uma linha real
+  return hits >= 3;
 }
 
 export default async function handler(req, res) {
@@ -91,16 +91,12 @@ export default async function handler(req, res) {
 
     const values = Array.isArray(resp.data.values) ? resp.data.values : [];
 
-    // remove linhas totalmente vazias (range A:L costuma trazer “lixo” no final)
     let rows = values.filter((r) => Array.isArray(r) && !linhaEhVazia(r));
 
-    // remove cabeçalho somente se ele realmente parecer cabeçalho
     if (rows.length && primeiraLinhaPareceCabecalho(rows[0])) {
       rows = rows.slice(1);
     }
 
-    // normaliza e filtra o mínimo para evitar cards “quebrados”
-    // (mantém só registros que tenham pelo menos Documento OU Produto)
     const linhas = rows
       .map(normalizarLinha)
       .filter((r) => normStr(r.L) !== "" || normStr(r.F) !== "");
