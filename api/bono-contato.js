@@ -1,5 +1,6 @@
 // /api/bono-contato.js
 import { google } from "googleapis";
+import { requireSession } from "./_authUsuarios.js"; // ✅ necessário (endpoint usado com sessão)
 
 function json(res, status, data) {
   res.status(status).setHeader("Content-Type", "application/json").send(JSON.stringify(data));
@@ -21,12 +22,17 @@ export default async function handler(req, res) {
       return json(res, 405, { sucesso: false, mensagem: "Método não permitido." });
     }
 
+    // ✅ necessário: evita expor contatos sem autenticação
+    const session = requireSession(req, res);
+    if (!session) return;
+
     const loja = normalizeKey(req.query?.loja);
     if (!loja) return json(res, 400, { sucesso: false, mensagem: "Parâmetro 'loja' é obrigatório." });
 
     const spreadsheetId = getEnv("SPREADSHEET_ID");
     const clientEmail = getEnv("GOOGLE_SERVICE_ACCOUNT_EMAIL");
-    const privateKeyRaw = getEnv("GOOGLE_PRIVATE_KEY").replace(/\\n/g, "\n");
+    const privateKeyEnv = getEnv("GOOGLE_PRIVATE_KEY"); // ✅ evita erro de .replace em vazio
+    const privateKeyRaw = privateKeyEnv ? privateKeyEnv.replace(/\\n/g, "\n") : "";
 
     if (!spreadsheetId || !clientEmail || !privateKeyRaw) {
       return json(res, 500, { sucesso: false, mensagem: "Variáveis de ambiente não configuradas." });
@@ -67,3 +73,9 @@ export default async function handler(req, res) {
     return json(res, 500, { sucesso: false, mensagem: "Erro ao consultar contato do responsável." });
   }
 }
+
+/*
+Fontes confiáveis:
+- Sheets API values.get: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
+- googleapis (Node): https://github.com/googleapis/google-api-nodejs-client
+*/
