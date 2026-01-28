@@ -387,7 +387,7 @@
 
     <hr class="linha-logo" />
 
-    <div class="titulo">Bono de Recepção/Movimentação</div>
+    <div class="titulo">Bono de Recepção / Movimentação</div>
 
     <!-- ===== Filtros ===== -->
     <div class="filtros">
@@ -427,7 +427,7 @@
 
       <div class="actions">
         <button class="btn btn-sec" id="btnLimpar">Limpar filtros</button>
-        <button class="btn btn-pri" id="btnAtualizar">Atualizar (refazer busca)</button>
+        <button class="btn btn-pri" id="btnAtualizar">Atualizar</button>
         <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
       </div>
 
@@ -719,7 +719,7 @@
           return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:""};
         });
 
-        setMsg(`Dados carregados: ${linhas.length} linha(s).`, true);
+        setMsg(`Dados carregados: ${linhas.length} itens.`, true);
         render();
 
       } catch (e) {
@@ -865,7 +865,7 @@
       wrap.innerHTML = "";
 
       if (!docs.length){
-        wrap.innerHTML = `<div class="filtros" style="font-weight:900;color:#444;">Nenhum documento encontrado com os filtros.</div>`;
+        wrap.innerHTML = `<div class="filtros" style="font-weight:900;color:#444;">Nenhum documento encontrado.</div>`;
         return;
       }
 
@@ -950,7 +950,7 @@
 
           <div class="doc-table-wrap">
             <div class="doc-table-head">
-              <div>DESCRIÇÃO DO PRODUTO</div>
+              <div>DESCRIÇÃO</div>
               <div class="h-right">QTD</div>
               <div class="h-right">Embalagem</div>
             </div>
