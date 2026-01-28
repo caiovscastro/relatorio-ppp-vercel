@@ -241,14 +241,18 @@
       padding: 12px 12px;
     }
 
+    /* ✅ Ajuste solicitado: menos “altura” nas linhas (Data/Hora, Loja, Fornecedor) */
     .info-row{
       display:flex;
       align-items:flex-start;
       gap: 10px;
-      padding: 7px 2px;
+      padding: 2px 2px;        /* era 7px 2px */
+      margin: 0;               /* garante margem mínima */
+      line-height: 1.05;       /* compacta a altura */
       font-weight: 900;
       color:#1b2c55;
     }
+    .info-row + .info-row{ margin-top: 2px; } /* espaço mínimo entre linhas */
 
     .info-row .txt{
       display:flex;
@@ -370,8 +374,13 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
+
+    /* ✅ Ajuste solicitado: manter 2 colunas no celular também */
     @media (max-width: 650px){
-      .assinaturas{ grid-template-columns: 1fr; }
+      .assinaturas{
+        grid-template-columns: 1fr 1fr; /* era 1fr */
+        gap: 8px;
+      }
     }
 
     .ass-box{
@@ -414,6 +423,10 @@
     @media (max-width: 560px){
       .ass-box .ass-k{ font-size: 10.5px; }
       .ass-box .ass-v{ font-size: 10.5px; }
+
+      /* ✅ garante que as duas caixas “caibam” lado a lado no celular */
+      .ass-box{ padding: 8px 8px; gap: 8px; }
+      .ass-box .ic{ width: 18px; height: 18px; flex: 0 0 18px; }
     }
 
     /* ✅ Modal (popup) de validação */
@@ -788,7 +801,7 @@
               A: row[0] ?? "", B: row[1] ?? "", C: row[2] ?? "", D: row[3] ?? "",
               E: row[4] ?? "", F: row[5] ?? "", G: row[6] ?? "", H: row[7] ?? "",
               I: row[8] ?? "", J: row[9] ?? "", K: row[10] ?? "", L: row[11] ?? "",
-              M: row[12] ?? "" // ✅ NOVO (Fornecedor)
+              M: row[12] ?? ""
             };
           }
           if (row && typeof row === "object") {
@@ -805,7 +818,7 @@
               J: row.J ?? row.j ?? row.tipo ?? "",
               K: row.K ?? row.k ?? row.status ?? "",
               L: row.L ?? row.l ?? row.documento ?? "",
-              M: row.M ?? row.m ?? row.fornecedor ?? "" // ✅ NOVO (Fornecedor)
+              M: row.M ?? row.m ?? row.fornecedor ?? ""
             };
           }
           return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:""};
