@@ -22,11 +22,9 @@ function normKey(v) {
 }
 
 function statusParaPlanilha(statusRecebido) {
-  // Na planilha você disse que é "Validado"
   const s = normKey(statusRecebido);
-  if (s.includes("VALID")) return "Validado";
+  if (s.includes("VALID")) return "Validado"; // ✅ padrão da sua planilha
   if (s.includes("PEND")) return "PENDENTE";
-  // fallback: como é rota de validação, assume Validado
   return "Validado";
 }
 
@@ -46,7 +44,6 @@ export default async function handler(req, res) {
     return bad(res, 405, "Método não permitido. Use POST.");
   }
 
-  // ✅ protege com sessão (igual ao restante do sistema)
   const session = requireSession(req, res);
   if (!session) return;
 
@@ -61,7 +58,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // body pode vir como objeto ou string dependendo do runtime
     const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
     const documento = normStr(body.documento);
     const status = statusParaPlanilha(body.status);
@@ -72,10 +68,10 @@ export default async function handler(req, res) {
 
     const sheets = await getSheetsClient();
 
-    // 1) Ler BONO!A:L para achar as linhas do documento
+    // ✅ Pode ser A:M agora (não muda índices de K e L)
     const leitura = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "BONO!A:L",
+      range: "BONO!A:M",
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
       dateTimeRenderOption: "FORMATTED_STRING",
@@ -86,15 +82,13 @@ export default async function handler(req, res) {
       return ok(res, { sucesso: true, atualizadas: 0, status_gravado: status });
     }
 
-    // Documento está na coluna L (índice 11) e Status na coluna K (K = índice 10)
-    // i=1 -> linha 2 (pulando cabeçalho)
     const updates = [];
     for (let i = 1; i < values.length; i++) {
       const row = values[i] || [];
       const docCell = normStr(row[11]); // L
 
       if (docCell && normKey(docCell) === normKey(documento)) {
-        const sheetRow = i + 1; // linha real na planilha
+        const sheetRow = i + 1;
         updates.push({
           range: `BONO!K${sheetRow}`,
           values: [[status]],
@@ -106,7 +100,6 @@ export default async function handler(req, res) {
       return bad(res, 404, "Documento não encontrado para validação.");
     }
 
-    // 2) Atualizar em lote
     await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId,
       requestBody: {
