@@ -371,32 +371,13 @@
       Então removi totalmente e deixei apenas candidatos coerentes com esta tela.
       Coloque aqui como PRIMEIRO o endpoint real do seu backend quando você definir.
     */
-    const ENDPOINT_CANDIDATOS = [
-      "/api/movimentacoes-listar",
-      "/api/movimentacoes-listar.js",
-      "/api/movimentacao-listar",
-      "/api/movimentacao-listar.js",
-      "/api/listar-movimentacoes",
-      "/api/listar-movimentacoes.js",
-      "/api/movimentacoes",
-      "/api/movimentacoes.js",
+const ENDPOINT_CANDIDATOS = [
+  "/api/bono-listar.js"
+];
 
-      "/api/recebimentos-listar",
-      "/api/recebimentos-listar.js",
-      "/api/recebimento-listar",
-      "/api/recebimento-listar.js",
-      "/api/listar-recebimentos",
-      "/api/listar-recebimentos.js",
-      "/api/recebimentos",
-      "/api/recebimentos.js",
-
-      "/api/listar",
-      "/api/listar.js"
-    ];
-
-    let sessaoAtual = null;
-    let linhas = [];
-    let ENDPOINT_LISTAR_RESOLVIDO = "";
+let sessaoAtual = null;
+let linhas = [];
+let ENDPOINT_LISTAR_RESOLVIDO = "";
 
     const LOJAS = [
       "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE",
@@ -727,7 +708,7 @@
       wrap.innerHTML = "";
 
       if (!docs.length){
-        wrap.innerHTML = `<div class="filtros" style="font-weight:900;color:#444;">Nenhum documento encontrado com os filtros atuais.</div>`;
+        wrap.innerHTML = `<div class="filtros" style="font-weight:900;color:#444;">Nenhum documento encontrado com os filtros.</div>`;
         return;
       }
 
