@@ -205,6 +205,30 @@
       white-space: nowrap;
     }
 
+    /* ✅ Status cores */
+    .status-pendente{ color:#b30000 !important; }
+    .status-validado{ color:#0b6b2f !important; }
+
+    /* ✅ Botão ícone de validação */
+    .status-wrap{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .btn-status{
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      font-size: 16px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .btn-status:hover{ transform: translateY(-1px); }
+
     .doc-table-wrap{
       margin-top: 10px;
       border-radius: 12px;
@@ -295,6 +319,63 @@
     }
 
     .hidden{ display:none !important; }
+
+    /* ✅ Modal (popup) de validação */
+    .modal-backdrop{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      z-index: 9999;
+    }
+    .modal-backdrop.show{ display:flex; }
+
+    .modal{
+      width: 100%;
+      max-width: 560px;
+      background:#fff;
+      border-radius: 14px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.22);
+      border: 1px solid #e9e9e9;
+      overflow:hidden;
+    }
+    .modal-header{
+      padding: 12px 14px;
+      font-weight: 900;
+      font-size: 14px;
+      background: #f6f6f6;
+      border-bottom: 1px solid #ededed;
+    }
+    .modal-body{
+      padding: 14px;
+      font-size: 13px;
+      font-weight: 800;
+      color:#222;
+      line-height: 1.35;
+    }
+    .modal-actions{
+      display:flex;
+      gap: 10px;
+      padding: 12px 14px 14px;
+      border-top: 1px solid #ededed;
+      justify-content:flex-end;
+      flex-wrap: wrap;
+    }
+    .btn-modal{
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 13px;
+    }
+    .btn-nao{ background:#e9e9e9; color:#111; }
+    .btn-sim{ background:#111; color:#fff; }
+    .btn-sim:hover{ opacity:.92; }
+    .btn-nao:hover{ background:#dedede; }
   </style>
 </head>
 
@@ -307,8 +388,6 @@
     <hr class="linha-logo" />
 
     <div class="titulo">Bono de Recepção/Movimentação</div>
-
-    <!-- ✅ (6) Cartão do print removido -->
 
     <!-- ===== Filtros ===== -->
     <div class="filtros">
@@ -340,7 +419,7 @@
           <label for="fStatus">Status</label>
           <select id="fStatus">
             <option value="">Todos</option>
-            <option value="VERIFICADO">Verificado</option>
+            <option value="VALIDADO">Validado</option>
             <option value="PENDENTE">PENDENTE</option>
           </select>
         </div>
@@ -362,22 +441,31 @@
     <div id="listaDocs"></div>
   </div>
 
+  <!-- ✅ Modal validação -->
+  <div class="modal-backdrop" id="modalValidar">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalValidarTitulo">
+      <div class="modal-header" id="modalValidarTitulo">Validação do Bono</div>
+      <div class="modal-body" id="modalValidarTexto"></div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-nao" id="btnModalNao" type="button">Não</button>
+        <button class="btn-modal btn-sim" id="btnModalSim" type="button">Sim</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const ROTAS = { menu: "/menu.html", login: "/login.html" };
 
-    /*
-      (comentário interno)
-      Você NÃO tem /api/bono-listar.
-      Então removi totalmente e deixei apenas candidatos coerentes com esta tela.
-      Coloque aqui como PRIMEIRO o endpoint real do seu backend quando você definir.
-    */
-const ENDPOINT_CANDIDATOS = [
-  "/api/bono-listar.js"
-];
+    const ENDPOINT_CANDIDATOS = [
+      "/api/bono-listar.js"
+    ];
 
-let sessaoAtual = null;
-let linhas = [];
-let ENDPOINT_LISTAR_RESOLVIDO = "";
+    let sessaoAtual = null;
+    let linhas = [];
+    let ENDPOINT_LISTAR_RESOLVIDO = "";
+
+    // (interno) endpoint de validação (precisa existir no backend)
+    const ENDPOINT_VALIDAR = "/api/bono-validar.js";
 
     const LOJAS = [
       "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE",
@@ -454,8 +542,14 @@ let ENDPOINT_LISTAR_RESOLVIDO = "";
 
     function statusToCanon(status){
       const s = normKey(status);
-      if (s.includes("VERIF")) return "VERIFICADO";
+      if (s.includes("VALID")) return "VALIDADO";
       if (s.includes("PEND")) return "PENDENTE";
+      return "";
+    }
+
+    function statusClasse(statusCanon){
+      if (statusCanon === "PENDENTE") return "status-pendente";
+      if (statusCanon === "VALIDADO") return "status-validado";
       return "";
     }
 
@@ -698,6 +792,69 @@ let ENDPOINT_LISTAR_RESOLVIDO = "";
       return itens;
     }
 
+    // ===== Modal =====
+    const modal = {
+      el: null,
+      txt: null,
+      btnSim: null,
+      btnNao: null,
+      documento: "",
+      onConfirm: null
+    };
+
+    function abrirModalValidar(documento){
+      modal.documento = documento;
+      modal.txt.textContent = "Esse Bono está pendente de validação, deseja valida-lo? Ressalto que a validação deve ser efetuada somente após a conferencia física e somente se todos dos produtos estiverem constando de acordo com este documento.";
+      modal.el.classList.add("show");
+    }
+    function fecharModalValidar(){
+      modal.el.classList.remove("show");
+      modal.documento = "";
+      modal.onConfirm = null;
+    }
+
+    function podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino }){
+      if (!sessaoAtual) return false;
+      if (statusCanon !== "PENDENTE") return false;
+      if (tipoCanon !== "MOVIMENTACAO_INTERNA") return false; // “movimentação que recebi”
+      if (!normStr(lojaDestino)) return false;
+      return normKey(lojaDestino) === normKey(sessaoAtual.loja);
+    }
+
+    async function validarDocumentoNoBackend(documento){
+      const payload = { documento: documento, status: "VALIDADO" };
+
+      const resp = await fetch(ENDPOINT_VALIDAR, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const ct = (resp.headers.get("content-type") || "").toLowerCase();
+      if (!ct.includes("application/json")) {
+        const t = await resp.text().catch(() => "");
+        throw new Error(`Backend não retornou JSON (${resp.status}): ${(t || "").slice(0, 200)}`);
+      }
+
+      const dados = await resp.json().catch(() => null);
+      const ok = !!(dados && (dados.sucesso ?? dados.success ?? dados.ok));
+
+      if (!resp.ok || !ok) {
+        throw new Error(`Falha ao validar (${resp.status})`);
+      }
+
+      return true;
+    }
+
+    function aplicarValidacaoLocal(documento){
+      linhas = linhas.map(r => {
+        const doc = normStr(r.L) || "SEM_DOCUMENTO";
+        if (doc !== documento) return r;
+        return { ...r, K: "VALIDADO" };
+      });
+    }
+
     function render(){
       const linhasFiltradas = aplicarFiltrosNasLinhas();
       const docs = agruparPorDocumento(linhasFiltradas);
@@ -726,8 +883,8 @@ let ENDPOINT_LISTAR_RESOLVIDO = "";
           : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "Recebimento de mercadorias" : (normStr(x.J) || "—"));
 
         const statusCanon = statusToCanon(x.K);
-        const statusTxt = statusCanon === "VERIFICADO"
-          ? "Verificado"
+        const statusTxt = statusCanon === "VALIDADO"
+          ? "Validado"
           : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—"));
 
         const responsavel = normStr(x.E) || "—";
@@ -757,16 +914,37 @@ let ENDPOINT_LISTAR_RESOLVIDO = "";
               <div class="row"><span class="lbl">LOJA DESTINO:</span> <span class="val">${escapeHtml(lojaDestino)}</span></div>
             `;
 
+        // (5) Se tipo for Recebimento de mercadorias, ocultar status no card
+        const ocultarStatusNoCard = (tipoCanon === "RECEBIMENTO_MERCADORIAS");
+
+        // (6) Botão validar: só pendente + usuário logado na loja destino + movimentação interna
+        const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
+
+        const statusHtml = ocultarStatusNoCard ? "" : `
+          <div class="row">
+            <span class="lbl">STATUS:</span>
+            <span class="val ${statusClasse(statusCanon)}">
+              <span class="status-wrap">
+                <span>${escapeHtml(statusTxt)}</span>
+                ${
+                  mostrarBtnValidar
+                    ? `<button class="btn-status" type="button" title="Validar" aria-label="Validar" data-acao="validar" data-doc="${escapeHtml(documento)}">✅</button>`
+                    : ``
+                }
+              </span>
+            </span>
+          </div>
+        `;
+
         card.innerHTML = `
           <div class="doc-top">
             <div class="meta">
               <div class="row"><span class="lbl">DATA/HORA:</span> <span class="val">${escapeHtml(dataHora)}</span></div>
-              <div class="row"><span class="lbl">DOCUMENTO:</span> <span class="val">${escapeHtml(documento)}</span></div>
 
               ${linhaLojaHtml}
 
               <div class="row"><span class="lbl">TIPO:</span> <span class="val">${escapeHtml(tipoTxt)}</span></div>
-              <div class="row"><span class="lbl">STATUS:</span> <span class="val">${escapeHtml(statusTxt)}</span></div>
+              ${statusHtml}
             </div>
           </div>
 
@@ -797,6 +975,15 @@ let ENDPOINT_LISTAR_RESOLVIDO = "";
           </div>
         `;
 
+        // handler do botão validar (delegação simples por card)
+        const btn = card.querySelector('button[data-acao="validar"]');
+        if (btn){
+          btn.addEventListener("click", () => {
+            const doc = btn.getAttribute("data-doc") || "";
+            abrirModalValidar(doc);
+          });
+        }
+
         wrap.appendChild(card);
       });
     }
@@ -805,6 +992,7 @@ let ENDPOINT_LISTAR_RESOLVIDO = "";
       const elLoja = document.getElementById("fLoja");
       if (elLoja) elLoja.value = "";
 
+      // (4) Ao limpar, mantém a data vazia (você não pediu pra manter hoje aqui)
       document.getElementById("fData").value = "";
       document.getElementById("fTipo").value = "";
       document.getElementById("fStatus").value = "";
@@ -813,7 +1001,45 @@ let ENDPOINT_LISTAR_RESOLVIDO = "";
       setMsg("Filtros limpos.", true);
     }
 
+    function setDataHojeNoFiltro(){
+      const el = document.getElementById("fData");
+      if (!el) return;
+      const hoje = new Date();
+      const yyyy = String(hoje.getFullYear()).padStart(4,"0");
+      const mm = String(hoje.getMonth()+1).padStart(2,"0");
+      const dd = String(hoje.getDate()).padStart(2,"0");
+      el.value = `${yyyy}-${mm}-${dd}`;
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
+      // modal refs
+      modal.el = document.getElementById("modalValidar");
+      modal.txt = document.getElementById("modalValidarTexto");
+      modal.btnSim = document.getElementById("btnModalSim");
+      modal.btnNao = document.getElementById("btnModalNao");
+
+      modal.btnNao.addEventListener("click", () => fecharModalValidar());
+      modal.el.addEventListener("click", (e) => { if (e.target === modal.el) fecharModalValidar(); });
+
+      modal.btnSim.addEventListener("click", async () => {
+        const doc = modal.documento;
+        if (!doc) return fecharModalValidar();
+
+        setMsg("Validando...", true);
+
+        try{
+          await validarDocumentoNoBackend(doc);
+          aplicarValidacaoLocal(doc);
+          fecharModalValidar();
+          setMsg("Bono validado com sucesso.", true);
+          render();
+        } catch (err){
+          console.error(err);
+          fecharModalValidar();
+          setMsg("Falha ao validar no servidor.", false);
+        }
+      });
+
       document.getElementById("btnVoltarMenu").addEventListener("click", () => {
         window.location.href = ROTAS.menu;
       });
@@ -836,6 +1062,9 @@ let ENDPOINT_LISTAR_RESOLVIDO = "";
       if (perfilEhAdmin(sessao.perfil) || perfilEhGerentePPP(sessao.perfil)) {
         preencherSelectComLojas("fLoja", true);
       }
+
+      // (4) iniciar com a data atual no filtro
+      setDataHojeNoFiltro();
 
       ["fLoja","fData","fTipo","fStatus"].forEach(id => {
         const el = document.getElementById(id);
