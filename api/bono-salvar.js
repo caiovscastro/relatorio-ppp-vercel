@@ -22,7 +22,7 @@ function pad3(n){ return String(n).padStart(3, "0"); }
 ========================== */
 function getSaoPauloStamp() {
   const now = new Date();
-  const ms = now.getMilliseconds(); // ✅ mantém ms real
+  const ms = now.getMilliseconds();
 
   const dtf = new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
@@ -222,6 +222,10 @@ export default async function handler(req, res) {
   const body = req.body || {};
   const dataHoraEscolhida = normalizarTexto(body.dataHoraEscolhida, 20);
   const encarregado = normalizarTexto(body.encarregado, 80);
+
+  // ✅ NOVO: fornecedor (coluna M)
+  const fornecedor = normalizarTexto(body.fornecedor, 80);
+
   const itens = Array.isArray(body.itens) ? body.itens : [];
 
   if (!validarDataHoraEscolhida(dataHoraEscolhida)) {
@@ -235,10 +239,18 @@ export default async function handler(req, res) {
   }
 
   const itensValidos = [];
+  let temRecebimento = false;
+
   for (const it of itens) {
     const v = validarItem(it);
     if (!v) return bad(res, 400, "Existe item inválido na lista.");
     itensValidos.push(v);
+    if (v.tipoLancamento === "RECEBIMENTO") temRecebimento = true;
+  }
+
+  // ✅ NOVO: exige fornecedor quando existir RECEBIMENTO
+  if (temRecebimento && !fornecedor) {
+    return bad(res, 400, 'Fornecedor é obrigatório para "Recebimento de mercadorias".');
   }
 
   const loja = String(session.loja || "").trim();
@@ -255,19 +267,23 @@ export default async function handler(req, res) {
     const status = statusPorTipo(it.tipoLancamento);
     const destino = it.lojaDestino || "";
 
+    // ✅ NOVO: fornecedor só grava quando for RECEBIMENTO
+    const fornecedorLinha = (it.tipoLancamento === "RECEBIMENTO") ? fornecedor : "";
+
     return [
-      spStamp.dataHoraRede,
-      dataHoraEscolhida,
-      loja,
-      usuario,
-      encarregado,
-      it.produto,
-      it.quantidade,
-      it.embalagem,
-      destino,
-      tipoTxt,
-      status,
-      documentoUnico
+      spStamp.dataHoraRede,     // A
+      dataHoraEscolhida,        // B
+      loja,                     // C
+      usuario,                  // D
+      encarregado,              // E
+      it.produto,               // F
+      it.quantidade,            // G
+      it.embalagem,             // H
+      destino,                  // I
+      tipoTxt,                  // J
+      status,                   // K
+      documentoUnico,           // L
+      fornecedorLinha           // M ✅
     ];
   });
 
@@ -276,7 +292,7 @@ export default async function handler(req, res) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "BONO!A:L",
+      range: "BONO!A:M", // ✅ era A:L
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values }
