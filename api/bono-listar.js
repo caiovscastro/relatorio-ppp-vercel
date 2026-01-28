@@ -6,6 +6,9 @@ const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
+// ajuste aqui se mudar a aba/colunas
+const RANGE_LISTAR = "BONO!A:L";
+
 function bad(res, status, message) {
   return res.status(status).json({ sucesso: false, message });
 }
@@ -24,6 +27,10 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
+function normStr(v) {
+  return String(v ?? "").trim();
+}
+
 function normalizarLinha(row = []) {
   return {
     A: row[0] ?? "",  // Data/Hora rede
@@ -36,9 +43,26 @@ function normalizarLinha(row = []) {
     H: row[7] ?? "",  // Embalagem
     I: row[8] ?? "",  // Loja destino
     J: row[9] ?? "",  // Tipo
-    K: row[10] ?? "", // Status
+    K: row[10] ?? "", // Status (ex.: "Validado" / "PENDENTE")
     L: row[11] ?? "", // Documento
   };
+}
+
+function linhaEhVazia(row = []) {
+  // considera "vazia" se todas as células estiverem vazias/blank
+  return row.every((c) => normStr(c) === "");
+}
+
+function primeiraLinhaPareceCabecalho(row = []) {
+  // Heurística segura: detecta cabeçalho por palavras comuns
+  const r = row.map((c) => normStr(c).toLowerCase());
+  const joined = r.join(" ");
+  const pistas = [
+    "data", "hora", "loja", "origem", "destino", "usuário", "usuario",
+    "respons", "produto", "quant", "embal", "tipo", "status", "documento", "doc"
+  ];
+  const hits = pistas.reduce((acc, p) => acc + (joined.includes(p) ? 1 : 0), 0);
+  return hits >= 3; // precisa bater várias pistas, pra não cortar uma linha real
 }
 
 export default async function handler(req, res) {
@@ -59,16 +83,27 @@ export default async function handler(req, res) {
 
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "BONO!A:L",
+      range: RANGE_LISTAR,
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
       dateTimeRenderOption: "FORMATTED_STRING",
     });
 
-    const values = resp.data.values || [];
+    const values = Array.isArray(resp.data.values) ? resp.data.values : [];
 
-    // remove cabeçalho se existir
-    const linhas = values.slice(1).map(normalizarLinha);
+    // remove linhas totalmente vazias (range A:L costuma trazer “lixo” no final)
+    let rows = values.filter((r) => Array.isArray(r) && !linhaEhVazia(r));
+
+    // remove cabeçalho somente se ele realmente parecer cabeçalho
+    if (rows.length && primeiraLinhaPareceCabecalho(rows[0])) {
+      rows = rows.slice(1);
+    }
+
+    // normaliza e filtra o mínimo para evitar cards “quebrados”
+    // (mantém só registros que tenham pelo menos Documento OU Produto)
+    const linhas = rows
+      .map(normalizarLinha)
+      .filter((r) => normStr(r.L) !== "" || normStr(r.F) !== "");
 
     return ok(res, {
       sucesso: true,
