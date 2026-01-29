@@ -384,47 +384,68 @@
 
 .doc-table-wrap{
   margin-top: 10px;
-  border-radius: 0px 0px 0 0; /* ✅ remove arredondamento inferior e superior da tabela */
-  overflow:hidden;
+  border-radius: 0px; /* ✅ sem arredondamento (topo e base) */
+  overflow: hidden;
   border: 1px solid #d8e2ff;
-  background:#fff;
+  background: #fff;
   box-shadow: 0 10px 22px rgba(0,0,0,0.10);
 }
 
-    /* ✅ QTD e Embalagem mais próximos; mais espaço para descrição */
-    .doc-table-head{
-      background: linear-gradient(to bottom, #1f4f95, #173f78);
-      color:#fff;
-      font-weight: 900;
-      padding: 10px 12px;
-      display:grid;
-      grid-template-columns: 1fr 70px 95px;
-      gap: 6px;
-      font-size: 12.5px;
-      align-items:center;
-    }
-    .doc-table-head .h-right{ text-align:right; }
+/* ✅ Cabeçalho da tabela */
+.doc-table-head{
+  background: linear-gradient(to bottom, #1f4f95, #173f78);
+  color:#fff;
+  font-weight: 900;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr 70px 95px;
+  gap: 6px;
+  font-size: 12.5px;
+  align-items: center;
+}
 
-    .doc-table{
-      width:100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-    .doc-table td{
-      border-top: 1px solid #e8eeff;
-      padding: 10px 12px;
-      font-size: 12.5px;
-      font-weight: 800;
-      color:#111;
-      vertical-align: top;
-      word-wrap: break-word;
-    }
-    .doc-table tr:nth-child(even) td{ background:#fafcff; }
+/* ✅ Títulos numéricos à direita (QTD / Embalagem) */
+.doc-table-head .h-right{
+  text-align: right;
+}
 
-    .col-desc{ width:auto; }
-    .col-qtd{ width:70px; text-align:right; }
-    .col-emb{ width:95px; text-align:right; }
+/* ✅ Tabela */
+.doc-table{
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
 
+.doc-table td{
+  border-top: 1px solid #e8eeff;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color:#111;
+  vertical-align: top;
+  word-wrap: break-word;
+}
+
+.doc-table tr:nth-child(even) td{
+  background:#fafcff;
+}
+
+/* ✅ Colunas */
+.col-desc{
+  width: auto;
+}
+
+.col-qtd{
+  width: 70px;
+  text-align: right;
+  font-variant-numeric: tabular-nums; /* 🔹 números alinhados visualmente */
+}
+
+.col-emb{
+  width: 95px;
+  text-align: right;
+  font-variant-numeric: tabular-nums; /* 🔹 números alinhados visualmente */
+}
 /* ✅ No celular: fonte igual à lista */
 @media (max-width: 560px){
   .doc-head-title{ font-size: 12px; }
@@ -1275,7 +1296,9 @@ function render(){
 
 card.innerHTML = `
   <!-- ✅ Título SEM cartão (remove o cartão cinza) -->
-  <div class="doc-title-plain">${escapeHtml(tituloTopo)}</div>
+  <div class="doc-title-plain" style="font-weight:900;color:#1f4f95;">
+    ${escapeHtml(tituloTopo)}
+  </div>
 
   <!-- ✅ Cartão branco: contém Status (no topo), linha e depois Data/Hora/Lojas/Fornecedor -->
   <div class="doc-head-body">
