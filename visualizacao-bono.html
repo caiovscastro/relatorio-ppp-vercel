@@ -240,13 +240,13 @@
     }
 
     /* ====== “corpo” do cabeçalho ====== */
-    .doc-head-body{
-      margin-top: 12px;
-      background:#ffffff;
-      border: 1px solid #ededed;
-      border-radius: 14px;
-      padding: 12px 12px;
-    }
+.doc-head-body{
+  margin-top: 12px;
+  background:#ffffff;
+  border: 1px solid #ededed;
+  border-radius: 14px 14px 0 0; /* ✅ remove arredondamento inferior do cartão de lojas, Data/Hora */
+  padding: 12px 12px;
+}
 
     /* ============================================================
        ✅ (2) + (3) MENOS CARTÕES + "Status:" AO LADO DO ÍCONE
@@ -1274,13 +1274,15 @@ function render(){
     const badgeIcon  = (statusTxtTopo === "PENDENTE") ? svgHourglass() : svgCheck();
 
     card.innerHTML = `
-      <!-- ✅ Cartão cinza: fica apenas título + linha de status -->
+      <!-- ✅ Cartão cinza: fica apenas o título -->
       <div class="doc-head">
         <div class="doc-head-title">${escapeHtml(tituloTopo)}</div>
+      </div>
 
+      <!-- ✅ Cartão branco: agora contém Status (no topo), linha e depois Data/Hora/Lojas/Fornecedor -->
+      <div class="doc-head-body">
         <!-- ============================================================
-             ✅ (2) + (3) + (4)
-             - Linha única de status acima da Data/Hora (agora fora do branco)
+             ✅ Status dentro do cartão branco (no topo) e acima da linha
              - Ícone + "Status:" à direita do ícone
              - Botão VALIDAR laranja (sem emoji) quando permitido
              - Badge permanece à direita
@@ -1304,11 +1306,8 @@ function render(){
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ✅ Cartão branco: agora FORA do cinza e ACIMA da tabela -->
-      <div class="doc-head-body">
-        <!-- ✅ linha divisória acima da Data/Hora -->
+        <!-- ✅ linha divisória abaixo do Status e acima da Data/Hora -->
         <hr class="head-sep" />
 
         <div class="info-row">
