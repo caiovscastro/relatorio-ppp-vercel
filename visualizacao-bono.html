@@ -295,38 +295,47 @@
       margin: 10px 0 8px;
     }
 
-    /* ✅ Ajuste solicitado: menos “altura” nas linhas (Data/Hora, Loja, Fornecedor) */
-    .info-row{
-      display:flex;
-      align-items:flex-start;
-      gap: 10px;
-      padding: 2px 2px;        /* era 7px 2px */
-      margin: 0;               /* garante margem mínima */
-      line-height: 1.05;       /* compacta a altura */
-      font-weight: 900;
-      color:#1b2c55;
-    }
-    .info-row + .info-row{ margin-top: 2px; } /* espaço mínimo entre linhas */
+/* ✅ Ajuste: fonte igual à lista de itens */
+.info-row{
+  display:flex;
+  align-items:flex-start;
+  gap: 10px;
+  padding: 2px 2px;
+  margin: 0;
+  line-height: 1.2;
+  font-size: 12.5px;   /* 🔥 IGUAL à lista */
+  font-weight: 800;    /* 🔥 IGUAL à lista */
+  color:#1b2c55;
+}
 
-    .info-row .txt{
-      display:flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items:baseline;
-      min-width:0;
-    }
+.info-row + .info-row{
+  margin-top: 2px;
+}
 
-    .info-row .k{
-      color:#1b2c55;
-      white-space: nowrap;
-    }
-    .info-row .v{
-      color:#111;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space: nowrap;
-      max-width: 100%;
-    }
+.info-row .txt{
+  display:flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items:baseline;
+  min-width:0;
+}
+
+/* rótulo */
+.info-row .k{
+  color:#1b2c55;
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+/* valor */
+.info-row .v{
+  color:#111;
+  font-weight: 800;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
 
     .ic{
       width: 20px;
@@ -416,27 +425,34 @@
     .col-qtd{ width:70px; text-align:right; }
     .col-emb{ width:95px; text-align:right; }
 
-    /* ✅ No celular: fonte menor para caber */
-    @media (max-width: 560px){
-      .doc-head-title{ font-size: 12px; }
-      .doc-badge{ font-size: 9px; padding: 6px 10px; }
-      .info-row{ font-size: 9px; }
-      .btn-status{ font-size: 12px; }
+/* ✅ No celular: fonte igual à lista */
+@media (max-width: 560px){
+  .doc-head-title{ font-size: 12px; }
+  .doc-badge{ font-size: 9px; padding: 6px 10px; }
 
-      .doc-statusbar{ padding: 9px 10px; }
+  .info-row{ 
+    font-size: 10.5px; /* 🔥 MESMO TAMANHO DA LISTA */
+  }
 
-      .doc-table-head{
-        grid-template-columns: 1fr 58px 76px;
-        font-size: 10.5px;
-        padding: 9px 10px;
-        gap: 5px;
-      }
-      .doc-table td{
-        font-size: 10.5px;
-        padding: 8px 10px;
-      }
-      .col-qtd{ width:58px; }
-      .col-emb{ width:76px; }
+  .btn-status{ font-size: 12px; }
+
+  .doc-statusbar{ padding: 9px 10px; }
+
+  .doc-table-head{
+    grid-template-columns: 1fr 58px 76px;
+    font-size: 10.5px;
+    padding: 9px 10px;
+    gap: 5px;
+  }
+
+  .doc-table td{
+    font-size: 10.5px;
+    padding: 8px 10px;
+  }
+
+  .col-qtd{ width:58px; }
+  .col-emb{ width:76px; }
+}
 
       /* ✅ Botão validar compacto no celular */
       .btn-validar{ padding: 7px 10px; font-size: 10.5px; }
