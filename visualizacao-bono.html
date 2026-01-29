@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bono de Recepção/Movimentação</title>
+  <title>BONO DIGITAL</title>
 
   <style>
     html, body{ width:100%; max-width:100%; overflow-x:hidden; }
@@ -111,8 +111,15 @@
       gap: 10px;
       margin-top: 10px;
     }
+
+    /* ============================================================
+       ✅ (1) BOTÕES LADO A LADO NO CELULAR
+       - Antes: no max-width 560px virava 1 coluna.
+       - Agora: mantém 3 colunas no celular, ajustando tamanho.
+    ============================================================ */
     @media (max-width: 560px){
-      .actions{ grid-template-columns: 1fr; }
+      .actions{ grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+      .btn{ padding: 10px; font-size: 12.5px; border-radius: 10px; }
     }
 
     .btn{
@@ -241,6 +248,53 @@
       padding: 12px 12px;
     }
 
+    /* ============================================================
+       ✅ (2) + (3) MENOS CARTÕES + "Status:" AO LADO DO ÍCONE
+       - Criamos uma linha interna única para status (topline).
+       - Essa linha fica acima da Data/Hora, e abaixo do título.
+       - Inserimos um separador horizontal antes da Data/Hora.
+    ============================================================ */
+    .doc-topline{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      background:#f2f2f2;
+      border: 1px solid #e7e7e7;
+      border-radius: 999px;
+      padding: 10px 12px;
+    }
+
+    .doc-topline-left{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 900;
+      color:#1b2c55;
+    }
+
+    .doc-topline-left .status-title{
+      font-weight: 900;
+      color:#1b2c55;
+      white-space: nowrap;
+    }
+
+    .doc-topline-right{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      justify-content:flex-end;
+      flex-wrap: wrap;
+    }
+
+    .head-sep{
+      border: none;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(0,0,0,0.18), transparent);
+      margin: 10px 0 8px;
+    }
+
     /* ✅ Ajuste solicitado: menos “altura” nas linhas (Data/Hora, Loja, Fornecedor) */
     .info-row{
       display:flex;
@@ -298,6 +352,26 @@
       justify-content:center;
     }
     .btn-status:hover{ transform: translateY(-1px); }
+
+    /* ============================================================
+       ✅ (4) BOTÃO VALIDAR LARANJA (SEM EMOJI)
+       - Estilo de botão laranja, com texto.
+    ============================================================ */
+    .btn-validar{
+      border: none;
+      cursor: pointer;
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 12.5px;
+      letter-spacing: .2px;
+      background: #f39c12; /* laranja */
+      color: #ffffff;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+      white-space: nowrap;
+    }
+    .btn-validar:hover{ filter: brightness(0.96); transform: translateY(-1px); }
+    .btn-validar:active{ transform: translateY(0px); }
 
     .doc-table-wrap{
       margin-top: 10px;
@@ -363,6 +437,11 @@
       }
       .col-qtd{ width:58px; }
       .col-emb{ width:76px; }
+
+      /* ✅ Botão validar compacto no celular */
+      .btn-validar{ padding: 7px 10px; font-size: 10.5px; }
+      .doc-topline{ padding: 9px 10px; }
+      .doc-topline-left .status-title{ font-size: 10.5px; }
     }
 
     .hidden{ display:none !important; }
@@ -427,6 +506,40 @@
       /* ✅ garante que as duas caixas “caibam” lado a lado no celular */
       .ass-box{ padding: 8px 8px; gap: 8px; }
       .ass-box .ic{ width: 18px; height: 18px; flex: 0 0 18px; }
+    }
+
+    /* ============================================================
+       ✅ (5) UM ÚNICO CARTÃO PARA "Responsável" + "Validação PPP"
+       - Em vez de 2 cards separados, vira um card só com divisor vertical.
+    ============================================================ */
+    .ass-join{
+      background:#ffffff;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:stretch;
+      gap: 12px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+      min-width: 0;
+    }
+    .ass-side{
+      flex: 1 1 0;
+      display:flex;
+      align-items:flex-start;
+      gap: 10px;
+      min-width: 0;
+    }
+    .ass-divider{
+      width: 1px;
+      background: rgba(0,0,0,0.10);
+      border-radius: 1px;
+    }
+
+    @media (max-width: 560px){
+      .ass-join{ padding: 8px 8px; gap: 10px; }
+      .ass-side{ gap: 8px; }
+      .ass-divider{ background: rgba(0,0,0,0.12); }
     }
 
     /* ✅ Modal (popup) de validação */
@@ -496,7 +609,7 @@
 
     <hr class="linha-logo" />
 
-    <div class="titulo">Bono de Recepção / Movimentação</div>
+    <div class="titulo">BONO DIGITAL</div>
 
     <!-- ===== Filtros ===== -->
     <div class="filtros">
@@ -535,9 +648,9 @@
       </div>
 
       <div class="actions">
-        <button class="btn btn-sec" id="btnLimpar">Limpar filtros</button>
+        <button class="btn btn-sec" id="btnLimpar">Limpar</button>
         <button class="btn btn-pri" id="btnAtualizar">Atualizar</button>
-        <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
+        <button class="btn btn-sec" id="btnVoltarMenu">Voltar</button>
       </div>
 
       <div class="mensagem" id="msg"></div>
@@ -1131,25 +1244,37 @@
           <div class="doc-head">
             <div class="doc-head-title">${escapeHtml(tituloTopo)}</div>
 
-            <div class="doc-statusbar">
-              <!-- ✅ Sem repetição de Status: aqui fica só ícone e (se houver) botão de validar -->
-              <div class="doc-status-left">
-                ${svgInfo()}
-                ${
-                  mostrarBtnValidar
-                    ? `<button class="btn-status" type="button" title="Validar" aria-label="Validar" data-acao="validar" data-doc="${escapeHtml(documento)}">✅</button>`
-                    : ``
-                }
-              </div>
-
-              <!-- ✅ Status único: apenas badge com borda colorida -->
-              <div class="doc-badge ${badgeClass}">
-                ${badgeIcon}
-                <span>${escapeHtml(statusTxtTopo)}</span>
-              </div>
-            </div>
-
             <div class="doc-head-body">
+              <!-- ============================================================
+                   ✅ (2) + (3) + (4)
+                   - Linha única de status acima da Data/Hora
+                   - Ícone + "Status:" à direita do ícone
+                   - Botão VALIDAR laranja (sem emoji) quando permitido
+                   - Badge permanece à direita
+              ============================================================ -->
+              <div class="doc-topline">
+                <div class="doc-topline-left">
+                  ${svgInfo()}
+                  <span class="status-title">Status:</span>
+                </div>
+
+                <div class="doc-topline-right">
+                  ${
+                    mostrarBtnValidar
+                      ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
+                      : ``
+                  }
+
+                  <div class="doc-badge ${badgeClass}">
+                    ${badgeIcon}
+                    <span>${escapeHtml(statusTxtTopo)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ✅ linha divisória acima da Data/Hora -->
+              <hr class="head-sep" />
+
               <div class="info-row">
                 ${svgClock()}
                 <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
@@ -1175,19 +1300,27 @@
           </div>
 
           <div class="assinaturas">
-            <div class="ass-box">
-              ${svgPerson()}
-              <div class="ass-txt">
-                <div class="ass-k">Responsável</div>
-                <div class="ass-v">${escapeHtml(responsavel)}</div>
+            <!-- ============================================================
+                 ✅ (5) UM ÚNICO CARTÃO COM DIVISÃO VERTICAL
+                 - Substitui dois cards separados por um card só (ass-join)
+            ============================================================ -->
+            <div class="ass-join">
+              <div class="ass-side">
+                ${svgPerson()}
+                <div class="ass-txt">
+                  <div class="ass-k">Responsável</div>
+                  <div class="ass-v">${escapeHtml(responsavel)}</div>
+                </div>
               </div>
-            </div>
 
-            <div class="ass-box">
-              ${svgShield()}
-              <div class="ass-txt">
-                <div class="ass-k">Validação PPP</div>
-                <div class="ass-v">${escapeHtml(usuario)}</div>
+              <div class="ass-divider" aria-hidden="true"></div>
+
+              <div class="ass-side">
+                ${svgShield()}
+                <div class="ass-txt">
+                  <div class="ass-k">Validação PPP</div>
+                  <div class="ass-v">${escapeHtml(usuario)}</div>
+                </div>
               </div>
             </div>
           </div>
