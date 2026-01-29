@@ -497,32 +497,49 @@
       gap: 2px;
     }
 
-    /* ✅ Responsável/Validação PPP com mesma fonte da tabela */
-    .ass-box .ass-k{
-      font-size: 12.5px;
-      font-weight: 900;
-      color:#4b4b4b;
-      line-height: 1.1;
-    }
+/* 🔹 TÍTULOS: Responsável / Validação PPP */
+.ass-join .ass-k{
+  font-size: 12.5px;          /* 🔥 MESMO TAMANHO DA TABELA */
+  font-weight: 800;
+  color:#1f4f95;              /* 🔥 MESMO AZUL DOS ÍCONES */
+  line-height: 1.1;
+}
 
-    .ass-box .ass-v{
-      font-size: 12.5px;
-      font-weight: 900;
-      color:#111;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space: nowrap;
-      line-height: 1.1;
-    }
+/* 🔹 VALORES: nomes / usuários */
+.ass-join .ass-v{
+  font-size: 12.5px;          /* 🔥 MESMO TAMANHO DA TABELA */
+  font-weight: 800;
+  color:#111;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  line-height: 1.1;
+}
 
-    @media (max-width: 560px){
-      .ass-box .ass-k{ font-size: 10.5px; }
-      .ass-box .ass-v{ font-size: 10.5px; }
+@media (max-width: 560px){
+  /* 🔹 Títulos: Responsável / Validação PPP */
+  .ass-join .ass-k{
+    font-size: 10.5px; /* igual à tabela */
+  }
 
-      /* ✅ garante que as duas caixas “caibam” lado a lado no celular */
-      .ass-box{ padding: 8px 8px; gap: 8px; }
-      .ass-box .ic{ width: 18px; height: 18px; flex: 0 0 18px; }
-    }
+  /* 🔹 Valores */
+  .ass-join .ass-v{
+    font-size: 10.5px; /* igual à tabela */
+  }
+
+  /* 🔹 Ajustes de respiro no card unificado */
+  .ass-join{
+    padding: 8px 8px;
+    gap: 10px;
+  }
+
+  /* 🔹 Ícones */
+  .ass-join .ic{
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+  }
+}
 
     /* ============================================================
        ✅ (5) UM ÚNICO CARTÃO PARA "Responsável" + "Validação PPP"
