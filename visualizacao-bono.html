@@ -454,13 +454,13 @@
   gap: 10px;
 }
 
-    /* ✅ Ajuste solicitado: manter 2 colunas no celular também */
-    @media (max-width: 650px){
-      .assinaturas{
-        grid-template-columns: 1fr 1fr; /* era 1fr */
-        gap: 8px;
-      }
-    }
+    /* ✅ Ajuste solicitado: manter 2 colunas no celular também com largura total */
+@media (max-width: 650px){
+  .assinaturas{
+    grid-template-columns: 1fr; /* ✅ largura total no celular */
+    gap: 8px;
+  }
+}
 
     .ass-box{
       background:#ffffff;
