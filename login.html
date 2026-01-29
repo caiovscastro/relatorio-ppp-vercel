@@ -17,7 +17,7 @@
             margin: 2;
         }
 
-        /* Card central de login */
+        /* ======== CARD CENTRAL ======== */
         .container {
             width: 70%;
             max-width: 380px;
@@ -27,40 +27,41 @@
             box-shadow: 0 6px 18px rgba(0,0,0,0.12);
         }
 
-        /* Logo acima do título */
+        /* ======== LOGO ======== */
         .logo {
             display: block;
-            margin: 0 auto 8px;
+            margin: 0 auto 6px; /* levemente ajustado */
             max-width: 160px;
         }
 
-        /* Linha suave abaixo da imagem */
+        /* ======== LINHA SUAVE ======== */
         .linha-suave {
             width: 100%;
             height: 1px;
             background: rgba(0, 0, 0, 0.08);
-            margin: 6px 0 14px;
+            margin: 4px 0 6px; /* 🔧 espaço reduzido conforme solicitado */
         }
 
-        /* Título do login (reduzido conforme solicitado) */
+        /* ======== TÍTULO ======== */
         .titulo {
             text-align: center;
             font-size: 16px;
-            margin: 0 0 20px;
+            margin: 0 0 6px;   /* 🔧 aproxima título da linha inferior */
             font-weight: 800;
             letter-spacing: 0.2px;
         }
 
-        /* ✅ Aviso discreto (pequeno, cinza, sem poluir) */
+        /* ======== AVISO INTERNO ======== */
         .aviso-interno{
-            margin: -10px 0 18px;       /* aproxima do título e mantém respiro antes do formulário */
+            margin: -6px 0 18px;     /* mantém proximidade do título */
             text-align: center;
-            font-size: 11.5px;
+            font-size: 8.6px;        /* 🔧 25% menor (antes 11.5px) */
             font-weight: 600;
             color: rgba(0,0,0,0.55);
             line-height: 1.25;
         }
 
+        /* ======== LABELS ======== */
         label {
             font-weight: 600;
             margin-top: 10px;
@@ -68,6 +69,7 @@
             font-size: 14px;
         }
 
+        /* ======== CAMPOS ======== */
         input, select {
             width: 100%;
             padding: 10px 12px;
@@ -84,6 +86,7 @@
             box-shadow: 0 0 0 1px #0066ff33;
         }
 
+        /* ======== BOTÃO ======== */
         button {
             margin-top: 20px;
             width: 100%;
@@ -97,9 +100,11 @@
             font-weight: 600;
         }
 
-        button:hover { background: #0050cc; }
+        button:hover {
+            background: #0050cc;
+        }
 
-        /* Mensagem de erro/sucesso abaixo do botão */
+        /* ======== MENSAGEM ======== */
         .mensagem {
             margin-top: 12px;
             text-align: center;
@@ -115,41 +120,41 @@
 <body>
     <div class="container">
 
-        <!-- IMAGEM -->
+        <!-- LOGO -->
         <img 
             src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png"
             alt="Logo Sistema"
             class="logo"
         />
 
-        <!-- LINHA SUAVE -->
+        <!-- LINHA SUPERIOR -->
         <div class="linha-suave"></div>
 
-        <!-- Título -->
+        <!-- TÍTULO -->
         <h2 class="titulo">Acesso ao Sistema</h2>
 
-        <!-- ✅ (1) LINHA SUAVE ABAIXO DO TÍTULO (igual a acima) -->
+        <!-- LINHA INFERIOR -->
         <div class="linha-suave"></div>
 
-        <!-- ✅ (2) AVISO DISCRETO -->
+        <!-- AVISO INTERNO -->
         <div class="aviso-interno">
             Sistema interno do Grupo Big box/Ultrabox, destinado exclusivamente a colaboradores autorizados.
         </div>
 
-        <!-- Campo Usuário -->
+        <!-- USUÁRIO -->
         <label for="usuario">Usuário</label>
         <input type="text" id="usuario" autocomplete="username" />
 
-        <!-- Campo Senha -->
+        <!-- SENHA -->
         <label for="senha">Senha</label>
         <input type="password" id="senha" autocomplete="current-password" />
 
-        <!-- Lista de lojas -->
+        <!-- LOJA -->
         <label for="loja">Loja</label>
         <select id="loja">
             <option value="">Selecione...</option>
 
-            <!-- ===== BIG BOX ===== -->
+            <!-- BIG BOX -->
             <option>BIG 01 - 106 NORTE</option>
             <option>BIG 02 - 402 NORTE</option>
             <option>BIG 03 - 413 SUL</option>
@@ -175,7 +180,7 @@
             <option>BIG 24 - 314 NORTE</option>
             <option>BIG 25 - 410 SUL</option>
 
-            <!-- ===== ULTRABOX ===== -->
+            <!-- ULTRABOX -->
             <option>ULT 01 - PLANALTINA</option>
             <option>ULT 02 - GAMA</option>
             <option>ULT 03 - COLORADO</option>
@@ -201,7 +206,7 @@
             <option>ULT 24 - PAU BRASIL</option>
             <option>ULT 25 - BRASILINHA</option>
 
-            <!-- ✅ (3) OPÇÕES EXTRAS -->
+            <!-- EXTRAS -->
             <option>TOTAL DISTRIBUICAO</option>
             <option>INDUSPAN</option>
             <option>MATRIZ</option>
@@ -212,60 +217,60 @@
     </div>
 
     <script>
-      const SESSION_KEY = "pppSession";
+        const SESSION_KEY = "pppSession";
 
-      async function login() {
-        const usuario = document.getElementById("usuario").value.trim();
-        const senha   = document.getElementById("senha").value.trim();
-        const loja    = document.getElementById("loja").value;
+        async function login() {
+            const usuario = document.getElementById("usuario").value.trim();
+            const senha   = document.getElementById("senha").value.trim();
+            const loja    = document.getElementById("loja").value;
 
-        const msg = document.getElementById("msg");
-        msg.textContent = "";
-        msg.className = "mensagem";
+            const msg = document.getElementById("msg");
+            msg.textContent = "";
+            msg.className = "mensagem";
 
-        if (!usuario || !senha || !loja) {
-          msg.textContent = "Preencha usuário, senha e loja.";
-          msg.classList.add("erro");
-          return;
+            if (!usuario || !senha || !loja) {
+                msg.textContent = "Preencha usuário, senha e loja.";
+                msg.classList.add("erro");
+                return;
+            }
+
+            try {
+                const resposta = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ usuario, senha, loja })
+                });
+
+                const dados = await resposta.json().catch(() => ({}));
+
+                if (!resposta.ok || !dados.sucesso) {
+                    msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
+                    msg.classList.add("erro");
+                    return;
+                }
+
+                msg.textContent = "Login autorizado.";
+                msg.classList.add("sucesso");
+
+                localStorage.setItem(SESSION_KEY, JSON.stringify({
+                    usuario: dados.usuario || usuario,
+                    loja: dados.loja || loja,
+                    perfil: String(dados.perfil || "").toUpperCase(),
+                    criadoEm: Date.now()
+                }));
+
+                setTimeout(() => {
+                    window.location.href = "/menu.html";
+                }, 300);
+
+            } catch {
+                msg.textContent = "Erro de conexão com o servidor.";
+                msg.classList.add("erro");
+            }
         }
 
-        try {
-          const resposta = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ usuario, senha, loja })
-          });
-
-          const dados = await resposta.json().catch(() => ({}));
-
-          if (!resposta.ok || !dados.sucesso) {
-            msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
-            msg.classList.add("erro");
-            return;
-          }
-
-          msg.textContent = "Login autorizado.";
-          msg.classList.add("sucesso");
-
-          localStorage.setItem(SESSION_KEY, JSON.stringify({
-            usuario: dados.usuario || usuario,
-            loja: dados.loja || loja,
-            perfil: String(dados.perfil || "").toUpperCase(),
-            criadoEm: Date.now()
-          }));
-
-          setTimeout(() => {
-            window.location.href = "/menu.html";
-          }, 300);
-
-        } catch {
-          msg.textContent = "Erro de conexão com o servidor.";
-          msg.classList.add("erro");
-        }
-      }
-
-      document.getElementById("btnEntrar").addEventListener("click", login);
-      document.addEventListener("keydown", e => e.key === "Enter" && login());
+        document.getElementById("btnEntrar").addEventListener("click", login);
+        document.addEventListener("keydown", e => e.key === "Enter" && login());
     </script>
 </body>
 </html>
