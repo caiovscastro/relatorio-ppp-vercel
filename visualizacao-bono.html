@@ -1273,51 +1273,45 @@ function render(){
     const badgeClass = (statusTxtTopo === "PENDENTE") ? "badge-pendente" : "badge-validado";
     const badgeIcon  = (statusTxtTopo === "PENDENTE") ? svgHourglass() : svgCheck();
 
-    card.innerHTML = `
-      <!-- ✅ Cartão cinza: fica apenas o título -->
-      <div class="doc-head">
-        <div class="doc-head-title">${escapeHtml(tituloTopo)}</div>
+card.innerHTML = `
+  <!-- ✅ Título SEM cartão (remove o cartão cinza) -->
+  <div class="doc-title-plain">${escapeHtml(tituloTopo)}</div>
+
+  <!-- ✅ Cartão branco: contém Status (no topo), linha e depois Data/Hora/Lojas/Fornecedor -->
+  <div class="doc-head-body">
+    <!-- ✅ Status dentro do cartão branco (no topo) e acima da linha -->
+    <div class="doc-topline">
+      <div class="doc-topline-left">
+        ${svgInfo()}
+        <span class="status-title">Status:</span>
       </div>
 
-      <!-- ✅ Cartão branco: agora contém Status (no topo), linha e depois Data/Hora/Lojas/Fornecedor -->
-      <div class="doc-head-body">
-        <!-- ============================================================
-             ✅ Status dentro do cartão branco (no topo) e acima da linha
-             - Ícone + "Status:" à direita do ícone
-             - Botão VALIDAR laranja (sem emoji) quando permitido
-             - Badge permanece à direita
-        ============================================================ -->
-        <div class="doc-topline">
-          <div class="doc-topline-left">
-            ${svgInfo()}
-            <span class="status-title">Status:</span>
-          </div>
+      <div class="doc-topline-right">
+        ${
+          mostrarBtnValidar
+            ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
+            : ``
+        }
 
-          <div class="doc-topline-right">
-            ${
-              mostrarBtnValidar
-                ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
-                : ``
-            }
-
-            <div class="doc-badge ${badgeClass}">
-              ${badgeIcon}
-              <span>${escapeHtml(statusTxtTopo)}</span>
-            </div>
-          </div>
+        <div class="doc-badge ${badgeClass}">
+          ${badgeIcon}
+          <span>${escapeHtml(statusTxtTopo)}</span>
         </div>
-
-        <!-- ✅ linha divisória abaixo do Status e acima da Data/Hora -->
-        <hr class="head-sep" />
-
-        <div class="info-row">
-          ${svgClock()}
-          <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
-        </div>
-
-        ${linhaLojaHtml}
-        ${fornecedorHtml}
       </div>
+    </div>
+
+    <!-- ✅ linha divisória abaixo do Status e acima da Data/Hora -->
+    <hr class="head-sep" />
+
+    <div class="info-row">
+      ${svgClock()}
+      <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
+    </div>
+
+    ${linhaLojaHtml}
+    ${fornecedorHtml}
+  </div>
+`;
 
       <div class="doc-table-wrap">
         <div class="doc-table-head">
