@@ -382,14 +382,14 @@
     .btn-validar:hover{ filter: brightness(0.96); transform: translateY(-1px); }
     .btn-validar:active{ transform: translateY(0px); }
 
-    .doc-table-wrap{
-      margin-top: 10px;
-      border-radius: 12px;
-      overflow:hidden;
-      border: 1px solid #d8e2ff;
-      background:#fff;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.10);
-    }
+.doc-table-wrap{
+  margin-top: 10px;
+  border-radius: 12px 12px 0 0; /* ✅ remove arredondamento inferior */
+  overflow:hidden;
+  border: 1px solid #d8e2ff;
+  background:#fff;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+}
 
     /* ✅ QTD e Embalagem mais próximos; mais espaço para descrição */
     .doc-table-head{
@@ -545,17 +545,17 @@
        ✅ (5) UM ÚNICO CARTÃO PARA "Responsável" + "Validação PPP"
        - Em vez de 2 cards separados, vira um card só com divisor vertical.
     ============================================================ */
-    .ass-join{
-      background:#ffffff;
-      border: 1px solid #eeeeee;
-      border-radius: 14px;
-      padding: 10px 12px;
-      display:flex;
-      align-items:stretch;
-      gap: 12px;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
-      min-width: 0;
-    }
+.ass-join{
+  background:#ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 0 0 14px 14px; /* ✅ remove arredondamento superior */
+  padding: 10px 12px;
+  display:flex;
+  align-items:stretch;
+  gap: 12px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+  min-width: 0;
+}
     .ass-side{
       flex: 1 1 0;
       display:flex;
