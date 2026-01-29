@@ -51,6 +51,16 @@
             letter-spacing: 0.2px;
         }
 
+        /* ✅ Aviso discreto (pequeno, cinza, sem poluir) */
+        .aviso-interno{
+            margin: -10px 0 18px;       /* aproxima do título e mantém respiro antes do formulário */
+            text-align: center;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: rgba(0,0,0,0.55);
+            line-height: 1.25;
+        }
+
         label {
             font-weight: 600;
             margin-top: 10px;
@@ -118,6 +128,14 @@
         <!-- Título -->
         <h2 class="titulo">Acesso ao Sistema</h2>
 
+        <!-- ✅ (1) LINHA SUAVE ABAIXO DO TÍTULO (igual a acima) -->
+        <div class="linha-suave"></div>
+
+        <!-- ✅ (2) AVISO DISCRETO -->
+        <div class="aviso-interno">
+            Sistema interno do Grupo Big box/Ultrabox, destinado exclusivamente a colaboradores autorizados.
+        </div>
+
         <!-- Campo Usuário -->
         <label for="usuario">Usuário</label>
         <input type="text" id="usuario" autocomplete="username" />
@@ -182,6 +200,11 @@
             <option>ULT 23 - SANTA MARIA</option>
             <option>ULT 24 - PAU BRASIL</option>
             <option>ULT 25 - BRASILINHA</option>
+
+            <!-- ✅ (3) OPÇÕES EXTRAS -->
+            <option>TOTAL DISTRIBUICAO</option>
+            <option>INDUSPAN</option>
+            <option>MATRIZ</option>
         </select>
 
         <button id="btnEntrar">Entrar</button>
