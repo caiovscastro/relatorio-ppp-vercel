@@ -295,19 +295,25 @@
       margin: 10px 0 8px;
     }
 
-/* ✅ Ajuste: fonte igual à lista de itens */
+/* ✅ Ajuste: fonte igual à lista de itens (mantido) */
 .info-row{
   display:flex;
-  align-items:flex-start;
-  gap: 10px;
+  align-items:center;        /* ✅ alinha texto no centro do ícone */
+  gap: 8px;                  /* ✅ aproxima ícone do texto */
   padding: 2px 2px;
   margin: 0;
-  line-height: 1.2;
-  font-size: 12.5px;   /* 🔥 IGUAL à lista */
-  font-weight: 800;    /* 🔥 IGUAL à lista */
-  color:#1b2c55;
+  line-height: 1.05;         /* ✅ reduz “altura” real da linha */
+  font-size: 12.5px;         /* ✅ igual à lista */
+  font-weight: 800;          /* ✅ igual à lista */
+  color:#1b2c55;             /* ✅ mantido */
 }
 
+/* ✅ remove “baseline” invisível do SVG (que cria espaço extra) */
+.info-row svg{
+  display:block;
+}
+
+/* ✅ aproxima uma linha da outra */
 .info-row + .info-row{
   margin-top: 2px;
 }
@@ -1076,7 +1082,9 @@
 
     function abrirModalValidar(documento){
       modal.documento = documento;
-      modal.txt.textContent = "Esse Bono está pendente de validação, deseja valida-lo? Ressalto que a validação deve ser efetuada somente após a conferencia física e somente se todos dos produtos estiverem constando de acordo com este documento.";
+      modal.txt.textContent = "Este Bono encontra-se pendente de validação. Confirma a validação do documento?
+
+A validação deverá ser efetuada apenas após a conferência física integral, garantindo que 100% dos produtos estejam em total conformidade com este documento.";
       modal.el.classList.add("show");
     }
     function fecharModalValidar(){
@@ -1296,7 +1304,17 @@ function render(){
 
 card.innerHTML = `
   <!-- ✅ Título SEM cartão (remove o cartão cinza) -->
-  <div class="doc-title-plain" style="font-weight:900;color:#1f4f95;">
+  <div
+    class="doc-title-plain"
+    style="
+      font-weight:900;
+      color:#1f4f95;
+      display:flex;
+      align-items:center;   /* ✅ centraliza na vertical */
+      padding-left:12px;    /* ✅ margem à esquerda */
+      min-height:40px;      /* dá “respiro” vertical */
+    "
+  >
     ${escapeHtml(tituloTopo)}
   </div>
 
