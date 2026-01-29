@@ -384,7 +384,7 @@
 
 .doc-table-wrap{
   margin-top: 10px;
-  border-radius: 12px 12px 0 0; /* ✅ remove arredondamento inferior */
+  border-radius: 0px 0px 0 0; /* ✅ remove arredondamento inferior e superior da tabela */
   overflow:hidden;
   border: 1px solid #d8e2ff;
   background:#fff;
@@ -1186,275 +1186,277 @@
       `;
     }
 
-    function render(){
-      const linhasFiltradas = aplicarFiltrosNasLinhas();
-      const docs = agruparPorDocumento(linhasFiltradas);
+function render(){
+  const linhasFiltradas = aplicarFiltrosNasLinhas();
+  const docs = agruparPorDocumento(linhasFiltradas);
 
-      setTexto("contador", `${docs.length} documento(s)`);
+  setTexto("contador", `${docs.length} documento(s)`);
 
-      const wrap = document.getElementById("listaDocs");
-      wrap.innerHTML = "";
+  const wrap = document.getElementById("listaDocs");
+  wrap.innerHTML = "";
 
-      if (!docs.length){
-        wrap.innerHTML = `<div class="filtros" style="font-weight:900;color:#444;">Nenhum documento encontrado.</div>`;
-        return;
-      }
+  if (!docs.length){
+    wrap.innerHTML = `<div class="filtros" style="font-weight:900;color:#444;">Nenhum documento encontrado.</div>`;
+    return;
+  }
 
-      docs.forEach(({documento, items}) => {
-        const x = items[0];
+  docs.forEach(({documento, items}) => {
+    const x = items[0];
 
-        const dataHora = normStr(x.B) || "—";
-        const lojaOrigem = normStr(x.C) || "—";
-        const lojaDestino = normStr(x.I);
-        const destinoVazio = !normStr(lojaDestino);
+    const dataHora = normStr(x.B) || "—";
+    const lojaOrigem = normStr(x.C) || "—";
+    const lojaDestino = normStr(x.I);
+    const destinoVazio = !normStr(lojaDestino);
 
-        const tipoCanon = tipoToCanon(x.J);
-        const tituloTopo = (tipoCanon === "MOVIMENTACAO_INTERNA")
-          ? "MOVIMENTAÇÃO INTERNA"
-          : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "RECEBIMENTO DE MERCADORIAS" : (normStr(x.J) || "—").toUpperCase());
+    const tipoCanon = tipoToCanon(x.J);
+    const tituloTopo = (tipoCanon === "MOVIMENTACAO_INTERNA")
+      ? "MOVIMENTAÇÃO INTERNA"
+      : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "RECEBIMENTO DE MERCADORIAS" : (normStr(x.J) || "—").toUpperCase());
 
-        const statusCanon = statusToCanon(x.K);
+    const statusCanon = statusToCanon(x.K);
 
-        /* ✅ Recebimento: mostrar VALIDADO (não RECEBIDO) */
-        const statusTxtTopo = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
-          ? "VALIDADO"
-          : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
+    /* ✅ Recebimento: mostrar VALIDADO (não RECEBIDO) */
+    const statusTxtTopo = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+      ? "VALIDADO"
+      : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
 
-        const responsavel = normStr(x.E) || "—";
-        const usuario = normStr(x.D) || "—";
-        const fornecedor = normStr(x.M) || "—";
+    const responsavel = normStr(x.E) || "—";
+    const usuario = normStr(x.D) || "—";
+    const fornecedor = normStr(x.M) || "—";
 
-        const rowsHtml = items.map(it => {
-          const desc = escapeHtml(normStr(it.F) || "—");
-          const qtd  = escapeHtml(normStr(it.G) || "—");
-          const emb  = escapeHtml(normStr(it.H) || "—");
+    const rowsHtml = items.map(it => {
+      const desc = escapeHtml(normStr(it.F) || "—");
+      const qtd  = escapeHtml(normStr(it.G) || "—");
+      const emb  = escapeHtml(normStr(it.H) || "—");
 
-          return `
-            <tr>
-              <td class="col-desc">${desc}</td>
-              <td class="col-qtd">${qtd}</td>
-              <td class="col-emb">${emb}</td>
-            </tr>
-          `;
-        }).join("");
+      return `
+        <tr>
+          <td class="col-desc">${desc}</td>
+          <td class="col-qtd">${qtd}</td>
+          <td class="col-emb">${emb}</td>
+        </tr>
+      `;
+    }).join("");
 
-        const card = document.createElement("div");
-        card.className = "doc-card";
+    const card = document.createElement("div");
+    card.className = "doc-card";
 
-        const linhaLojaHtml = destinoVazio
-          ? `
-            <div class="info-row">
-              ${svgStore()}
-              <div class="txt"><span class="k">Loja Recepção:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
+    const linhaLojaHtml = destinoVazio
+      ? `
+        <div class="info-row">
+          ${svgStore()}
+          <div class="txt"><span class="k">Loja Recepção:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
+        </div>
+      `
+      : `
+        <div class="info-row">
+          ${svgStore()}
+          <div class="txt"><span class="k">Loja Origem:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
+        </div>
+        <div class="info-row">
+          ${svgStore()}
+          <div class="txt"><span class="k">Loja Destino:</span> <span class="v">${escapeHtml(lojaDestino)}</span></div>
+        </div>
+      `;
+
+    const fornecedorHtml = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+      ? `
+        <div class="info-row">
+          ${svgTruck()}
+          <div class="txt"><span class="k">Fornecedor:</span> <span class="v">${escapeHtml(fornecedor)}</span></div>
+        </div>
+      `
+      : ``;
+
+    const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
+
+    const badgeClass = (statusTxtTopo === "PENDENTE") ? "badge-pendente" : "badge-validado";
+    const badgeIcon  = (statusTxtTopo === "PENDENTE") ? svgHourglass() : svgCheck();
+
+    card.innerHTML = `
+      <!-- ✅ Cartão cinza: fica apenas título + linha de status -->
+      <div class="doc-head">
+        <div class="doc-head-title">${escapeHtml(tituloTopo)}</div>
+
+        <!-- ============================================================
+             ✅ (2) + (3) + (4)
+             - Linha única de status acima da Data/Hora (agora fora do branco)
+             - Ícone + "Status:" à direita do ícone
+             - Botão VALIDAR laranja (sem emoji) quando permitido
+             - Badge permanece à direita
+        ============================================================ -->
+        <div class="doc-topline">
+          <div class="doc-topline-left">
+            ${svgInfo()}
+            <span class="status-title">Status:</span>
+          </div>
+
+          <div class="doc-topline-right">
+            ${
+              mostrarBtnValidar
+                ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
+                : ``
+            }
+
+            <div class="doc-badge ${badgeClass}">
+              ${badgeIcon}
+              <span>${escapeHtml(statusTxtTopo)}</span>
             </div>
-          `
-          : `
-            <div class="info-row">
-              ${svgStore()}
-              <div class="txt"><span class="k">Loja Origem:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
-            </div>
-            <div class="info-row">
-              ${svgStore()}
-              <div class="txt"><span class="k">Loja Destino:</span> <span class="v">${escapeHtml(lojaDestino)}</span></div>
-            </div>
-          `;
+          </div>
+        </div>
+      </div>
 
-        const fornecedorHtml = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
-          ? `
-            <div class="info-row">
-              ${svgTruck()}
-              <div class="txt"><span class="k">Fornecedor:</span> <span class="v">${escapeHtml(fornecedor)}</span></div>
-            </div>
-          `
-          : ``;
+      <!-- ✅ Cartão branco: agora FORA do cinza e ACIMA da tabela -->
+      <div class="doc-head-body">
+        <!-- ✅ linha divisória acima da Data/Hora -->
+        <hr class="head-sep" />
 
-        const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
+        <div class="info-row">
+          ${svgClock()}
+          <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
+        </div>
 
-        const badgeClass = (statusTxtTopo === "PENDENTE") ? "badge-pendente" : "badge-validado";
-        const badgeIcon  = (statusTxtTopo === "PENDENTE") ? svgHourglass() : svgCheck();
+        ${linhaLojaHtml}
+        ${fornecedorHtml}
+      </div>
 
-        card.innerHTML = `
-          <div class="doc-head">
-            <div class="doc-head-title">${escapeHtml(tituloTopo)}</div>
+      <div class="doc-table-wrap">
+        <div class="doc-table-head">
+          <div>DESCRIÇÃO</div>
+          <div class="h-right">QTD</div>
+          <div class="h-right">Embalagem</div>
+        </div>
 
-            <div class="doc-head-body">
-              <!-- ============================================================
-                   ✅ (2) + (3) + (4)
-                   - Linha única de status acima da Data/Hora
-                   - Ícone + "Status:" à direita do ícone
-                   - Botão VALIDAR laranja (sem emoji) quando permitido
-                   - Badge permanece à direita
-              ============================================================ -->
-              <div class="doc-topline">
-                <div class="doc-topline-left">
-                  ${svgInfo()}
-                  <span class="status-title">Status:</span>
-                </div>
+        <table class="doc-table" aria-label="Itens do documento">
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
 
-                <div class="doc-topline-right">
-                  ${
-                    mostrarBtnValidar
-                      ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
-                      : ``
-                  }
-
-                  <div class="doc-badge ${badgeClass}">
-                    ${badgeIcon}
-                    <span>${escapeHtml(statusTxtTopo)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ✅ linha divisória acima da Data/Hora -->
-              <hr class="head-sep" />
-
-              <div class="info-row">
-                ${svgClock()}
-                <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
-              </div>
-
-              ${linhaLojaHtml}
-              ${fornecedorHtml}
+      <div class="assinaturas">
+        <!-- ============================================================
+             ✅ (5) UM ÚNICO CARTÃO COM DIVISÃO VERTICAL
+             - Substitui dois cards separados por um card só (ass-join)
+        ============================================================ -->
+        <div class="ass-join">
+          <div class="ass-side">
+            ${svgPerson()}
+            <div class="ass-txt">
+              <div class="ass-k">Responsável</div>
+              <div class="ass-v">${escapeHtml(responsavel)}</div>
             </div>
           </div>
 
-          <div class="doc-table-wrap">
-            <div class="doc-table-head">
-              <div>DESCRIÇÃO</div>
-              <div class="h-right">QTD</div>
-              <div class="h-right">Embalagem</div>
-            </div>
+          <div class="ass-divider" aria-hidden="true"></div>
 
-            <table class="doc-table" aria-label="Itens do documento">
-              <tbody>
-                ${rowsHtml}
-              </tbody>
-            </table>
-          </div>
-
-          <div class="assinaturas">
-            <!-- ============================================================
-                 ✅ (5) UM ÚNICO CARTÃO COM DIVISÃO VERTICAL
-                 - Substitui dois cards separados por um card só (ass-join)
-            ============================================================ -->
-            <div class="ass-join">
-              <div class="ass-side">
-                ${svgPerson()}
-                <div class="ass-txt">
-                  <div class="ass-k">Responsável</div>
-                  <div class="ass-v">${escapeHtml(responsavel)}</div>
-                </div>
-              </div>
-
-              <div class="ass-divider" aria-hidden="true"></div>
-
-              <div class="ass-side">
-                ${svgShield()}
-                <div class="ass-txt">
-                  <div class="ass-k">Validação PPP</div>
-                  <div class="ass-v">${escapeHtml(usuario)}</div>
-                </div>
-              </div>
+          <div class="ass-side">
+            ${svgShield()}
+            <div class="ass-txt">
+              <div class="ass-k">Validação PPP</div>
+              <div class="ass-v">${escapeHtml(usuario)}</div>
             </div>
           </div>
-        `;
+        </div>
+      </div>
+    `;
 
-        const btn = card.querySelector('button[data-acao="validar"]');
-        if (btn){
-          btn.addEventListener("click", () => {
-            const doc = btn.getAttribute("data-doc") || "";
-            abrirModalValidar(doc);
-          });
-        }
-
-        wrap.appendChild(card);
+    const btn = card.querySelector('button[data-acao="validar"]');
+    if (btn){
+      btn.addEventListener("click", () => {
+        const doc = btn.getAttribute("data-doc") || "";
+        abrirModalValidar(doc);
       });
     }
 
-    function limparFiltros(){
-      const elLoja = document.getElementById("fLoja");
-      if (elLoja) elLoja.value = "";
+    wrap.appendChild(card);
+  });
+}
 
-      document.getElementById("fData").value = "";
-      document.getElementById("fTipo").value = "";
-      document.getElementById("fStatus").value = "";
+function limparFiltros(){
+  const elLoja = document.getElementById("fLoja");
+  if (elLoja) elLoja.value = "";
 
+  document.getElementById("fData").value = "";
+  document.getElementById("fTipo").value = "";
+  document.getElementById("fStatus").value = "";
+
+  render();
+  setMsg("Filtros limpos.", true);
+}
+
+function setDataHojeNoFiltro(){
+  const el = document.getElementById("fData");
+  if (!el) return;
+  const hoje = new Date();
+  const yyyy = String(hoje.getFullYear()).padStart(4,"0");
+  const mm = String(hoje.getMonth()+1).padStart(2,"0");
+  const dd = String(hoje.getDate()).padStart(2,"0");
+  el.value = `${yyyy}-${mm}-${dd}`;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  modal.el = document.getElementById("modalValidar");
+  modal.txt = document.getElementById("modalValidarTexto");
+  modal.btnSim = document.getElementById("btnModalSim");
+  modal.btnNao = document.getElementById("btnModalNao");
+
+  modal.btnNao.addEventListener("click", () => fecharModalValidar());
+  modal.el.addEventListener("click", (e) => { if (e.target === modal.el) fecharModalValidar(); });
+
+  modal.btnSim.addEventListener("click", async () => {
+    const doc = modal.documento;
+    if (!doc) return fecharModalValidar();
+
+    setMsg("Validando...", true);
+
+    try{
+      await validarDocumentoNoBackend(doc);
+      aplicarValidacaoLocal(doc);
+      fecharModalValidar();
+      setMsg("Bono validado com sucesso.", true);
       render();
-      setMsg("Filtros limpos.", true);
+    } catch (err){
+      console.error(err);
+      fecharModalValidar();
+      setMsg("Falha ao validar no servidor.", false);
     }
+  });
 
-    function setDataHojeNoFiltro(){
-      const el = document.getElementById("fData");
-      if (!el) return;
-      const hoje = new Date();
-      const yyyy = String(hoje.getFullYear()).padStart(4,"0");
-      const mm = String(hoje.getMonth()+1).padStart(2,"0");
-      const dd = String(hoje.getDate()).padStart(2,"0");
-      el.value = `${yyyy}-${mm}-${dd}`;
-    }
+  document.getElementById("btnVoltarMenu").addEventListener("click", () => {
+    window.location.href = ROTAS.menu;
+  });
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      modal.el = document.getElementById("modalValidar");
-      modal.txt = document.getElementById("modalValidarTexto");
-      modal.btnSim = document.getElementById("btnModalSim");
-      modal.btnNao = document.getElementById("btnModalNao");
+  document.getElementById("btnAtualizar").addEventListener("click", async () => {
+    await buscarDados();
+  });
 
-      modal.btnNao.addEventListener("click", () => fecharModalValidar());
-      modal.el.addEventListener("click", (e) => { if (e.target === modal.el) fecharModalValidar(); });
+  document.getElementById("btnLimpar").addEventListener("click", () => {
+    limparFiltros();
+  });
 
-      modal.btnSim.addEventListener("click", async () => {
-        const doc = modal.documento;
-        if (!doc) return fecharModalValidar();
+  const sessao = await obterSessaoDoBackend();
+  if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login novamente.");
 
-        setMsg("Validando...", true);
+  sessaoAtual = sessao;
 
-        try{
-          await validarDocumentoNoBackend(doc);
-          aplicarValidacaoLocal(doc);
-          fecharModalValidar();
-          setMsg("Bono validado com sucesso.", true);
-          render();
-        } catch (err){
-          console.error(err);
-          fecharModalValidar();
-          setMsg("Falha ao validar no servidor.", false);
-        }
-      });
+  aplicarVisibilidadeFiltroLoja();
 
-      document.getElementById("btnVoltarMenu").addEventListener("click", () => {
-        window.location.href = ROTAS.menu;
-      });
+  if (perfilEhAdmin(sessao.perfil) || perfilEhGerentePPP(sessao.perfil)) {
+    preencherSelectComLojas("fLoja", true);
+  }
 
-      document.getElementById("btnAtualizar").addEventListener("click", async () => {
-        await buscarDados();
-      });
+  setDataHojeNoFiltro();
 
-      document.getElementById("btnLimpar").addEventListener("click", () => {
-        limparFiltros();
-      });
+  ["fLoja","fData","fTipo","fStatus"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("change", () => render());
+    el.addEventListener("input", () => render());
+  });
 
-      const sessao = await obterSessaoDoBackend();
-      if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login novamente.");
-
-      sessaoAtual = sessao;
-
-      aplicarVisibilidadeFiltroLoja();
-
-      if (perfilEhAdmin(sessao.perfil) || perfilEhGerentePPP(sessao.perfil)) {
-        preencherSelectComLojas("fLoja", true);
-      }
-
-      setDataHojeNoFiltro();
-
-      ["fLoja","fData","fTipo","fStatus"].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener("change", () => render());
-        el.addEventListener("input", () => render());
-      });
-
-      await buscarDados();
-    });
-  </script>
+  await buscarDados();
+});
+</script>
 </body>
 </html>
