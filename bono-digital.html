@@ -297,6 +297,21 @@
       color:#111;
     }
 
+    /* ✅ Prévia do WhatsApp dentro do modal */
+    .prewa{
+      margin-top: 10px;
+      border: 1px solid #ececec;
+      border-radius: 12px;
+      background: #fafafa;
+      padding: 10px;
+      max-height: 280px;
+      overflow:auto;
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre-wrap;  /* mantém quebras de linha */
+      word-break: break-word;
+    }
+
     @media (max-width: 520px){
       .grid{ grid-template-columns: 1fr; }
       .grid-2-fixo{ grid-template-columns: 1fr 1fr; }
@@ -350,7 +365,6 @@
       </div>
 
       <div class="grid-3-fixo" style="margin-top:10px;">
-        <!-- ✅ (1) TROCA: Embalagem vem antes da Qtd. -->
         <div>
           <label for="embalagem">Embalagem</label>
           <select id="embalagem">
@@ -386,6 +400,7 @@
           <label for="lojaDestino">Para onde está transferindo?</label>
           <select id="lojaDestino">
             <option value="">Selecione</option>
+
             <option value="BIG 01 - 106 NORTE">BIG 01 - 106 NORTE</option>
             <option value="BIG 02 - 402 NORTE">BIG 02 - 402 NORTE</option>
             <option value="BIG 03 - 413 SUL">BIG 03 - 413 SUL</option>
@@ -443,7 +458,6 @@
         </div>
       </div>
 
-      <!-- ✅ NOVO: Fornecedor (só aparece quando Tipo = RECEBIMENTO) -->
       <div class="grid grid-1 hidden" style="margin-top:10px;" id="wrapFornecedor">
         <div>
           <label for="fornecedor">Fornecedor</label>
@@ -489,7 +503,19 @@
     </div>
   </div>
 
-  <!-- ✅ overlay de carregamento -->
+  <!-- ✅ Modal de pré-visualização do WhatsApp -->
+  <div class="overlay hidden" id="modalWhatsPreview">
+    <div class="modal">
+      <h3>Pré-visualização do Bono</h3>
+      <p>Confira a mensagem antes de abrir o WhatsApp.</p>
+      <div class="prewa" id="waPreviewText"></div>
+      <div class="row-btn" style="margin-top:12px;">
+        <button class="btn btn-pri" id="btnAbrirWhats">Abrir WhatsApp</button>
+        <button class="btn btn-sec" id="btnCancelarWhats">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="load-overlay hidden" id="loadingOverlay" aria-live="polite">
     <div class="load-box">
       <div class="load-title">Enviando informações...</div>
@@ -501,14 +527,24 @@
   </div>
 
   <script>
+    /* =========================================================
+       ✅ CONFIGURAÇÃO ÚNICA DO DOMÍNIO PÚBLICO (solicitado)
+       - Tudo que for link público (WhatsApp, mensagens etc.)
+         deve usar esta constante como fonte de verdade.
+       - Se mudar o domínio amanhã, muda só aqui.
+    ========================================================= */
+    const DOMINIO_PUBLICO = "https://ubppp.xyz";
+
     const ROTAS = { menu: "/menu.html", login: "/login.html" };
     const LS_KEY = "PPP_BONO_PENDENTE_V1";
 
     let sessaoAtual = null;
     let expTimerId = null;
 
-    // ✅ NOVO: fornecedor no estado (persistência)
     let estado = { data: "", hora: "", encarregado: "", fornecedor: "", itens: [] };
+
+    // ✅ Guarda telefone/mensagem do WhatsApp pro modal de prévia
+    let waDraft = { telefone: "", mensagem: "" };
 
     function setTexto(id, txt) {
       const el = document.getElementById(id);
@@ -572,11 +608,6 @@
       }, msRestante);
     }
 
-    /* =========================================================
-       ✅ NOVO: bloquear seleção da própria loja (origem)
-       - desabilita a opção do <select id="lojaDestino"> que
-         corresponde à loja da sessão (sessaoAtual.loja)
-    ========================================================= */
     function normalizarLojaComparacao(s){
       return String(s || "").trim().toUpperCase().replace(/\s+/g, " ");
     }
@@ -588,12 +619,11 @@
       const origemN = normalizarLojaComparacao(sessaoAtual.loja);
 
       Array.from(sel.options).forEach(opt => {
-        if (!opt.value) return; // mantém "Selecione"
+        if (!opt.value) return;
         const optN = normalizarLojaComparacao(opt.value);
         opt.disabled = (optN === origemN);
       });
 
-      // Se por algum motivo já estiver selecionada a própria loja, limpa.
       if (sel.value && normalizarLojaComparacao(sel.value) === origemN) {
         sel.value = "";
       }
@@ -607,11 +637,9 @@
       const expMs = normalizarExpParaMs(sessao.exp);
       if (expMs) agendarRedirecionamentoNaExpiracao(expMs);
 
-      // ✅ NOVO: aplica bloqueio da loja de origem no seletor de destino
       bloquearLojaOrigemNoDestino();
     }
 
-    /* ===== Persistência ===== */
     function salvarLocal() {
       try {
         localStorage.setItem(LS_KEY, JSON.stringify(estado));
@@ -644,7 +672,6 @@
       return !!temAlgo;
     }
 
-    /* ===== Util ===== */
     function pad2(n){ return String(n).padStart(2, "0"); }
 
     function formatarDataHoraParaPlanilha(dataYYYYMMDD, horaHHMM) {
@@ -672,7 +699,6 @@
     function abrirModal(id) { document.getElementById(id).classList.remove("hidden"); }
     function fecharModal(id) { document.getElementById(id).classList.add("hidden"); }
 
-    /* ===== Loading overlay + progresso ===== */
     let loadTimer = null;
     function showLoading(){
       document.getElementById("loadingOverlay").classList.remove("hidden");
@@ -765,7 +791,6 @@
       });
     }
 
-    /* ===== Quantidade máscara ===== */
     function formatIntPtBR(n) {
       return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
     }
@@ -842,7 +867,6 @@
       }
     }
 
-    /* ✅ (2) NOVO: Qtd só habilita após escolher Embalagem */
     function atualizarHabilitacaoQuantidade() {
       const emb = document.getElementById("embalagem").value;
       const elQtd = document.getElementById("quantidade");
@@ -857,7 +881,6 @@
       }
     }
 
-    /* ===== Tipo / Destino ===== */
     function atualizarVisibilidadeDestino() {
       const tipo = document.getElementById("tipoLancamento").value;
       const wrap = document.getElementById("wrapDestino");
@@ -871,7 +894,6 @@
       }
     }
 
-    /* ✅ NOVO: Fornecedor (visibilidade/obrigatoriedade dinâmica) */
     function atualizarVisibilidadeFornecedor() {
       const tipo = document.getElementById("tipoLancamento").value;
       const wrap = document.getElementById("wrapFornecedor");
@@ -882,7 +904,6 @@
       } else {
         wrap.classList.add("hidden");
         inp.value = "";
-        // fornecedor não é obrigatório quando invisível e deve sair do estado
         estado.fornecedor = "";
         salvarLocal();
       }
@@ -910,27 +931,22 @@
       setMsg("Itens atualizados com o Tipo/Destino selecionados.", true);
     }
 
-    /* ===== WhatsApp (AUTO) ===== */
     function normalizarTelefoneParaWa(dado) {
       const digits = String(dado || "").replace(/\D/g, "");
       if (!digits) return "";
 
-      // Se já vem com DDI 55
       if (digits.startsWith("55") && (digits.length === 12 || digits.length === 13)) return digits;
-
-      // Se veio só com DDD+numero (10 ou 11 dígitos)
       if (digits.length === 10 || digits.length === 11) return "55" + digits;
-
-      // Se veio com outro padrão, devolve o que tem (melhor do que quebrar)
       return digits;
     }
 
+    /* =========================================================
+       ✅ ALTERAÇÃO (solicitada): link público montado por constante
+       - evita domínio hard-coded espalhado
+       - muda domínio em um lugar só
+    ========================================================= */
     function montarLinkLoginAbsoluto() {
-      try {
-        return new URL(ROTAS.login, window.location.origin).toString();
-      } catch (e) {
-        return window.location.origin + ROTAS.login;
-      }
+      return `${DOMINIO_PUBLICO}/login.html`;
     }
 
     function montarMensagemWhats({
@@ -998,18 +1014,14 @@
       const tel = normalizarTelefoneParaWa(telefone55);
       if (!tel) return false;
 
-      // Melhor esforço: tenta abrir no app via scheme e faz fallback para wa.me
       const urlApp = `whatsapp://send?phone=${tel}&text=${encodeURIComponent(mensagem)}`;
       const urlWeb = `https://wa.me/${tel}?text=${encodeURIComponent(mensagem)}`;
 
-      // ✅ CORREÇÃO: NÃO trocar a página do Bono (não usar window.location.href)
-      // Abre em nova aba/janela para manter o Bono aberto ao voltar.
       const opened = window.open(urlApp, "_blank");
 
       if (!opened) {
         window.open(urlWeb, "_blank");
       } else {
-        // fallback leve: alguns aparelhos ignoram whatsapp:// em _blank
         setTimeout(() => {
           try { window.open(urlWeb, "_blank"); } catch(e) {}
         }, 500);
@@ -1018,13 +1030,18 @@
       return true;
     }
 
-    /* ===== Ações ===== */
+    function abrirModalPreviewWhats(telefone, mensagem){
+      waDraft = { telefone: String(telefone || ""), mensagem: String(mensagem || "") };
+      const box = document.getElementById("waPreviewText");
+      if (box) box.textContent = waDraft.mensagem || "";
+      abrirModal("modalWhatsPreview");
+    }
+
     function capturarBaseDoFormulario() {
       estado.data = document.getElementById("dataEscolhida").value || "";
       estado.hora = document.getElementById("horaEscolhida").value || "";
       estado.encarregado = normalizarTexto(document.getElementById("encarregado").value);
 
-      // ✅ NOVO: fornecedor só é relevante quando Tipo = RECEBIMENTO
       const tipoAtual = document.getElementById("tipoLancamento").value;
       if (tipoAtual === "RECEBIMENTO") {
         estado.fornecedor = normalizarTexto(document.getElementById("fornecedor").value);
@@ -1047,7 +1064,6 @@
       const tipoLancamento = document.getElementById("tipoLancamento").value;
       const lojaDestino = document.getElementById("lojaDestino").value;
 
-      // ✅ NOVO: fornecedor obrigatório apenas quando Tipo = RECEBIMENTO
       if (tipoLancamento === "RECEBIMENTO" && !estado.fornecedor) {
         setMsg('Informe o "Fornecedor" (obrigatório para Recebimento de mercadorias).', false);
         return false;
@@ -1084,7 +1100,6 @@
       const tipoAtual = document.getElementById("tipoLancamento").value;
       if (!tipoAtual) { setMsg("Selecione um tipo", false); return; }
 
-      // ✅ NOVO: fornecedor obrigatório apenas quando Tipo = RECEBIMENTO
       if (tipoAtual === "RECEBIMENTO" && !estado.fornecedor) {
         setMsg('Informe o "Fornecedor" (obrigatório para Recebimento de mercadorias).', false);
         return;
@@ -1100,28 +1115,20 @@
         return;
       }
 
-      // ✅ guarda antes de resetar (para WhatsApp pós-sucesso)
       const tipoNoEnvio = tipoAtual;
       const destinoNoEnvio = destinoAtual;
-
-      // ✅ snapshot dos itens ANTES de limpar/resetar
       const itensNoEnvio = Array.isArray(estado.itens) ? estado.itens.map(it => ({ ...it })) : [];
 
       const payload = {
         dataHoraEscolhida: dataHoraPlanilha,
         encarregado: estado.encarregado,
-
-        // ✅ NOVO: Fornecedor (coluna M no backend, conforme sua regra)
         fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : ""),
-
         itens: estado.itens.map(x => ({
           produto: x.produto,
           quantidade: x.quantidadeFmt,
           embalagem: x.embalagem,
           tipoLancamento: x.tipoLancamento,
           lojaDestino: x.lojaDestino || "",
-
-          // ✅ NOVO: também manda por item (se o backend ignorar, não quebra)
           fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : "")
         }))
       };
@@ -1154,14 +1161,12 @@
           return;
         }
 
-        // ✅ termina loading
         stopLoadingTimer();
         setLoadingPct(100);
         setTimeout(() => {
           hideLoading();
         }, 250);
 
-        // ✅ limpa estado como já fazia
         limparLocal();
         estado = { data: "", hora: "", encarregado: "", fornecedor: "", itens: [] };
         atualizarCamposNaTela();
@@ -1177,16 +1182,15 @@
         atualizarVisibilidadeDestino();
         atualizarVisibilidadeFornecedor();
 
-        // ✅ garante Qtd bloqueada quando embalagem resetar
         atualizarHabilitacaoQuantidade();
 
         setMsg("Bono finalizado e salvo com sucesso.", true);
 
-        /* ✅ AUTO (WhatsApp): se foi MOV_INTERNA, abre o WhatsApp automaticamente com a msg pronta */
+        // ✅ Não abre WhatsApp automaticamente: abre modal com prévia
         if (tipoNoEnvio === "MOV_INTERNA" && destinoNoEnvio) {
           const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
 
-          const linkLogin = montarLinkLoginAbsoluto();
+          const linkLogin = montarLinkLoginAbsoluto(); // ✅ agora via DOMINIO_PUBLICO
           const msgWhats = montarMensagemWhats({
             lojaOrigem: (sessaoAtual && sessaoAtual.loja) ? sessaoAtual.loja : "",
             lojaDestino: destinoNoEnvio,
@@ -1196,10 +1200,10 @@
             itens: itensNoEnvio
           });
 
-          const okAbrir = abrirWhatsAppComMensagem(telefoneResp, msgWhats);
-
-          if (!okAbrir) {
-            setMsg("Bono salvo, mas não encontrei o WhatsApp do responsável da loja destino para abrir automaticamente.", false);
+          if (!normalizarTelefoneParaWa(telefoneResp)) {
+            setMsg("Bono salvo, mas não encontrei o WhatsApp do responsável da loja destino para enviar.", false);
+          } else {
+            abrirModalPreviewWhats(telefoneResp, msgWhats);
           }
         }
 
@@ -1247,12 +1251,26 @@
         await finalizarBono();
       });
 
+      // ✅ Botões do modal de prévia
+      document.getElementById("btnCancelarWhats").addEventListener("click", () => {
+        fecharModal("modalWhatsPreview");
+        waDraft = { telefone: "", mensagem: "" };
+      });
+
+      document.getElementById("btnAbrirWhats").addEventListener("click", () => {
+        fecharModal("modalWhatsPreview");
+        const okAbrir = abrirWhatsAppComMensagem(waDraft.telefone, waDraft.mensagem);
+        if (!okAbrir) {
+          setMsg("Não foi possível abrir o WhatsApp (telefone inválido).", false);
+        }
+        waDraft = { telefone: "", mensagem: "" };
+      });
+
       ["dataEscolhida","horaEscolhida","encarregado"].forEach(id => {
         document.getElementById(id).addEventListener("change", capturarBaseDoFormulario);
         document.getElementById(id).addEventListener("input", capturarBaseDoFormulario);
       });
 
-      // ✅ NOVO: fornecedor também salva no estado
       document.getElementById("fornecedor").addEventListener("change", capturarBaseDoFormulario);
       document.getElementById("fornecedor").addEventListener("input", capturarBaseDoFormulario);
 
@@ -1276,9 +1294,7 @@
       });
 
       document.getElementById("embalagem").addEventListener("change", () => {
-        // ✅ habilita/desabilita Qtd conforme embalagem
         atualizarHabilitacaoQuantidade();
-
         aplicarMascaraQuantidade();
         capturarBaseDoFormulario();
       });
@@ -1294,7 +1310,6 @@
           embalagem: dadosItem.embalagem,
           tipoLancamento: dadosItem.tipoLancamento,
           lojaDestino: dadosItem.lojaDestino,
-          // ✅ NOVO: guarda fornecedor no item (não muda a UI)
           fornecedor: dadosItem.fornecedor || ""
         });
 
@@ -1315,7 +1330,6 @@
           return;
         }
 
-        // ✅ NOVO: fornecedor obrigatório apenas quando Tipo = RECEBIMENTO
         if (tipoAtual === "RECEBIMENTO") {
           capturarBaseDoFormulario();
           if (!estado.fornecedor) {
@@ -1350,9 +1364,16 @@
         renderLista();
       }
 
-      // ✅ estado inicial: Qtd bloqueada até escolher embalagem
       atualizarHabilitacaoQuantidade();
     });
+
+    /*
+      Fontes confiáveis (em comentários, como você já faz no projeto):
+      - const (JS): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/const
+      - Template literals: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Template_literals
+      - encodeURIComponent: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+      - window.open: https://developer.mozilla.org/docs/Web/API/Window/open
+    */
   </script>
 </body>
 </html>
