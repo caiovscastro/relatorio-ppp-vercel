@@ -353,7 +353,7 @@
       <div class="grid grid-1" style="margin-top:10px;">
         <div>
           <label for="encarregado">Responsavel (Operação)</label>
-          <input type="text" id="encarregado" placeholder="Nome e sobrenome do responsavel que acompanhou." maxlength="80" />
+          <input type="text" id="encarregado" placeholder="Nome e sobrenome." maxlength="80" />
         </div>
       </div>
 
@@ -506,8 +506,8 @@
   <!-- ✅ Modal de pré-visualização do WhatsApp -->
   <div class="overlay hidden" id="modalWhatsPreview">
     <div class="modal">
-      <h3>Pré-visualização do Bono</h3>
-      <p>Confira a mensagem antes de abrir o WhatsApp.</p>
+      <h3>Pré-visualização da notificação.</h3>
+      <p>Deseja notificar o responsável da loja destinho?</p>
       <div class="prewa" id="waPreviewText"></div>
       <div class="row-btn" style="margin-top:12px;">
         <button class="btn btn-pri" id="btnAbrirWhats">Abrir WhatsApp</button>
@@ -1095,7 +1095,7 @@
 
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
       if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return; }
-      if (!estado.encarregado) { setMsg("Informe o nome do responsavel(operação) que fez o acompanhamento.", false); return; }
+      if (!estado.encarregado) { setMsg("Informe o nome do responsável que fez o acompanhamento.", false); return; }
 
       const tipoAtual = document.getElementById("tipoLancamento").value;
       if (!tipoAtual) { setMsg("Selecione um tipo", false); return; }
@@ -1105,13 +1105,13 @@
         return;
       }
 
-      if (!estado.itens.length) { setMsg("A lista está vazia. Adicione item's antes de salvar.", false); return; }
+      if (!estado.itens.length) { setMsg("A lista está vazia. Adicione item's.", false); return; }
 
       aplicarTipoEDestinoNosItens();
 
       const destinoAtual = document.getElementById("lojaDestino").value;
       if (tipoAtual === "MOV_INTERNA" && !destinoAtual) {
-        setMsg("Selecione a loja de destino antes de salvar (Movimentação interna).", false);
+        setMsg("Selecione a loja de destino (Movimentação interna).", false);
         return;
       }
 
@@ -1339,7 +1339,7 @@
         }
 
         if (!estado.itens.length) {
-          setMsg("A lista está vazia. Adicione um item antes de salvar.", false);
+          setMsg("Não é possível salvar lista vazia. Adicione item's antes.", false);
           return;
         }
 
