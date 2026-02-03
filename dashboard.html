@@ -1018,6 +1018,79 @@
       window.location.href = "/menu.html";
     }
 
+    /* =========================================================
+       ✅ NOVO (REQ 1): datas padrão ao iniciar
+       - dataInicio = 1º dia do mês atual
+       - dataFim = hoje
+       ========================================================= */
+    function setDatasPadraoInicioMesHoje(){
+      const elIni = document.getElementById("dataInicio");
+      const elFim = document.getElementById("dataFim");
+      if (!elIni || !elFim) return;
+
+      const hoje = new Date();
+      const yyyy = hoje.getFullYear();
+      const mm = String(hoje.getMonth() + 1).padStart(2, "0");
+      const ddHoje = String(hoje.getDate()).padStart(2, "0");
+
+      const primeiroDia = `${yyyy}-${mm}-01`;
+      const hojeISO = `${yyyy}-${mm}-${ddHoje}`;
+
+      // ✅ seta valores diretamente (input type="date" usa ISO yyyy-mm-dd)
+      elIni.value = primeiroDia;
+      elFim.value = hojeISO;
+    }
+
+    /* =========================================================
+       ✅ NOVO (REQ 2): trava de seleção para perfil BASE_PPP
+       - somente a loja do login fica marcada
+       - usuário não consegue marcar outra loja
+       ========================================================= */
+    function isPerfilBasePPP(){
+      const s = obterSessaoAtual();
+      const perfil = String((s && s.perfil) || "").trim().toUpperCase();
+      return perfil === "BASE_PPP";
+    }
+
+    function lojaLogadaKey(){
+      const s = obterSessaoAtual();
+      return normLoja((s && s.loja) || "");
+    }
+
+    function aplicarRestricaoLojasBasePPP(){
+      // Só aplica se for BASE_PPP
+      if (!isPerfilBasePPP()) return;
+
+      const panel = document.getElementById("lojaPanel");
+      if (!panel) return;
+
+      const lojaKey = lojaLogadaKey();
+      if (!lojaKey) return;
+
+      // ✅ Set global: somente a loja logada
+      LOJAS_SELECIONADAS = new Set([lojaKey]);
+
+      // ✅ Marca/desmarca no DOM e bloqueia interação
+      panel.querySelectorAll('input[type="checkbox"][data-loja]').forEach((ck) => {
+        const key = ck.getAttribute("data-loja") || "";
+        const isMinha = (key === lojaKey);
+
+        ck.checked = isMinha;
+
+        // 🔒 bloqueia alteração (mesmo se clicar direto no checkbox)
+        ck.disabled = !isMinha;
+      });
+
+      // 🔒 também bloqueia os "marcar BIG/ULT"
+      panel.querySelectorAll('input[type="checkbox"][id^="ckBand_"]').forEach((ckBand) => {
+        ckBand.checked = false;
+        ckBand.indeterminate = false;
+        ckBand.disabled = true;
+      });
+
+      atualizarTituloLojas();
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       if (!validarAcesso()) {
         document.getElementById("telaErro").style.display = "block";
@@ -1025,6 +1098,9 @@
       }
 
       document.getElementById("app").style.display = "block";
+
+      /* ✅ REQ 1: aplica datas padrão ao iniciar a tela */
+      setDatasPadraoInicioMesHoje();
 
       document.getElementById("dataInicio")?.addEventListener("change", aplicarFiltros);
       document.getElementById("dataFim")?.addEventListener("change", aplicarFiltros);
@@ -1341,11 +1417,31 @@
 
       panel.innerHTML = html.join("");
 
+      /* =========================================================
+         ✅ ALTERADO (REQ 2): para BASE_PPP, impedimos troca de loja
+         - aqui bloqueamos o "change" em lojas que NÃO são a do login
+         ========================================================= */
       panel.querySelectorAll('input[type="checkbox"][data-loja]').forEach((ck) => {
         ck.addEventListener("change", () => {
           const key = ck.getAttribute("data-loja");
           if (!key) return;
 
+          // 🔒 Se BASE_PPP: só permite a loja do login ficar marcada
+          if (isPerfilBasePPP()) {
+            const minha = lojaLogadaKey();
+            if (key !== minha) {
+              ck.checked = false;              // garante que não marcou
+              return;                          // não altera o Set global
+            }
+            ck.checked = true;                 // garante que continua marcada
+            LOJAS_SELECIONADAS = new Set([minha]);
+            atualizarChecksBandeira();
+            atualizarTituloLojas();
+            aplicarFiltros();
+            return;
+          }
+
+          // comportamento original (demais perfis)
           if (ck.checked) LOJAS_SELECIONADAS.add(key);
           else LOJAS_SELECIONADAS.delete(key);
 
@@ -1355,8 +1451,19 @@
         });
       });
 
+      /* =========================================================
+         ✅ ALTERADO (REQ 2): para BASE_PPP, bloqueia BIG/ULT
+         ========================================================= */
       panel.querySelectorAll('input[type="checkbox"][id^="ckBand_"]').forEach((ckBand) => {
         ckBand.addEventListener("change", () => {
+          // 🔒 BASE_PPP não pode marcar/desmarcar por bandeira
+          if (isPerfilBasePPP()) {
+            ckBand.checked = false;
+            ckBand.indeterminate = false;
+            aplicarRestricaoLojasBasePPP(); // reforça estado
+            return;
+          }
+
           const band = (ckBand.getAttribute("data-band") || "").toUpperCase().trim();
           if (!band) return;
 
@@ -1378,11 +1485,27 @@
 
       atualizarChecksBandeira();
       atualizarTituloLojas();
+
+      /* ✅ REQ 2: depois de montar a lista, aplica a trava BASE_PPP */
+      aplicarRestricaoLojasBasePPP();
     }
 
     function atualizarChecksBandeira(){
       const panel = document.getElementById("lojaPanel");
       if (!panel) return;
+
+      // 🔒 BASE_PPP não usa BIG/ULT para marcar todas (mas mantemos seguro)
+      if (isPerfilBasePPP()) {
+        ["BIG","ULT"].forEach((band) => {
+          const ckBand = panel.querySelector(`#ckBand_${band}`);
+          if (ckBand) {
+            ckBand.checked = false;
+            ckBand.indeterminate = false;
+            ckBand.disabled = true;
+          }
+        });
+        return;
+      }
 
       ["BIG","ULT"].forEach((band) => {
         const ckBand = panel.querySelector(`#ckBand_${band}`);
@@ -1403,6 +1526,14 @@
     function sincronizarSelecaoLojasDoDOM(){
       const panel = document.getElementById("lojaPanel");
       if (!panel) return;
+
+      // 🔒 BASE_PPP: força somente a loja do login no Set global
+      if (isPerfilBasePPP()) {
+        const minha = lojaLogadaKey();
+        LOJAS_SELECIONADAS = new Set(minha ? [minha] : []);
+        return;
+      }
+
       const set = new Set();
       panel.querySelectorAll('input[type="checkbox"][data-loja]').forEach((ck) => {
         const key = ck.getAttribute("data-loja");
@@ -1433,6 +1564,12 @@
     }
 
     function obterLojasSelecionadas(){
+      // 🔒 BASE_PPP: sempre devolve só a loja logada
+      if (isPerfilBasePPP()) {
+        const minha = lojaLogadaKey();
+        return new Set(minha ? [minha] : []);
+      }
+
       if (!LOJAS_SELECIONADAS || !(LOJAS_SELECIONADAS instanceof Set)) {
         return new Set(LOJAS_LISTA.map(x => normLoja(x.label)));
       }
