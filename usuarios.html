@@ -257,7 +257,9 @@
     <div id="msg" class="msg"></div>
   </div>
 
-  <!-- MODAL: Criar -->
+  <!-- ==========================
+       MODAL: Criar
+       ========================== -->
   <div class="modalBg" id="modalCriarBg">
     <div class="modal">
       <p class="modalTitle">Criar novo usuário</p>
@@ -315,7 +317,9 @@
     </div>
   </div>
 
-  <!-- MODAL: Editar -->
+  <!-- ==========================
+       MODAL: Editar
+       ========================== -->
   <div class="modalBg" id="modalEditarBg">
     <div class="modal">
       <p class="modalTitle">Editar usuário</p>
@@ -351,7 +355,9 @@
     </div>
   </div>
 
-  <!-- MODAL: Reset -->
+  <!-- ==========================
+       MODAL: Reset
+       ========================== -->
   <div class="modalBg" id="modalResetBg">
     <div class="modal">
       <p class="modalTitle">Resetar senha (gera temporária)</p>
@@ -382,29 +388,33 @@
   </div>
 
   <script>
-    // ==========================
-    // Ajuste se seu "voltar" deve ir para menu.html
-    // ==========================
+    // ==========================================================
+    // ⚠️ Voltar: você pediu para voltar ao menu.html (não login)
+    // ==========================================================
     document.getElementById("btnVoltar").addEventListener("click", () => {
       window.location.href = "menu.html";
     });
 
+    // ==========================================================
+    // Cache de elementos
+    // ==========================================================
     const tbody = document.getElementById("tbody");
     const busca = document.getElementById("busca");
     const msg = document.getElementById("msg");
 
-    let usuarios = [];
-    let editandoId = null;
-    let resetandoId = null;
+    let usuarios = [];       // cache da lista carregada
+    let editandoId = null;   // id atual em edição
+    let resetandoId = null;  // id atual em reset
 
-    // ==========================
-    // Helpers
-    // ==========================
+    // ==========================================================
+    // Helpers de UI
+    // ==========================================================
     function showMsg(texto, tipo){
       msg.textContent = texto || "";
       msg.className = "msg" + (tipo ? " " + tipo : "");
     }
 
+    // Evita quebrar HTML quando valores vêm do backend (segurança básica)
     function escapeHtml(s){
       return String(s ?? "")
         .replaceAll("&","&amp;")
@@ -417,39 +427,58 @@
     function abrirModal(idBg){ document.getElementById(idBg).style.display = "flex"; }
     function fecharModal(idBg){ document.getElementById(idBg).style.display = "none"; }
 
-    // ==========================
-    // Carregar lista
-    // ==========================
+    // ==========================================================
+    // 🔐 Carregar lista (API pode retornar HTML em erro -> NÃO usar r.json() direto)
+    // ==========================================================
     async function carregar(){
       showMsg("");
       tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
 
-const r = await fetch("/api/usuarios-listar", {
-  method: "GET",
-  credentials: "include",
-  headers: { "Accept": "application/json" }
-});
+      try{
+        const r = await fetch("/api/usuarios-listar", {
+          method: "GET",
+          credentials: "include",               // ✅ envia cookie HttpOnly de sessão
+          headers: { "Accept": "application/json" }
+        });
 
-const txt = await r.text();
-let j = null;
-try { j = JSON.parse(txt); } catch {}
+        // ✅ lê como texto primeiro para não quebrar se vier HTML/erro
+        const txt = await r.text();
+        let j = null;
+        try { j = JSON.parse(txt); } catch {}
 
-if(!r.ok || !j || !j.sucesso){
-  const m =
-    (j && j.message)
-      ? j.message
-      : (txt?.slice(0,120) || `Falha HTTP ${r.status}`);
+        if(!r.ok || !j || !j.sucesso){
+          const m = (j && j.message) ? j.message : (txt?.slice(0,120) || `Falha HTTP ${r.status}`);
+          tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900; color:#c62828;">Falha ao carregar.</td></tr>';
+          showMsg(m, "err");
+          return;
+        }
 
-  tbody.innerHTML =
-    '<tr><td colspan="6" style="padding:14px; font-weight:900; color:#c62828;">Falha ao carregar.</td></tr>';
+        // ✅ atualiza cache e renderiza
+        usuarios = j.usuarios || [];
+        render();
 
-  showMsg(m, "err");
-  return;
-}
+      } catch (e){
+        console.error("Erro ao carregar usuários:", e);
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900; color:#c62828;">Erro de rede/API.</td></tr>';
+        showMsg("Erro de rede/API. Veja o Console (F12) para detalhes.", "err");
+      }
+    }
 
-/* mantém exatamente como antes */
-usuarios = j.usuarios || [];
-render();
+    // ==========================================================
+    // Render (somente UI). IMPORTANTÍSSIMO: rows existe aqui, não em carregar()
+    // ==========================================================
+    function render(){
+      const q = (busca.value || "").trim().toLowerCase();
+
+      const rows = usuarios.filter(u => {
+        const hay = `${u.loja} ${u.usuario} ${u.perfil} ${u.id} ${u.ativo}`.toLowerCase();
+        return !q || hay.includes(q);
+      });
+
+      if(rows.length === 0){
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900;">Nenhum usuário encontrado.</td></tr>';
+        return;
+      }
 
       tbody.innerHTML = rows.map(u => {
         const pill = u.ativo === "SIM"
@@ -475,33 +504,41 @@ render();
       }).join("");
     }
 
+    // Busca em tempo real
     busca.addEventListener("input", render);
 
-    // Expor funções pro onclick inline
+    // ==========================================================
+    // Ações por linha (onclick inline) - expostas no window
+    // ==========================================================
     window.abrirEditar = (id) => {
       const u = usuarios.find(x => x.id === id);
       if(!u) return;
 
       editandoId = id;
+
       document.getElementById("editarLoja").value = u.loja || "";
       document.getElementById("editarPerfil").value = u.perfil || "";
       document.getElementById("editarAtivo").value = u.ativo || "SIM";
-      document.getElementById("msgEditar").textContent = "";
-      document.getElementById("msgEditar").className = "msg";
+
+      const out = document.getElementById("msgEditar");
+      out.textContent = "";
+      out.className = "msg";
 
       abrirModal("modalEditarBg");
     };
 
-    window.abrirReset = async (id) => {
+    window.abrirReset = (id) => {
       resetandoId = id;
 
       // Gera senha no front só para mostrar 1x (API revalida e grava hash)
       const senhaTemp = gerarSenhaTemp(10);
+
       document.getElementById("resetSenhaGerada").value = senhaTemp;
       document.getElementById("resetPrimeiroLogin").value = "SIM";
 
-      document.getElementById("msgReset").textContent = "";
-      document.getElementById("msgReset").className = "msg";
+      const out = document.getElementById("msgReset");
+      out.textContent = "";
+      out.className = "msg";
 
       abrirModal("modalResetBg");
     };
@@ -519,19 +556,26 @@ render();
 
       const r = await fetch("/api/usuarios-atualizar", {
         method: "POST",
-        headers: { "Content-Type":"application/json" },
+        credentials: "include", // ✅ mantém sessão
+        headers: { "Content-Type":"application/json", "Accept":"application/json" },
         body: JSON.stringify({ id, ativo: novo })
       });
-      const j = await r.json();
 
-      if(!r.ok || !j.sucesso){
-        alert(j.message || "Falha ao atualizar.");
+      const txt = await r.text();
+      let j = null;
+      try { j = JSON.parse(txt); } catch {}
+
+      if(!r.ok || !j || !j.sucesso){
+        alert((j && j.message) ? j.message : (txt?.slice(0,120) || "Falha ao atualizar."));
         return;
       }
 
       await carregar();
     };
 
+    // ==========================================================
+    // Gerador de senha temporária (evita caracteres confusos)
+    // ==========================================================
     function gerarSenhaTemp(len){
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#";
       let out = "";
@@ -539,10 +583,9 @@ render();
       return out;
     }
 
-    // ==========================
+    // ==========================================================
     // Modal Criar
-    // ==========================
-    const modalCriarBg = document.getElementById("modalCriarBg");
+    // ==========================================================
     const btnAbrirCriar = document.getElementById("btnAbrirCriar");
     const btnCriarCancelar = document.getElementById("btnCriarCancelar");
     const btnCriarSalvar = document.getElementById("btnCriarSalvar");
@@ -562,8 +605,10 @@ render();
       document.getElementById("criarSenhaManual").value = "";
       document.getElementById("criarPrimeiroLogin").value = "SIM";
       wrapSenhaManual.style.display = "none";
-      document.getElementById("msgCriar").textContent = "";
-      document.getElementById("msgCriar").className = "msg";
+
+      const out = document.getElementById("msgCriar");
+      out.textContent = "";
+      out.className = "msg";
 
       abrirModal("modalCriarBg");
     });
@@ -596,18 +641,22 @@ render();
 
       const r = await fetch("/api/usuarios-criar", {
         method: "POST",
-        headers: { "Content-Type":"application/json" },
+        credentials: "include", // ✅ mantém sessão
+        headers: { "Content-Type":"application/json", "Accept":"application/json" },
         body: JSON.stringify({ loja, perfil, usuario, senha, primeiroLogin })
       });
-      const j = await r.json();
 
-      if(!r.ok || !j.sucesso){
-        out.textContent = j.message || "Falha ao criar.";
+      const txt = await r.text();
+      let j = null;
+      try { j = JSON.parse(txt); } catch {}
+
+      if(!r.ok || !j || !j.sucesso){
+        out.textContent = (j && j.message) ? j.message : (txt?.slice(0,120) || "Falha ao criar.");
         out.className = "msg err";
         return;
       }
 
-      // Mostra senha (1x) se foi gerada
+      // Mostra senha (1x) se foi gerada (a API retorna a senha que recebeu)
       if(modoSenha === "gerar"){
         out.textContent = `Usuário criado. Senha temporária: ${j.senhaTemporaria || "(não retornada)"}`;
         out.className = "msg ok";
@@ -619,9 +668,9 @@ render();
       await carregar();
     });
 
-    // ==========================
+    // ==========================================================
     // Modal Editar
-    // ==========================
+    // ==========================================================
     document.getElementById("btnEditarCancelar").addEventListener("click", () => fecharModal("modalEditarBg"));
 
     document.getElementById("btnEditarSalvar").addEventListener("click", async () => {
@@ -642,13 +691,17 @@ render();
 
       const r = await fetch("/api/usuarios-atualizar", {
         method: "POST",
-        headers: { "Content-Type":"application/json" },
+        credentials: "include",
+        headers: { "Content-Type":"application/json", "Accept":"application/json" },
         body: JSON.stringify({ id: editandoId, loja, perfil, ativo })
       });
-      const j = await r.json();
 
-      if(!r.ok || !j.sucesso){
-        out.textContent = j.message || "Falha ao salvar.";
+      const txt = await r.text();
+      let j = null;
+      try { j = JSON.parse(txt); } catch {}
+
+      if(!r.ok || !j || !j.sucesso){
+        out.textContent = (j && j.message) ? j.message : (txt?.slice(0,120) || "Falha ao salvar.");
         out.className = "msg err";
         return;
       }
@@ -660,9 +713,9 @@ render();
       await carregar();
     });
 
-    // ==========================
+    // ==========================================================
     // Modal Reset
-    // ==========================
+    // ==========================================================
     document.getElementById("btnResetFechar").addEventListener("click", () => fecharModal("modalResetBg"));
 
     document.getElementById("btnResetConfirmar").addEventListener("click", async () => {
@@ -683,13 +736,17 @@ render();
 
       const r = await fetch("/api/usuarios-resetar", {
         method: "POST",
-        headers: { "Content-Type":"application/json" },
+        credentials: "include",
+        headers: { "Content-Type":"application/json", "Accept":"application/json" },
         body: JSON.stringify({ id: resetandoId, senha: senhaTemporaria, primeiroLogin })
       });
-      const j = await r.json();
 
-      if(!r.ok || !j.sucesso){
-        out.textContent = j.message || "Falha no reset.";
+      const txt = await r.text();
+      let j = null;
+      try { j = JSON.parse(txt); } catch {}
+
+      if(!r.ok || !j || !j.sucesso){
+        out.textContent = (j && j.message) ? j.message : (txt?.slice(0,120) || "Falha no reset.");
         out.className = "msg err";
         return;
       }
@@ -701,14 +758,18 @@ render();
       await carregar();
     });
 
-    // Fecha modal clicando fora
+    // ==========================================================
+    // Fechar modal clicando fora
+    // ==========================================================
     ["modalCriarBg","modalEditarBg","modalResetBg"].forEach(id => {
       document.getElementById(id).addEventListener("click", (e) => {
         if(e.target.id === id) fecharModal(id);
       });
     });
 
+    // ==========================================================
     // Start
+    // ==========================================================
     carregar();
   </script>
 </body>
