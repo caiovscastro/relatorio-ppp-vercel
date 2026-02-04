@@ -19,12 +19,25 @@
 
 .container{
   width: 92%;
-  max-width: 720px; /* antes: 520px */
+  max-width: 620px;
   background:#fff;
   padding: 22px 22px 18px;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   box-sizing: border-box;
+}
+
+/* … resto do CSS … */
+
+.hidden{ display:none !important; }
+
+/* 📱 AJUSTE MOBILE — SEM RISCO */
+@media (max-width: 480px){
+  .container{
+    width: 97%;
+    max-width: none;
+    padding: 18px 12px;
+  }
 }
 
     /* Logo */
