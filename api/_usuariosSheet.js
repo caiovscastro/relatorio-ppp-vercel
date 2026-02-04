@@ -1,156 +1,220 @@
 // /api/_usuariosSheet.js
+//
+// Helpers de USUÁRIOS (Sheets)
+// - Centraliza: ENV, Sheets client, leitura/gravação, validações
+// - IMPORTANTE: compatível com env vars padrão (GOOGLE_*/SPREADSHEET_ID)
+//   e com suas env vars PT-BR (incluindo a que tem hífen)
+//
+// Referências:
+// - Node process.env: https://nodejs.org/api/process.html#processenv
+// - Vercel env vars: https://vercel.com/docs/projects/environment-variables
+// - Google Sheets API: https://developers.google.com/sheets/api
+
 import { google } from "googleapis";
 
-const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-const spreadsheetId = process.env.SPREADSHEET_ID;
+// =============================
+// ✅ ENV (compatível com PT-BR)
+// =============================
+// Obs: variável com hífen precisa ser acessada com colchetes
+const serviceAccountEmail =
+  process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
+  process.env["E-MAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE"] ||
+  process.env.EMAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE || // se você criar sem hífen
+  "";
 
-// Aba USUARIOS (ajuste se o nome for diferente)
-const SHEET_NAME = "USUARIOS";
+const privateKeyRaw =
+  process.env.GOOGLE_PRIVATE_KEY ||
+  process.env.CHAVE_PRIVADA_DO_GOOGLE ||
+  "";
 
-function bad(res, status, message) {
+const spreadsheetId =
+  process.env.SPREADSHEET_ID ||
+  process.env.ID_DA_PLANILHA ||
+  "";
+
+const privateKey = String(privateKeyRaw || "").replace(/\\n/g, "\n");
+
+// =============================
+// Config da aba
+// =============================
+export const SHEET_NAME = "USUARIOS";
+
+// Cabeçalho padrão A:K (11 colunas) — mantém seu modelo atual
+const HEADERS_AK = [
+  "LOJAS",           // A
+  "USUARIO",         // B
+  "SENHA",           // C (hash)
+  "PERFIL",          // D
+  "ID",              // E
+  "ATIVO",           // F
+  "PRIMEIRO_LOGIN",  // G
+  "CRIADO_EM",       // H
+  "CRIADO_POR",      // I
+  "ULT_RESET_EM",    // J
+  "ULT_RESET_POR"    // K
+];
+
+// Exporta porque seu usuarios-criar.js importa "spreadsheetId"
+export { spreadsheetId };
+
+// =============================
+// Helpers padrão de resposta
+// =============================
+export function bad(res, status, message) {
   return res.status(status).json({ sucesso: false, message });
 }
-function ok(res, obj) {
+
+export function ok(res, obj) {
   return res.status(200).json(obj);
 }
 
-async function getSheetsClient() {
+// =============================
+// Sheets client
+// =============================
+export async function getSheetsClient() {
+  // ✅ Validação explícita (evita 500 “misterioso”)
+  if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
+    console.error("ENV ausente/inválida em _usuariosSheet.js:", {
+      hasEmail: !!serviceAccountEmail,
+      hasKey: !!privateKey,
+      hasSheetId: !!spreadsheetId
+    });
+    throw new Error("ENV do Google Sheets ausente/inválida (email/key/spreadsheetId).");
+  }
+
   const auth = new google.auth.JWT({
     email: serviceAccountEmail,
     key: privateKey,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
+
   return google.sheets({ version: "v4", auth });
 }
 
-/**
- * Garante que os headers recomendados existam, sem quebrar seu layout atual.
- * - Mantém A-E como você já tem.
- * - Se F+ não existirem, cria/atualiza a linha 1.
- */
-async function ensureHeaders(sheets) {
-  const range = `${SHEET_NAME}!1:1`;
+// =============================
+// Garantir cabeçalho A:K
+// - Se não existir ou estiver diferente, escreve HEADERS_AK em A1:K1
+// =============================
+export async function ensureHeaders(sheets) {
+  // Lê A1:K1
   const resp = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range,
-    majorDimension: "ROWS",
+    range: `${SHEET_NAME}!A1:K1`,
   });
 
-  const row = (resp.data.values && resp.data.values[0]) ? resp.data.values[0] : [];
+  const current = (resp.data.values && resp.data.values[0]) ? resp.data.values[0] : [];
+  const curNorm = current.map(x => String(x || "").trim().toUpperCase());
+  const expNorm = HEADERS_AK.map(x => String(x || "").trim().toUpperCase());
 
-  // Mapeia nomes existentes (case-insensitive)
-  const norm = (s) => String(s || "").trim().toUpperCase();
-  const existing = row.map(norm);
+  const igual =
+    curNorm.length >= expNorm.length &&
+    expNorm.every((h, i) => (curNorm[i] || "") === h);
 
-  // Seus headers base (A-E) conforme print
-  const base = ["LOJAS", "USUARIO", "SENHA", "PERFIL", "ID"];
+  if (igual) return true;
 
-  // Novos (F+)
-  const extra = ["ATIVO", "PRIMEIRO_LOGIN", "CRIADO_EM", "CRIADO_POR", "ULT_RESET_EM", "ULT_RESET_POR"];
-
-  // Se a linha estiver vazia, cria tudo
-  if (row.length === 0) {
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range,
-      valueInputOption: "RAW",
-      requestBody: { values: [base.concat(extra)] },
-    });
-    return;
-  }
-
-  // Garante pelo menos os base (não força rename, só preenche vazios)
-  const finalRow = row.slice();
-  for (let i = 0; i < base.length; i++) {
-    if (!finalRow[i] || !String(finalRow[i]).trim()) finalRow[i] = base[i];
-  }
-
-  // Garante extras em sequência (F+)
-  const startIdx = base.length;
-  for (let i = 0; i < extra.length; i++) {
-    const idx = startIdx + i;
-    if (!finalRow[idx] || !String(finalRow[idx]).trim()) finalRow[idx] = extra[i];
-  }
-
-  // Atualiza só se mudou algo
-  const changed = finalRow.length !== row.length || finalRow.some((v, i) => v !== row[i]);
-  if (changed) {
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range,
-      valueInputOption: "RAW",
-      requestBody: { values: [finalRow] },
-    });
-  }
-}
-
-/**
- * Busca todos usuários a partir da linha 2.
- * Retorna objetos com campos padronizados.
- */
-async function listarUsuarios(sheets) {
-  await ensureHeaders(sheets);
-
-  const range = `${SHEET_NAME}!A2:K`; // Até K para pegar colunas extras
-  const resp = await sheets.spreadsheets.values.get({ spreadsheetId, range });
-  const values = resp.data.values || [];
-
-  return values
-    .map((r) => {
-      const loja = r[0] || "";
-      const usuario = r[1] || "";
-      const senhaHashOuTexto = r[2] || "";
-      const perfil = r[3] || "";
-      const id = r[4] || "";
-      const ativo = r[5] || "SIM";
-      const primeiroLogin = r[6] || "NAO";
-
-      // Não retornamos senha/hash pro front
-      return { loja, usuario, perfil, id, ativo, primeiroLogin };
-    })
-    .filter((u) => u.usuario && u.id);
-}
-
-/**
- * Encontra a linha (1-based) pelo ID, buscando em E.
- * Retorna { rowIndex, rowValues } ou null.
- */
-async function findRowById(sheets, id) {
-  const range = `${SHEET_NAME}!A2:K`;
-  const resp = await sheets.spreadsheets.values.get({ spreadsheetId, range });
-  const values = resp.data.values || [];
-
-  for (let i = 0; i < values.length; i++) {
-    const row = values[i];
-    const rowId = row[4] || "";
-    if (String(rowId).trim() === String(id).trim()) {
-      // Linha real na planilha = i + 2 (porque começamos em A2)
-      return { rowIndex: i + 2, rowValues: row };
-    }
-  }
-  return null;
-}
-
-/**
- * Atualiza uma linha específica (por índice 1-based) com um array A-K.
- */
-async function updateRow(sheets, rowIndex, valuesAtoK) {
-  const range = `${SHEET_NAME}!A${rowIndex}:K${rowIndex}`;
+  // Escreve cabeçalho padrão
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range,
+    range: `${SHEET_NAME}!A1:K1`,
     valueInputOption: "RAW",
-    requestBody: { values: [valuesAtoK] },
+    requestBody: { values: [HEADERS_AK] },
   });
+
+  return true;
 }
 
-export {
-  bad, ok,
-  spreadsheetId, SHEET_NAME,
-  getSheetsClient,
-  listarUsuarios,
-  findRowById,
-  updateRow,
-  ensureHeaders
-};
+// =============================
+// Listar usuários
+// - Retorna objetos compatíveis com seu usuarios.html
+// =============================
+export async function listarUsuarios(sheets) {
+  // Lê dados a partir da linha 2 para baixo
+  const resp = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${SHEET_NAME}!A2:K`,
+  });
+
+  const values = resp.data.values || [];
+
+  // Monta array de usuários
+  const usuarios = values.map((r) => {
+    const row = padToK(r);
+
+    return {
+      loja: row[0] || "",
+      usuario: row[1] || "",
+      // senha (hash) fica no backend, não precisamos mandar pro front
+      perfil: row[3] || "",
+      id: row[4] || "",
+      ativo: (row[5] || "SIM") === "SIM" ? "SIM" : "NAO",
+      primeiroLogin: (row[6] || "NAO") === "SIM" ? "SIM" : "NAO",
+      criadoEm: row[7] || "",
+      criadoPor: row[8] || "",
+      ultResetEm: row[9] || "",
+      ultResetPor: row[10] || ""
+    };
+  });
+
+  // Opcional: remove linhas vazias (sem ID e sem usuário)
+  return usuarios.filter(u => (u.id || "").trim() || (u.usuario || "").trim());
+}
+
+// =============================
+// Achar linha por ID (coluna E)
+// - Retorna { rowIndex, rowValues } onde rowIndex é número real no Sheets (2..)
+// =============================
+export async function findRowById(sheets, id) {
+  const target = String(id || "").trim();
+  if (!target) return null;
+
+  // Pega coluna E (ID) a partir da linha 2
+  const resp = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${SHEET_NAME}!E2:E`,
+  });
+
+  const col = resp.data.values || [];
+  const idx0 = col.findIndex(r => String((r && r[0]) || "").trim() === target);
+  if (idx0 === -1) return null;
+
+  const rowIndex = idx0 + 2; // porque começou no E2
+
+  // Lê a linha inteira A:K dessa linha
+  const rowResp = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${SHEET_NAME}!A${rowIndex}:K${rowIndex}`,
+  });
+
+  const rowValues = (rowResp.data.values && rowResp.data.values[0]) ? rowResp.data.values[0] : [];
+  return { rowIndex, rowValues };
+}
+
+// =============================
+// Atualizar linha inteira A:K
+// - rowIndex = número real da linha no Sheets
+// - row = array A..K
+// =============================
+export async function updateRow(sheets, rowIndex, row) {
+  const i = Number(rowIndex);
+  if (!Number.isFinite(i) || i < 2) throw new Error("rowIndex inválido.");
+
+  const values = [padToK(row)];
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${SHEET_NAME}!A${i}:K${i}`,
+    valueInputOption: "RAW",
+    requestBody: { values },
+  });
+
+  return true;
+}
+
+// =============================
+// Util: garante 11 colunas (A..K)
+// =============================
+function padToK(row) {
+  const out = Array.from(row || []);
+  while (out.length < 11) out.push("");
+  return out.slice(0, 11);
+}
