@@ -1,21 +1,22 @@
 // /api/usuarios-atualizar.js
-import { requireSession } from "./authUsuarios.js";
+import { requireSession } from "./_authUsuarios.js";
 import { bad, ok, getSheetsClient, findRowById, updateRow } from "./_usuariosSheet.js";
-
-function nowBR() {
-  const d = new Date();
-  return d.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
-}
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== "POST") return bad(res, 405, "Método não permitido.");
+    if (req.method !== "POST") {
+      res.setHeader("Allow", "POST");
+      return bad(res, 405, "Método não permitido. Use POST.");
+    }
 
-    const session = await requireSession(req, res);
-    if (!session) return;
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    res.setHeader("Pragma", "no-cache");
 
-    if (session.perfil !== "ADMINISTRADOR") {
-      return bad(res, 403, "Acesso negado.");
+    const s = requireSession(req, res);
+    if (!s) return;
+
+    if (String(s.perfil || "").toUpperCase() !== "ADMINISTRADOR") {
+      return bad(res, 403, "Sessão sem permissão para este acesso.");
     }
 
     const { id, loja, perfil, ativo } = req.body || {};
@@ -25,22 +26,18 @@ export default async function handler(req, res) {
     const found = await findRowById(sheets, id);
     if (!found) return bad(res, 404, "Usuário não encontrado.");
 
-    const row = found.rowValues;
+    const row = padToK(found.rowValues);
 
-    // Índices A-K:
-    // 0 loja, 1 usuario, 2 hash, 3 perfil, 4 id, 5 ativo, 6 primeiro_login, 7 criado_em, 8 criado_por, 9 ult_reset_em, 10 ult_reset_por
     if (typeof loja === "string" && loja.trim()) row[0] = loja.trim();
-    if (typeof perfil === "string" && perfil.trim()) row[3] = perfil.trim();
+    if (typeof perfil === "string" && perfil.trim()) row[3] = perfil.trim().toUpperCase();
     if (ativo === "SIM" || ativo === "NAO") row[5] = ativo;
 
-    // Se desativou, você pode (opcional) marcar um log em colunas futuras.
-    // Mantive só o ATIVO por simplicidade.
-
-    await updateRow(sheets, found.rowIndex, padToK(row));
-    return ok(res, { sucesso: true, atualizadoEm: nowBR() });
+    await updateRow(sheets, found.rowIndex, row);
+    return ok(res, { sucesso: true });
 
   } catch (e) {
-    return bad(res, 500, "Erro ao atualizar usuário.");
+    console.error("usuarios-atualizar error:", e);
+    return bad(res, 500, "Erro interno ao atualizar usuário.");
   }
 }
 
