@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USUÁRIOS — ADMIN</title>
+
+  <style>
+    html, body { width:100%; max-width:100%; overflow-x:hidden; }
+    body{
+      background:#f3f3f3;
+      font-family: Arial, sans-serif;
+      margin: 8px;
+      color:#111;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      min-height:100vh;
+    }
+    .container{
+      width: 95%;
+      max-width: 1100px;
+      background:#fff;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      box-sizing: border-box;
+    }
+    .top{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom: 12px;
+    }
+    .title{
+      font-weight: 800;
+      font-size: 18px;
+      margin:0;
+      letter-spacing: .2px;
+    }
+    .sub{
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: rgba(0,0,0,.6);
+      font-weight: 600;
+    }
+    .leftTitle{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width: 220px;
+    }
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    input, select, button{
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+    .search{
+      padding: 10px 12px;
+      border: 1px solid rgba(0,0,0,0.18);
+      border-radius: 10px;
+      min-width: 280px;
+      outline: none;
+      background: #fff;
+    }
+    .btn{
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+    .btn-primary{ background:#0066ff; color:#fff; }
+    .btn-secondary{ background:#111; color:#fff; }
+    .btn-ghost{
+      background:#fff;
+      border: 1px solid rgba(0,0,0,0.18);
+      color:#111;
+      box-shadow: none;
+      font-weight: 800;
+      cursor:pointer;
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+    .tableWrap{
+      overflow:auto;
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 12px;
+    }
+    table{
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+      background:#fff;
+    }
+    thead th{
+      text-align:left;
+      font-size: 12px;
+      padding: 10px 10px;
+      background:#f7f7f7;
+      border-bottom: 1px solid rgba(0,0,0,0.12);
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    tbody td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      font-size: 13px;
+      font-weight: 700;
+      color:#111;
+      vertical-align: middle;
+    }
+    .pill{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      border: 1px solid rgba(0,0,0,0.14);
+    }
+    .pill-ok{ background: rgba(76,175,80,0.15); }
+    .pill-off{ background: rgba(244,67,54,0.12); }
+    .rowBtns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .mini{
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.14);
+      background:#fff;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .mini-danger{
+      border-color: rgba(244,67,54,0.35);
+      color: #c62828;
+      background: rgba(244,67,54,0.06);
+    }
+
+    /* Modal simples */
+    .modalBg{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,0.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      z-index: 9999;
+    }
+    .modal{
+      width: 100%;
+      max-width: 520px;
+      background:#fff;
+      border-radius: 14px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+      padding: 16px;
+      box-sizing:border-box;
+    }
+    .modalTitle{
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .grid1{ grid-template-columns: 1fr; }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .label{
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(0,0,0,0.75);
+    }
+    .control{
+      padding: 10px 12px;
+      border: 1px solid rgba(0,0,0,0.18);
+      border-radius: 10px;
+      outline:none;
+      background:#fff;
+      font-weight: 800;
+    }
+    .hint{
+      font-size: 11px;
+      color: rgba(0,0,0,0.6);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .modalActions{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      margin-top: 12px;
+      flex-wrap:wrap;
+    }
+    .msg{
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(0,0,0,0.75);
+    }
+    .msg.err{ color:#c62828; }
+    .msg.ok{ color:#2e7d32; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="top">
+      <div class="leftTitle">
+        <p class="title">Gestão de Usuários</p>
+        <p class="sub">Acesso exclusivo: <b>ADMINISTRADOR</b> • Ações registradas • Usuário é desativado (não apagado)</p>
+      </div>
+
+      <div class="actions">
+        <input id="busca" class="search" placeholder="Buscar por usuário, loja ou perfil..." />
+        <button class="btn btn-primary" id="btnAbrirCriar">+ Criar usuário</button>
+        <button class="btn btn-secondary" id="btnVoltar">Voltar</button>
+      </div>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>LOJA</th>
+            <th>USUÁRIO</th>
+            <th>PERFIL</th>
+            <th>STATUS</th>
+            <th>ID</th>
+            <th style="width:320px;">AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="6" style="padding:14px; font-weight:900;">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <!-- MODAL: Criar -->
+  <div class="modalBg" id="modalCriarBg">
+    <div class="modal">
+      <p class="modalTitle">Criar novo usuário</p>
+
+      <div class="grid">
+        <div class="field">
+          <div class="label">Loja</div>
+          <input class="control" id="criarLoja" placeholder="Ex: ULT 01 PLANALTINA" />
+          <div class="hint">Use o mesmo padrão que você usa no sistema.</div>
+        </div>
+        <div class="field">
+          <div class="label">Perfil</div>
+          <input class="control" id="criarPerfil" placeholder="Ex: BASE_PPP / ADMINISTRADOR" />
+          <div class="hint">A tela é bloqueada se não for ADMINISTRADOR.</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Usuário</div>
+          <input class="control" id="criarUsuario" placeholder="Ex: joao.silva" />
+          <div class="hint">Sem espaços. Ideal: minúsculo + ponto.</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Senha inicial</div>
+          <select class="control" id="criarModoSenha">
+            <option value="gerar">Gerar senha temporária</option>
+            <option value="manual">Definir manualmente</option>
+          </select>
+          <div class="hint">Recomendado: temporária + troca obrigatória.</div>
+        </div>
+      </div>
+
+      <div class="grid grid1" style="margin-top:10px;">
+        <div class="field" id="wrapSenhaManual" style="display:none;">
+          <div class="label">Senha (manual)</div>
+          <input class="control" id="criarSenhaManual" placeholder="Defina a senha..." />
+          <div class="hint">Evite senhas fracas e compartilhadas.</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Exigir troca no primeiro login</div>
+          <select class="control" id="criarPrimeiroLogin">
+            <option value="SIM">SIM</option>
+            <option value="NAO">NÃO</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn-ghost" id="btnCriarCancelar">Cancelar</button>
+        <button class="btn btn-primary" id="btnCriarSalvar">Criar</button>
+      </div>
+
+      <div class="msg" id="msgCriar"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Editar -->
+  <div class="modalBg" id="modalEditarBg">
+    <div class="modal">
+      <p class="modalTitle">Editar usuário</p>
+
+      <div class="grid">
+        <div class="field">
+          <div class="label">Loja</div>
+          <input class="control" id="editarLoja" />
+        </div>
+        <div class="field">
+          <div class="label">Perfil</div>
+          <input class="control" id="editarPerfil" />
+        </div>
+      </div>
+
+      <div class="grid grid1" style="margin-top:10px;">
+        <div class="field">
+          <div class="label">Status</div>
+          <select class="control" id="editarAtivo">
+            <option value="SIM">ATIVO</option>
+            <option value="NAO">DESATIVADO</option>
+          </select>
+          <div class="hint">Desativar não apaga: mantém histórico.</div>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn-ghost" id="btnEditarCancelar">Cancelar</button>
+        <button class="btn btn-primary" id="btnEditarSalvar">Salvar</button>
+      </div>
+
+      <div class="msg" id="msgEditar"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Reset -->
+  <div class="modalBg" id="modalResetBg">
+    <div class="modal">
+      <p class="modalTitle">Resetar senha (gera temporária)</p>
+
+      <div class="grid grid1">
+        <div class="field">
+          <div class="label">Senha temporária gerada</div>
+          <input class="control" id="resetSenhaGerada" readonly />
+          <div class="hint">Copie e envie ao usuário. (Mostrada uma vez nesta tela.)</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Exigir troca no primeiro login</div>
+          <select class="control" id="resetPrimeiroLogin">
+            <option value="SIM">SIM</option>
+            <option value="NAO">NÃO</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn-ghost" id="btnResetFechar">Fechar</button>
+        <button class="btn btn-primary" id="btnResetConfirmar">Confirmar reset</button>
+      </div>
+
+      <div class="msg" id="msgReset"></div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================
+    // Ajuste se seu "voltar" deve ir para menu.html
+    // ==========================
+    document.getElementById("btnVoltar").addEventListener("click", () => {
+      window.location.href = "menu.html";
+    });
+
+    const tbody = document.getElementById("tbody");
+    const busca = document.getElementById("busca");
+    const msg = document.getElementById("msg");
+
+    let usuarios = [];
+    let editandoId = null;
+    let resetandoId = null;
+
+    // ==========================
+    // Helpers
+    // ==========================
+    function showMsg(texto, tipo){
+      msg.textContent = texto || "";
+      msg.className = "msg" + (tipo ? " " + tipo : "");
+    }
+
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function abrirModal(idBg){ document.getElementById(idBg).style.display = "flex"; }
+    function fecharModal(idBg){ document.getElementById(idBg).style.display = "none"; }
+
+    // ==========================
+    // Carregar lista
+    // ==========================
+    async function carregar(){
+      showMsg("");
+      tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
+
+      const r = await fetch("/api/usuarios-listar");
+      const j = await r.json();
+
+      if(!r.ok || !j.sucesso){
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900; color:#c62828;">Falha ao carregar.</td></tr>';
+        showMsg(j.message || "Falha ao carregar usuários.", "err");
+        return;
+      }
+
+      usuarios = j.usuarios || [];
+      render();
+    }
+
+    function render(){
+      const q = (busca.value || "").trim().toLowerCase();
+      const rows = usuarios.filter(u => {
+        const hay = `${u.loja} ${u.usuario} ${u.perfil} ${u.id} ${u.ativo}`.toLowerCase();
+        return !q || hay.includes(q);
+      });
+
+      if(rows.length === 0){
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900;">Nenhum usuário encontrado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(u => {
+        const pill = u.ativo === "SIM"
+          ? '<span class="pill pill-ok">ATIVO</span>'
+          : '<span class="pill pill-off">DESATIVADO</span>';
+
+        return `
+          <tr>
+            <td>${escapeHtml(u.loja)}</td>
+            <td>${escapeHtml(u.usuario)}</td>
+            <td>${escapeHtml(u.perfil)}</td>
+            <td>${pill}</td>
+            <td style="font-size:12px; font-weight:900; color:rgba(0,0,0,.65);">${escapeHtml(u.id)}</td>
+            <td>
+              <div class="rowBtns">
+                <button class="mini" onclick="abrirEditar('${escapeHtml(u.id)}')">Editar</button>
+                <button class="mini" onclick="abrirReset('${escapeHtml(u.id)}')">Reset senha</button>
+                <button class="mini mini-danger" onclick="toggleAtivo('${escapeHtml(u.id)}')">${u.ativo === "SIM" ? "Desativar" : "Ativar"}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    busca.addEventListener("input", render);
+
+    // Expor funções pro onclick inline
+    window.abrirEditar = (id) => {
+      const u = usuarios.find(x => x.id === id);
+      if(!u) return;
+
+      editandoId = id;
+      document.getElementById("editarLoja").value = u.loja || "";
+      document.getElementById("editarPerfil").value = u.perfil || "";
+      document.getElementById("editarAtivo").value = u.ativo || "SIM";
+      document.getElementById("msgEditar").textContent = "";
+      document.getElementById("msgEditar").className = "msg";
+
+      abrirModal("modalEditarBg");
+    };
+
+    window.abrirReset = async (id) => {
+      resetandoId = id;
+
+      // Gera senha no front só para mostrar 1x (API revalida e grava hash)
+      const senhaTemp = gerarSenhaTemp(10);
+      document.getElementById("resetSenhaGerada").value = senhaTemp;
+      document.getElementById("resetPrimeiroLogin").value = "SIM";
+
+      document.getElementById("msgReset").textContent = "";
+      document.getElementById("msgReset").className = "msg";
+
+      abrirModal("modalResetBg");
+    };
+
+    window.toggleAtivo = async (id) => {
+      const u = usuarios.find(x => x.id === id);
+      if(!u) return;
+
+      const novo = (u.ativo === "SIM") ? "NAO" : "SIM";
+
+      if(novo === "NAO"){
+        const ok = confirm(`Desativar o usuário "${u.usuario}"?`);
+        if(!ok) return;
+      }
+
+      const r = await fetch("/api/usuarios-atualizar", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ id, ativo: novo })
+      });
+      const j = await r.json();
+
+      if(!r.ok || !j.sucesso){
+        alert(j.message || "Falha ao atualizar.");
+        return;
+      }
+
+      await carregar();
+    };
+
+    function gerarSenhaTemp(len){
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#";
+      let out = "";
+      crypto.getRandomValues(new Uint32Array(len)).forEach(n => out += chars[n % chars.length]);
+      return out;
+    }
+
+    // ==========================
+    // Modal Criar
+    // ==========================
+    const modalCriarBg = document.getElementById("modalCriarBg");
+    const btnAbrirCriar = document.getElementById("btnAbrirCriar");
+    const btnCriarCancelar = document.getElementById("btnCriarCancelar");
+    const btnCriarSalvar = document.getElementById("btnCriarSalvar");
+
+    const criarModoSenha = document.getElementById("criarModoSenha");
+    const wrapSenhaManual = document.getElementById("wrapSenhaManual");
+
+    criarModoSenha.addEventListener("change", () => {
+      wrapSenhaManual.style.display = (criarModoSenha.value === "manual") ? "flex" : "none";
+    });
+
+    btnAbrirCriar.addEventListener("click", () => {
+      document.getElementById("criarLoja").value = "";
+      document.getElementById("criarPerfil").value = "";
+      document.getElementById("criarUsuario").value = "";
+      document.getElementById("criarModoSenha").value = "gerar";
+      document.getElementById("criarSenhaManual").value = "";
+      document.getElementById("criarPrimeiroLogin").value = "SIM";
+      wrapSenhaManual.style.display = "none";
+      document.getElementById("msgCriar").textContent = "";
+      document.getElementById("msgCriar").className = "msg";
+
+      abrirModal("modalCriarBg");
+    });
+
+    btnCriarCancelar.addEventListener("click", () => fecharModal("modalCriarBg"));
+
+    btnCriarSalvar.addEventListener("click", async () => {
+      const loja = document.getElementById("criarLoja").value.trim();
+      const perfil = document.getElementById("criarPerfil").value.trim();
+      const usuario = document.getElementById("criarUsuario").value.trim();
+      const modoSenha = document.getElementById("criarModoSenha").value;
+      const primeiroLogin = document.getElementById("criarPrimeiroLogin").value;
+
+      let senha = "";
+      if(modoSenha === "manual"){
+        senha = document.getElementById("criarSenhaManual").value.trim();
+      } else {
+        senha = gerarSenhaTemp(10);
+      }
+
+      const out = document.getElementById("msgCriar");
+      out.textContent = "";
+      out.className = "msg";
+
+      if(!loja || !perfil || !usuario || !senha){
+        out.textContent = "Preencha todos os campos obrigatórios.";
+        out.className = "msg err";
+        return;
+      }
+
+      const r = await fetch("/api/usuarios-criar", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ loja, perfil, usuario, senha, primeiroLogin })
+      });
+      const j = await r.json();
+
+      if(!r.ok || !j.sucesso){
+        out.textContent = j.message || "Falha ao criar.";
+        out.className = "msg err";
+        return;
+      }
+
+      // Mostra senha (1x) se foi gerada
+      if(modoSenha === "gerar"){
+        out.textContent = `Usuário criado. Senha temporária: ${j.senhaTemporaria || "(não retornada)"}`;
+        out.className = "msg ok";
+      } else {
+        out.textContent = "Usuário criado com senha manual.";
+        out.className = "msg ok";
+      }
+
+      await carregar();
+    });
+
+    // ==========================
+    // Modal Editar
+    // ==========================
+    document.getElementById("btnEditarCancelar").addEventListener("click", () => fecharModal("modalEditarBg"));
+
+    document.getElementById("btnEditarSalvar").addEventListener("click", async () => {
+      const loja = document.getElementById("editarLoja").value.trim();
+      const perfil = document.getElementById("editarPerfil").value.trim();
+      const ativo = document.getElementById("editarAtivo").value;
+
+      const out = document.getElementById("msgEditar");
+      out.textContent = "";
+      out.className = "msg";
+
+      if(!editandoId) return;
+      if(!loja || !perfil){
+        out.textContent = "Loja e Perfil são obrigatórios.";
+        out.className = "msg err";
+        return;
+      }
+
+      const r = await fetch("/api/usuarios-atualizar", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ id: editandoId, loja, perfil, ativo })
+      });
+      const j = await r.json();
+
+      if(!r.ok || !j.sucesso){
+        out.textContent = j.message || "Falha ao salvar.";
+        out.className = "msg err";
+        return;
+      }
+
+      out.textContent = "Atualizado com sucesso.";
+      out.className = "msg ok";
+
+      fecharModal("modalEditarBg");
+      await carregar();
+    });
+
+    // ==========================
+    // Modal Reset
+    // ==========================
+    document.getElementById("btnResetFechar").addEventListener("click", () => fecharModal("modalResetBg"));
+
+    document.getElementById("btnResetConfirmar").addEventListener("click", async () => {
+      const out = document.getElementById("msgReset");
+      out.textContent = "";
+      out.className = "msg";
+
+      if(!resetandoId) return;
+
+      const senhaTemporaria = document.getElementById("resetSenhaGerada").value.trim();
+      const primeiroLogin = document.getElementById("resetPrimeiroLogin").value;
+
+      if(!senhaTemporaria){
+        out.textContent = "Senha temporária inválida.";
+        out.className = "msg err";
+        return;
+      }
+
+      const r = await fetch("/api/usuarios-resetar", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ id: resetandoId, senha: senhaTemporaria, primeiroLogin })
+      });
+      const j = await r.json();
+
+      if(!r.ok || !j.sucesso){
+        out.textContent = j.message || "Falha no reset.";
+        out.className = "msg err";
+        return;
+      }
+
+      out.textContent = "Senha resetada e hash gravado com sucesso.";
+      out.className = "msg ok";
+
+      fecharModal("modalResetBg");
+      await carregar();
+    });
+
+    // Fecha modal clicando fora
+    ["modalCriarBg","modalEditarBg","modalResetBg"].forEach(id => {
+      document.getElementById(id).addEventListener("click", (e) => {
+        if(e.target.id === id) fecharModal(id);
+      });
+    });
+
+    // Start
+    carregar();
+  </script>
+</body>
+</html>
