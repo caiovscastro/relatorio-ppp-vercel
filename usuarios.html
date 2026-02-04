@@ -424,30 +424,32 @@
       showMsg("");
       tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
 
-      const r = await fetch("/api/usuarios-listar");
-      const j = await r.json();
+const r = await fetch("/api/usuarios-listar", {
+  method: "GET",
+  credentials: "include",
+  headers: { "Accept": "application/json" }
+});
 
-      if(!r.ok || !j.sucesso){
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900; color:#c62828;">Falha ao carregar.</td></tr>';
-        showMsg(j.message || "Falha ao carregar usuários.", "err");
-        return;
-      }
+const txt = await r.text();
+let j = null;
+try { j = JSON.parse(txt); } catch {}
 
-      usuarios = j.usuarios || [];
-      render();
-    }
+if(!r.ok || !j || !j.sucesso){
+  const m =
+    (j && j.message)
+      ? j.message
+      : (txt?.slice(0,120) || `Falha HTTP ${r.status}`);
 
-    function render(){
-      const q = (busca.value || "").trim().toLowerCase();
-      const rows = usuarios.filter(u => {
-        const hay = `${u.loja} ${u.usuario} ${u.perfil} ${u.id} ${u.ativo}`.toLowerCase();
-        return !q || hay.includes(q);
-      });
+  tbody.innerHTML =
+    '<tr><td colspan="6" style="padding:14px; font-weight:900; color:#c62828;">Falha ao carregar.</td></tr>';
 
-      if(rows.length === 0){
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900;">Nenhum usuário encontrado.</td></tr>';
-        return;
-      }
+  showMsg(m, "err");
+  return;
+}
+
+/* mantém exatamente como antes */
+usuarios = j.usuarios || [];
+render();
 
       tbody.innerHTML = rows.map(u => {
         const pill = u.ativo === "SIM"
