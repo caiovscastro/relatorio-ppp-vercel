@@ -5,24 +5,42 @@
 // - Valida perfil permitido
 // - Cria sessão (cookie HttpOnly assinado) com expiração em 8 horas
 //
-// Requer ENV:
+// Requer ENV (padrão):
 // - GOOGLE_SERVICE_ACCOUNT_EMAIL
 // - GOOGLE_PRIVATE_KEY
 // - SPREADSHEET_ID
 // - SESSION_SECRET  (>= 32 chars)
 //
+// Compatível também com suas ENV em PT-BR:
+// - "E-MAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE" (atenção: tem hífen, precisa de colchetes)
+// - CHAVE_PRIVADA_DO_GOOGLE
+// - ID_DA_PLANILHA
+//
 // Observações:
 // 1) Em DEV (HTTP), cookie Secure pode não gravar. O ajuste disso está no _authUsuarios.js.
-// 2) Hoje a senha está em texto na planilha. Funciona, mas é um risco de segurança.
-//    Ideal: armazenar hash (bcrypt) e comparar.
+// 2) Senha agora pode estar em HASH (bcrypt) na planilha. O login usa bcrypt.compare().
 
 import { google } from "googleapis";
+import bcrypt from "bcryptjs";
 import { createSessionCookie } from "./_authUsuarios.js";
 
 // ====== LEITURA DAS VARIÁVEIS DE AMBIENTE ======
-const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
-const spreadsheetId = process.env.SPREADSHEET_ID;
+// ✅ Fallback para suas env vars PT-BR (inclui a que tem hífen)
+const serviceAccountEmail =
+  process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
+  process.env["E-MAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE"] ||
+  process.env.EMAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE ||
+  "";
+
+const privateKeyRaw =
+  process.env.GOOGLE_PRIVATE_KEY ||
+  process.env.CHAVE_PRIVADA_DO_GOOGLE ||
+  "";
+
+const spreadsheetId =
+  process.env.SPREADSHEET_ID ||
+  process.env.ID_DA_PLANILHA ||
+  "";
 
 // Conserta as quebras de linha da chave privada (Vercel costuma salvar com \n literal)
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
@@ -30,12 +48,11 @@ const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 // Loga erro de configuração (não derruba automaticamente aqui, porque o handler também valida)
 if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
   console.error(
-    "[/api/login] Configuração Google incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e SPREADSHEET_ID."
+    "[/api/login] Configuração Google incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL/GOOGLE_PRIVATE_KEY/SPREADSHEET_ID (ou as versões PT-BR)."
   );
 }
 
 // ====== Helpers de normalização ======
-// Evita falhas por espaços duplos, variação de caixa etc.
 function normLower(s) {
   return String(s || "")
     .trim()
@@ -51,8 +68,8 @@ function normUpper(s) {
 }
 
 // ====== FUNÇÃO AUXILIAR: CARREGAR USUÁRIOS DA ABA USUARIOS ======
-// Espera colunas:
-// A=LOJA, B=USUARIO, C=SENHA, D=PERFIL
+// Sua aba já está usando A..D no login atual.
+// (Obs: sua gestão de usuários usa mais colunas, mas isso não atrapalha.)
 async function carregarUsuarios() {
   const auth = new google.auth.JWT(
     serviceAccountEmail,
@@ -73,13 +90,12 @@ async function carregarUsuarios() {
 
   const rows = resp.data.values || [];
 
-  // Normaliza para comparação consistente
   return rows.map((row) => {
     const [loja, usuario, senha, perfil] = row;
     return {
       loja: String(loja || "").trim(),
       usuario: String(usuario || "").trim(),
-      senha: String(senha || "").trim(),
+      senha: String(senha || "").trim(), // pode ser hash bcrypt ou texto (legado)
       perfil: normUpper(perfil || ""),
     };
   });
@@ -87,7 +103,6 @@ async function carregarUsuarios() {
 
 // ====== HANDLER PRINCIPAL ======
 export default async function handler(req, res) {
-  // Protege método
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res
@@ -95,16 +110,14 @@ export default async function handler(req, res) {
       .json({ sucesso: false, message: "Método não permitido. Use POST." });
   }
 
-  // Valida configuração Google
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
       sucesso: false,
       message:
-        "Configuração da API incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e SPREADSHEET_ID.",
+        "Configuração da API incompleta. Verifique GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY e SPREADSHEET_ID (ou as versões PT-BR).",
     });
   }
 
-  // ✅ Ajuste crítico: validar SESSION_SECRET antes de tentar criar cookie
   const secret = String(process.env.SESSION_SECRET || "").trim();
   if (!secret || secret.length < 32) {
     return res.status(500).json({
@@ -115,7 +128,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Body esperado
     const { usuario, senha, loja } = req.body || {};
 
     if (!usuario || !senha || !loja) {
@@ -133,17 +145,11 @@ export default async function handler(req, res) {
     // Carrega usuários da planilha
     const usuarios = await carregarUsuarios();
 
-    // Procura correspondência exata (com normalização)
+    // ✅ Primeiro encontra por USUÁRIO + LOJA
     const encontrado = usuarios.find((u) => {
       const lojaPlanilha = normLower(u.loja);
       const usuarioPlanilha = normLower(u.usuario);
-      const senhaPlanilha = String(u.senha || "").trim();
-
-      return (
-        usuarioPlanilha === usuarioInput &&
-        senhaPlanilha === senhaInput &&
-        lojaPlanilha === lojaInput
-      );
+      return usuarioPlanilha === usuarioInput && lojaPlanilha === lojaInput;
     });
 
     if (!encontrado) {
@@ -153,7 +159,28 @@ export default async function handler(req, res) {
       });
     }
 
-    // Perfis permitidos para este sistema
+    // ✅ Agora valida senha:
+    // - Se a planilha tiver hash bcrypt ($2a$..., $2b$...), usa bcrypt.compare()
+    // - Se ainda tiver texto (legado), compara direto (mantém compatibilidade)
+    const senhaPlanilha = String(encontrado.senha || "").trim();
+    let okSenha = false;
+
+    if (/^\$2[aby]\$\d{2}\$/.test(senhaPlanilha)) {
+      // HASH bcrypt
+      okSenha = await bcrypt.compare(senhaInput, senhaPlanilha);
+    } else {
+      // Legado: senha em texto
+      okSenha = (senhaPlanilha === senhaInput);
+    }
+
+    if (!okSenha) {
+      return res.status(401).json({
+        sucesso: false,
+        message: "Usuário, senha ou loja inválidos.",
+      });
+    }
+
+    // Perfis permitidos
     const perfil = normUpper(encontrado.perfil || "");
     const perfisPermitidos = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
 
@@ -164,8 +191,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ✅ Cria cookie de sessão HttpOnly assinado (8h)
-    // Importante: createSessionCookie(res, session, opts)
+    // Cria cookie de sessão (8h)
     createSessionCookie(
       res,
       {
@@ -173,11 +199,9 @@ export default async function handler(req, res) {
         loja: encontrado.loja,
         perfil,
       },
-      { ttlSec: 60 * 60 * 8 } // 8 horas
+      { ttlSec: 60 * 60 * 8 }
     );
 
-    // Retorna sucesso para o front.
-    // Boa prática alternativa (opcional): retornar só sucesso/message e deixar o front chamar /api/session.
     return res.status(200).json({
       sucesso: true,
       message: "Login autorizado.",
