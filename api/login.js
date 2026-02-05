@@ -6,15 +6,6 @@
 // - Suporta senha em hash bcrypt (coluna C) e legado (texto)
 // - Identifica primeiro login (coluna G) para exigir troca de senha
 // - Cria sessão via cookie HttpOnly assinado (8h)
-//
-// Requer ENV:
-// - GOOGLE_SERVICE_ACCOUNT_EMAIL
-// - GOOGLE_PRIVATE_KEY
-// - SPREADSHEET_ID
-// - SESSION_SECRET (>= 32 chars)
-//
-// Observação:
-// - Se você usa outras ENV “PT-BR”, mantenha os fallbacks abaixo.
 
 import { google } from "googleapis";
 import bcrypt from "bcryptjs";
@@ -48,22 +39,58 @@ function normUpper(s) {
   return String(s || "").trim().toUpperCase().replace(/\s+/g, " ");
 }
 
+// ====== Helpers retry/backoff (Google 500/503/429) ======
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function getGoogleStatus(err) {
+  // googleapis costuma preencher err.code (number) e/ou err.response.status
+  const c = err?.code;
+  const s = err?.response?.status;
+  const status = Number.isFinite(Number(c)) ? Number(c) : (Number.isFinite(Number(s)) ? Number(s) : null);
+  return status;
+}
+
+function isTransientGoogleError(status) {
+  return status === 429 || status === 500 || status === 503;
+}
+
+async function withRetry(fn, { tries = 4, baseMs = 250 } = {}) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const status = getGoogleStatus(err);
+      if (!isTransientGoogleError(status)) throw err;
+
+      // backoff exponencial com jitter leve
+      const wait = Math.round(baseMs * Math.pow(2, i) + Math.random() * 120);
+      await sleep(wait);
+    }
+  }
+  throw lastErr;
+}
+
 // ====== Carrega usuários (A..G) ======
 // A=LOJA, B=USUARIO, C=SENHA, D=PERFIL, E=ID, F=ATIVO, G=PRIMEIRO_LOGIN
 async function carregarUsuarios() {
-  const auth = new google.auth.JWT(
-    serviceAccountEmail,
-    null,
-    privateKey,
-    ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-  );
+  const auth = new google.auth.JWT({
+    email: serviceAccountEmail,
+    key: privateKey,
+    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+  });
+
   const sheets = google.sheets({ version: "v4", auth });
 
-  const resp = await sheets.spreadsheets.values.get({
+  // ⚠️ aqui é onde o Google está te devolvendo o 500
+  const resp = await withRetry(() => sheets.spreadsheets.values.get({
     spreadsheetId,
     range: "USUARIOS!A2:G",
     valueRenderOption: "FORMATTED_VALUE",
-  });
+  }));
 
   const rows = resp.data.values || [];
   return rows.map((row) => {
@@ -80,7 +107,6 @@ async function carregarUsuarios() {
 }
 
 export default async function handler(req, res) {
-  // Anti-cache (evita respostas velhas em proxy/CDN)
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   res.setHeader("Pragma", "no-cache");
 
@@ -114,9 +140,23 @@ export default async function handler(req, res) {
     const lojaInput = normLower(loja);
     const senhaInput = String(senha).trim();
 
-    const usuarios = await carregarUsuarios();
+    let usuarios;
+    try {
+      usuarios = await carregarUsuarios();
+    } catch (err) {
+      const st = getGoogleStatus(err);
+      // Se for falha transitória do Google, devolve 503 amigável
+      if (isTransientGoogleError(st)) {
+        console.error("[/api/login] Google Sheets instável:", st, err?.message || err);
+        return res.status(503).json({
+          sucesso: false,
+          message: "Instabilidade ao consultar o Google Planilhas. Tente novamente em alguns segundos.",
+        });
+      }
+      // senão, cai no catch geral
+      throw err;
+    }
 
-    // 1) acha por usuário + loja
     const encontrado = usuarios.find(
       (u) => normLower(u.usuario) === usuarioInput && normLower(u.loja) === lojaInput
     );
@@ -125,7 +165,6 @@ export default async function handler(req, res) {
       return res.status(401).json({ sucesso: false, message: "Usuário, senha ou loja inválidos." });
     }
 
-    // 2) bloqueia desativado
     if (String(encontrado.ativo || "SIM") !== "SIM") {
       return res.status(403).json({
         sucesso: false,
@@ -133,7 +172,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // 3) valida senha (hash bcrypt ou texto legado)
     const senhaPlanilha = String(encontrado.senha || "").trim();
     const ehHashBcrypt = /^\$2[aby]\$\d{2}\$/.test(senhaPlanilha);
 
@@ -145,17 +183,14 @@ export default async function handler(req, res) {
       return res.status(401).json({ sucesso: false, message: "Usuário, senha ou loja inválidos." });
     }
 
-    // 4) valida perfil
     const perfil = normUpper(encontrado.perfil || "");
     const perfisPermitidos = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
     if (!perfisPermitidos.includes(perfil)) {
       return res.status(403).json({ sucesso: false, message: "Usuário não habilitado para este acesso." });
     }
 
-    // 5) primeiro login?
     const precisaTrocar = (String(encontrado.primeiroLogin || "NAO") === "SIM");
 
-    // 6) cria cookie (8h)
     createSessionCookie(
       res,
       { usuario: encontrado.usuario, loja: encontrado.loja, perfil },
