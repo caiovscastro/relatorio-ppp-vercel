@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <!-- ✅ mantido -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>USUÁRIOS — ADMIN</title>
 
@@ -25,11 +26,14 @@
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
       box-sizing: border-box;
+
+      /* ✅ (2) evita “deslocar” pro lado e zoom estranho */
+      overflow: hidden;
     }
     .top{
       display:flex;
       gap:10px;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       flex-wrap:wrap;
       margin-bottom: 12px;
@@ -51,26 +55,40 @@
       flex-direction:column;
       gap:2px;
       min-width: 220px;
+      flex: 1 1 220px;
     }
+
+    /* ✅ (1) actions agora é 3 selects + botões (sem input de busca) */
     .actions{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
       align-items:center;
       justify-content:flex-end;
+      flex: 2 1 420px;
+      max-width: 100%;
     }
+
     input, select, button{
       font-family: Arial, sans-serif;
       font-size: 14px;
+      max-width: 100%;
     }
-    .search{
+
+    /* ✅ (2) selects responsivos (não estouram no celular) */
+    .filterSelect{
       padding: 10px 12px;
       border: 1px solid rgba(0,0,0,0.18);
       border-radius: 10px;
-      min-width: 280px;
       outline: none;
       background: #fff;
+      font-weight: 800;
+
+      min-width: 180px;
+      flex: 1 1 180px;
+      max-width: 100%;
     }
+
     .btn{
       border: none;
       border-radius: 10px;
@@ -78,6 +96,8 @@
       font-weight: 800;
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      flex: 0 0 auto;
+      white-space: nowrap;
     }
     .btn-primary{ background:#0066ff; color:#fff; }
     .btn-secondary{ background:#111; color:#fff; }
@@ -91,10 +111,12 @@
       padding: 10px 12px;
       border-radius: 10px;
     }
+
     .tableWrap{
       overflow:auto;
       border: 1px solid rgba(0,0,0,0.12);
       border-radius: 12px;
+      max-width: 100%;
     }
     table{
       width: 100%;
@@ -110,6 +132,7 @@
       border-bottom: 1px solid rgba(0,0,0,0.12);
       font-weight: 900;
       letter-spacing: .2px;
+      white-space: nowrap;
     }
     tbody td{
       padding: 10px 10px;
@@ -118,6 +141,7 @@
       font-weight: 700;
       color:#111;
       vertical-align: middle;
+      white-space: nowrap;
     }
     .pill{
       display:inline-block;
@@ -126,6 +150,7 @@
       font-size: 11px;
       font-weight: 900;
       border: 1px solid rgba(0,0,0,0.14);
+      white-space: nowrap;
     }
     .pill-ok{ background: rgba(76,175,80,0.15); }
     .pill-off{ background: rgba(244,67,54,0.12); }
@@ -133,6 +158,7 @@
       display:flex;
       gap:8px;
       flex-wrap:wrap;
+      white-space: normal;
     }
     .mini{
       padding: 8px 10px;
@@ -142,11 +168,20 @@
       cursor:pointer;
       font-weight: 900;
       font-size: 12px;
+      white-space: nowrap;
     }
     .mini-danger{
       border-color: rgba(244,67,54,0.35);
       color: #c62828;
       background: rgba(244,67,54,0.06);
+    }
+
+    /* ✅ (3) ID encurtado (visível 8 primeiros) */
+    .idShort{
+      font-size:12px;
+      font-weight:900;
+      color:rgba(0,0,0,.65);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
     /* Modal simples */
@@ -167,6 +202,7 @@
       box-shadow: 0 18px 40px rgba(0,0,0,0.28);
       padding: 16px;
       box-sizing:border-box;
+      max-width: min(520px, 92vw);
     }
     .modalTitle{
       margin: 0 0 10px;
@@ -183,6 +219,7 @@
       display:flex;
       flex-direction:column;
       gap:6px;
+      min-width: 0;
     }
     .label{
       font-size: 12px;
@@ -196,8 +233,10 @@
       outline:none;
       background:#fff;
       font-weight: 800;
+      width: 100%;
+      box-sizing: border-box;
     }
-    .hint{ /* ✅ mantido no CSS, mas não usado (você pediu sem textos abaixo) */
+    .hint{
       font-size: 11px;
       color: rgba(0,0,0,0.6);
       font-weight: 700;
@@ -218,6 +257,57 @@
     }
     .msg.err{ color:#c62828; }
     .msg.ok{ color:#2e7d32; }
+
+    /* ✅ (2) ajuste forte pro celular: evita “estouro” e deixa selects 100% */
+    @media (max-width: 640px){
+      body{ margin: 6px; }
+      .container{ width: 98%; padding: 14px; }
+      .actions{ justify-content: flex-start; }
+      .filterSelect{ flex: 1 1 100%; min-width: 0; width: 100%; }
+      .btn{ width: auto; }
+      table{ min-width: 820px; } /* mantém a tabela rolável */
+    }
+
+    /* ✅ (4) sugestões abaixo do input de usuário */
+    .suggestBox{
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 10px;
+      background:#fff;
+      padding: 8px 10px;
+      max-height: 160px;
+      overflow:auto;
+      display:none;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+    }
+    .suggestItem{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding: 8px 8px;
+      border-radius: 8px;
+      cursor:pointer;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .suggestItem:hover{
+      background: rgba(0,0,0,0.04);
+    }
+    .suggestUser{
+      color:#111;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      max-width: 55%;
+    }
+    .suggestLoja{
+      color: rgba(0,0,0,0.6);
+      font-weight: 800;
+      text-align:right;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      max-width: 45%;
+    }
   </style>
 </head>
 
@@ -230,7 +320,12 @@
       </div>
 
       <div class="actions">
-        <input id="busca" class="search" placeholder="Buscar por usuário, loja ou perfil..." />
+        <!-- ✅ (1) 3 seletores (dados vêm da própria aba via /api/usuarios-listar) -->
+        <select id="fLoja" class="filterSelect" title="Filtrar por Loja"></select>
+        <select id="fPerfil" class="filterSelect" title="Filtrar por Perfil"></select>
+        <select id="fUsuario" class="filterSelect" title="Filtrar por Usuário"></select>
+
+        <!-- ✅ botões mantidos com cores/estilo -->
         <button class="btn btn-primary" id="btnAbrirCriar">+ Criar usuário</button>
         <button class="btn btn-secondary" id="btnVoltar">Voltar</button>
       </div>
@@ -267,19 +362,19 @@
       <div class="grid">
         <div class="field">
           <div class="label">Loja</div>
-          <!-- ✅ (1) Loja virou seletor com todas as lojas -->
           <select class="control" id="criarLoja"></select>
         </div>
 
         <div class="field">
           <div class="label">Perfil</div>
-          <!-- ✅ (2) Perfil virou seletor fixo -->
           <select class="control" id="criarPerfil"></select>
         </div>
 
-        <div class="field">
+        <div class="field" style="grid-column: 1 / -1;">
           <div class="label">Usuário</div>
-          <input class="control" id="criarUsuario" placeholder="Ex: joao.silva" />
+          <!-- ✅ (4) autocomplete/sugestões -->
+          <input class="control" id="criarUsuario" placeholder="Ex: joao.silva" autocomplete="off" />
+          <div id="suggestBox" class="suggestBox"></div>
         </div>
 
         <div class="field">
@@ -325,13 +420,11 @@
       <div class="grid">
         <div class="field">
           <div class="label">Loja</div>
-          <!-- ✅ (1) Loja virou seletor no editar -->
           <select class="control" id="editarLoja"></select>
         </div>
 
         <div class="field">
           <div class="label">Perfil</div>
-          <!-- ✅ (2) Perfil virou seletor no editar -->
           <select class="control" id="editarPerfil"></select>
         </div>
       </div>
@@ -343,7 +436,6 @@
             <option value="SIM">ATIVO</option>
             <option value="NAO">DESATIVADO</option>
           </select>
-          <!-- ✅ (3) removido texto abaixo (hint) -->
         </div>
       </div>
 
@@ -367,8 +459,6 @@
         <div class="field">
           <div class="label">Senha temporária gerada</div>
           <input class="control" id="resetSenhaGerada" readonly />
-          <!-- ✅ mantive esse texto porque NÃO é “texto abaixo de caixa” do criar/editar,
-               mas se você quiser remover também, eu removo. -->
         </div>
 
         <div class="field">
@@ -391,97 +481,22 @@
 
   <script>
     // ==========================================================
-    // ✅ LISTAS FIXAS (Loja / Perfil)
-    // - Mantém consistência e evita erro de digitação
-    // ==========================================================
-    const LOJAS = [
-      "BIG 01 - 106 NORTE",
-      "BIG 02 - 402 NORTE",
-      "BIG 03 - 413 SUL",
-      "BIG 04 - 301 SW",
-      "BIG 05 - 408 NORTE",
-      "BIG 06 - SIBERIA",
-      "BIG 08 - 503 SUL",
-      "BIG 09 - PENÍNSULA",
-      "BIG 10 - PAINEIRAS",
-      "BIG 11 - 310 NORTE",
-      "BIG 12 - 208 NORTE",
-      "BIG 13 - QI-05 L. NORTE",
-      "BIG 14 - 508 SUL",
-      "BIG 15 - 105 SW",
-      "BIG 16 - 512 SUL",
-      "BIG 17 - QI-11 LAGO SUL",
-      "BIG 18 - 211 NORTE",
-      "BIG 19 - CASTANHEIRA",
-      "BIG 20 - TAGUATINGA C1",
-      "BIG 21 - CNB12",
-      "BIG 22 - 102 NOROESTE",
-      "BIG 23 - QI-23 LAGO SUL",
-      "BIG 24 - 314 NORTE",
-      "BIG 25 - 410 SUL",
-      "ULT 01 - PLANALTINA",
-      "ULT 02 - GAMA",
-      "ULT 03 - COLORADO",
-      "ULT 04 - CEI SUL",
-      "ULT 05 - POLO JK",
-      "ULT 06 - SOBRADINHO",
-      "ULT 07 - ADE",
-      "ULT 08 - ARAPOANGA",
-      "ULT 09 - CEI NORTE",
-      "ULT 10 - ESTRUTURAL",
-      "ULT 11 - ITAPOA",
-      "ULT 12 - SAO SEBASTIAO",
-      "ULT 13 - RECANTO",
-      "ULT 14 - AGUAS LINDAS",
-      "ULT 15 - SOL NASCENTE",
-      "ULT 16 - PARANOA PARK",
-      "ULT 17 - SAMAMBAIA",
-      "ULT 18 - BRAZLANDIA",
-      "ULT 19 - VIA PARK",
-      "ULT 20 - TAGUATINGA",
-      "ULT 22 - VICENTE PIRES",
-      "ULT 23 - SANTA MARIA",
-      "ULT 25 - BRASILINHA",
-      "MATRIZ",
-      "INDUSPAN",
-      "TOTAL DISTRIBUICAO"
-    ];
-
-    const PERFIS = ["BASE_PPP", "GERENTE_PPP", "ADMINISTRADOR"];
-
-    // Preenche um <select> com opções de lista
-    function fillSelect(sel, values, placeholder){
-      sel.innerHTML = "";
-
-      // placeholder opcional
-      if (placeholder) {
-        const op0 = document.createElement("option");
-        op0.value = "";
-        op0.textContent = placeholder;
-        sel.appendChild(op0);
-      }
-
-      for (const v of values){
-        const op = document.createElement("option");
-        op.value = v;
-        op.textContent = v;
-        sel.appendChild(op);
-      }
-    }
-
-    // ==========================================================
-    // ⚠️ Voltar: você pediu para voltar ao menu.html (não login)
+    // ⚠️ Voltar: voltar ao menu.html (não login)
     // ==========================================================
     document.getElementById("btnVoltar").addEventListener("click", () => {
       window.location.href = "menu.html";
     });
 
     // ==========================================================
-    // Cache de elementos
+    // Cache de elementos (UI)
     // ==========================================================
     const tbody = document.getElementById("tbody");
-    const busca = document.getElementById("busca");
     const msg = document.getElementById("msg");
+
+    // ✅ filtros novos
+    const fLoja = document.getElementById("fLoja");
+    const fPerfil = document.getElementById("fPerfil");
+    const fUsuario = document.getElementById("fUsuario");
 
     let usuarios = [];       // cache da lista carregada
     let editandoId = null;   // id atual em edição
@@ -495,7 +510,6 @@
       msg.className = "msg" + (tipo ? " " + tipo : "");
     }
 
-    // Evita quebrar HTML quando valores vêm do backend (segurança básica)
     function escapeHtml(s){
       return String(s ?? "")
         .replaceAll("&","&amp;")
@@ -509,6 +523,43 @@
     function fecharModal(idBg){ document.getElementById(idBg).style.display = "none"; }
 
     // ==========================================================
+    // Utils de lista (select)
+    // ==========================================================
+    function uniqSorted(arr){
+      return Array.from(new Set(arr.filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b), "pt-BR"));
+    }
+
+    function fillSelect(sel, values, placeholder){
+      sel.innerHTML = "";
+      const op0 = document.createElement("option");
+      op0.value = "";
+      op0.textContent = placeholder || "Todos";
+      sel.appendChild(op0);
+
+      for (const v of values){
+        const op = document.createElement("option");
+        op.value = v;
+        op.textContent = v;
+        sel.appendChild(op);
+      }
+    }
+
+    // ==========================================================
+    // ✅ (1) pega a loja do login atual para default do filtro
+    // ==========================================================
+    async function getMinhaLojaDaSessao(){
+      try{
+        const r = await fetch("/api/session", { method:"GET", credentials:"include", headers:{ "Accept":"application/json" } });
+        if(!r.ok) return "";
+        const j = await r.json().catch(()=>null);
+        if(!j || !j.sucesso) return "";
+        return String(j.loja || "").trim();
+      }catch{
+        return "";
+      }
+    }
+
+    // ==========================================================
     // 🔐 Carregar lista (API pode retornar HTML em erro -> NÃO usar r.json() direto)
     // ==========================================================
     async function carregar(){
@@ -518,11 +569,10 @@
       try{
         const r = await fetch("/api/usuarios-listar", {
           method: "GET",
-          credentials: "include",               // ✅ envia cookie HttpOnly de sessão
+          credentials: "include",
           headers: { "Accept": "application/json" }
         });
 
-        // ✅ lê como texto primeiro para não quebrar se vier HTML/erro
         const txt = await r.text();
         let j = null;
         try { j = JSON.parse(txt); } catch {}
@@ -534,8 +584,25 @@
           return;
         }
 
-        // ✅ atualiza cache e renderiza
         usuarios = j.usuarios || [];
+
+        // ✅ popula selects com dados reais da planilha (A loja, B usuário, D perfil)
+        const lojas = uniqSorted(usuarios.map(u => String(u.loja||"").trim()));
+        const perfis = uniqSorted(usuarios.map(u => String(u.perfil||"").trim().toUpperCase()));
+        const users  = uniqSorted(usuarios.map(u => String(u.usuario||"").trim()));
+
+        fillSelect(fLoja, lojas, "Todas as lojas");
+        fillSelect(fPerfil, perfis, "Todos os perfis");
+        fillSelect(fUsuario, users, "Todos os usuários");
+
+        // ✅ define default do filtro loja = loja da sessão (se existir na lista)
+        const minhaLoja = await getMinhaLojaDaSessao();
+        if(minhaLoja){
+          // só seta se existir na lista
+          const existe = lojas.includes(minhaLoja);
+          if(existe) fLoja.value = minhaLoja;
+        }
+
         render();
 
       } catch (e){
@@ -546,14 +613,18 @@
     }
 
     // ==========================================================
-    // Render (somente UI)
+    // ✅ Render com filtros (Loja/Perfil/Usuário)
     // ==========================================================
     function render(){
-      const q = (busca.value || "").trim().toLowerCase();
+      const lojaF = (fLoja.value || "").trim();
+      const perfilF = (fPerfil.value || "").trim().toUpperCase();
+      const userF = (fUsuario.value || "").trim();
 
       const rows = usuarios.filter(u => {
-        const hay = `${u.loja} ${u.usuario} ${u.perfil} ${u.id} ${u.ativo}`.toLowerCase();
-        return !q || hay.includes(q);
+        if(lojaF && String(u.loja||"").trim() !== lojaF) return false;
+        if(perfilF && String(u.perfil||"").trim().toUpperCase() !== perfilF) return false;
+        if(userF && String(u.usuario||"").trim() !== userF) return false;
+        return true;
       });
 
       if(rows.length === 0){
@@ -566,13 +637,18 @@
           ? '<span class="pill pill-ok">ATIVO</span>'
           : '<span class="pill pill-off">DESATIVADO</span>';
 
+        // ✅ (3) id só 8 primeiros
+        const idFull = String(u.id || "");
+        const id8 = idFull ? idFull.slice(0,8) : "";
+        const idTitle = escapeHtml(idFull);
+
         return `
           <tr>
             <td>${escapeHtml(u.loja)}</td>
             <td>${escapeHtml(u.usuario)}</td>
             <td>${escapeHtml(u.perfil)}</td>
             <td>${pill}</td>
-            <td style="font-size:12px; font-weight:900; color:rgba(0,0,0,.65);">${escapeHtml(u.id)}</td>
+            <td class="idShort" title="${idTitle}">${escapeHtml(id8)}</td>
             <td>
               <div class="rowBtns">
                 <button class="mini" onclick="abrirEditar('${escapeHtml(u.id)}')">Editar</button>
@@ -585,8 +661,10 @@
       }).join("");
     }
 
-    // Busca em tempo real
-    busca.addEventListener("input", render);
+    // ✅ atualiza em tempo real ao trocar filtros
+    fLoja.addEventListener("change", render);
+    fPerfil.addEventListener("change", render);
+    fUsuario.addEventListener("change", render);
 
     // ==========================================================
     // Ações por linha (onclick inline) - expostas no window
@@ -597,7 +675,6 @@
 
       editandoId = id;
 
-      // ✅ Seleciona os valores atuais nos selects
       document.getElementById("editarLoja").value = u.loja || "";
       document.getElementById("editarPerfil").value = (u.perfil || "").toUpperCase();
       document.getElementById("editarAtivo").value = u.ativo || "SIM";
@@ -612,7 +689,6 @@
     window.abrirReset = (id) => {
       resetandoId = id;
 
-      // Gera senha no front só para mostrar 1x (API revalida e grava hash)
       const senhaTemp = gerarSenhaTemp(10);
 
       document.getElementById("resetSenhaGerada").value = senhaTemp;
@@ -638,7 +714,7 @@
 
       const r = await fetch("/api/usuarios-atualizar", {
         method: "POST",
-        credentials: "include", // ✅ mantém sessão
+        credentials: "include",
         headers: { "Content-Type":"application/json", "Accept":"application/json" },
         body: JSON.stringify({ id, ativo: novo })
       });
@@ -675,12 +751,28 @@
     const criarModoSenha = document.getElementById("criarModoSenha");
     const wrapSenhaManual = document.getElementById("wrapSenhaManual");
 
+    const criarUsuario = document.getElementById("criarUsuario");
+    const suggestBox = document.getElementById("suggestBox");
+
+    // ✅ listas fixas continuam sendo usadas para os SELECTs de criar/editar (mantém padrão)
+    //    (mas os filtros do topo vêm da planilha via /api/usuarios-listar)
+    const LOJAS_FIXAS = [
+      "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE","BIG 06 - SIBERIA",
+      "BIG 08 - 503 SUL","BIG 09 - PENÍNSULA","BIG 10 - PAINEIRAS","BIG 11 - 310 NORTE","BIG 12 - 208 NORTE","BIG 13 - QI-05 L. NORTE",
+      "BIG 14 - 508 SUL","BIG 15 - 105 SW","BIG 16 - 512 SUL","BIG 17 - QI-11 LAGO SUL","BIG 18 - 211 NORTE","BIG 19 - CASTANHEIRA",
+      "BIG 20 - TAGUATINGA C1","BIG 21 - CNB12","BIG 22 - 102 NOROESTE","BIG 23 - QI-23 LAGO SUL","BIG 24 - 314 NORTE","BIG 25 - 410 SUL",
+      "ULT 01 - PLANALTINA","ULT 02 - GAMA","ULT 03 - COLORADO","ULT 04 - CEI SUL","ULT 05 - POLO JK","ULT 06 - SOBRADINHO","ULT 07 - ADE",
+      "ULT 08 - ARAPOANGA","ULT 09 - CEI NORTE","ULT 10 - ESTRUTURAL","ULT 11 - ITAPOA","ULT 12 - SAO SEBASTIAO","ULT 13 - RECANTO",
+      "ULT 14 - AGUAS LINDAS","ULT 15 - SOL NASCENTE","ULT 16 - PARANOA PARK","ULT 17 - SAMAMBAIA","ULT 18 - BRAZLANDIA","ULT 19 - VIA PARK",
+      "ULT 20 - TAGUATINGA","ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 25 - BRASILINHA","MATRIZ","INDUSPAN","TOTAL DISTRIBUICAO"
+    ];
+    const PERFIS_FIXOS = ["BASE_PPP", "GERENTE_PPP", "ADMINISTRADOR"];
+
     criarModoSenha.addEventListener("change", () => {
       wrapSenhaManual.style.display = (criarModoSenha.value === "manual") ? "flex" : "none";
     });
 
     btnAbrirCriar.addEventListener("click", () => {
-      // ✅ limpa campos
       document.getElementById("criarLoja").value = "";
       document.getElementById("criarPerfil").value = "";
       document.getElementById("criarUsuario").value = "";
@@ -689,17 +781,19 @@
       document.getElementById("criarPrimeiroLogin").value = "SIM";
       wrapSenhaManual.style.display = "none";
 
+      hideSuggest();
+
       const out = document.getElementById("msgCriar");
       out.textContent = "";
       out.className = "msg";
 
       abrirModal("modalCriarBg");
+      setTimeout(() => document.getElementById("criarUsuario").focus(), 50);
     });
 
     btnCriarCancelar.addEventListener("click", () => fecharModal("modalCriarBg"));
 
     btnCriarSalvar.addEventListener("click", async () => {
-      // ✅ agora vem dos SELECTs
       const loja = document.getElementById("criarLoja").value.trim();
       const perfil = document.getElementById("criarPerfil").value.trim();
       const usuario = document.getElementById("criarUsuario").value.trim();
@@ -717,7 +811,6 @@
       out.textContent = "";
       out.className = "msg";
 
-      // ✅ validação mantém compatibilidade do backend
       if(!loja || !perfil || !usuario || !senha){
         out.textContent = "Preencha todos os campos obrigatórios.";
         out.className = "msg err";
@@ -726,7 +819,7 @@
 
       const r = await fetch("/api/usuarios-criar", {
         method: "POST",
-        credentials: "include", // ✅ mantém sessão
+        credentials: "include",
         headers: { "Content-Type":"application/json", "Accept":"application/json" },
         body: JSON.stringify({ loja, perfil, usuario, senha, primeiroLogin })
       });
@@ -741,7 +834,6 @@
         return;
       }
 
-      // Mostra senha (1x) se foi gerada (a API retorna a senha que recebeu)
       if(modoSenha === "gerar"){
         out.textContent = `Usuário criado. Senha temporária: ${j.senhaTemporaria || "(não retornada)"}`;
         out.className = "msg ok";
@@ -754,12 +846,87 @@
     });
 
     // ==========================================================
+    // ✅ (4) Sugestões de usuário (mostra usuário + lojas onde existe)
+    // - Baseado no cache "usuarios" carregado da planilha
+    // ==========================================================
+    function buildUserLojaMap(){
+      const map = new Map(); // user -> Set(lojas)
+      for(const u of usuarios){
+        const user = String(u.usuario||"").trim();
+        const loja = String(u.loja||"").trim();
+        if(!user) continue;
+        if(!map.has(user)) map.set(user, new Set());
+        if(loja) map.get(user).add(loja);
+      }
+      return map;
+    }
+
+    function showSuggest(items){
+      if(!items || items.length === 0){
+        hideSuggest();
+        return;
+      }
+      suggestBox.innerHTML = items.map(it => {
+        return `<div class="suggestItem" data-user="${escapeHtml(it.user)}">
+          <div class="suggestUser">${escapeHtml(it.user)}</div>
+          <div class="suggestLoja">${escapeHtml(it.lojas)}</div>
+        </div>`;
+      }).join("");
+      suggestBox.style.display = "block";
+
+      // clique: preenche o campo
+      Array.from(suggestBox.querySelectorAll(".suggestItem")).forEach(el=>{
+        el.addEventListener("click", ()=>{
+          const u = el.getAttribute("data-user") || "";
+          criarUsuario.value = u;
+          hideSuggest();
+          criarUsuario.focus();
+        });
+      });
+    }
+
+    function hideSuggest(){
+      suggestBox.style.display = "none";
+      suggestBox.innerHTML = "";
+    }
+
+    criarUsuario.addEventListener("input", () => {
+      const q = String(criarUsuario.value || "").trim().toLowerCase();
+      if(q.length < 1){
+        hideSuggest();
+        return;
+      }
+
+      const map = buildUserLojaMap();
+      const allUsers = Array.from(map.keys());
+
+      const matches = allUsers
+        .filter(u => u.toLowerCase().includes(q))
+        .slice(0, 12)
+        .map(user => {
+          const lojas = Array.from(map.get(user) || []);
+          // mostra até 3 lojas, e “+N” se tiver mais
+          const max = 3;
+          const shown = lojas.slice(0, max);
+          const rest = lojas.length - shown.length;
+          const lojasTxt = rest > 0 ? `${shown.join(" • ")} • +${rest}` : shown.join(" • ");
+          return { user, lojas: lojasTxt || "-" };
+        });
+
+      showSuggest(matches);
+    });
+
+    criarUsuario.addEventListener("blur", () => {
+      // pequeno delay pra permitir clique na sugestão
+      setTimeout(()=>hideSuggest(), 180);
+    });
+
+    // ==========================================================
     // Modal Editar
     // ==========================================================
     document.getElementById("btnEditarCancelar").addEventListener("click", () => fecharModal("modalEditarBg"));
 
     document.getElementById("btnEditarSalvar").addEventListener("click", async () => {
-      // ✅ agora vem dos SELECTs
       const loja = document.getElementById("editarLoja").value.trim();
       const perfil = document.getElementById("editarPerfil").value.trim();
       const ativo = document.getElementById("editarAtivo").value;
@@ -854,28 +1021,26 @@
     });
 
     // ==========================================================
-    // ✅ Inicialização dos SELECTs (Loja / Perfil)
-    // - Isso garante que tanto Criar quanto Editar usem a mesma lista
+    // ✅ Inicialização dos SELECTs (Criar/Editar) com listas fixas
+    // - Mantém como você já tinha e evita digitação errada
     // ==========================================================
-    function initSelectors(){
+    function initSelectorsFixos(){
       const criarLoja = document.getElementById("criarLoja");
       const editarLoja = document.getElementById("editarLoja");
       const criarPerfil = document.getElementById("criarPerfil");
       const editarPerfil = document.getElementById("editarPerfil");
 
-      // Loja: com placeholder "Selecione..."
-      fillSelect(criarLoja, LOJAS, "Selecione...");
-      fillSelect(editarLoja, LOJAS, "Selecione...");
+      fillSelect(criarLoja, LOJAS_FIXAS, "Selecione...");
+      fillSelect(editarLoja, LOJAS_FIXAS, "Selecione...");
 
-      // Perfil: com placeholder "Selecione..."
-      fillSelect(criarPerfil, PERFIS, "Selecione...");
-      fillSelect(editarPerfil, PERFIS, "Selecione...");
+      fillSelect(criarPerfil, PERFIS_FIXOS, "Selecione...");
+      fillSelect(editarPerfil, PERFIS_FIXOS, "Selecione...");
     }
 
     // ==========================================================
     // Start
     // ==========================================================
-    initSelectors();
+    initSelectorsFixos();
     carregar();
   </script>
 </body>
