@@ -197,7 +197,7 @@
       background:#fff;
       font-weight: 800;
     }
-    .hint{
+    .hint{ /* ✅ mantido no CSS, mas não usado (você pediu sem textos abaixo) */
       font-size: 11px;
       color: rgba(0,0,0,0.6);
       font-weight: 700;
@@ -226,7 +226,7 @@
     <div class="top">
       <div class="leftTitle">
         <p class="title">Gestão de Usuários</p>
-        <p class="sub">Acesso exclusivo: <b>ADMINISTRADOR</b> • Ações registradas • Usuário é desativado (não apagado)</p>
+        <p class="sub">Acesso exclusivo: <b>ADMINISTRADOR</b></p>
       </div>
 
       <div class="actions">
@@ -267,19 +267,19 @@
       <div class="grid">
         <div class="field">
           <div class="label">Loja</div>
-          <input class="control" id="criarLoja" placeholder="Ex: ULT 01 PLANALTINA" />
-          <div class="hint">Use o mesmo padrão que você usa no sistema.</div>
+          <!-- ✅ (1) Loja virou seletor com todas as lojas -->
+          <select class="control" id="criarLoja"></select>
         </div>
+
         <div class="field">
           <div class="label">Perfil</div>
-          <input class="control" id="criarPerfil" placeholder="Ex: BASE_PPP / ADMINISTRADOR" />
-          <div class="hint">A tela é bloqueada se não for ADMINISTRADOR.</div>
+          <!-- ✅ (2) Perfil virou seletor fixo -->
+          <select class="control" id="criarPerfil"></select>
         </div>
 
         <div class="field">
           <div class="label">Usuário</div>
           <input class="control" id="criarUsuario" placeholder="Ex: joao.silva" />
-          <div class="hint">Sem espaços. Ideal: minúsculo + ponto.</div>
         </div>
 
         <div class="field">
@@ -288,7 +288,6 @@
             <option value="gerar">Gerar senha temporária</option>
             <option value="manual">Definir manualmente</option>
           </select>
-          <div class="hint">Recomendado: temporária + troca obrigatória.</div>
         </div>
       </div>
 
@@ -296,7 +295,6 @@
         <div class="field" id="wrapSenhaManual" style="display:none;">
           <div class="label">Senha (manual)</div>
           <input class="control" id="criarSenhaManual" placeholder="Defina a senha..." />
-          <div class="hint">Evite senhas fracas e compartilhadas.</div>
         </div>
 
         <div class="field">
@@ -327,11 +325,14 @@
       <div class="grid">
         <div class="field">
           <div class="label">Loja</div>
-          <input class="control" id="editarLoja" />
+          <!-- ✅ (1) Loja virou seletor no editar -->
+          <select class="control" id="editarLoja"></select>
         </div>
+
         <div class="field">
           <div class="label">Perfil</div>
-          <input class="control" id="editarPerfil" />
+          <!-- ✅ (2) Perfil virou seletor no editar -->
+          <select class="control" id="editarPerfil"></select>
         </div>
       </div>
 
@@ -342,7 +343,7 @@
             <option value="SIM">ATIVO</option>
             <option value="NAO">DESATIVADO</option>
           </select>
-          <div class="hint">Desativar não apaga: mantém histórico.</div>
+          <!-- ✅ (3) removido texto abaixo (hint) -->
         </div>
       </div>
 
@@ -366,7 +367,8 @@
         <div class="field">
           <div class="label">Senha temporária gerada</div>
           <input class="control" id="resetSenhaGerada" readonly />
-          <div class="hint">Copie e envie ao usuário. (Mostrada uma vez nesta tela.)</div>
+          <!-- ✅ mantive esse texto porque NÃO é “texto abaixo de caixa” do criar/editar,
+               mas se você quiser remover também, eu removo. -->
         </div>
 
         <div class="field">
@@ -388,6 +390,85 @@
   </div>
 
   <script>
+    // ==========================================================
+    // ✅ LISTAS FIXAS (Loja / Perfil)
+    // - Mantém consistência e evita erro de digitação
+    // ==========================================================
+    const LOJAS = [
+      "BIG 01 - 106 NORTE",
+      "BIG 02 - 402 NORTE",
+      "BIG 03 - 413 SUL",
+      "BIG 04 - 301 SW",
+      "BIG 05 - 408 NORTE",
+      "BIG 06 - SIBERIA",
+      "BIG 08 - 503 SUL",
+      "BIG 09 - PENÍNSULA",
+      "BIG 10 - PAINEIRAS",
+      "BIG 11 - 310 NORTE",
+      "BIG 12 - 208 NORTE",
+      "BIG 13 - QI-05 L. NORTE",
+      "BIG 14 - 508 SUL",
+      "BIG 15 - 105 SW",
+      "BIG 16 - 512 SUL",
+      "BIG 17 - QI-11 LAGO SUL",
+      "BIG 18 - 211 NORTE",
+      "BIG 19 - CASTANHEIRA",
+      "BIG 20 - TAGUATINGA C1",
+      "BIG 21 - CNB12",
+      "BIG 22 - 102 NOROESTE",
+      "BIG 23 - QI-23 LAGO SUL",
+      "BIG 24 - 314 NORTE",
+      "BIG 25 - 410 SUL",
+      "ULT 01 - PLANALTINA",
+      "ULT 02 - GAMA",
+      "ULT 03 - COLORADO",
+      "ULT 04 - CEI SUL",
+      "ULT 05 - POLO JK",
+      "ULT 06 - SOBRADINHO",
+      "ULT 07 - ADE",
+      "ULT 08 - ARAPOANGA",
+      "ULT 09 - CEI NORTE",
+      "ULT 10 - ESTRUTURAL",
+      "ULT 11 - ITAPOA",
+      "ULT 12 - SAO SEBASTIAO",
+      "ULT 13 - RECANTO",
+      "ULT 14 - AGUAS LINDAS",
+      "ULT 15 - SOL NASCENTE",
+      "ULT 16 - PARANOA PARK",
+      "ULT 17 - SAMAMBAIA",
+      "ULT 18 - BRAZLANDIA",
+      "ULT 19 - VIA PARK",
+      "ULT 20 - TAGUATINGA",
+      "ULT 22 - VICENTE PIRES",
+      "ULT 23 - SANTA MARIA",
+      "ULT 25 - BRASILINHA",
+      "MATRIZ",
+      "INDUSPAN",
+      "TOTAL DISTRIBUICAO"
+    ];
+
+    const PERFIS = ["BASE_PPP", "GERENTE_PPP", "ADMINISTRADOR"];
+
+    // Preenche um <select> com opções de lista
+    function fillSelect(sel, values, placeholder){
+      sel.innerHTML = "";
+
+      // placeholder opcional
+      if (placeholder) {
+        const op0 = document.createElement("option");
+        op0.value = "";
+        op0.textContent = placeholder;
+        sel.appendChild(op0);
+      }
+
+      for (const v of values){
+        const op = document.createElement("option");
+        op.value = v;
+        op.textContent = v;
+        sel.appendChild(op);
+      }
+    }
+
     // ==========================================================
     // ⚠️ Voltar: você pediu para voltar ao menu.html (não login)
     // ==========================================================
@@ -465,7 +546,7 @@
     }
 
     // ==========================================================
-    // Render (somente UI). IMPORTANTÍSSIMO: rows existe aqui, não em carregar()
+    // Render (somente UI)
     // ==========================================================
     function render(){
       const q = (busca.value || "").trim().toLowerCase();
@@ -516,8 +597,9 @@
 
       editandoId = id;
 
+      // ✅ Seleciona os valores atuais nos selects
       document.getElementById("editarLoja").value = u.loja || "";
-      document.getElementById("editarPerfil").value = u.perfil || "";
+      document.getElementById("editarPerfil").value = (u.perfil || "").toUpperCase();
       document.getElementById("editarAtivo").value = u.ativo || "SIM";
 
       const out = document.getElementById("msgEditar");
@@ -598,6 +680,7 @@
     });
 
     btnAbrirCriar.addEventListener("click", () => {
+      // ✅ limpa campos
       document.getElementById("criarLoja").value = "";
       document.getElementById("criarPerfil").value = "";
       document.getElementById("criarUsuario").value = "";
@@ -616,6 +699,7 @@
     btnCriarCancelar.addEventListener("click", () => fecharModal("modalCriarBg"));
 
     btnCriarSalvar.addEventListener("click", async () => {
+      // ✅ agora vem dos SELECTs
       const loja = document.getElementById("criarLoja").value.trim();
       const perfil = document.getElementById("criarPerfil").value.trim();
       const usuario = document.getElementById("criarUsuario").value.trim();
@@ -633,6 +717,7 @@
       out.textContent = "";
       out.className = "msg";
 
+      // ✅ validação mantém compatibilidade do backend
       if(!loja || !perfil || !usuario || !senha){
         out.textContent = "Preencha todos os campos obrigatórios.";
         out.className = "msg err";
@@ -674,6 +759,7 @@
     document.getElementById("btnEditarCancelar").addEventListener("click", () => fecharModal("modalEditarBg"));
 
     document.getElementById("btnEditarSalvar").addEventListener("click", async () => {
+      // ✅ agora vem dos SELECTs
       const loja = document.getElementById("editarLoja").value.trim();
       const perfil = document.getElementById("editarPerfil").value.trim();
       const ativo = document.getElementById("editarAtivo").value;
@@ -768,8 +854,28 @@
     });
 
     // ==========================================================
+    // ✅ Inicialização dos SELECTs (Loja / Perfil)
+    // - Isso garante que tanto Criar quanto Editar usem a mesma lista
+    // ==========================================================
+    function initSelectors(){
+      const criarLoja = document.getElementById("criarLoja");
+      const editarLoja = document.getElementById("editarLoja");
+      const criarPerfil = document.getElementById("criarPerfil");
+      const editarPerfil = document.getElementById("editarPerfil");
+
+      // Loja: com placeholder "Selecione..."
+      fillSelect(criarLoja, LOJAS, "Selecione...");
+      fillSelect(editarLoja, LOJAS, "Selecione...");
+
+      // Perfil: com placeholder "Selecione..."
+      fillSelect(criarPerfil, PERFIS, "Selecione...");
+      fillSelect(editarPerfil, PERFIS, "Selecione...");
+    }
+
+    // ==========================================================
     // Start
     // ==========================================================
+    initSelectors();
     carregar();
   </script>
 </body>
