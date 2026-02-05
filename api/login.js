@@ -85,12 +85,13 @@ async function carregarUsuarios() {
 
   const sheets = google.sheets({ version: "v4", auth });
 
-  // ⚠️ aqui é onde o Google está te devolvendo o 500
-  const resp = await withRetry(() => sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range: "USUARIOS!A2:G",
-    valueRenderOption: "FORMATTED_VALUE",
-  }));
+  const resp = await withRetry(() =>
+    sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "USUARIOS!A2:G",
+      valueRenderOption: "FORMATTED_VALUE",
+    })
+  );
 
   const rows = resp.data.values || [];
   return rows.map((row) => {
@@ -145,7 +146,6 @@ export default async function handler(req, res) {
       usuarios = await carregarUsuarios();
     } catch (err) {
       const st = getGoogleStatus(err);
-      // Se for falha transitória do Google, devolve 503 amigável
       if (isTransientGoogleError(st)) {
         console.error("[/api/login] Google Sheets instável:", st, err?.message || err);
         return res.status(503).json({
@@ -153,7 +153,6 @@ export default async function handler(req, res) {
           message: "Instabilidade ao consultar o Google Planilhas. Tente novamente em alguns segundos.",
         });
       }
-      // senão, cai no catch geral
       throw err;
     }
 
@@ -189,11 +188,19 @@ export default async function handler(req, res) {
       return res.status(403).json({ sucesso: false, message: "Usuário não habilitado para este acesso." });
     }
 
+    // ✅ primeiro login?
     const precisaTrocar = (String(encontrado.primeiroLogin || "NAO") === "SIM");
 
+    // ✅ ÚNICA MUDANÇA FUNCIONAL:
+    // se precisa trocar, o cookie já sai "travado" (forcePwdChange)
     createSessionCookie(
       res,
-      { usuario: encontrado.usuario, loja: encontrado.loja, perfil },
+      {
+        usuario: encontrado.usuario,
+        loja: encontrado.loja,
+        perfil,
+        forcePwdChange: precisaTrocar
+      },
       { ttlSec: 60 * 60 * 8 }
     );
 
