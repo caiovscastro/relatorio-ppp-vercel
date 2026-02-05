@@ -1,9 +1,26 @@
 // api/login.js
+//
+// Login PPP
+// - Valida usuário + loja na aba USUARIOS
+// - Bloqueia usuário desativado (coluna F)
+// - Suporta senha em hash bcrypt (coluna C) e legado (texto)
+// - Identifica primeiro login (coluna G) para exigir troca de senha
+// - Cria sessão via cookie HttpOnly assinado (8h)
+//
+// Requer ENV:
+// - GOOGLE_SERVICE_ACCOUNT_EMAIL
+// - GOOGLE_PRIVATE_KEY
+// - SPREADSHEET_ID
+// - SESSION_SECRET (>= 32 chars)
+//
+// Observação:
+// - Se você usa outras ENV “PT-BR”, mantenha os fallbacks abaixo.
+
 import { google } from "googleapis";
 import bcrypt from "bcryptjs";
 import { createSessionCookie } from "./_authUsuarios.js";
 
-// ✅ ENV com fallback PT-BR (inclui variável com hífen)
+// ====== ENV (padrão + fallback PT-BR) ======
 const serviceAccountEmail =
   process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
   process.env["E-MAIL_DA_CONTA_DE_SERVICO_DO_GOOGLE"] ||
@@ -20,8 +37,10 @@ const spreadsheetId =
   process.env.ID_DA_PLANILHA ||
   "";
 
+// Corrige \n literal (Vercel)
 const privateKey = privateKeyRaw ? privateKeyRaw.replace(/\\n/g, "\n") : null;
 
+// ====== Normalização ======
 function normLower(s) {
   return String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -29,7 +48,8 @@ function normUpper(s) {
   return String(s || "").trim().toUpperCase().replace(/\s+/g, " ");
 }
 
-// Agora lê até G para pegar ATIVO e PRIMEIRO_LOGIN
+// ====== Carrega usuários (A..G) ======
+// A=LOJA, B=USUARIO, C=SENHA, D=PERFIL, E=ID, F=ATIVO, G=PRIMEIRO_LOGIN
 async function carregarUsuarios() {
   const auth = new google.auth.JWT(
     serviceAccountEmail,
@@ -37,25 +57,21 @@ async function carregarUsuarios() {
     privateKey,
     ["https://www.googleapis.com/auth/spreadsheets.readonly"]
   );
-
   const sheets = google.sheets({ version: "v4", auth });
-
-  const range = "USUARIOS!A2:G";
 
   const resp = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range,
+    range: "USUARIOS!A2:G",
     valueRenderOption: "FORMATTED_VALUE",
   });
 
   const rows = resp.data.values || [];
-
   return rows.map((row) => {
-    const [loja, usuario, senha, perfil, _id, ativo, primeiroLogin] = row;
+    const [loja, usuario, senha, perfil, _id, ativo, primeiroLogin] = row || [];
     return {
       loja: String(loja || "").trim(),
       usuario: String(usuario || "").trim(),
-      senha: String(senha || "").trim(), // hash bcrypt ou texto antigo
+      senha: String(senha || "").trim(),
       perfil: normUpper(perfil || ""),
       ativo: String(ativo || "SIM").trim().toUpperCase(),
       primeiroLogin: String(primeiroLogin || "NAO").trim().toUpperCase(),
@@ -64,6 +80,10 @@ async function carregarUsuarios() {
 }
 
 export default async function handler(req, res) {
+  // Anti-cache (evita respostas velhas em proxy/CDN)
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ sucesso: false, message: "Método não permitido. Use POST." });
@@ -72,7 +92,7 @@ export default async function handler(req, res) {
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
     return res.status(500).json({
       sucesso: false,
-      message: "Configuração da API incompleta. Verifique as variáveis de ambiente.",
+      message: "Configuração Google incompleta (ENV).",
     });
   }
 
@@ -91,14 +111,14 @@ export default async function handler(req, res) {
     }
 
     const usuarioInput = normLower(usuario);
-    const senhaInput = String(senha).trim();
     const lojaInput = normLower(loja);
+    const senhaInput = String(senha).trim();
 
     const usuarios = await carregarUsuarios();
 
-    // 1) encontra por usuário + loja
-    const encontrado = usuarios.find((u) =>
-      normLower(u.usuario) === usuarioInput && normLower(u.loja) === lojaInput
+    // 1) acha por usuário + loja
+    const encontrado = usuarios.find(
+      (u) => normLower(u.usuario) === usuarioInput && normLower(u.loja) === lojaInput
     );
 
     if (!encontrado) {
@@ -106,44 +126,39 @@ export default async function handler(req, res) {
     }
 
     // 2) bloqueia desativado
-    if (String(encontrado.ativo || "SIM").toUpperCase() !== "SIM") {
+    if (String(encontrado.ativo || "SIM") !== "SIM") {
       return res.status(403).json({
         sucesso: false,
         message: "Usuário desativado. Procure um ADMINISTRADOR.",
       });
     }
 
-    // 3) valida senha (bcrypt ou legado)
+    // 3) valida senha (hash bcrypt ou texto legado)
     const senhaPlanilha = String(encontrado.senha || "").trim();
-    let okSenha = false;
+    const ehHashBcrypt = /^\$2[aby]\$\d{2}\$/.test(senhaPlanilha);
 
-    if (/^\$2[aby]\$\d{2}\$/.test(senhaPlanilha)) {
-      okSenha = await bcrypt.compare(senhaInput, senhaPlanilha);
-    } else {
-      okSenha = (senhaPlanilha === senhaInput);
-    }
+    const okSenha = ehHashBcrypt
+      ? await bcrypt.compare(senhaInput, senhaPlanilha)
+      : (senhaPlanilha === senhaInput);
 
     if (!okSenha) {
       return res.status(401).json({ sucesso: false, message: "Usuário, senha ou loja inválidos." });
     }
 
+    // 4) valida perfil
     const perfil = normUpper(encontrado.perfil || "");
     const perfisPermitidos = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
     if (!perfisPermitidos.includes(perfil)) {
       return res.status(403).json({ sucesso: false, message: "Usuário não habilitado para este acesso." });
     }
 
-    // ✅ Se for primeiro login, cria sessão travada (forcePwdChange)
-    const precisaTrocar = (String(encontrado.primeiroLogin || "NAO").toUpperCase() === "SIM");
+    // 5) primeiro login?
+    const precisaTrocar = (String(encontrado.primeiroLogin || "NAO") === "SIM");
 
+    // 6) cria cookie (8h)
     createSessionCookie(
       res,
-      {
-        usuario: encontrado.usuario,
-        loja: encontrado.loja,
-        perfil,
-        forcePwdChange: precisaTrocar
-      },
+      { usuario: encontrado.usuario, loja: encontrado.loja, perfil },
       { ttlSec: 60 * 60 * 8 }
     );
 
@@ -153,7 +168,7 @@ export default async function handler(req, res) {
       usuario: encontrado.usuario,
       loja: encontrado.loja,
       perfil,
-      requirePasswordChange: precisaTrocar
+      requirePasswordChange: precisaTrocar,
     });
 
   } catch (erro) {
