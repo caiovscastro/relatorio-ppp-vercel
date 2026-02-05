@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TROCAR SENHA — PPP</title>
+  <style>
+    html, body{ width:100%; max-width:100%; overflow-x:hidden; }
+    body{
+      background:#f3f3f3;
+      font-family: Arial, sans-serif;
+      margin: 8px;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      color:#111;
+    }
+    .container{
+      width: 92%;
+      max-width: 460px;
+      background:#fff;
+      padding: 22px 22px 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      box-sizing:border-box;
+    }
+    .title{
+      margin: 0 0 6px;
+      font-size: 18px;
+      font-weight: 900;
+      text-align:center;
+    }
+    .sub{
+      margin: 0 0 14px;
+      font-size: 12px;
+      text-align:center;
+      color: rgba(0,0,0,.65);
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .field{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+    .label{ font-size:12px; font-weight:900; color: rgba(0,0,0,.75); }
+    .control{
+      padding: 10px 12px;
+      border: 1px solid rgba(0,0,0,0.18);
+      border-radius: 10px;
+      outline:none;
+      font-weight: 800;
+    }
+    .btn{
+      width:100%;
+      margin-top: 14px;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 15px;
+      background:#0066ff;
+      color:#fff;
+    }
+    .btn:hover{ background:#0050cc; }
+    .msg{
+      margin-top: 12px;
+      text-align:center;
+      font-weight: 900;
+      font-size: 12px;
+      min-height: 18px;
+      color: rgba(0,0,0,.75);
+    }
+    .msg.err{ color:#c62828; }
+    .msg.ok{ color:#2e7d32; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p class="title">Troca de senha obrigatória</p>
+    <p class="sub">Você está usando uma senha temporária. Defina uma nova senha para continuar.</p>
+
+    <div class="field">
+      <div class="label">Senha atual (temporária)</div>
+      <input id="senhaAtual" class="control" type="password" autocomplete="current-password" />
+    </div>
+
+    <div class="field">
+      <div class="label">Nova senha</div>
+      <input id="novaSenha" class="control" type="password" autocomplete="new-password" />
+    </div>
+
+    <div class="field">
+      <div class="label">Confirmar nova senha</div>
+      <input id="confirmar" class="control" type="password" autocomplete="new-password" />
+    </div>
+
+    <button class="btn" id="btnSalvar">Salvar nova senha</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <script>
+    const msg = document.getElementById("msg");
+    const senhaAtual = document.getElementById("senhaAtual");
+    const novaSenha = document.getElementById("novaSenha");
+    const confirmar = document.getElementById("confirmar");
+    const btnSalvar = document.getElementById("btnSalvar");
+
+    function show(texto, tipo){
+      msg.textContent = texto || "";
+      msg.className = "msg" + (tipo ? " " + tipo : "");
+    }
+
+    async function checarSessao(){
+      try{
+        const r = await fetch("/api/session", { method:"GET", credentials:"include" });
+        if(!r.ok) return null;
+        const j = await r.json().catch(()=>null);
+        if(!j || !j.sucesso) return null;
+        return j;
+      }catch{
+        return null;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const s = await checarSessao();
+      if(!s){
+        window.location.href = "/login.html";
+        return;
+      }
+
+      btnSalvar.addEventListener("click", async () => {
+        show("");
+
+        const a = senhaAtual.value.trim();
+        const n = novaSenha.value.trim();
+        const c = confirmar.value.trim();
+
+        if(!a || !n || !c){
+          show("Preencha todos os campos.", "err");
+          return;
+        }
+        if(n.length < 8){
+          show("Nova senha muito curta. Use pelo menos 8 caracteres.", "err");
+          return;
+        }
+        if(n !== c){
+          show("Confirmação não confere.", "err");
+          return;
+        }
+
+        btnSalvar.disabled = true;
+        btnSalvar.textContent = "Salvando...";
+
+        try{
+          const r = await fetch("/api/usuarios-trocar-minha-senha", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type":"application/json", "Accept":"application/json" },
+            body: JSON.stringify({ senhaAtual: a, novaSenha: n })
+          });
+
+          const j = await r.json().catch(()=>null);
+
+          if(!r.ok || !j || !j.sucesso){
+            show((j && j.message) ? j.message : "Falha ao trocar senha.", "err");
+            return;
+          }
+
+          show("Senha alterada com sucesso. Entrando no menu...", "ok");
+          setTimeout(() => window.location.href = "/menu.html", 450);
+
+        } finally {
+          btnSalvar.disabled = false;
+          btnSalvar.textContent = "Salvar nova senha";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
