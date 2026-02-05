@@ -216,64 +216,72 @@
         <div id="msg" class="mensagem"></div>
     </div>
 
-    <script>
-        const SESSION_KEY = "pppSession";
+<script>
+  const SESSION_KEY = "pppSession";
 
-        async function login() {
-            const usuario = document.getElementById("usuario").value.trim();
-            const senha   = document.getElementById("senha").value.trim();
-            const loja    = document.getElementById("loja").value;
+  async function login() {
+    const usuario = document.getElementById("usuario").value.trim();
+    const senha   = document.getElementById("senha").value.trim();
+    const loja    = document.getElementById("loja").value;
 
-            const msg = document.getElementById("msg");
-            msg.textContent = "";
-            msg.className = "mensagem";
+    const msg = document.getElementById("msg");
+    msg.textContent = "";
+    msg.className = "mensagem";
 
-            if (!usuario || !senha || !loja) {
-                msg.textContent = "Preencha usuário, senha e loja.";
-                msg.classList.add("erro");
-                return;
-            }
+    if (!usuario || !senha || !loja) {
+      msg.textContent = "Preencha usuário, senha e loja.";
+      msg.classList.add("erro");
+      return;
+    }
 
-            try {
-                const resposta = await fetch("/api/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ usuario, senha, loja })
-                });
+    try {
+      const resposta = await fetch("/api/login", {
+        method: "POST",
+        credentials: "include", // ✅ importante para gravar cookie HttpOnly
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ usuario, senha, loja })
+      });
 
-                const dados = await resposta.json().catch(() => ({}));
+      const txt = await resposta.text();
+      let dados = null;
+      try { dados = JSON.parse(txt); } catch {}
 
-                if (!resposta.ok || !dados.sucesso) {
-                    msg.textContent = dados.message || "Usuário, senha ou loja inválidos.";
-                    msg.classList.add("erro");
-                    return;
-                }
+      if (!resposta.ok || !dados || !dados.sucesso) {
+        msg.textContent = (dados && dados.message) ? dados.message : (txt?.slice(0,120) || `Falha HTTP ${resposta.status}`);
+        msg.classList.add("erro");
+        return;
+      }
 
-                msg.textContent = "Login autorizado.";
-                msg.classList.add("sucesso");
+      msg.textContent = "Login autorizado.";
+      msg.classList.add("sucesso");
 
-localStorage.setItem(SESSION_KEY, JSON.stringify({
-  usuario: dados.usuario || usuario,
-  loja: dados.loja || loja,
-  perfil: String(dados.perfil || "").toUpperCase(),
-  criadoEm: Date.now()
-}));
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        usuario: dados.usuario || usuario,
+        loja: dados.loja || loja,
+        perfil: String(dados.perfil || "").toUpperCase(),
+        criadoEm: Date.now()
+      }));
 
-setTimeout(() => {
-  // ✅ Se for primeiro login (senha temporária), força a tela de troca
-  if (dados.requirePasswordChange) {
-    window.location.href = "/trocar-senha.html";
-    return;
+      setTimeout(() => {
+        // ✅ Se for primeiro login (senha temporária), força a tela de troca
+        if (dados.requirePasswordChange) {
+          window.location.href = "/trocar-senha.html";
+          return;
+        }
+        // ✅ Fluxo normal
+        window.location.href = "/menu.html";
+      }, 300);
+
+    } catch (e) {
+      msg.textContent = "Erro de conexão com o servidor.";
+      msg.classList.add("erro");
+    }
   }
 
-  // ✅ Fluxo normal
-  window.location.href = "/menu.html";
-}, 300);
-
-        }
-
-        document.getElementById("btnEntrar").addEventListener("click", login);
-        document.addEventListener("keydown", e => e.key === "Enter" && login());
-    </script>
+  document.getElementById("btnEntrar").addEventListener("click", login);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") login();
+  });
+</script>
 </body>
 </html>
