@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ mantido -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GESTAO DE USUARIOS</title>
 
@@ -108,7 +107,7 @@
       white-space: nowrap;
     }
 
-    /* ✅ wrapper para manter 3 botões sempre na mesma linha no mobile */
+    /* ✅ wrapper 3 botões */
     .btnRow{
       display:flex;
       gap:8px;
@@ -311,18 +310,18 @@
       padding: 14px 14px 12px;
     }
 
-    /* ✅ buscar + fechar na mesma linha no mobile */
+    /* ✅ buscar + fechar na mesma linha SEM quebrar */
     .contactsHead{
       display:flex;
       gap:10px;
       align-items:center;
       justify-content:space-between;
-      flex-wrap:nowrap;          /* ✅ NÃO quebra linha */
+      flex-wrap:nowrap;
       margin-bottom: 10px;
     }
     .contactsSearch{
       flex: 1 1 auto;
-      min-width: 0;              /* ✅ permite encolher no mobile */
+      min-width: 0;
       padding: 10px 12px;
       border: 1px solid rgba(0,0,0,0.18);
       border-radius: 10px;
@@ -331,11 +330,12 @@
       font-weight: 800;
     }
 
+    /* ✅ scroll vertical sempre disponível */
     .contactsTableWrap{
       border: 1px solid rgba(0,0,0,0.12);
       border-radius: 12px;
       overflow-y: auto;
-      overflow-x: hidden;        /* ✅ sem scroll horizontal */
+      overflow-x: hidden;     /* desktop ok */
       max-height: 62vh;
       background:#fff;
     }
@@ -343,7 +343,7 @@
     .contactsTable{
       width:100%;
       border-collapse: collapse;
-      table-layout: fixed;       /* ✅ mantido, mas vamos ajustar no mobile */
+      table-layout: fixed; /* desktop */
     }
 
     .contactsTable thead th{
@@ -369,7 +369,7 @@
       text-overflow: ellipsis;
     }
 
-    /* ✅ larguras (desktop) */
+    /* ✅ larguras desktop */
     .colLoja{ width: 55%; }
     .colCel{ width: 35%; }
     .colAcao{ width: 10%; text-align:right; }
@@ -384,37 +384,59 @@
       font-size: 12px;
       white-space: nowrap;
       line-height: 1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
     }
     .iconBtn:hover{ background: rgba(0,0,0,0.03); }
+
+    /* texto alternativo do botão Contatos */
+    .btnTextShort{ display:none; }
 
     @media (max-width: 640px){
       body{ margin: 6px; }
       .container{ width: 98%; padding: 14px; }
 
-      /* selects 100% (como já estava) */
+      /* selects 100% */
       .actions{ justify-content: flex-start; }
       .filterSelect{ flex: 1 1 100%; min-width: 0; width: 100%; }
 
-      /* ✅ 3 botões sempre na mesma linha */
+      /* ✅ 3 botões SEM estourar (1 linha) */
       .btnRow{
         width: 100%;
         justify-content: space-between;
         flex-wrap: nowrap;
+        gap: 6px;
       }
       .btnRow .btn,
       .btnRow .btn-ghost{
         flex: 1 1 0;
         min-width: 0;
         text-align: center;
+        padding: 9px 8px;     /* ✅ menor */
+        font-size: 12px;      /* ✅ menor */
       }
+      /* encurta o texto do botão contatos no mobile */
+      .btnTextLong{ display:none; }
+      .btnTextShort{ display:inline; }
 
       /* tabela usuários (mantido) */
       table{ min-width: 820px; }
 
-      /* ✅ contatos: garantir que CELULAR e EDITAR apareçam no mobile */
-      .contactsTableWrap{ max-height: 64vh; }
+      /* ✅ contatos: aqui é onde resolvemos o "sumiu no mobile" */
+      .contactsTableWrap{
+        max-height: 64vh;
+        overflow-x: auto;     /* ✅ permite, se precisar, não cortar colunas */
+        -webkit-overflow-scrolling: touch;
+      }
 
-      /* reduz fonte/padding e permite quebrar loja */
+      /* em mobile, deixe a tabela se adaptar melhor */
+      .contactsTable{
+        table-layout: auto;   /* ✅ evita cortar CELULAR/EDITAR */
+        min-width: 520px;     /* ✅ garante espaço mínimo para 3 colunas */
+      }
+
       .contactsTable thead th{
         font-size: 11px;
         padding: 8px 8px;
@@ -424,21 +446,38 @@
         padding: 8px 8px;
       }
 
-      /* ✅ no mobile, a LOJA pode quebrar linha pra caber tudo */
-      .contactsTable tbody td.colLojaCell{
-        white-space: normal;
+      /* ✅ loja pode quebrar linha */
+      .contactsTable td.colLojaCell{
+        white-space: normal !important;
         line-height: 1.15;
       }
 
-      /* ✅ larguras mais agressivas no mobile pra caber número + botão */
-      .colLoja{ width: 50%; }
-      .colCel{ width: 40%; }
-      .colAcao{ width: 10%; }
+      /* ✅ força exibição das colunas (alguns celulares “colapsam” visualmente) */
+      .contactsTable th.colCel, .contactsTable td.colCel,
+      .contactsTable th.colAcao, .contactsTable td.colAcao{
+        display: table-cell !important;
+      }
+
+      /* larguras mais agressivas */
+      .colLoja{ width: 52%; }
+      .colCel{ width: 36%; }
+      .colAcao{ width: 12%; }
 
       /* botão editar menor */
       .iconBtn{
         padding: 7px 8px;
         border-radius: 10px;
+        font-size: 12px;
+      }
+
+      /* buscar + fechar na mesma linha, fechar mais compacto */
+      .contactsHead{ gap: 8px; }
+      #btnContatosFechar{
+        padding: 9px 10px;
+        font-size: 12px;
+      }
+      .contactsSearch{
+        padding: 9px 10px;
         font-size: 12px;
       }
     }
@@ -454,15 +493,14 @@
       </div>
 
       <div class="actions">
-        <!-- filtros -->
         <select id="fLoja" class="filterSelect" title="Filtrar por Loja"></select>
         <select id="fPerfil" class="filterSelect" title="Filtrar por Perfil"></select>
         <select id="fUsuario" class="filterSelect" title="Filtrar por Usuário"></select>
 
-        <!-- ✅ 3 botões agrupados para ficar 1 linha no mobile -->
         <div class="btnRow">
           <button class="btn-ghost" id="btnContatosBono" title="Editar contatos de WhatsApp">
-            📞 Contatos WhatsApp
+            <span class="btnTextLong">📞 Contatos WhatsApp</span>
+            <span class="btnTextShort">📞 Contatos</span>
           </button>
 
           <button class="btn btn-primary" id="btnAbrirCriar">+ Criar usuário</button>
@@ -953,7 +991,7 @@
     }
 
     // ==========================================================
-    // MODAL: CONTATOS WHATSAPP (com botão por linha SEM cortar no mobile)
+    // MODAL: CONTATOS WHATSAPP
     // ==========================================================
     const btnContatosBono = document.getElementById("btnContatosBono");
     const btnContatosFechar = document.getElementById("btnContatosFechar");
@@ -1036,7 +1074,7 @@
       tbodyContatos.innerHTML = rows.map(c => {
         const loja = String(c.loja || "");
         const celRaw = String(c.celular || "");
-        const celShow = formatCelBR(onlyDigits(celRaw)) || celRaw;
+        const celShow = formatCelBR(onlyDigits(celRaw)) || celRaw || "-";
 
         return `
           <tr>
@@ -1054,7 +1092,7 @@
 
     contatosBusca.addEventListener("input", renderContatosBono);
 
-    // ✅ 1 listener resolve todos os botões mesmo após re-render
+    // ✅ Delegação: funciona sempre, mesmo após re-render
     tbodyContatos.addEventListener("click", (e) => {
       const btn = e.target.closest(".btnEditContato");
       if(!btn) return;
