@@ -4,44 +4,35 @@ import bcrypt from "bcryptjs";
 import { requireSession } from "./_authUsuarios.js";
 import { bad, ok, getSheetsClient, ensureHeaders, SHEET_NAME, spreadsheetId } from "./_usuariosSheet.js";
 
-// Data/hora BR (apenas para registrar na planilha)
 function nowBR() {
   return new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 }
 
-// ✅ ID robusto (compatível com qualquer runtime Node na Vercel)
 function gerarId() {
-  // 32 chars hex (equivalente a 16 bytes)
   return crypto.randomBytes(16).toString("hex");
 }
 
-// Normalização simples (evita diferenças por espaços/maiúsculas)
 function normLower(s) {
   return String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 export default async function handler(req, res) {
   try {
-    // Só aceita POST
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
       return bad(res, 405, "Método não permitido. Use POST.");
     }
 
-    // ✅ evita cache
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     res.setHeader("Pragma", "no-cache");
 
-    // Sessão obrigatória
     const s = requireSession(req, res);
     if (!s) return;
 
-    // Somente ADMIN
     if (String(s.perfil || "").toUpperCase() !== "ADMINISTRADOR") {
       return bad(res, 403, "Sessão sem permissão para este acesso.");
     }
 
-    // Body
     const { loja, perfil, usuario, senha, primeiroLogin } = req.body || {};
     if (!loja || !perfil || !usuario || !senha) {
       return bad(res, 400, "Campos obrigatórios ausentes.");
@@ -50,60 +41,65 @@ export default async function handler(req, res) {
     const lojaNorm = normLower(loja);
     const userNorm = normLower(usuario);
 
-    // Sheets client
     const sheets = await getSheetsClient();
 
-    // ✅ Best effort: se o header estiver protegido, não derruba a criação
-    try {
-      await ensureHeaders(sheets);
-    } catch (e) {
+    try { await ensureHeaders(sheets); } catch (e) {
       console.warn("ensureHeaders falhou (seguindo mesmo assim):", e?.message || e);
     }
 
     // ==========================================================
-    // ✅ NOVA REGRA DE DUPLICIDADE:
-    // Permite o mesmo "usuario" em lojas diferentes.
-    // Bloqueia APENAS se já existir a combinação (LOJA + USUARIO).
-    //
-    // Planilha: A=LOJAS, B=USUARIO
+    // Lê A..K para:
+    // - bloquear duplicidade (LOJA+USUARIO)
+    // - detectar se o usuario já existe em outra loja (para herdar hash)
+    // Colunas:
+    // A LOJAS | B USUARIO | C SENHA_HASH | D PERFIL | E ID | F ATIVO | G PRIMEIRO_LOGIN | ...
     // ==========================================================
-    const chk = await sheets.spreadsheets.values.get({
+    const get = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${SHEET_NAME}!A2:B`, // ✅ pega LOJA e USUARIO
+      range: `${SHEET_NAME}!A2:K`,
     });
 
-    const rows = chk.data.values || [];
+    const rows = get.data.values || [];
 
-    const jaExisteNaMesmaLoja = rows.some((r) => {
+    // 1) Bloqueia duplicidade só para (LOJA+USUARIO)
+    const existeNaMesmaLoja = rows.some(r => {
       const lojaRow = normLower(r?.[0] || "");
       const userRow = normLower(r?.[1] || "");
       return lojaRow === lojaNorm && userRow === userNorm;
     });
-
-    if (jaExisteNaMesmaLoja) {
+    if (existeNaMesmaLoja) {
       return bad(res, 409, "Usuário já existe nesta loja.");
     }
 
-    // Gera id e hash da senha
-    const id = gerarId();
-    const hash = await bcrypt.hash(String(senha), 10);
+    // 2) Se usuário já existir em qualquer loja, herda o hash (senha global)
+    let hashGlobal = null;
+    const rowExistente = rows.find(r => normLower(r?.[1] || "") === userNorm);
+    if (rowExistente) {
+      hashGlobal = String(rowExistente?.[2] || "").trim(); // C: hash existente
+      if (!hashGlobal) {
+        return bad(res, 500, "Usuário existe, mas o hash da senha está inválido na base.");
+      }
+    } else {
+      // usuário novo -> gera hash a partir da senha enviada
+      hashGlobal = await bcrypt.hash(String(senha), 10);
+    }
 
-    // Linha A-K
+    const id = gerarId();
+
     const row = [
-      String(loja).trim(),                           // A LOJAS
-      String(usuario).trim(),                        // B USUARIO
-      hash,                                          // C SENHA (hash)
-      String(perfil).trim().toUpperCase(),           // D PERFIL
-      id,                                            // E ID
-      "SIM",                                         // F ATIVO
-      (primeiroLogin === "SIM" ? "SIM" : "NAO"),     // G PRIMEIRO_LOGIN
-      nowBR(),                                       // H CRIADO_EM
-      String(s.usuario || "").trim(),                // I CRIADO_POR
-      "",                                            // J ULT_RESET_EM
-      ""                                             // K ULT_RESET_POR
+      String(loja).trim(),                          // A
+      String(usuario).trim(),                       // B
+      hashGlobal,                                   // C (sempre global por usuário)
+      String(perfil).trim().toUpperCase(),          // D
+      id,                                           // E
+      "SIM",                                        // F
+      (primeiroLogin === "SIM" ? "SIM" : "NAO"),    // G
+      nowBR(),                                      // H
+      String(s.usuario || "").trim(),               // I
+      "",                                           // J
+      ""                                            // K
     ];
 
-    // Append na planilha
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: `${SHEET_NAME}!A:K`,
@@ -112,8 +108,16 @@ export default async function handler(req, res) {
       requestBody: { values: [row] },
     });
 
-    // Retorna a senha recebida (para exibir 1x no front, se foi gerada)
-    return ok(res, { sucesso: true, id, senhaTemporaria: String(senha) });
+    // ⚠️ Nota: se o usuário já existia, a senha NÃO foi alterada (continuou a mesma global).
+    // O front pode continuar exibindo senhaTemporaria apenas quando for usuário novo.
+    const usuarioEraNovo = !rowExistente;
+
+    return ok(res, {
+      sucesso: true,
+      id,
+      usuarioNovo: usuarioEraNovo,
+      senhaTemporaria: usuarioEraNovo ? String(senha) : null
+    });
 
   } catch (e) {
     console.error("usuarios-criar error:", e);
