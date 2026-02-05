@@ -252,21 +252,24 @@
                 msg.textContent = "Login autorizado.";
                 msg.classList.add("sucesso");
 
-                localStorage.setItem(SESSION_KEY, JSON.stringify({
-                    usuario: dados.usuario || usuario,
-                    loja: dados.loja || loja,
-                    perfil: String(dados.perfil || "").toUpperCase(),
-                    criadoEm: Date.now()
-                }));
+localStorage.setItem(SESSION_KEY, JSON.stringify({
+  usuario: dados.usuario || usuario,
+  loja: dados.loja || loja,
+  perfil: String(dados.perfil || "").toUpperCase(),
+  criadoEm: Date.now()
+}));
 
-                setTimeout(() => {
-                    window.location.href = "/menu.html";
-                }, 300);
+setTimeout(() => {
+  // ✅ Se for primeiro login (senha temporária), força a tela de troca
+  if (dados.requirePasswordChange) {
+    window.location.href = "/trocar-senha.html";
+    return;
+  }
 
-            } catch {
-                msg.textContent = "Erro de conexão com o servidor.";
-                msg.classList.add("erro");
-            }
+  // ✅ Fluxo normal
+  window.location.href = "/menu.html";
+}, 300);
+
         }
 
         document.getElementById("btnEntrar").addEventListener("click", login);
