@@ -49,7 +49,7 @@ function b64urlDecode(str) {
 }
 
 function safeJsonParse(s) {
-  try { return JSON.parse(s); } catch (e) { return null; }
+  try { return JSON.parse(s); } catch { return null; }
 }
 
 function parseCookies(req) {
@@ -94,7 +94,6 @@ function setCookie(res, name, value, opts = {}) {
 }
 
 function clearCookie(res, name, opts = {}) {
-  // Importante: atributos precisam combinar com os usados no setCookie
   const {
     secure = true,
     sameSite = "Lax",
@@ -150,10 +149,8 @@ function normalizeProfile(p) {
 }
 
 function decodeHeaderSession(req) {
-  const raw =
-    req?.headers?.["x-ppp-session"] ||
-    req?.headers?.["X-PPP-Session"];
-
+  // No Node/Vercel, headers são normalizados para lowercase
+  const raw = req?.headers?.["x-ppp-session"] || req?.headers?.["X-PPP-Session"];
   if (!raw) return null;
 
   const s = String(raw).trim();
@@ -161,7 +158,7 @@ function decodeHeaderSession(req) {
 
   try {
     jsonStr = Buffer.from(s, "base64").toString("utf8");
-  } catch (e) {
+  } catch {
     jsonStr = s;
   }
 
@@ -190,7 +187,7 @@ export function createSessionCookie(res, session, opts = {}) {
     usuario: session?.usuario || "",
     loja: session?.loja || "",
     perfil: normalizeProfile(session?.perfil || ""),
-    // ✅ NOVO: trava o sistema até trocar senha
+    // ✅ trava o sistema até trocar senha (quando usado)
     forcePwdChange: !!session?.forcePwdChange,
     iat: now,
     exp: now + ttlSec
@@ -199,7 +196,6 @@ export function createSessionCookie(res, session, opts = {}) {
   if (!payload.usuario) throw new Error("Sessão inválida: usuario ausente.");
 
   const token = signToken(payload, secret);
-
   const secure = isProdEnv();
 
   setCookie(res, COOKIE_NAME, token, {
@@ -225,7 +221,7 @@ export function requireSession(req, res, options = {}) {
       const payload = verifyToken(token, secret);
       if (payload && payload.usuario) {
 
-        // ✅ NOVO: trava acesso enquanto precisa trocar senha
+        // ✅ trava acesso enquanto precisa trocar senha
         if (payload.forcePwdChange && !allowForcePwdChange) {
           res.status(403).json({
             sucesso: false,
@@ -246,33 +242,6 @@ export function requireSession(req, res, options = {}) {
       }
     }
   }
-
-  // 2) Modo compatibilidade: header X-PPP-Session (inseguro)
-  if (envBool("ALLOW_INSECURE_SESSION", false)) {
-    const s = decodeHeaderSession(req);
-    if (s) {
-
-      // ✅ Aqui também bloqueia (se você quiser suportar força de troca nesse modo)
-      // Como header não tem forcePwdChange, não bloqueia.
-
-      if (Array.isArray(allowedProfiles) && allowedProfiles.length > 0) {
-        const p = normalizeProfile(s.perfil);
-        const ok = allowedProfiles.map(normalizeProfile).includes(p);
-        if (!ok) {
-          res.status(403).json({ sucesso: false, message: "Sessão sem permissão para este acesso." });
-          return null;
-        }
-      }
-      return s;
-    }
-  }
-
-  res.status(401).json({
-    sucesso: false,
-    message: "Sessão inválida ou ausente. Faça login novamente."
-  });
-  return null;
-}
 
   // 2) Modo compatibilidade: header X-PPP-Session (inseguro)
   if (envBool("ALLOW_INSECURE_SESSION", false)) {
