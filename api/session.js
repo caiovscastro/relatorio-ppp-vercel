@@ -3,12 +3,7 @@
 // Session PPP
 // - Endpoint para o front verificar se existe sessão válida.
 // - Retorna dados mínimos: usuario/loja/perfil/exp.
-// - Se sessão for inválida/ausente, requireSession responde 401.
-// - Não deve ser cacheado (no-store).
-//
-// Importante:
-// - Protege páginas do front (painel.html, dashboard.html, etc.)
-// - A autenticação real acontece no backend (cookie HttpOnly assinado).
+// - IMPORTANTE: permite sessão mesmo quando há troca obrigatória de senha.
 
 import { requireSession } from "./_authUsuarios.js";
 
@@ -21,21 +16,21 @@ export default function handler(req, res) {
     });
   }
 
-  // ✅ Evita cache (browser/proxy/CDN)
+  // ✅ Evita cache
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   res.setHeader("Pragma", "no-cache");
 
-  // Se quiser restringir perfis:
-  // const s = requireSession(req, res, { allowedProfiles: ["ADMINISTRADOR","GERENTE_PPP","BASE_PPP"] });
-
-  const s = requireSession(req, res);
-  if (!s) return; // requireSession já respondeu 401/403
+  // ✅ AQUI ESTÁ A CORREÇÃO
+  // Permite sessão mesmo com forcePwdChange=true
+  const s = requireSession(req, res, { allowForcePwdChange: true });
+  if (!s) return;
 
   return res.status(200).json({
     sucesso: true,
     usuario: s.usuario,
     loja: s.loja || "",
     perfil: s.perfil || "",
-    exp: s.exp || null // epoch seconds (JWT exp) se estiver no token
+    forcePwdChange: !!s.forcePwdChange,
+    exp: s.exp || null
   });
 }
