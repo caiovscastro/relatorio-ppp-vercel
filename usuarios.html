@@ -26,8 +26,6 @@
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
       box-sizing: border-box;
-
-      /* ✅ (2) evita “deslocar” pro lado e zoom estranho */
       overflow: hidden;
     }
     .top{
@@ -58,7 +56,6 @@
       flex: 1 1 220px;
     }
 
-    /* ✅ (1) actions agora é 3 selects + botões (sem input de busca) */
     .actions{
       display:flex;
       gap:8px;
@@ -75,7 +72,6 @@
       max-width: 100%;
     }
 
-    /* ✅ (2) selects responsivos (não estouram no celular) */
     .filterSelect{
       padding: 10px 12px;
       border: 1px solid rgba(0,0,0,0.18);
@@ -83,7 +79,6 @@
       outline: none;
       background: #fff;
       font-weight: 800;
-
       min-width: 180px;
       flex: 1 1 180px;
       max-width: 100%;
@@ -106,10 +101,11 @@
       border: 1px solid rgba(0,0,0,0.18);
       color:#111;
       box-shadow: none;
-      font-weight: 800;
+      font-weight: 900;
       cursor:pointer;
       padding: 10px 12px;
       border-radius: 10px;
+      white-space: nowrap;
     }
 
     .tableWrap{
@@ -176,7 +172,6 @@
       background: rgba(244,67,54,0.06);
     }
 
-    /* ✅ (3) ID encurtado (visível 8 primeiros) */
     .idShort{
       font-size:12px;
       font-weight:900;
@@ -184,7 +179,7 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
-    /* Modal simples */
+    /* Modal base */
     .modalBg{
       position:fixed; inset:0;
       background: rgba(0,0,0,0.55);
@@ -254,21 +249,12 @@
       font-size: 12px;
       font-weight: 800;
       color: rgba(0,0,0,0.75);
+      word-break: break-word;
     }
     .msg.err{ color:#c62828; }
     .msg.ok{ color:#2e7d32; }
 
-    /* ✅ (2) ajuste forte pro celular: evita “estouro” e deixa selects 100% */
-    @media (max-width: 640px){
-      body{ margin: 6px; }
-      .container{ width: 98%; padding: 14px; }
-      .actions{ justify-content: flex-start; }
-      .filterSelect{ flex: 1 1 100%; min-width: 0; width: 100%; }
-      .btn{ width: auto; }
-      table{ min-width: 820px; } /* mantém a tabela rolável */
-    }
-
-    /* ✅ (4) sugestões abaixo do input de usuário */
+    /* Sugestões abaixo do input */
     .suggestBox{
       border: 1px solid rgba(0,0,0,0.12);
       border-radius: 10px;
@@ -289,9 +275,7 @@
       font-size: 12px;
       font-weight: 900;
     }
-    .suggestItem:hover{
-      background: rgba(0,0,0,0.04);
-    }
+    .suggestItem:hover{ background: rgba(0,0,0,0.04); }
     .suggestUser{
       color:#111;
       white-space: nowrap;
@@ -308,6 +292,90 @@
       text-overflow: ellipsis;
       max-width: 45%;
     }
+
+    /* =========
+       CONTATOS BONO (modal “planilha” 2 colunas)
+       ========= */
+    .modalWide{
+      max-width: min(760px, 94vw);
+      padding: 14px 14px 12px;
+    }
+    .contactsHead{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    .contactsSearch{
+      flex: 1 1 320px;
+      min-width: 240px;
+      padding: 10px 12px;
+      border: 1px solid rgba(0,0,0,0.18);
+      border-radius: 10px;
+      outline: none;
+      background: #fff;
+      font-weight: 800;
+    }
+    .contactsTableWrap{
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 12px;
+      overflow: hidden; /* ✅ sem scroll horizontal */
+      background:#fff;
+    }
+    .contactsTable{
+      width:100%;
+      border-collapse: collapse;
+      table-layout: fixed; /* ✅ garante caber sem horizontal */
+    }
+    .contactsTable thead th{
+      background:#f7f7f7;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.12);
+      white-space: nowrap;
+    }
+    .contactsTable tbody td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
+    .colLoja{ width: 58%; }
+    .colCel{ width: 32%; }
+    .colAcao{ width: 10%; text-align:right; }
+
+    .iconBtn{
+      border: 1px solid rgba(0,0,0,0.14);
+      background:#fff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .iconBtn:hover{ background: rgba(0,0,0,0.03); }
+
+    @media (max-width: 640px){
+      body{ margin: 6px; }
+      .container{ width: 98%; padding: 14px; }
+      .actions{ justify-content: flex-start; }
+      .filterSelect{ flex: 1 1 100%; min-width: 0; width: 100%; }
+      .btn{ width: auto; }
+      table{ min-width: 820px; }
+
+      .contactsSearch{ flex: 1 1 100%; min-width: 0; width: 100%; }
+      .colLoja{ width: 54%; }
+      .colCel{ width: 34%; }
+      .colAcao{ width: 12%; }
+    }
   </style>
 </head>
 
@@ -320,12 +388,16 @@
       </div>
 
       <div class="actions">
-        <!-- ✅ (1) 3 seletores (dados vêm da própria aba via /api/usuarios-listar) -->
+        <!-- filtros -->
         <select id="fLoja" class="filterSelect" title="Filtrar por Loja"></select>
         <select id="fPerfil" class="filterSelect" title="Filtrar por Perfil"></select>
         <select id="fUsuario" class="filterSelect" title="Filtrar por Usuário"></select>
 
-        <!-- ✅ botões mantidos com cores/estilo -->
+        <!-- ✅ (1) “seletor/atalho” CONTATOS BONO ao lado do +Criar -->
+        <button class="btn-ghost" id="btnContatosBono" title="Editar contatos de WhatsApp do Bono">
+          📞 Contatos Bono
+        </button>
+
         <button class="btn btn-primary" id="btnAbrirCriar">+ Criar usuário</button>
         <button class="btn btn-secondary" id="btnVoltar">Voltar</button>
       </div>
@@ -353,6 +425,66 @@
   </div>
 
   <!-- ==========================
+       MODAL: CONTATOS BONO (planilha 2 colunas)
+       ========================== -->
+  <div class="modalBg" id="modalContatosBg">
+    <div class="modal modalWide">
+      <p class="modalTitle">Contatos WhatsApp — Bono (CONTATOS_BONO A:B)</p>
+
+      <div class="contactsHead">
+        <input id="contatosBusca" class="contactsSearch" placeholder="Buscar por loja ou número..." />
+        <button class="btn-ghost" id="btnContatosFechar">Fechar</button>
+      </div>
+
+      <div class="contactsTableWrap">
+        <table class="contactsTable">
+          <thead>
+            <tr>
+              <th class="colLoja">LOJA</th>
+              <th class="colCel">CELULAR</th>
+              <th class="colAcao">EDITAR</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyContatos">
+            <tr><td colspan="3" style="padding:14px; font-weight:900;">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="msgContatos" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- ==========================
+       MODAL: EDITAR CELULAR (popup)
+       ========================== -->
+  <div class="modalBg" id="modalContatoEditarBg">
+    <div class="modal">
+      <p class="modalTitle">Editar celular da loja</p>
+
+      <div class="grid grid1">
+        <div class="field">
+          <div class="label">Loja</div>
+          <input class="control" id="contatoEditarLoja" readonly />
+        </div>
+
+        <div class="field">
+          <div class="label">Celular (WhatsApp)</div>
+          <input class="control" id="contatoEditarCel" placeholder="Ex: 61999999999" />
+          <div class="hint">Dica: pode salvar com ou sem DDI/DDDs. Use o padrão que você já usa no seu envio.</div>
+        </div>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn-ghost" id="btnContatoEditarCancelar">Cancelar</button>
+        <button class="btn btn-primary" id="btnContatoEditarSalvar">Salvar</button>
+      </div>
+
+      <div id="msgContatoEditar" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- ==========================
        MODAL: Criar
        ========================== -->
   <div class="modalBg" id="modalCriarBg">
@@ -372,7 +504,6 @@
 
         <div class="field" style="grid-column: 1 / -1;">
           <div class="label">Usuário</div>
-          <!-- ✅ (4) autocomplete/sugestões -->
           <input class="control" id="criarUsuario" placeholder="Ex: joao.silva" autocomplete="off" />
           <div id="suggestBox" class="suggestBox"></div>
         </div>
@@ -402,7 +533,8 @@
       </div>
 
       <div class="modalActions">
-        <button class="btn-ghost" id="btnCriarCancelar">Cancelar</button>
+        <!-- ✅ (3) Cancelar -> Fechar -->
+        <button class="btn-ghost" id="btnCriarCancelar">Fechar</button>
         <button class="btn btn-primary" id="btnCriarSalvar">Criar</button>
       </div>
 
@@ -440,7 +572,8 @@
       </div>
 
       <div class="modalActions">
-        <button class="btn-ghost" id="btnEditarCancelar">Cancelar</button>
+        <!-- ✅ (3) Cancelar -> Fechar -->
+        <button class="btn-ghost" id="btnEditarCancelar">Fechar</button>
         <button class="btn btn-primary" id="btnEditarSalvar">Salvar</button>
       </div>
 
@@ -481,29 +614,28 @@
 
   <script>
     // ==========================================================
-    // ⚠️ Voltar: voltar ao menu.html (não login)
+    // Voltar: vai para menu.html
     // ==========================================================
     document.getElementById("btnVoltar").addEventListener("click", () => {
       window.location.href = "menu.html";
     });
 
     // ==========================================================
-    // Cache de elementos (UI)
+    // Cache de elementos
     // ==========================================================
     const tbody = document.getElementById("tbody");
     const msg = document.getElementById("msg");
 
-    // ✅ filtros novos
     const fLoja = document.getElementById("fLoja");
     const fPerfil = document.getElementById("fPerfil");
     const fUsuario = document.getElementById("fUsuario");
 
-    let usuarios = [];       // cache da lista carregada
-    let editandoId = null;   // id atual em edição
-    let resetandoId = null;  // id atual em reset
+    let usuarios = [];
+    let editandoId = null;
+    let resetandoId = null;
 
     // ==========================================================
-    // Helpers de UI
+    // Helpers
     // ==========================================================
     function showMsg(texto, tipo){
       msg.textContent = texto || "";
@@ -522,9 +654,6 @@
     function abrirModal(idBg){ document.getElementById(idBg).style.display = "flex"; }
     function fecharModal(idBg){ document.getElementById(idBg).style.display = "none"; }
 
-    // ==========================================================
-    // Utils de lista (select)
-    // ==========================================================
     function uniqSorted(arr){
       return Array.from(new Set(arr.filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b), "pt-BR"));
     }
@@ -544,9 +673,6 @@
       }
     }
 
-    // ==========================================================
-    // ✅ (1) pega a loja do login atual para default do filtro
-    // ==========================================================
     async function getMinhaLojaDaSessao(){
       try{
         const r = await fetch("/api/session", { method:"GET", credentials:"include", headers:{ "Accept":"application/json" } });
@@ -560,7 +686,7 @@
     }
 
     // ==========================================================
-    // 🔐 Carregar lista (API pode retornar HTML em erro -> NÃO usar r.json() direto)
+    // Carregar usuários
     // ==========================================================
     async function carregar(){
       showMsg("");
@@ -586,7 +712,6 @@
 
         usuarios = j.usuarios || [];
 
-        // ✅ popula selects com dados reais da planilha (A loja, B usuário, D perfil)
         const lojas = uniqSorted(usuarios.map(u => String(u.loja||"").trim()));
         const perfis = uniqSorted(usuarios.map(u => String(u.perfil||"").trim().toUpperCase()));
         const users  = uniqSorted(usuarios.map(u => String(u.usuario||"").trim()));
@@ -595,12 +720,9 @@
         fillSelect(fPerfil, perfis, "Todos os perfis");
         fillSelect(fUsuario, users, "Todos os usuários");
 
-        // ✅ define default do filtro loja = loja da sessão (se existir na lista)
         const minhaLoja = await getMinhaLojaDaSessao();
-        if(minhaLoja){
-          // só seta se existir na lista
-          const existe = lojas.includes(minhaLoja);
-          if(existe) fLoja.value = minhaLoja;
+        if(minhaLoja && lojas.includes(minhaLoja)){
+          fLoja.value = minhaLoja;
         }
 
         render();
@@ -612,9 +734,6 @@
       }
     }
 
-    // ==========================================================
-    // ✅ Render com filtros (Loja/Perfil/Usuário)
-    // ==========================================================
     function render(){
       const lojaF = (fLoja.value || "").trim();
       const perfilF = (fPerfil.value || "").trim().toUpperCase();
@@ -637,7 +756,6 @@
           ? '<span class="pill pill-ok">ATIVO</span>'
           : '<span class="pill pill-off">DESATIVADO</span>';
 
-        // ✅ (3) id só 8 primeiros
         const idFull = String(u.id || "");
         const id8 = idFull ? idFull.slice(0,8) : "";
         const idTitle = escapeHtml(idFull);
@@ -661,13 +779,12 @@
       }).join("");
     }
 
-    // ✅ atualiza em tempo real ao trocar filtros
     fLoja.addEventListener("change", render);
     fPerfil.addEventListener("change", render);
     fUsuario.addEventListener("change", render);
 
     // ==========================================================
-    // Ações por linha (onclick inline) - expostas no window
+    // Ações por linha
     // ==========================================================
     window.abrirEditar = (id) => {
       const u = usuarios.find(x => x.id === id);
@@ -690,7 +807,6 @@
       resetandoId = id;
 
       const senhaTemp = gerarSenhaTemp(10);
-
       document.getElementById("resetSenhaGerada").value = senhaTemp;
       document.getElementById("resetPrimeiroLogin").value = "SIM";
 
@@ -731,15 +847,175 @@
       await carregar();
     };
 
-    // ==========================================================
-    // Gerador de senha temporária (evita caracteres confusos)
-    // ==========================================================
     function gerarSenhaTemp(len){
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789@#";
       let out = "";
       crypto.getRandomValues(new Uint32Array(len)).forEach(n => out += chars[n % chars.length]);
       return out;
     }
+
+    // ==========================================================
+    // MODAL: CONTATOS BONO (planilha A:B)
+    // ==========================================================
+    const btnContatosBono = document.getElementById("btnContatosBono");
+    const btnContatosFechar = document.getElementById("btnContatosFechar");
+    const tbodyContatos = document.getElementById("tbodyContatos");
+    const contatosBusca = document.getElementById("contatosBusca");
+    const msgContatos = document.getElementById("msgContatos");
+
+    const contatoEditarLoja = document.getElementById("contatoEditarLoja");
+    const contatoEditarCel = document.getElementById("contatoEditarCel");
+    const msgContatoEditar = document.getElementById("msgContatoEditar");
+    const btnContatoEditarCancelar = document.getElementById("btnContatoEditarCancelar");
+    const btnContatoEditarSalvar = document.getElementById("btnContatoEditarSalvar");
+
+    let contatosBono = [];       // [{loja, celular}]
+    let editContatoLoja = null;  // loja em edição
+
+    function showMsgContatos(t, tipo){
+      msgContatos.textContent = t || "";
+      msgContatos.className = "msg" + (tipo ? " " + tipo : "");
+    }
+    function showMsgContatoEditar(t, tipo){
+      msgContatoEditar.textContent = t || "";
+      msgContatoEditar.className = "msg" + (tipo ? " " + tipo : "");
+    }
+
+    btnContatosBono.addEventListener("click", async () => {
+      contatosBusca.value = "";
+      showMsgContatos("");
+      tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
+      abrirModal("modalContatosBg");
+
+      await carregarContatosBono();
+      renderContatosBono();
+    });
+
+    btnContatosFechar.addEventListener("click", () => fecharModal("modalContatosBg"));
+
+    async function carregarContatosBono(){
+      try{
+        const r = await fetch("/api/contatos-bono-listar", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Accept":"application/json" }
+        });
+
+        const txt = await r.text();
+        let j = null;
+        try { j = JSON.parse(txt); } catch {}
+
+        if(!r.ok || !j || !j.sucesso){
+          const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
+          showMsgContatos(m, "err");
+          contatosBono = [];
+          return;
+        }
+
+        contatosBono = j.contatos || [];
+      }catch(e){
+        console.error("contatos-bono-listar error:", e);
+        showMsgContatos("Erro de rede ao carregar contatos.", "err");
+        contatosBono = [];
+      }
+    }
+
+    function renderContatosBono(){
+      const q = String(contatosBusca.value || "").trim().toLowerCase();
+
+      const rows = contatosBono.filter(c => {
+        const hay = `${c.loja||""} ${c.celular||""}`.toLowerCase();
+        return !q || hay.includes(q);
+      });
+
+      if(rows.length === 0){
+        tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Nenhum contato encontrado.</td></tr>';
+        return;
+      }
+
+      tbodyContatos.innerHTML = rows.map(c => {
+        const loja = String(c.loja || "");
+        const cel = String(c.celular || "");
+        return `
+          <tr>
+            <td class="colLoja" title="${escapeHtml(loja)}">${escapeHtml(loja)}</td>
+            <td class="colCel" title="${escapeHtml(cel)}">${escapeHtml(cel)}</td>
+            <td class="colAcao">
+              <button class="iconBtn" onclick="editarContatoBono('${escapeHtml(loja)}')">✏️</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    contatosBusca.addEventListener("input", renderContatosBono);
+
+    window.editarContatoBono = (loja) => {
+      const c = contatosBono.find(x => String(x.loja||"") === String(loja||""));
+      if(!c) return;
+
+      editContatoLoja = c.loja;
+      contatoEditarLoja.value = c.loja || "";
+      contatoEditarCel.value = c.celular || "";
+
+      showMsgContatoEditar("");
+      abrirModal("modalContatoEditarBg");
+
+      setTimeout(() => contatoEditarCel.focus(), 50);
+    };
+
+    btnContatoEditarCancelar.addEventListener("click", () => fecharModal("modalContatoEditarBg"));
+
+    btnContatoEditarSalvar.addEventListener("click", async () => {
+      showMsgContatoEditar("");
+
+      if(!editContatoLoja){
+        showMsgContatoEditar("Contato inválido.", "err");
+        return;
+      }
+
+      const novoCel = String(contatoEditarCel.value || "").trim();
+
+      // Você não pediu validação rígida, então vou manter leve:
+      // Só evita salvar vazio por acidente
+      if(!novoCel){
+        showMsgContatoEditar("Informe o celular.", "err");
+        return;
+      }
+
+      try{
+        const r = await fetch("/api/contatos-bono-atualizar", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type":"application/json", "Accept":"application/json" },
+          body: JSON.stringify({ loja: editContatoLoja, celular: novoCel })
+        });
+
+        const txt = await r.text();
+        let j = null;
+        try { j = JSON.parse(txt); } catch {}
+
+        if(!r.ok || !j || !j.sucesso){
+          const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
+          showMsgContatoEditar(m, "err");
+          return;
+        }
+
+        // Atualiza cache local e re-render
+        const idx = contatosBono.findIndex(x => String(x.loja||"") === String(editContatoLoja||""));
+        if(idx >= 0) contatosBono[idx].celular = novoCel;
+
+        showMsgContatoEditar("Celular atualizado com sucesso.", "ok");
+        renderContatosBono();
+
+        // fecha depois de um tico
+        setTimeout(()=> fecharModal("modalContatoEditarBg"), 250);
+
+      }catch(e){
+        console.error("contatos-bono-atualizar error:", e);
+        showMsgContatoEditar("Erro de rede ao salvar.", "err");
+      }
+    });
 
     // ==========================================================
     // Modal Criar
@@ -754,8 +1030,7 @@
     const criarUsuario = document.getElementById("criarUsuario");
     const suggestBox = document.getElementById("suggestBox");
 
-    // ✅ listas fixas continuam sendo usadas para os SELECTs de criar/editar (mantém padrão)
-    //    (mas os filtros do topo vêm da planilha via /api/usuarios-listar)
+    // ✅ LOJAS_FIXAS: adicionada ULT 24 - PAU BRASIL
     const LOJAS_FIXAS = [
       "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE","BIG 06 - SIBERIA",
       "BIG 08 - 503 SUL","BIG 09 - PENÍNSULA","BIG 10 - PAINEIRAS","BIG 11 - 310 NORTE","BIG 12 - 208 NORTE","BIG 13 - QI-05 L. NORTE",
@@ -764,7 +1039,10 @@
       "ULT 01 - PLANALTINA","ULT 02 - GAMA","ULT 03 - COLORADO","ULT 04 - CEI SUL","ULT 05 - POLO JK","ULT 06 - SOBRADINHO","ULT 07 - ADE",
       "ULT 08 - ARAPOANGA","ULT 09 - CEI NORTE","ULT 10 - ESTRUTURAL","ULT 11 - ITAPOA","ULT 12 - SAO SEBASTIAO","ULT 13 - RECANTO",
       "ULT 14 - AGUAS LINDAS","ULT 15 - SOL NASCENTE","ULT 16 - PARANOA PARK","ULT 17 - SAMAMBAIA","ULT 18 - BRAZLANDIA","ULT 19 - VIA PARK",
-      "ULT 20 - TAGUATINGA","ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 25 - BRASILINHA","MATRIZ","INDUSPAN","TOTAL DISTRIBUICAO"
+      "ULT 20 - TAGUATINGA","ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA",
+      "ULT 24 - PAU BRASIL",          /* ✅ ADICIONADA */
+      "ULT 25 - BRASILINHA",
+      "MATRIZ","INDUSPAN","TOTAL DISTRIBUICAO"
     ];
     const PERFIS_FIXOS = ["BASE_PPP", "GERENTE_PPP", "ADMINISTRADOR"];
 
@@ -845,12 +1123,9 @@
       await carregar();
     });
 
-    // ==========================================================
-    // ✅ (4) Sugestões de usuário (mostra usuário + lojas onde existe)
-    // - Baseado no cache "usuarios" carregado da planilha
-    // ==========================================================
+    // Sugestões de usuário
     function buildUserLojaMap(){
-      const map = new Map(); // user -> Set(lojas)
+      const map = new Map();
       for(const u of usuarios){
         const user = String(u.usuario||"").trim();
         const loja = String(u.loja||"").trim();
@@ -860,7 +1135,6 @@
       }
       return map;
     }
-
     function showSuggest(items){
       if(!items || items.length === 0){
         hideSuggest();
@@ -874,7 +1148,6 @@
       }).join("");
       suggestBox.style.display = "block";
 
-      // clique: preenche o campo
       Array.from(suggestBox.querySelectorAll(".suggestItem")).forEach(el=>{
         el.addEventListener("click", ()=>{
           const u = el.getAttribute("data-user") || "";
@@ -884,12 +1157,10 @@
         });
       });
     }
-
     function hideSuggest(){
       suggestBox.style.display = "none";
       suggestBox.innerHTML = "";
     }
-
     criarUsuario.addEventListener("input", () => {
       const q = String(criarUsuario.value || "").trim().toLowerCase();
       if(q.length < 1){
@@ -905,7 +1176,6 @@
         .slice(0, 12)
         .map(user => {
           const lojas = Array.from(map.get(user) || []);
-          // mostra até 3 lojas, e “+N” se tiver mais
           const max = 3;
           const shown = lojas.slice(0, max);
           const rest = lojas.length - shown.length;
@@ -915,11 +1185,7 @@
 
       showSuggest(matches);
     });
-
-    criarUsuario.addEventListener("blur", () => {
-      // pequeno delay pra permitir clique na sugestão
-      setTimeout(()=>hideSuggest(), 180);
-    });
+    criarUsuario.addEventListener("blur", () => setTimeout(()=>hideSuggest(), 180));
 
     // ==========================================================
     // Modal Editar
@@ -1012,17 +1278,16 @@
     });
 
     // ==========================================================
-    // Fechar modal clicando fora
+    // Fecha modal clicando fora
     // ==========================================================
-    ["modalCriarBg","modalEditarBg","modalResetBg"].forEach(id => {
+    ["modalCriarBg","modalEditarBg","modalResetBg","modalContatosBg","modalContatoEditarBg"].forEach(id => {
       document.getElementById(id).addEventListener("click", (e) => {
         if(e.target.id === id) fecharModal(id);
       });
     });
 
     // ==========================================================
-    // ✅ Inicialização dos SELECTs (Criar/Editar) com listas fixas
-    // - Mantém como você já tinha e evita digitação errada
+    // Inicializa SELECTs fixos (Criar/Editar)
     // ==========================================================
     function initSelectorsFixos(){
       const criarLoja = document.getElementById("criarLoja");
@@ -1037,9 +1302,7 @@
       fillSelect(editarPerfil, PERFIS_FIXOS, "Selecione...");
     }
 
-    // ==========================================================
     // Start
-    // ==========================================================
     initSelectorsFixos();
     carregar();
   </script>
