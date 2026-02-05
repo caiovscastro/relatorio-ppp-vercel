@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <!-- ✅ mantido -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GESTÃO DE USUÁRIOS</title>
+  <title>USUÁRIOS — ADMIN</title>
 
   <style>
     html, body { width:100%; max-width:100%; overflow-x:hidden; }
@@ -106,6 +106,16 @@
       padding: 10px 12px;
       border-radius: 10px;
       white-space: nowrap;
+    }
+
+    /* ✅ wrapper para manter 3 botões sempre na mesma linha no mobile */
+    .btnRow{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:flex-end;
+      flex: 0 0 auto;
+      max-width: 100%;
     }
 
     .tableWrap{
@@ -294,23 +304,25 @@
     }
 
     /* =========
-       CONTATOS WHATSAPP (modal 2 colunas)
+       CONTATOS WHATSAPP (modal)
        ========= */
     .modalWide{
       max-width: min(760px, 94vw);
       padding: 14px 14px 12px;
     }
+
+    /* ✅ buscar + fechar na mesma linha no mobile */
     .contactsHead{
       display:flex;
       gap:10px;
       align-items:center;
       justify-content:space-between;
-      flex-wrap:wrap;
+      flex-wrap:nowrap;          /* ✅ NÃO quebra linha */
       margin-bottom: 10px;
     }
     .contactsSearch{
-      flex: 1 1 320px;
-      min-width: 240px;
+      flex: 1 1 auto;
+      min-width: 0;              /* ✅ permite encolher no mobile */
       padding: 10px 12px;
       border: 1px solid rgba(0,0,0,0.18);
       border-radius: 10px;
@@ -319,23 +331,21 @@
       font-weight: 800;
     }
 
-    /* ✅ (2) Scroll vertical para ver toda a lista */
     .contactsTableWrap{
       border: 1px solid rgba(0,0,0,0.12);
       border-radius: 12px;
-      overflow-x: hidden;   /* ✅ sem horizontal */
-      overflow-y: auto;     /* ✅ scroll vertical */
-      max-height: 62vh;     /* ✅ altura máxima do modal para caber em telas menores */
+      overflow-y: auto;
+      overflow-x: hidden;        /* ✅ sem scroll horizontal */
+      max-height: 62vh;
       background:#fff;
     }
 
     .contactsTable{
       width:100%;
       border-collapse: collapse;
-      table-layout: fixed; /* ✅ garante caber sem horizontal */
+      table-layout: fixed;       /* ✅ mantido, mas vamos ajustar no mobile */
     }
 
-    /* ✅ cabeçalho “grudado” durante o scroll */
     .contactsTable thead th{
       position: sticky;
       top: 0;
@@ -353,13 +363,15 @@
       border-bottom: 1px solid rgba(0,0,0,0.08);
       font-size: 13px;
       font-weight: 800;
+      vertical-align: middle;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      vertical-align: middle;
     }
-    .colLoja{ width: 58%; }
-    .colCel{ width: 32%; }
+
+    /* ✅ larguras (desktop) */
+    .colLoja{ width: 55%; }
+    .colCel{ width: 35%; }
     .colAcao{ width: 10%; text-align:right; }
 
     .iconBtn{
@@ -378,16 +390,57 @@
     @media (max-width: 640px){
       body{ margin: 6px; }
       .container{ width: 98%; padding: 14px; }
+
+      /* selects 100% (como já estava) */
       .actions{ justify-content: flex-start; }
       .filterSelect{ flex: 1 1 100%; min-width: 0; width: 100%; }
-      .btn{ width: auto; }
+
+      /* ✅ 3 botões sempre na mesma linha */
+      .btnRow{
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+      }
+      .btnRow .btn,
+      .btnRow .btn-ghost{
+        flex: 1 1 0;
+        min-width: 0;
+        text-align: center;
+      }
+
+      /* tabela usuários (mantido) */
       table{ min-width: 820px; }
 
-      .contactsSearch{ flex: 1 1 100%; min-width: 0; width: 100%; }
+      /* ✅ contatos: garantir que CELULAR e EDITAR apareçam no mobile */
       .contactsTableWrap{ max-height: 64vh; }
-      .colLoja{ width: 54%; }
-      .colCel{ width: 34%; }
-      .colAcao{ width: 12%; }
+
+      /* reduz fonte/padding e permite quebrar loja */
+      .contactsTable thead th{
+        font-size: 11px;
+        padding: 8px 8px;
+      }
+      .contactsTable tbody td{
+        font-size: 12px;
+        padding: 8px 8px;
+      }
+
+      /* ✅ no mobile, a LOJA pode quebrar linha pra caber tudo */
+      .contactsTable tbody td.colLojaCell{
+        white-space: normal;
+        line-height: 1.15;
+      }
+
+      /* ✅ larguras mais agressivas no mobile pra caber número + botão */
+      .colLoja{ width: 50%; }
+      .colCel{ width: 40%; }
+      .colAcao{ width: 10%; }
+
+      /* botão editar menor */
+      .iconBtn{
+        padding: 7px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+      }
     }
   </style>
 </head>
@@ -406,13 +459,15 @@
         <select id="fPerfil" class="filterSelect" title="Filtrar por Perfil"></select>
         <select id="fUsuario" class="filterSelect" title="Filtrar por Usuário"></select>
 
-        <!-- ✅ (3) Texto sem referência a planilha -->
-        <button class="btn-ghost" id="btnContatosBono" title="Editar contatos de WhatsApp">
-          📞 Contatos WhatsApp
-        </button>
+        <!-- ✅ 3 botões agrupados para ficar 1 linha no mobile -->
+        <div class="btnRow">
+          <button class="btn-ghost" id="btnContatosBono" title="Editar contatos de WhatsApp">
+            📞 Contatos WhatsApp
+          </button>
 
-        <button class="btn btn-primary" id="btnAbrirCriar">+ Criar usuário</button>
-        <button class="btn btn-secondary" id="btnVoltar">Voltar</button>
+          <button class="btn btn-primary" id="btnAbrirCriar">+ Criar usuário</button>
+          <button class="btn btn-secondary" id="btnVoltar">Voltar</button>
+        </div>
       </div>
     </div>
 
@@ -442,7 +497,6 @@
        ========================== -->
   <div class="modalBg" id="modalContatosBg">
     <div class="modal modalWide">
-      <!-- ✅ (3) Removido texto de planilha -->
       <p class="modalTitle">Contatos WhatsApp</p>
 
       <div class="contactsHead">
@@ -450,7 +504,7 @@
         <button class="btn-ghost" id="btnContatosFechar">Fechar</button>
       </div>
 
-      <div class="contactsTableWrap" id="contactsTableWrap">
+      <div class="contactsTableWrap">
         <table class="contactsTable">
           <thead>
             <tr>
@@ -484,8 +538,6 @@
 
         <div class="field">
           <div class="label">Celular (WhatsApp)</div>
-
-          <!-- ✅ (1) máscara BR com DDD (formato exibido: (DD) 9XXXX-XXXX) -->
           <input
             class="control"
             id="contatoEditarCel"
@@ -556,7 +608,6 @@
       </div>
 
       <div class="modalActions">
-        <!-- ✅ (3) Cancelar -> Fechar -->
         <button class="btn-ghost" id="btnCriarCancelar">Fechar</button>
         <button class="btn btn-primary" id="btnCriarSalvar">Criar</button>
       </div>
@@ -595,7 +646,6 @@
       </div>
 
       <div class="modalActions">
-        <!-- ✅ (3) Cancelar -> Fechar -->
         <button class="btn-ghost" id="btnEditarCancelar">Fechar</button>
         <button class="btn btn-primary" id="btnEditarSalvar">Salvar</button>
       </div>
@@ -878,223 +928,219 @@
     }
 
     // ==========================================================
-    // (1) Máscara BR com DDD: exibe (DD) 9XXXX-XXXX / (DD) XXXX-XXXX
+    // Máscara BR com DDD
     // ==========================================================
     function onlyDigits(s){ return String(s||"").replace(/\D+/g, ""); }
 
     function formatCelBR(digits){
-      const d = onlyDigits(digits).slice(0, 11); // BR padrão: 10 ou 11
+      const d = onlyDigits(digits).slice(0, 11);
       if(!d) return "";
       if(d.length <= 2) return `(${d}`;
       const ddd = d.slice(0,2);
       const rest = d.slice(2);
 
       if(rest.length <= 4) return `(${ddd}) ${rest}`;
-      if(rest.length <= 8){
-        // (DD) XXXX-XXXX (fixo) ou parcial
-        return `(${ddd}) ${rest.slice(0,4)}-${rest.slice(4)}`;
-      }
+      if(rest.length <= 8) return `(${ddd}) ${rest.slice(0,4)}-${rest.slice(4)}`;
 
-      // (DD) 9XXXX-XXXX (celular) ou parcial
       const p1 = rest.slice(0,5);
       const p2 = rest.slice(5,9);
       return `(${ddd}) ${p1}-${p2}`;
     }
 
     function applyMaskOnInput(el){
-      const before = el.value;
-      const dig = onlyDigits(before);
+      const dig = onlyDigits(el.value);
       el.value = formatCelBR(dig);
     }
 
     // ==========================================================
-// ==========================================================
-// MODAL: CONTATOS WHATSAPP (LISTA + EDITAR POR LINHA)
-// ==========================================================
-const btnContatosBono = document.getElementById("btnContatosBono");
-const btnContatosFechar = document.getElementById("btnContatosFechar");
-const tbodyContatos = document.getElementById("tbodyContatos");
-const contatosBusca = document.getElementById("contatosBusca");
-const msgContatos = document.getElementById("msgContatos");
-
-const contatoEditarLoja = document.getElementById("contatoEditarLoja");
-const contatoEditarCel = document.getElementById("contatoEditarCel");
-const msgContatoEditar = document.getElementById("msgContatoEditar");
-const btnContatoEditarCancelar = document.getElementById("btnContatoEditarCancelar");
-const btnContatoEditarSalvar = document.getElementById("btnContatoEditarSalvar");
-
-let contatosBono = [];       // [{loja, celular}]
-let editContatoLoja = null;  // loja em edição
-
-function showMsgContatos(t, tipo){
-  msgContatos.textContent = t || "";
-  msgContatos.className = "msg" + (tipo ? " " + tipo : "");
-}
-function showMsgContatoEditar(t, tipo){
-  msgContatoEditar.textContent = t || "";
-  msgContatoEditar.className = "msg" + (tipo ? " " + tipo : "");
-}
-
-btnContatosBono.addEventListener("click", async () => {
-  contatosBusca.value = "";
-  showMsgContatos("");
-  tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
-  abrirModal("modalContatosBg");
-
-  await carregarContatosBono();
-  renderContatosBono();
-});
-
-btnContatosFechar.addEventListener("click", () => fecharModal("modalContatosBg"));
-
-async function carregarContatosBono(){
-  try{
-    const r = await fetch("/api/contatos-bono-listar", {
-      method: "GET",
-      credentials: "include",
-      headers: { "Accept":"application/json" }
-    });
-
-    const txt = await r.text();
-    let j = null;
-    try { j = JSON.parse(txt); } catch {}
-
-    if(!r.ok || !j || !j.sucesso){
-      const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
-      showMsgContatos(m, "err");
-      contatosBono = [];
-      return;
-    }
-
-    contatosBono = j.contatos || [];
-  }catch(e){
-    console.error("contatos-bono-listar error:", e);
-    showMsgContatos("Erro de rede ao carregar contatos.", "err");
-    contatosBono = [];
-  }
-}
-
-function renderContatosBono(){
-  const q = String(contatosBusca.value || "").trim().toLowerCase();
-
-  const rows = contatosBono.filter(c => {
-    const loja = String(c.loja||"");
-    const celRaw = String(c.celular||"");
-    const celFmt = formatCelBR(onlyDigits(celRaw));
-    const hay = `${loja} ${celRaw} ${celFmt}`.toLowerCase();
-    return !q || hay.includes(q);
-  });
-
-  if(rows.length === 0){
-    tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Nenhum contato encontrado.</td></tr>';
-    return;
-  }
-
-  // ✅ botão por linha com data-loja (sem onclick inline)
-  tbodyContatos.innerHTML = rows.map(c => {
-    const loja = String(c.loja || "");
-    const celRaw = String(c.celular || "");
-    const celShow = formatCelBR(onlyDigits(celRaw)) || celRaw;
-
-    return `
-      <tr>
-        <td class="colLoja" title="${escapeHtml(loja)}">${escapeHtml(loja)}</td>
-        <td class="colCel" title="${escapeHtml(celShow)}">${escapeHtml(celShow)}</td>
-        <td class="colAcao">
-          <button class="iconBtn btnEditContato" data-loja="${escapeHtml(loja)}" type="button" aria-label="Editar número">
-            ✏️
-          </button>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-contatosBusca.addEventListener("input", renderContatosBono);
-
-// ✅ Event delegation: 1 listener resolve todos os botões (mesmo após re-render)
-tbodyContatos.addEventListener("click", (e) => {
-  const btn = e.target.closest(".btnEditContato");
-  if(!btn) return;
-
-  const loja = btn.getAttribute("data-loja") || "";
-  abrirPopupEditarContato(loja);
-});
-
-function abrirPopupEditarContato(loja){
-  const c = contatosBono.find(x => String(x.loja||"") === String(loja||""));
-  if(!c) return;
-
-  editContatoLoja = c.loja;
-
-  contatoEditarLoja.value = c.loja || "";
-  const dig = onlyDigits(c.celular || "");
-  contatoEditarCel.value = formatCelBR(dig) || String(c.celular || "");
-
-  showMsgContatoEditar("");
-  abrirModal("modalContatoEditarBg");
-  setTimeout(() => contatoEditarCel.focus(), 50);
-}
-
-// máscara enquanto digita
-contatoEditarCel.addEventListener("input", () => applyMaskOnInput(contatoEditarCel));
-
-btnContatoEditarCancelar.addEventListener("click", () => fecharModal("modalContatoEditarBg"));
-
-btnContatoEditarSalvar.addEventListener("click", async () => {
-  showMsgContatoEditar("");
-
-  if(!editContatoLoja){
-    showMsgContatoEditar("Contato inválido.", "err");
-    return;
-  }
-
-  const digits = onlyDigits(contatoEditarCel.value || "");
-
-  if(!digits){
-    showMsgContatoEditar("Informe o celular.", "err");
-    return;
-  }
-
-  if(digits.length < 10){
-    showMsgContatoEditar("Número incompleto. Informe DDD + número.", "err");
-    return;
-  }
-
-  try{
-    const r = await fetch("/api/contatos-bono-atualizar", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type":"application/json", "Accept":"application/json" },
-      body: JSON.stringify({ loja: editContatoLoja, celular: digits })
-    });
-
-    const txt = await r.text();
-    let j = null;
-    try { j = JSON.parse(txt); } catch {}
-
-    if(!r.ok || !j || !j.sucesso){
-      const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
-      showMsgContatoEditar(m, "err");
-      return;
-    }
-
-    // Atualiza cache local e re-render
-    const idx = contatosBono.findIndex(x => String(x.loja||"") === String(editContatoLoja||""));
-    if(idx >= 0) contatosBono[idx].celular = digits;
-
-    showMsgContatoEditar("Celular atualizado com sucesso.", "ok");
-    renderContatosBono();
-
-    setTimeout(()=> fecharModal("modalContatoEditarBg"), 250);
-
-  }catch(e){
-    console.error("contatos-bono-atualizar error:", e);
-    showMsgContatoEditar("Erro de rede ao salvar.", "err");
-  }
-});
+    // MODAL: CONTATOS WHATSAPP (com botão por linha SEM cortar no mobile)
     // ==========================================================
-    // Modal Criar
+    const btnContatosBono = document.getElementById("btnContatosBono");
+    const btnContatosFechar = document.getElementById("btnContatosFechar");
+    const tbodyContatos = document.getElementById("tbodyContatos");
+    const contatosBusca = document.getElementById("contatosBusca");
+    const msgContatos = document.getElementById("msgContatos");
+
+    const contatoEditarLoja = document.getElementById("contatoEditarLoja");
+    const contatoEditarCel = document.getElementById("contatoEditarCel");
+    const msgContatoEditar = document.getElementById("msgContatoEditar");
+    const btnContatoEditarCancelar = document.getElementById("btnContatoEditarCancelar");
+    const btnContatoEditarSalvar = document.getElementById("btnContatoEditarSalvar");
+
+    let contatosBono = [];
+    let editContatoLoja = null;
+
+    function showMsgContatos(t, tipo){
+      msgContatos.textContent = t || "";
+      msgContatos.className = "msg" + (tipo ? " " + tipo : "");
+    }
+    function showMsgContatoEditar(t, tipo){
+      msgContatoEditar.textContent = t || "";
+      msgContatoEditar.className = "msg" + (tipo ? " " + tipo : "");
+    }
+
+    btnContatosBono.addEventListener("click", async () => {
+      contatosBusca.value = "";
+      showMsgContatos("");
+      tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
+      abrirModal("modalContatosBg");
+      await carregarContatosBono();
+      renderContatosBono();
+    });
+
+    btnContatosFechar.addEventListener("click", () => fecharModal("modalContatosBg"));
+
+    async function carregarContatosBono(){
+      try{
+        const r = await fetch("/api/contatos-bono-listar", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Accept":"application/json" }
+        });
+
+        const txt = await r.text();
+        let j = null;
+        try { j = JSON.parse(txt); } catch {}
+
+        if(!r.ok || !j || !j.sucesso){
+          const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
+          showMsgContatos(m, "err");
+          contatosBono = [];
+          return;
+        }
+
+        contatosBono = j.contatos || [];
+      }catch(e){
+        console.error("contatos-bono-listar error:", e);
+        showMsgContatos("Erro de rede ao carregar contatos.", "err");
+        contatosBono = [];
+      }
+    }
+
+    function renderContatosBono(){
+      const q = String(contatosBusca.value || "").trim().toLowerCase();
+
+      const rows = contatosBono.filter(c => {
+        const loja = String(c.loja||"");
+        const celRaw = String(c.celular||"");
+        const celFmt = formatCelBR(onlyDigits(celRaw));
+        const hay = `${loja} ${celRaw} ${celFmt}`.toLowerCase();
+        return !q || hay.includes(q);
+      });
+
+      if(rows.length === 0){
+        tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Nenhum contato encontrado.</td></tr>';
+        return;
+      }
+
+      tbodyContatos.innerHTML = rows.map(c => {
+        const loja = String(c.loja || "");
+        const celRaw = String(c.celular || "");
+        const celShow = formatCelBR(onlyDigits(celRaw)) || celRaw;
+
+        return `
+          <tr>
+            <td class="colLoja colLojaCell" title="${escapeHtml(loja)}">${escapeHtml(loja)}</td>
+            <td class="colCel" title="${escapeHtml(celShow)}">${escapeHtml(celShow)}</td>
+            <td class="colAcao">
+              <button class="iconBtn btnEditContato" data-loja="${escapeHtml(loja)}" type="button" aria-label="Editar número">
+                ✏️
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    contatosBusca.addEventListener("input", renderContatosBono);
+
+    // ✅ 1 listener resolve todos os botões mesmo após re-render
+    tbodyContatos.addEventListener("click", (e) => {
+      const btn = e.target.closest(".btnEditContato");
+      if(!btn) return;
+      const loja = btn.getAttribute("data-loja") || "";
+      abrirPopupEditarContato(loja);
+    });
+
+    function abrirPopupEditarContato(loja){
+      const c = contatosBono.find(x => String(x.loja||"") === String(loja||""));
+      if(!c) return;
+
+      editContatoLoja = c.loja;
+      contatoEditarLoja.value = c.loja || "";
+
+      const dig = onlyDigits(c.celular || "");
+      contatoEditarCel.value = formatCelBR(dig) || String(c.celular || "");
+
+      showMsgContatoEditar("");
+      abrirModal("modalContatoEditarBg");
+      setTimeout(() => contatoEditarCel.focus(), 50);
+    }
+
+    contatoEditarCel.addEventListener("input", () => applyMaskOnInput(contatoEditarCel));
+
+    btnContatoEditarCancelar.addEventListener("click", () => fecharModal("modalContatoEditarBg"));
+
+    btnContatoEditarSalvar.addEventListener("click", async () => {
+      showMsgContatoEditar("");
+
+      if(!editContatoLoja){
+        showMsgContatoEditar("Contato inválido.", "err");
+        return;
+      }
+
+      const digits = onlyDigits(contatoEditarCel.value || "");
+      if(!digits){
+        showMsgContatoEditar("Informe o celular.", "err");
+        return;
+      }
+      if(digits.length < 10){
+        showMsgContatoEditar("Número incompleto. Informe DDD + número.", "err");
+        return;
+      }
+
+      try{
+        const r = await fetch("/api/contatos-bono-atualizar", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type":"application/json", "Accept":"application/json" },
+          body: JSON.stringify({ loja: editContatoLoja, celular: digits })
+        });
+
+        const txt = await r.text();
+        let j = null;
+        try { j = JSON.parse(txt); } catch {}
+
+        if(!r.ok || !j || !j.sucesso){
+          const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
+          showMsgContatoEditar(m, "err");
+          return;
+        }
+
+        const idx = contatosBono.findIndex(x => String(x.loja||"") === String(editContatoLoja||""));
+        if(idx >= 0) contatosBono[idx].celular = digits;
+
+        showMsgContatoEditar("Celular atualizado com sucesso.", "ok");
+        renderContatosBono();
+        setTimeout(()=> fecharModal("modalContatoEditarBg"), 250);
+
+      }catch(e){
+        console.error("contatos-bono-atualizar error:", e);
+        showMsgContatoEditar("Erro de rede ao salvar.", "err");
+      }
+    });
+
+    // ==========================================================
+    // Fecha modal clicando fora
+    // ==========================================================
+    ["modalCriarBg","modalEditarBg","modalResetBg","modalContatosBg","modalContatoEditarBg"].forEach(id => {
+      document.getElementById(id).addEventListener("click", (e) => {
+        if(e.target.id === id) fecharModal(id);
+      });
+    });
+
+    // ==========================================================
+    // Modal Criar + Sugestões + Editar + Reset (mantidos do seu código)
     // ==========================================================
     const btnAbrirCriar = document.getElementById("btnAbrirCriar");
     const btnCriarCancelar = document.getElementById("btnCriarCancelar");
@@ -1106,7 +1152,6 @@ btnContatoEditarSalvar.addEventListener("click", async () => {
     const criarUsuario = document.getElementById("criarUsuario");
     const suggestBox = document.getElementById("suggestBox");
 
-    // ✅ LOJAS_FIXAS: adicionada ULT 24 - PAU BRASIL
     const LOJAS_FIXAS = [
       "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE","BIG 06 - SIBERIA",
       "BIG 08 - 503 SUL","BIG 09 - PENÍNSULA","BIG 10 - PAINEIRAS","BIG 11 - 310 NORTE","BIG 12 - 208 NORTE","BIG 13 - QI-05 L. NORTE",
@@ -1116,7 +1161,7 @@ btnContatoEditarSalvar.addEventListener("click", async () => {
       "ULT 08 - ARAPOANGA","ULT 09 - CEI NORTE","ULT 10 - ESTRUTURAL","ULT 11 - ITAPOA","ULT 12 - SAO SEBASTIAO","ULT 13 - RECANTO",
       "ULT 14 - AGUAS LINDAS","ULT 15 - SOL NASCENTE","ULT 16 - PARANOA PARK","ULT 17 - SAMAMBAIA","ULT 18 - BRAZLANDIA","ULT 19 - VIA PARK",
       "ULT 20 - TAGUATINGA","ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA",
-      "ULT 24 - PAU BRASIL",          /* ✅ ADICIONADA */
+      "ULT 24 - PAU BRASIL",
       "ULT 25 - BRASILINHA",
       "MATRIZ","INDUSPAN","TOTAL DISTRIBUICAO"
     ];
@@ -1199,7 +1244,6 @@ btnContatoEditarSalvar.addEventListener("click", async () => {
       await carregar();
     });
 
-    // Sugestões de usuário
     function buildUserLojaMap(){
       const map = new Map();
       for(const u of usuarios){
@@ -1263,9 +1307,6 @@ btnContatoEditarSalvar.addEventListener("click", async () => {
     });
     criarUsuario.addEventListener("blur", () => setTimeout(()=>hideSuggest(), 180));
 
-    // ==========================================================
-    // Modal Editar
-    // ==========================================================
     document.getElementById("btnEditarCancelar").addEventListener("click", () => fecharModal("modalEditarBg"));
 
     document.getElementById("btnEditarSalvar").addEventListener("click", async () => {
@@ -1308,9 +1349,6 @@ btnContatoEditarSalvar.addEventListener("click", async () => {
       await carregar();
     });
 
-    // ==========================================================
-    // Modal Reset
-    // ==========================================================
     document.getElementById("btnResetFechar").addEventListener("click", () => fecharModal("modalResetBg"));
 
     document.getElementById("btnResetConfirmar").addEventListener("click", async () => {
@@ -1353,18 +1391,6 @@ btnContatoEditarSalvar.addEventListener("click", async () => {
       await carregar();
     });
 
-    // ==========================================================
-    // Fecha modal clicando fora
-    // ==========================================================
-    ["modalCriarBg","modalEditarBg","modalResetBg","modalContatosBg","modalContatoEditarBg"].forEach(id => {
-      document.getElementById(id).addEventListener("click", (e) => {
-        if(e.target.id === id) fecharModal(id);
-      });
-    });
-
-    // ==========================================================
-    // Inicializa SELECTs fixos (Criar/Editar)
-    // ==========================================================
     function initSelectorsFixos(){
       const criarLoja = document.getElementById("criarLoja");
       const editarLoja = document.getElementById("editarLoja");
