@@ -1,10 +1,14 @@
 // /api/usuarios-resetar.js
 import bcrypt from "bcryptjs";
 import { requireSession } from "./_authUsuarios.js";
-import { bad, ok, getSheetsClient, findRowById, updateRow } from "./_usuariosSheet.js";
+import { bad, ok, getSheetsClient, SHEET_NAME, spreadsheetId } from "./_usuariosSheet.js";
 
 function nowBR() {
   return new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+}
+
+function normLower(s) {
+  return String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 export default async function handler(req, res) {
@@ -25,33 +29,78 @@ export default async function handler(req, res) {
     }
 
     const { id, senha, primeiroLogin } = req.body || {};
-    if (!id || !senha) return bad(res, 400, "ID e senha são obrigatórios.");
+    if (!id || !senha) {
+      return bad(res, 400, "Campos obrigatórios ausentes.");
+    }
 
     const sheets = await getSheetsClient();
-    const found = await findRowById(sheets, id);
-    if (!found) return bad(res, 404, "Usuário não encontrado.");
 
-    const row = padToK(found.rowValues);
+    // Lê A..K para encontrar:
+    // - qual usuário pertence ao ID
+    // - todas as linhas desse usuário
+    const get = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${SHEET_NAME}!A2:K`,
+    });
 
-    const ativo = (row[5] || "SIM");
-    if (ativo !== "SIM") return bad(res, 400, "Usuário desativado.");
+    const rows = get.data.values || [];
 
-    row[2] = await bcrypt.hash(String(senha), 10);              // C hash
-    row[6] = (primeiroLogin === "SIM") ? "SIM" : "NAO";         // G
-    row[9] = nowBR();                                           // J
-    row[10] = String(s.usuario || "").trim();                   // K
+    const idxById = rows.findIndex(r => String(r?.[4] || "").trim() === String(id).trim()); // E = ID
+    if (idxById === -1) {
+      return bad(res, 404, "Usuário (ID) não encontrado.");
+    }
 
-    await updateRow(sheets, found.rowIndex, row);
-    return ok(res, { sucesso: true });
+    const usuarioAlvo = String(rows[idxById]?.[1] || "").trim(); // B = USUARIO
+    const usuarioNorm = normLower(usuarioAlvo);
+    if (!usuarioAlvo) {
+      return bad(res, 500, "Registro inválido: usuário ausente.");
+    }
+
+    // Novo hash (será aplicado a todas as lojas desse usuário)
+    const novoHash = await bcrypt.hash(String(senha), 10);
+
+    // Linhas da planilha são 1-index no Sheets; nosso range começou em A2, então:
+    // linha real = (index no array) + 2
+    const linhasParaAtualizar = [];
+    for (let i = 0; i < rows.length; i++) {
+      const u = normLower(rows[i]?.[1] || "");
+      if (u === usuarioNorm) {
+        linhasParaAtualizar.push(i + 2);
+      }
+    }
+
+    // Atualiza C (hash), G (primeiroLogin), J (ult_reset_em), K (ult_reset_por)
+    // Fazemos em batchUpdate de values para evitar várias chamadas.
+    const data = linhasParaAtualizar.map(linha => ({
+      range: `${SHEET_NAME}!C${linha}:C${linha}`,
+      values: [[novoHash]],
+    }));
+
+    // primeiroLogin (G)
+    const pl = (primeiroLogin === "SIM" ? "SIM" : "NAO");
+    linhasParaAtualizar.forEach(linha => {
+      data.push({ range: `${SHEET_NAME}!G${linha}:G${linha}`, values: [[pl]] });
+      data.push({ range: `${SHEET_NAME}!J${linha}:J${linha}`, values: [[nowBR()]] });
+      data.push({ range: `${SHEET_NAME}!K${linha}:K${linha}`, values: [[String(s.usuario || "").trim()]] });
+    });
+
+    await sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        valueInputOption: "RAW",
+        data,
+      },
+    });
+
+    return ok(res, {
+      sucesso: true,
+      message: `Senha resetada para o usuário "${usuarioAlvo}" em ${linhasParaAtualizar.length} loja(s).`,
+      usuario: usuarioAlvo,
+      lojasAfetadas: linhasParaAtualizar.length
+    });
 
   } catch (e) {
     console.error("usuarios-resetar error:", e);
     return bad(res, 500, "Erro interno ao resetar senha.");
   }
-}
-
-function padToK(row) {
-  const out = Array.from(row || []);
-  while (out.length < 11) out.push("");
-  return out.slice(0, 11);
 }
