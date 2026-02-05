@@ -15,6 +15,11 @@ function gerarId() {
   return crypto.randomBytes(16).toString("hex");
 }
 
+// Normalização simples (evita diferenças por espaços/maiúsculas)
+function normLower(s) {
+  return String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 export default async function handler(req, res) {
   try {
     // Só aceita POST
@@ -42,6 +47,9 @@ export default async function handler(req, res) {
       return bad(res, 400, "Campos obrigatórios ausentes.");
     }
 
+    const lojaNorm = normLower(loja);
+    const userNorm = normLower(usuario);
+
     // Sheets client
     const sheets = await getSheetsClient();
 
@@ -52,17 +60,28 @@ export default async function handler(req, res) {
       console.warn("ensureHeaders falhou (seguindo mesmo assim):", e?.message || e);
     }
 
-    // Checa duplicidade de usuário (coluna B)
+    // ==========================================================
+    // ✅ NOVA REGRA DE DUPLICIDADE:
+    // Permite o mesmo "usuario" em lojas diferentes.
+    // Bloqueia APENAS se já existir a combinação (LOJA + USUARIO).
+    //
+    // Planilha: A=LOJAS, B=USUARIO
+    // ==========================================================
     const chk = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${SHEET_NAME}!B2:B`,
+      range: `${SHEET_NAME}!A2:B`, // ✅ pega LOJA e USUARIO
     });
 
-    const userNorm = String(usuario).trim().toLowerCase();
-    const colB = (chk.data.values || []).map(r => String(r[0] || "").trim().toLowerCase());
+    const rows = chk.data.values || [];
 
-    if (colB.includes(userNorm)) {
-      return bad(res, 409, "Usuário já existe.");
+    const jaExisteNaMesmaLoja = rows.some((r) => {
+      const lojaRow = normLower(r?.[0] || "");
+      const userRow = normLower(r?.[1] || "");
+      return lojaRow === lojaNorm && userRow === userNorm;
+    });
+
+    if (jaExisteNaMesmaLoja) {
+      return bad(res, 409, "Usuário já existe nesta loja.");
     }
 
     // Gera id e hash da senha
