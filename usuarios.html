@@ -908,186 +908,191 @@
     }
 
     // ==========================================================
-    // MODAL: CONTATOS WHATSAPP
-    // ==========================================================
-    const btnContatosBono = document.getElementById("btnContatosBono");
-    const btnContatosFechar = document.getElementById("btnContatosFechar");
-    const tbodyContatos = document.getElementById("tbodyContatos");
-    const contatosBusca = document.getElementById("contatosBusca");
-    const msgContatos = document.getElementById("msgContatos");
+// ==========================================================
+// MODAL: CONTATOS WHATSAPP (LISTA + EDITAR POR LINHA)
+// ==========================================================
+const btnContatosBono = document.getElementById("btnContatosBono");
+const btnContatosFechar = document.getElementById("btnContatosFechar");
+const tbodyContatos = document.getElementById("tbodyContatos");
+const contatosBusca = document.getElementById("contatosBusca");
+const msgContatos = document.getElementById("msgContatos");
 
-    const contatoEditarLoja = document.getElementById("contatoEditarLoja");
-    const contatoEditarCel = document.getElementById("contatoEditarCel");
-    const msgContatoEditar = document.getElementById("msgContatoEditar");
-    const btnContatoEditarCancelar = document.getElementById("btnContatoEditarCancelar");
-    const btnContatoEditarSalvar = document.getElementById("btnContatoEditarSalvar");
+const contatoEditarLoja = document.getElementById("contatoEditarLoja");
+const contatoEditarCel = document.getElementById("contatoEditarCel");
+const msgContatoEditar = document.getElementById("msgContatoEditar");
+const btnContatoEditarCancelar = document.getElementById("btnContatoEditarCancelar");
+const btnContatoEditarSalvar = document.getElementById("btnContatoEditarSalvar");
 
-    let contatosBono = [];       // [{loja, celular}]
-    let editContatoLoja = null;  // loja em edição
+let contatosBono = [];       // [{loja, celular}]
+let editContatoLoja = null;  // loja em edição
 
-    function showMsgContatos(t, tipo){
-      msgContatos.textContent = t || "";
-      msgContatos.className = "msg" + (tipo ? " " + tipo : "");
-    }
-    function showMsgContatoEditar(t, tipo){
-      msgContatoEditar.textContent = t || "";
-      msgContatoEditar.className = "msg" + (tipo ? " " + tipo : "");
-    }
+function showMsgContatos(t, tipo){
+  msgContatos.textContent = t || "";
+  msgContatos.className = "msg" + (tipo ? " " + tipo : "");
+}
+function showMsgContatoEditar(t, tipo){
+  msgContatoEditar.textContent = t || "";
+  msgContatoEditar.className = "msg" + (tipo ? " " + tipo : "");
+}
 
-    btnContatosBono.addEventListener("click", async () => {
-      contatosBusca.value = "";
-      showMsgContatos("");
-      tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
-      abrirModal("modalContatosBg");
+btnContatosBono.addEventListener("click", async () => {
+  contatosBusca.value = "";
+  showMsgContatos("");
+  tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
+  abrirModal("modalContatosBg");
 
-      await carregarContatosBono();
-      renderContatosBono();
+  await carregarContatosBono();
+  renderContatosBono();
+});
+
+btnContatosFechar.addEventListener("click", () => fecharModal("modalContatosBg"));
+
+async function carregarContatosBono(){
+  try{
+    const r = await fetch("/api/contatos-bono-listar", {
+      method: "GET",
+      credentials: "include",
+      headers: { "Accept":"application/json" }
     });
 
-    btnContatosFechar.addEventListener("click", () => fecharModal("modalContatosBg"));
+    const txt = await r.text();
+    let j = null;
+    try { j = JSON.parse(txt); } catch {}
 
-    async function carregarContatosBono(){
-      try{
-        const r = await fetch("/api/contatos-bono-listar", {
-          method: "GET",
-          credentials: "include",
-          headers: { "Accept":"application/json" }
-        });
-
-        const txt = await r.text();
-        let j = null;
-        try { j = JSON.parse(txt); } catch {}
-
-        if(!r.ok || !j || !j.sucesso){
-          const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
-          showMsgContatos(m, "err");
-          contatosBono = [];
-          return;
-        }
-
-        contatosBono = j.contatos || [];
-      }catch(e){
-        console.error("contatos-bono-listar error:", e);
-        showMsgContatos("Erro de rede ao carregar contatos.", "err");
-        contatosBono = [];
-      }
+    if(!r.ok || !j || !j.sucesso){
+      const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
+      showMsgContatos(m, "err");
+      contatosBono = [];
+      return;
     }
 
-    function renderContatosBono(){
-      const q = String(contatosBusca.value || "").trim().toLowerCase();
+    contatosBono = j.contatos || [];
+  }catch(e){
+    console.error("contatos-bono-listar error:", e);
+    showMsgContatos("Erro de rede ao carregar contatos.", "err");
+    contatosBono = [];
+  }
+}
 
-      const rows = contatosBono.filter(c => {
-        const loja = String(c.loja||"");
-        const celRaw = String(c.celular||"");
-        const celFmt = formatCelBR(onlyDigits(celRaw));
-        const hay = `${loja} ${celRaw} ${celFmt}`.toLowerCase(); // ✅ busca também pelo formato mascarado
-        return !q || hay.includes(q);
-      });
+function renderContatosBono(){
+  const q = String(contatosBusca.value || "").trim().toLowerCase();
 
-      if(rows.length === 0){
-        tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Nenhum contato encontrado.</td></tr>';
-        return;
-      }
+  const rows = contatosBono.filter(c => {
+    const loja = String(c.loja||"");
+    const celRaw = String(c.celular||"");
+    const celFmt = formatCelBR(onlyDigits(celRaw));
+    const hay = `${loja} ${celRaw} ${celFmt}`.toLowerCase();
+    return !q || hay.includes(q);
+  });
 
-      tbodyContatos.innerHTML = rows.map(c => {
-        const loja = String(c.loja || "");
-        const celRaw = String(c.celular || "");
-        const celShow = formatCelBR(onlyDigits(celRaw)) || celRaw; // ✅ exibe mascarado quando possível
+  if(rows.length === 0){
+    tbodyContatos.innerHTML = '<tr><td colspan="3" style="padding:14px; font-weight:900;">Nenhum contato encontrado.</td></tr>';
+    return;
+  }
 
-        return `
-          <tr>
-            <td class="colLoja" title="${escapeHtml(loja)}">${escapeHtml(loja)}</td>
-            <td class="colCel" title="${escapeHtml(celShow)}">${escapeHtml(celShow)}</td>
-            <td class="colAcao">
-              <!-- ✅ (1) ícone como botão para editar -->
-              <button class="iconBtn" onclick="editarContatoBono('${escapeHtml(loja)}')" aria-label="Editar número">
-                ✏️
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join("");
-    }
+  // ✅ botão por linha com data-loja (sem onclick inline)
+  tbodyContatos.innerHTML = rows.map(c => {
+    const loja = String(c.loja || "");
+    const celRaw = String(c.celular || "");
+    const celShow = formatCelBR(onlyDigits(celRaw)) || celRaw;
 
-    contatosBusca.addEventListener("input", renderContatosBono);
+    return `
+      <tr>
+        <td class="colLoja" title="${escapeHtml(loja)}">${escapeHtml(loja)}</td>
+        <td class="colCel" title="${escapeHtml(celShow)}">${escapeHtml(celShow)}</td>
+        <td class="colAcao">
+          <button class="iconBtn btnEditContato" data-loja="${escapeHtml(loja)}" type="button" aria-label="Editar número">
+            ✏️
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
 
-    window.editarContatoBono = (loja) => {
-      const c = contatosBono.find(x => String(x.loja||"") === String(loja||""));
-      if(!c) return;
+contatosBusca.addEventListener("input", renderContatosBono);
 
-      editContatoLoja = c.loja;
-      contatoEditarLoja.value = c.loja || "";
+// ✅ Event delegation: 1 listener resolve todos os botões (mesmo após re-render)
+tbodyContatos.addEventListener("click", (e) => {
+  const btn = e.target.closest(".btnEditContato");
+  if(!btn) return;
 
-      // ✅ carrega já mascarado (se for BR 10/11 dígitos)
-      const dig = onlyDigits(c.celular || "");
-      contatoEditarCel.value = formatCelBR(dig) || String(c.celular || "");
+  const loja = btn.getAttribute("data-loja") || "";
+  abrirPopupEditarContato(loja);
+});
 
-      showMsgContatoEditar("");
-      abrirModal("modalContatoEditarBg");
+function abrirPopupEditarContato(loja){
+  const c = contatosBono.find(x => String(x.loja||"") === String(loja||""));
+  if(!c) return;
 
-      setTimeout(() => contatoEditarCel.focus(), 50);
-    };
+  editContatoLoja = c.loja;
 
-    // ✅ aplica máscara enquanto digita
-    contatoEditarCel.addEventListener("input", () => applyMaskOnInput(contatoEditarCel));
+  contatoEditarLoja.value = c.loja || "";
+  const dig = onlyDigits(c.celular || "");
+  contatoEditarCel.value = formatCelBR(dig) || String(c.celular || "");
 
-    btnContatoEditarCancelar.addEventListener("click", () => fecharModal("modalContatoEditarBg"));
+  showMsgContatoEditar("");
+  abrirModal("modalContatoEditarBg");
+  setTimeout(() => contatoEditarCel.focus(), 50);
+}
 
-    btnContatoEditarSalvar.addEventListener("click", async () => {
-      showMsgContatoEditar("");
+// máscara enquanto digita
+contatoEditarCel.addEventListener("input", () => applyMaskOnInput(contatoEditarCel));
 
-      if(!editContatoLoja){
-        showMsgContatoEditar("Contato inválido.", "err");
-        return;
-      }
+btnContatoEditarCancelar.addEventListener("click", () => fecharModal("modalContatoEditarBg"));
 
-      // ✅ salva somente dígitos (mantém padrão consistente com DDD)
-      const digits = onlyDigits(contatoEditarCel.value || "");
+btnContatoEditarSalvar.addEventListener("click", async () => {
+  showMsgContatoEditar("");
 
-      if(!digits){
-        showMsgContatoEditar("Informe o celular.", "err");
-        return;
-      }
+  if(!editContatoLoja){
+    showMsgContatoEditar("Contato inválido.", "err");
+    return;
+  }
 
-      // ✅ validação leve (BR): se tiver 10 ou 11 dígitos ok; senão deixa passar (pode haver DDI)
-      if(digits.length < 10){
-        showMsgContatoEditar("Número incompleto. Informe DDD + número.", "err");
-        return;
-      }
+  const digits = onlyDigits(contatoEditarCel.value || "");
 
-      try{
-        const r = await fetch("/api/contatos-bono-atualizar", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type":"application/json", "Accept":"application/json" },
-          body: JSON.stringify({ loja: editContatoLoja, celular: digits })
-        });
+  if(!digits){
+    showMsgContatoEditar("Informe o celular.", "err");
+    return;
+  }
 
-        const txt = await r.text();
-        let j = null;
-        try { j = JSON.parse(txt); } catch {}
+  if(digits.length < 10){
+    showMsgContatoEditar("Número incompleto. Informe DDD + número.", "err");
+    return;
+  }
 
-        if(!r.ok || !j || !j.sucesso){
-          const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
-          showMsgContatoEditar(m, "err");
-          return;
-        }
-
-        // Atualiza cache local e re-render
-        const idx = contatosBono.findIndex(x => String(x.loja||"") === String(editContatoLoja||""));
-        if(idx >= 0) contatosBono[idx].celular = digits;
-
-        showMsgContatoEditar("Celular atualizado com sucesso.", "ok");
-        renderContatosBono();
-
-        setTimeout(()=> fecharModal("modalContatoEditarBg"), 250);
-
-      }catch(e){
-        console.error("contatos-bono-atualizar error:", e);
-        showMsgContatoEditar("Erro de rede ao salvar.", "err");
-      }
+  try{
+    const r = await fetch("/api/contatos-bono-atualizar", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type":"application/json", "Accept":"application/json" },
+      body: JSON.stringify({ loja: editContatoLoja, celular: digits })
     });
 
+    const txt = await r.text();
+    let j = null;
+    try { j = JSON.parse(txt); } catch {}
+
+    if(!r.ok || !j || !j.sucesso){
+      const m = (j && j.message) ? j.message : (txt?.slice(0,140) || `Falha HTTP ${r.status}`);
+      showMsgContatoEditar(m, "err");
+      return;
+    }
+
+    // Atualiza cache local e re-render
+    const idx = contatosBono.findIndex(x => String(x.loja||"") === String(editContatoLoja||""));
+    if(idx >= 0) contatosBono[idx].celular = digits;
+
+    showMsgContatoEditar("Celular atualizado com sucesso.", "ok");
+    renderContatosBono();
+
+    setTimeout(()=> fecharModal("modalContatoEditarBg"), 250);
+
+  }catch(e){
+    console.error("contatos-bono-atualizar error:", e);
+    showMsgContatoEditar("Erro de rede ao salvar.", "err");
+  }
+});
     // ==========================================================
     // Modal Criar
     // ==========================================================
