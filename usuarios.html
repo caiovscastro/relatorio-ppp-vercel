@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <!-- ✅ mantido -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>USUÁRIOS — ADMIN</title>
+  <title>GESTÃO DE USUÁRIOS</title>
 
   <style>
     html, body { width:100%; max-width:100%; overflow-x:hidden; }
@@ -294,7 +294,7 @@
     }
 
     /* =========
-       CONTATOS BONO (modal “planilha” 2 colunas)
+       CONTATOS WHATSAPP (modal 2 colunas)
        ========= */
     .modalWide{
       max-width: min(760px, 94vw);
@@ -318,18 +318,28 @@
       background: #fff;
       font-weight: 800;
     }
+
+    /* ✅ (2) Scroll vertical para ver toda a lista */
     .contactsTableWrap{
       border: 1px solid rgba(0,0,0,0.12);
       border-radius: 12px;
-      overflow: hidden; /* ✅ sem scroll horizontal */
+      overflow-x: hidden;   /* ✅ sem horizontal */
+      overflow-y: auto;     /* ✅ scroll vertical */
+      max-height: 62vh;     /* ✅ altura máxima do modal para caber em telas menores */
       background:#fff;
     }
+
     .contactsTable{
       width:100%;
       border-collapse: collapse;
       table-layout: fixed; /* ✅ garante caber sem horizontal */
     }
+
+    /* ✅ cabeçalho “grudado” durante o scroll */
     .contactsTable thead th{
+      position: sticky;
+      top: 0;
+      z-index: 2;
       background:#f7f7f7;
       font-size: 12px;
       font-weight: 900;
@@ -337,6 +347,7 @@
       border-bottom: 1px solid rgba(0,0,0,0.12);
       white-space: nowrap;
     }
+
     .contactsTable tbody td{
       padding: 10px 10px;
       border-bottom: 1px solid rgba(0,0,0,0.08);
@@ -360,6 +371,7 @@
       font-weight: 900;
       font-size: 12px;
       white-space: nowrap;
+      line-height: 1;
     }
     .iconBtn:hover{ background: rgba(0,0,0,0.03); }
 
@@ -372,6 +384,7 @@
       table{ min-width: 820px; }
 
       .contactsSearch{ flex: 1 1 100%; min-width: 0; width: 100%; }
+      .contactsTableWrap{ max-height: 64vh; }
       .colLoja{ width: 54%; }
       .colCel{ width: 34%; }
       .colAcao{ width: 12%; }
@@ -393,9 +406,9 @@
         <select id="fPerfil" class="filterSelect" title="Filtrar por Perfil"></select>
         <select id="fUsuario" class="filterSelect" title="Filtrar por Usuário"></select>
 
-        <!-- ✅ (1) “seletor/atalho” CONTATOS BONO ao lado do +Criar -->
-        <button class="btn-ghost" id="btnContatosBono" title="Editar contatos de WhatsApp do Bono">
-          📞 Contatos Bono
+        <!-- ✅ (3) Texto sem referência a planilha -->
+        <button class="btn-ghost" id="btnContatosBono" title="Editar contatos de WhatsApp">
+          📞 Contatos WhatsApp
         </button>
 
         <button class="btn btn-primary" id="btnAbrirCriar">+ Criar usuário</button>
@@ -425,18 +438,19 @@
   </div>
 
   <!-- ==========================
-       MODAL: CONTATOS BONO (planilha 2 colunas)
+       MODAL: CONTATOS WHATSAPP
        ========================== -->
   <div class="modalBg" id="modalContatosBg">
     <div class="modal modalWide">
-      <p class="modalTitle">Contatos WhatsApp — Bono (CONTATOS_BONO A:B)</p>
+      <!-- ✅ (3) Removido texto de planilha -->
+      <p class="modalTitle">Contatos WhatsApp</p>
 
       <div class="contactsHead">
         <input id="contatosBusca" class="contactsSearch" placeholder="Buscar por loja ou número..." />
         <button class="btn-ghost" id="btnContatosFechar">Fechar</button>
       </div>
 
-      <div class="contactsTableWrap">
+      <div class="contactsTableWrap" id="contactsTableWrap">
         <table class="contactsTable">
           <thead>
             <tr>
@@ -470,8 +484,17 @@
 
         <div class="field">
           <div class="label">Celular (WhatsApp)</div>
-          <input class="control" id="contatoEditarCel" placeholder="Ex: 61999999999" />
-          <div class="hint">Dica: pode salvar com ou sem DDI/DDDs. Use o padrão que você já usa no seu envio.</div>
+
+          <!-- ✅ (1) máscara BR com DDD (formato exibido: (DD) 9XXXX-XXXX) -->
+          <input
+            class="control"
+            id="contatoEditarCel"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="(61) 99999-9999"
+            maxlength="16"
+          />
+          <div class="hint">Digite apenas números. O campo formata automaticamente com DDD.</div>
         </div>
       </div>
 
@@ -855,7 +878,37 @@
     }
 
     // ==========================================================
-    // MODAL: CONTATOS BONO (planilha A:B)
+    // (1) Máscara BR com DDD: exibe (DD) 9XXXX-XXXX / (DD) XXXX-XXXX
+    // ==========================================================
+    function onlyDigits(s){ return String(s||"").replace(/\D+/g, ""); }
+
+    function formatCelBR(digits){
+      const d = onlyDigits(digits).slice(0, 11); // BR padrão: 10 ou 11
+      if(!d) return "";
+      if(d.length <= 2) return `(${d}`;
+      const ddd = d.slice(0,2);
+      const rest = d.slice(2);
+
+      if(rest.length <= 4) return `(${ddd}) ${rest}`;
+      if(rest.length <= 8){
+        // (DD) XXXX-XXXX (fixo) ou parcial
+        return `(${ddd}) ${rest.slice(0,4)}-${rest.slice(4)}`;
+      }
+
+      // (DD) 9XXXX-XXXX (celular) ou parcial
+      const p1 = rest.slice(0,5);
+      const p2 = rest.slice(5,9);
+      return `(${ddd}) ${p1}-${p2}`;
+    }
+
+    function applyMaskOnInput(el){
+      const before = el.value;
+      const dig = onlyDigits(before);
+      el.value = formatCelBR(dig);
+    }
+
+    // ==========================================================
+    // MODAL: CONTATOS WHATSAPP
     // ==========================================================
     const btnContatosBono = document.getElementById("btnContatosBono");
     const btnContatosFechar = document.getElementById("btnContatosFechar");
@@ -924,7 +977,10 @@
       const q = String(contatosBusca.value || "").trim().toLowerCase();
 
       const rows = contatosBono.filter(c => {
-        const hay = `${c.loja||""} ${c.celular||""}`.toLowerCase();
+        const loja = String(c.loja||"");
+        const celRaw = String(c.celular||"");
+        const celFmt = formatCelBR(onlyDigits(celRaw));
+        const hay = `${loja} ${celRaw} ${celFmt}`.toLowerCase(); // ✅ busca também pelo formato mascarado
         return !q || hay.includes(q);
       });
 
@@ -935,13 +991,18 @@
 
       tbodyContatos.innerHTML = rows.map(c => {
         const loja = String(c.loja || "");
-        const cel = String(c.celular || "");
+        const celRaw = String(c.celular || "");
+        const celShow = formatCelBR(onlyDigits(celRaw)) || celRaw; // ✅ exibe mascarado quando possível
+
         return `
           <tr>
             <td class="colLoja" title="${escapeHtml(loja)}">${escapeHtml(loja)}</td>
-            <td class="colCel" title="${escapeHtml(cel)}">${escapeHtml(cel)}</td>
+            <td class="colCel" title="${escapeHtml(celShow)}">${escapeHtml(celShow)}</td>
             <td class="colAcao">
-              <button class="iconBtn" onclick="editarContatoBono('${escapeHtml(loja)}')">✏️</button>
+              <!-- ✅ (1) ícone como botão para editar -->
+              <button class="iconBtn" onclick="editarContatoBono('${escapeHtml(loja)}')" aria-label="Editar número">
+                ✏️
+              </button>
             </td>
           </tr>
         `;
@@ -956,13 +1017,19 @@
 
       editContatoLoja = c.loja;
       contatoEditarLoja.value = c.loja || "";
-      contatoEditarCel.value = c.celular || "";
+
+      // ✅ carrega já mascarado (se for BR 10/11 dígitos)
+      const dig = onlyDigits(c.celular || "");
+      contatoEditarCel.value = formatCelBR(dig) || String(c.celular || "");
 
       showMsgContatoEditar("");
       abrirModal("modalContatoEditarBg");
 
       setTimeout(() => contatoEditarCel.focus(), 50);
     };
+
+    // ✅ aplica máscara enquanto digita
+    contatoEditarCel.addEventListener("input", () => applyMaskOnInput(contatoEditarCel));
 
     btnContatoEditarCancelar.addEventListener("click", () => fecharModal("modalContatoEditarBg"));
 
@@ -974,12 +1041,17 @@
         return;
       }
 
-      const novoCel = String(contatoEditarCel.value || "").trim();
+      // ✅ salva somente dígitos (mantém padrão consistente com DDD)
+      const digits = onlyDigits(contatoEditarCel.value || "");
 
-      // Você não pediu validação rígida, então vou manter leve:
-      // Só evita salvar vazio por acidente
-      if(!novoCel){
+      if(!digits){
         showMsgContatoEditar("Informe o celular.", "err");
+        return;
+      }
+
+      // ✅ validação leve (BR): se tiver 10 ou 11 dígitos ok; senão deixa passar (pode haver DDI)
+      if(digits.length < 10){
+        showMsgContatoEditar("Número incompleto. Informe DDD + número.", "err");
         return;
       }
 
@@ -988,7 +1060,7 @@
           method: "POST",
           credentials: "include",
           headers: { "Content-Type":"application/json", "Accept":"application/json" },
-          body: JSON.stringify({ loja: editContatoLoja, celular: novoCel })
+          body: JSON.stringify({ loja: editContatoLoja, celular: digits })
         });
 
         const txt = await r.text();
@@ -1003,12 +1075,11 @@
 
         // Atualiza cache local e re-render
         const idx = contatosBono.findIndex(x => String(x.loja||"") === String(editContatoLoja||""));
-        if(idx >= 0) contatosBono[idx].celular = novoCel;
+        if(idx >= 0) contatosBono[idx].celular = digits;
 
         showMsgContatoEditar("Celular atualizado com sucesso.", "ok");
         renderContatosBono();
 
-        // fecha depois de um tico
         setTimeout(()=> fecharModal("modalContatoEditarBg"), 250);
 
       }catch(e){
