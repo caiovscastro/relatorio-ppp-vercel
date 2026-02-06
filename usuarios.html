@@ -410,82 +410,103 @@
     /* texto alternativo do botão Contatos */
     .btnTextShort{ display:none; }
 
-    @media (max-width: 640px){
-      body{ margin: 6px; }
-      .container{ width: 98%; padding: 14px; }
+@media (max-width: 640px){
+  body{ margin: 6px; }
+  .container{ width: 98%; padding: 14px; }
 
-      /* selects 100% */
-      .actions{ justify-content: flex-start; }
-      .filterSelect{ flex: 1 1 100%; min-width: 0; width: 100%; }
+  /* selects 100% */
+  .actions{ justify-content: flex-start; }
+  .filterSelect{ flex: 1 1 100%; min-width: 0; width: 100%; }
 
-      /* ✅ 3 botões SEM estourar (1 linha) */
-      .btnRow{
-        width: 100%;
-        justify-content: space-between;
-        flex-wrap: nowrap;
-        gap: 6px;
-      }
-      .btnRow .btn,
-      .btnRow .btn-ghost{
-        flex: 1 1 0;
-        min-width: 0;
-        text-align: center;
-        padding: 9px 8px;
-        font-size: 12px;
-      }
-      .btnTextLong{ display:none; }
-      .btnTextShort{ display:inline; }
+  /* ✅ 3 botões SEM estourar (1 linha) */
+  .btnRow{
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .btnRow .btn,
+  .btnRow .btn-ghost{
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    padding: 9px 8px;
+    font-size: 12px;
+  }
+  .btnTextLong{ display:none; }
+  .btnTextShort{ display:inline; }
 
-      /* tabela usuários (mantido) */
-      table{ min-width: 820px; }
+  /* tabela usuários (mantido) */
+  table{ min-width: 820px; }
 
-      /* ✅ contatos mobile: mantém comportamento seguro */
-      .contactsTableWrap{
-        max-height: 64vh;
-        overflow-x: auto;
-      }
+  /* =========================
+     CONTATOS WHATSAPP (MOBILE)
+     ========================= */
 
-      .contactsTable{
-        table-layout: auto;
-        min-width: 520px;
-        width: max-content;
-      }
+  /* ✅ wrapper 1) acompanha a tabela 2) não estoura a tela */
+  .contactsTableWrap{
+    max-height: 64vh;
+    width: fit-content;          /* 🔧 acompanha conteúdo */
+    max-width: 100%;             /* 🔧 limita no mobile */
+    overflow-x: auto;            /* 🔧 se precisar, scroll só aqui */
+    -webkit-overflow-scrolling: touch;
+  }
 
-      .contactsTable thead th{
-        font-size: 11px;
-        padding: 8px 6px;   /* 🔧 mantém colado */
-      }
-      .contactsTable tbody td{
-        font-size: 12px;
-        padding: 8px 6px;   /* 🔧 mantém colado */
-      }
+  /* ✅ tabela baseada no maior conteúdo das colunas */
+  .contactsTable{
+    table-layout: auto;
+    width: max-content;          /* 🔧 “no limite da palavra maior” */
+    min-width: 0;                /* 🔧 não força espaço sobrando */
+  }
 
-      .contactsTable td.colLojaCell{
-        white-space: normal !important;
-        line-height: 1.15;
-      }
+  /* ✅ diminui padding pra colar colunas */
+  .contactsTable thead th{
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+  .contactsTable tbody td{
+    font-size: 12px;
+    padding: 8px 6px;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
 
-      .contactsTable th.colCel, .contactsTable td.colCel,
-      .contactsTable th.colAcao, .contactsTable td.colAcao{
-        display: table-cell !important;
-      }
+  /* ✅ loja pode quebrar linha (mantido) */
+  .contactsTable td.colLojaCell{
+    white-space: normal !important;
+    line-height: 1.15;
+  }
 
-      .iconBtn{
-        padding: 7px 8px;
-        border-radius: 10px;
-        font-size: 12px;
-      }
+  /* ✅ garante colunas visíveis */
+  .contactsTable th.colCel, .contactsTable td.colCel,
+  .contactsTable th.colAcao, .contactsTable td.colAcao{
+    display: table-cell !important;
+  }
 
-      .contactsHead{ gap: 8px; }
-      #btnContatosFechar{
-        padding: 9px 10px;
-        font-size: 12px;
-      }
-      .contactsSearch{
-        padding: 9px 10px;
-        font-size: 12px;
-      }
-    }
+  /* ✅ CORREÇÃO PRINCIPAL: nada de % no mobile */
+  .colLoja{ width: auto; }
+  .colCel{ width: 1%; }          /* 🔧 encolhe ao mínimo */
+  .colAcao{ width: 1%; text-align: center; } /* 🔧 encolhe ao mínimo */
+
+  /* botão editar menor (mantido) */
+  .iconBtn{
+    padding: 7px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  /* buscar + fechar na mesma linha, fechar mais compacto */
+  .contactsHead{ gap: 8px; }
+  #btnContatosFechar{
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+  .contactsSearch{
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+}
   </style>
 </head>
 
