@@ -305,8 +305,11 @@
     /* =========
        CONTATOS WHATSAPP (modal)
        ========= */
+
+    /* ✅ ALTERADO: modal acompanha o conteúdo (até 94vw) */
     .modalWide{
-      max-width: min(760px, 94vw);
+      width: fit-content;              /* 🔧 acompanha conteúdo */
+      max-width: 94vw;                 /* 🔧 não estoura tela */
       padding: 14px 14px 12px;
     }
 
@@ -330,20 +333,26 @@
       font-weight: 800;
     }
 
-    /* ✅ scroll vertical sempre disponível */
+    /* ✅ ALTERADO: wrapper “encolhe” e cresce pelo conteúdo */
     .contactsTableWrap{
+      display: inline-block;           /* 🔧 não força ocupar 100% */
+      width: fit-content;              /* 🔧 acompanha tabela */
+      max-width: 100%;                 /* 🔧 respeita modal */
       border: 1px solid rgba(0,0,0,0.12);
       border-radius: 12px;
       overflow-y: auto;
-      overflow-x: hidden;     /* desktop ok */
+      overflow-x: auto;                /* 🔧 se algum nome for enorme, não quebra o layout */
       max-height: 62vh;
       background:#fff;
+      -webkit-overflow-scrolling: touch;
     }
 
+    /* ✅ ALTERADO: tabela baseada no maior conteúdo das colunas */
     .contactsTable{
-      width:100%;
+      width: max-content;              /* 🔧 “no limite da palavra maior” */
       border-collapse: collapse;
-      table-layout: fixed; /* desktop */
+      table-layout: auto;              /* 🔧 auto = coluna pelo conteúdo */
+      min-width: 0;                    /* 🔧 não força mínimo */
     }
 
     .contactsTable thead th{
@@ -353,26 +362,33 @@
       background:#f7f7f7;
       font-size: 12px;
       font-weight: 900;
-      padding: 10px 10px;
+
+      /* ✅ ALTERADO: menos padding = colunas mais próximas */
+      padding: 9px 6px;
+
       border-bottom: 1px solid rgba(0,0,0,0.12);
       white-space: nowrap;
     }
 
     .contactsTable tbody td{
-      padding: 10px 10px;
+      /* ✅ ALTERADO: menos padding = colunas mais próximas */
+      padding: 9px 6px;
+
       border-bottom: 1px solid rgba(0,0,0,0.08);
       font-size: 13px;
       font-weight: 800;
       vertical-align: middle;
+
+      /* ✅ ALTERADO: para a largura ser pelo conteúdo real */
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
+      text-overflow: clip;
     }
 
-    /* ✅ larguras desktop */
-    .colLoja{ width: 55%; }
-    .colCel{ width: 35%; }
-    .colAcao{ width: 10%; text-align:right; }
+    /* ✅ ALTERADO: remove percentuais fixos e “encolhe” o que puder */
+    .colLoja{ width: auto; }
+    .colCel{ width: 1%; }              /* 🔧 encolhe ao mínimo pelo conteúdo */
+    .colAcao{ width: 1%; text-align:center; } /* 🔧 encolhe ao mínimo */
 
     .iconBtn{
       border: 1px solid rgba(0,0,0,0.14);
@@ -414,63 +430,52 @@
         flex: 1 1 0;
         min-width: 0;
         text-align: center;
-        padding: 9px 8px;     /* ✅ menor */
-        font-size: 12px;      /* ✅ menor */
+        padding: 9px 8px;
+        font-size: 12px;
       }
-      /* encurta o texto do botão contatos no mobile */
       .btnTextLong{ display:none; }
       .btnTextShort{ display:inline; }
 
       /* tabela usuários (mantido) */
       table{ min-width: 820px; }
 
-      /* ✅ contatos: aqui é onde resolvemos o "sumiu no mobile" */
+      /* ✅ contatos mobile: mantém comportamento seguro */
       .contactsTableWrap{
         max-height: 64vh;
-        overflow-x: auto;     /* ✅ permite, se precisar, não cortar colunas */
-        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
       }
 
-      /* em mobile, deixe a tabela se adaptar melhor */
       .contactsTable{
-        table-layout: auto;   /* ✅ evita cortar CELULAR/EDITAR */
-        min-width: 520px;     /* ✅ garante espaço mínimo para 3 colunas */
+        table-layout: auto;
+        min-width: 520px;
+        width: max-content;
       }
 
       .contactsTable thead th{
         font-size: 11px;
-        padding: 8px 8px;
+        padding: 8px 6px;   /* 🔧 mantém colado */
       }
       .contactsTable tbody td{
         font-size: 12px;
-        padding: 8px 8px;
+        padding: 8px 6px;   /* 🔧 mantém colado */
       }
 
-      /* ✅ loja pode quebrar linha */
       .contactsTable td.colLojaCell{
         white-space: normal !important;
         line-height: 1.15;
       }
 
-      /* ✅ força exibição das colunas (alguns celulares “colapsam” visualmente) */
       .contactsTable th.colCel, .contactsTable td.colCel,
       .contactsTable th.colAcao, .contactsTable td.colAcao{
         display: table-cell !important;
       }
 
-      /* larguras mais agressivas */
-      .colLoja{ width: 52%; }
-      .colCel{ width: 36%; }
-      .colAcao{ width: 12%; }
-
-      /* botão editar menor */
       .iconBtn{
         padding: 7px 8px;
         border-radius: 10px;
         font-size: 12px;
       }
 
-      /* buscar + fechar na mesma linha, fechar mais compacto */
       .contactsHead{ gap: 8px; }
       #btnContatosFechar{
         padding: 9px 10px;
