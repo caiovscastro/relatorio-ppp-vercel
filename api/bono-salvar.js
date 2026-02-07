@@ -222,7 +222,7 @@ function statusPorTipo(tipoLancamento) {
 ========================================================= */
 async function confirmarLeituraNaPlanilha({ sheets, documentoUnico, qtdEsperada, updatedRange }) {
   if (!updatedRange || typeof updatedRange !== "string") {
-    return { ok: false, motivo: "append sem updatedRange; não foi possível reler a planilha." };
+    return { ok: false, motivo: "append sem updatedRange; não foi possível verificar a base de dados." };
   }
 
   const r = updatedRange.trim(); // ex: "BONO!A123:N127"
@@ -248,7 +248,7 @@ async function confirmarLeituraNaPlanilha({ sheets, documentoUnico, qtdEsperada,
 
   const todasBatem = docs.every(d => d === String(documentoUnico));
   if (!todasBatem) {
-    return { ok: false, motivo: "Documento relido na coluna L não confere com o Documento gerado." };
+    return { ok: false, motivo: "Documento relido não confere com o Documento gerado." };
   }
 
   return { ok: true, documento: String(documentoUnico), qtdItens: qtdLida, rangeConfirmado: r };
@@ -264,7 +264,7 @@ export default async function handler(req, res) {
   if (!session) return;
 
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
-    return bad(res, 500, "Configuração do servidor incompleta (credenciais/planilha).");
+    return bad(res, 500, "Configuração do servidor incompleta (credenciais).");
   }
 
   const body = req.body || {};
@@ -364,13 +364,13 @@ export default async function handler(req, res) {
 
     if (!conf.ok) {
       console.error("[BONO] Gravou, mas não confirmou na releitura:", conf.motivo, { updatedRange });
-      return bad(res, 500, `Bono salvo, mas NÃO foi possível confirmar na planilha. Motivo: ${conf.motivo}`);
+      return bad(res, 500, `Bono salvo, mas NÃO foi possível confirmar a leitura na base de dados. Motivo: ${conf.motivo}`);
     }
 
     // ✅ resposta baseada em LEITURA confirmada
     return ok(res, {
       sucesso: true,
-      message: "Bono salvo e confirmado na planilha.",
+      message: "Bono salvo e confirmado na base de dados.",
       documento: conf.documento,
       qtdItens: conf.qtdItens,
       totalItens: conf.qtdItens,
