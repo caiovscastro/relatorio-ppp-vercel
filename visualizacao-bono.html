@@ -78,18 +78,26 @@
       margin: 0 0 10px;
     }
 
-    .grid{
+    /* ✅ (AJUSTE) separa em duas linhas:
+       - Linha 1: Loja, Tipo, Status (inclusive no celular)
+       - Linha 2: Data início e Data fim (uma única linha abaixo)
+    */
+    .grid-top{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
+      margin-bottom: 10px;
     }
 
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: 1fr 1fr; }
+    .grid-datas{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
-    /* ✅ no celular em pares: Loja+Data / Tipo+Status */
+
     @media (max-width: 560px){
-      .grid{ grid-template-columns: 1fr 1fr; }
+      .grid-top{ grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+      .grid-datas{ grid-template-columns: 1fr 1fr; gap: 8px; }
     }
 
     label{
@@ -622,17 +630,13 @@
     <div class="filtros">
       <div class="filtros-titulo">Filtros</div>
 
-      <div class="grid">
+      <!-- ✅ Linha 1: Loja, Tipo, Status (mesmo no celular) -->
+      <div class="grid-top">
         <div id="wrapFiltroLoja" class="hidden">
           <label for="fLoja">Loja</label>
           <select id="fLoja">
             <option value="">Todas</option>
           </select>
-        </div>
-
-        <div>
-          <label for="fData">Data</label>
-          <input type="date" id="fData" />
         </div>
 
         <div>
@@ -651,6 +655,19 @@
             <option value="VALIDADO">Validado</option>
             <option value="PENDENTE">PENDENTE</option>
           </select>
+        </div>
+      </div>
+
+      <!-- ✅ Linha 2: Data início e Data fim (uma linha abaixo) -->
+      <div class="grid-datas">
+        <div>
+          <label for="fData">Data início</label>
+          <input type="date" id="fData" />
+        </div>
+
+        <div>
+          <label for="fDataFim">Data fim</label>
+          <input type="date" id="fDataFim" />
         </div>
       </div>
 
@@ -743,7 +760,7 @@
     }
     function perfilEhGerentePPP(perfil){
       const p = normKey(perfil);
-      return p.includes("GERENTE_PPP") || (p.includes("GERENTE") && p.includes("PPP"));
+      return p.includes("GERENTE_PPP") || (p.includesigerentePPP(p.includes("GERENTE") && p.includes("PPP")));
     }
     function perfilEhBasePPP(perfil){
       const p = normKey(perfil);
@@ -961,7 +978,8 @@
       const elLoja = document.getElementById("fLoja");
       return {
         loja: normStr(elLoja ? elLoja.value : ""),
-        data: normStr(document.getElementById("fData").value),
+        dataIni: normStr(document.getElementById("fData").value),
+        dataFim: normStr(document.getElementById("fDataFim").value),
         tipo: normStr(document.getElementById("fTipo").value),
         status: normStr(document.getElementById("fStatus").value)
       };
@@ -978,6 +996,12 @@
       const f = lerFiltros();
       const lojaEfetiva = lojaSelecionadaEfetiva();
 
+      // ✅ garante ordem caso usuário selecione invertido
+      const ini = f.dataIni;
+      const fim = f.dataFim;
+      const dtMin = (ini && fim) ? (ini <= fim ? ini : fim) : (ini || "");
+      const dtMax = (ini && fim) ? (ini <= fim ? fim : ini) : (fim || "");
+
       return linhas.filter(r => {
         const dataISO = extrairDataISO(r.B);
         const lojaOrigem = normStr(r.C);
@@ -985,7 +1009,9 @@
         const tipoCanon = tipoToCanon(r.J);
         const statusCanon = statusToCanon(r.K);
 
-        if (f.data && dataISO !== f.data) return false;
+        // ✅ filtro por período (coluna B)
+        if (dtMin && (!dataISO || dataISO < dtMin)) return false;
+        if (dtMax && (!dataISO || dataISO > dtMax)) return false;
 
         if (lojaEfetiva) {
           const okLoja =
@@ -1428,6 +1454,7 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       if (elLoja) elLoja.value = "";
 
       document.getElementById("fData").value = "";
+      document.getElementById("fDataFim").value = "";
       document.getElementById("fTipo").value = "";
       document.getElementById("fStatus").value = "";
 
@@ -1435,14 +1462,20 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       setMsg("Filtros limpos.", true);
     }
 
-    function setDataHojeNoFiltro(){
-      const el = document.getElementById("fData");
-      if (!el) return;
+    function setDatasHojeNosFiltros(){
+      const elIni = document.getElementById("fData");
+      const elFim = document.getElementById("fDataFim");
+      if (!elIni || !elFim) return;
+
       const hoje = new Date();
       const yyyy = String(hoje.getFullYear()).padStart(4,"0");
       const mm = String(hoje.getMonth()+1).padStart(2,"0");
       const dd = String(hoje.getDate()).padStart(2,"0");
-      el.value = `${yyyy}-${mm}-${dd}`;
+      const v = `${yyyy}-${mm}-${dd}`;
+
+      // ✅ por padrão, período do dia (início = hoje, fim = hoje)
+      elIni.value = v;
+      elFim.value = v;
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -1496,9 +1529,9 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         preencherSelectComLojas("fLoja", true);
       }
 
-      setDataHojeNoFiltro();
+      setDatasHojeNosFiltros();
 
-      ["fLoja","fData","fTipo","fStatus"].forEach(id => {
+      ["fLoja","fData","fDataFim","fTipo","fStatus"].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener("change", () => render());
