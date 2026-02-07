@@ -215,6 +215,45 @@ function statusPorTipo(tipoLancamento) {
     : "Validado";
 }
 
+/* =========================================================
+   ✅ CONFIRMAÇÃO REAL: RELER NA PLANILHA O QUE FOI GRAVADO
+   - usa updates.updatedRange do append
+   - valida qtd de linhas e Documento na coluna L
+========================================================= */
+async function confirmarLeituraNaPlanilha({ sheets, documentoUnico, qtdEsperada, updatedRange }) {
+  if (!updatedRange || typeof updatedRange !== "string") {
+    return { ok: false, motivo: "append sem updatedRange; não foi possível reler a planilha." };
+  }
+
+  const r = updatedRange.trim(); // ex: "BONO!A123:N127"
+
+  const getResp = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: r,
+    majorDimension: "ROWS",
+    valueRenderOption: "FORMATTED_VALUE",
+    dateTimeRenderOption: "FORMATTED_STRING"
+  });
+
+  const rows = Array.isArray(getResp?.data?.values) ? getResp.data.values : [];
+  if (!rows.length) return { ok: false, motivo: "releitura retornou 0 linhas." };
+
+  // ✅ pode existir linhas “curtas”; garantimos índice 11 (coluna L)
+  const docs = rows.map(row => (row && row[11] != null) ? String(row[11]).trim() : "");
+
+  const qtdLida = rows.length;
+  if (qtdLida !== Number(qtdEsperada)) {
+    return { ok: false, motivo: `qtd lida (${qtdLida}) diferente da enviada (${qtdEsperada}).` };
+  }
+
+  const todasBatem = docs.every(d => d === String(documentoUnico));
+  if (!todasBatem) {
+    return { ok: false, motivo: "Documento relido na coluna L não confere com o Documento gerado." };
+  }
+
+  return { ok: true, documento: String(documentoUnico), qtdItens: qtdLida, rangeConfirmado: r };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -235,7 +274,7 @@ export default async function handler(req, res) {
   // ✅ fornecedor (coluna M)
   const fornecedor = normalizarTexto(body.fornecedor, 80);
 
-  // ✅ NOVO: placa (coluna N)
+  // ✅ placa (coluna N)
   const placaVeiculo = normalizarPlaca(body.placaVeiculo);
 
   const itens = Array.isArray(body.itens) ? body.itens : [];
@@ -271,6 +310,9 @@ export default async function handler(req, res) {
   }
 
   const spStamp = getSaoPauloStamp();
+
+  // ⚠️ continua sendo gerado aqui, mas AGORA serve como “chave de correlação”
+  // A certeza vem da RELEITURA (values.get), não do ato de gerar.
   const documentoUnico = montarDocumentoUnico({ loja, usuario, spStamp });
 
   const values = itensValidos.map((it) => {
@@ -293,39 +335,57 @@ export default async function handler(req, res) {
       tipoTxt,                  // J
       status,                   // K
       documentoUnico,           // L
-      fornecedorLinha,          // M ✅
-      placaVeiculo              // N ✅ (opcional)
+      fornecedorLinha,          // M
+      placaVeiculo              // N
     ];
   });
 
   try {
     const sheets = await getSheetsClient();
 
-    await sheets.spreadsheets.values.append({
+    const appendResp = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "BONO!A:N", // ✅ agora inclui a coluna N
+      range: "BONO!A:N",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values }
     });
 
+    // ✅ updatedRange é a “pista” exata do que foi inserido
+    const updatedRange = appendResp?.data?.updates?.updatedRange || "";
+
+    // ✅ AGORA SIM: reler na planilha e validar
+    const conf = await confirmarLeituraNaPlanilha({
+      sheets,
+      documentoUnico,
+      qtdEsperada: values.length,
+      updatedRange
+    });
+
+    if (!conf.ok) {
+      console.error("[BONO] Gravou, mas não confirmou na releitura:", conf.motivo, { updatedRange });
+      return bad(res, 500, `Bono salvo, mas NÃO foi possível confirmar na planilha. Motivo: ${conf.motivo}`);
+    }
+
+    // ✅ resposta baseada em LEITURA confirmada
     return ok(res, {
       sucesso: true,
-      message: "Bono salvo com sucesso.",
-      documento: documentoUnico,
-      qtdItens: values.length,   // ✅ recomendado pro popup
-      totalItens: values.length  // ✅ mantém compatibilidade
+      message: "Bono salvo e confirmado na planilha.",
+      documento: conf.documento,
+      qtdItens: conf.qtdItens,
+      totalItens: conf.qtdItens,
+      rangeConfirmado: conf.rangeConfirmado // opcional (se não quiser expor, remova)
     });
+
   } catch (e) {
-    console.error("[BONO] Falha ao append:", e);
+    console.error("[BONO] Falha ao append/confirmar:", e);
     return bad(res, 500, "Falha ao salvar (BONO).");
   }
 }
 
 /*
 Fontes confiáveis:
-- Sheets API append: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
-- valueInputOption USER_ENTERED: https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
-- Intl.DateTimeFormat + formatToParts (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/formatToParts
-- RegExp (MDN): https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Regular_expressions
+- Sheets API append (retorna updates.updatedRange): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+- Sheets API get (reler valores): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
+- google-api-nodejs-client (Sheets): https://github.com/googleapis/google-api-nodejs-client
 */
