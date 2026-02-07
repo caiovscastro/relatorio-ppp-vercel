@@ -1294,7 +1294,7 @@
 
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
       if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return false; }
-      if (!estado.encarregado) { setMsg("Informe o nome do responsavel(operação) que fez o acompanhamento.", false); return false; }
+      if (!estado.encarregado) { setMsg("Informe o nome do responsavel que fez o acompanhamento.", false); return false; }
 
       const produto = normalizarTexto(document.getElementById("produto").value);
       const embalagem = document.getElementById("embalagem").value;
@@ -1313,7 +1313,7 @@
       if (!produto) { setMsg("Informe a descrição.", false); return false; }
       if (embalagem !== "KG" && embalagem !== "UND") { setMsg("Selecione a embalagem (KG ou UND).", false); return false; }
       if (!tipoLancamento) { setMsg("Selecione um tipo", false); return false; }
-      if (tipoLancamento === "MOV_INTERNA" && !lojaDestino) { setMsg("Selecione a loja de destino (Para onde está transferindo?).", false); return false; }
+      if (tipoLancamento === "MOV_INTERNA" && !lojaDestino) { setMsg("Selecione a loja de destino (Para onde está transferindo).", false); return false; }
       if (!quantidadeNum) { setMsg("Informe uma quantidade válida (maior que 0).", false); return false; }
 
       return {
