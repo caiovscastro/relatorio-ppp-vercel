@@ -646,7 +646,8 @@
 
   <div class="load-overlay hidden" id="loadingOverlay" aria-live="polite">
     <div class="load-box">
-      <div class="load-title">Enviando informações...</div>
+      <!-- ✅ AJUSTE #2 (opcional): id para trocar texto após 2,5s -->
+      <div class="load-title" id="loadTitle">Enviando informações...</div>
       <div class="load-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="load-fill" id="loadFill"></div>
       </div>
@@ -842,6 +843,9 @@
     function showLoading(){
       document.getElementById("loadingOverlay").classList.remove("hidden");
       setLoadingPct(0);
+      // ✅ AJUSTE #2: garante texto inicial
+      const t = document.getElementById("loadTitle");
+      if (t) t.textContent = "Enviando informações...";
     }
     function hideLoading(){
       document.getElementById("loadingOverlay").classList.add("hidden");
@@ -857,11 +861,23 @@
     function stopLoadingTimer(){
       if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }
     }
+
+    // ✅ AJUSTE #2 (opcional): após 2,5s troca o texto para "Confirmando na base de dados..."
     function startLoadingTimer(){
       stopLoadingTimer();
       let p = 0;
+      const t0 = Date.now();
+
       setLoadingPct(p);
+
       loadTimer = setInterval(() => {
+        const elapsed = Date.now() - t0;
+
+        const title = document.getElementById("loadTitle");
+        if (title) {
+          title.textContent = elapsed > 2500 ? "Confirmando na base de dados..." : "Enviando informações...";
+        }
+
         if (p < 95) {
           p += 5;
           if (p > 95) p = 95;
@@ -1407,6 +1423,7 @@
 
         const dados = await resp.json().catch(() => null);
 
+        // ✅ AJUSTE #1: diferenciar “falha ao salvar” vs “salvou mas não confirmou”
         if (!resp.ok || !dados || !dados.sucesso) {
           const m =
             (dados && (dados.message || dados.mensagem)) ? (dados.message || dados.mensagem) :
@@ -1416,7 +1433,17 @@
           setLoadingPct(100);
           hideLoading();
 
-          setMsg(m, false);
+          const texto = String(m || "");
+          const pareceConfirmacao =
+            /não foi possível confirmar/i.test(texto) ||
+            /confirmar a leitura/i.test(texto) ||
+            /verifique na tela de visualização/i.test(texto);
+
+          if (pareceConfirmacao) {
+            setMsg("Bono registrado, mas não foi possível confirmar na base de dados em até 10s. Verifique na tela de visualização.", false);
+          } else {
+            setMsg(texto, false);
+          }
           return;
         }
 
