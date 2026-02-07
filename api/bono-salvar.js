@@ -79,6 +79,15 @@ function normalizarTexto(x, max) {
 }
 
 /* =========================================
+   ✅ Placa: A-Z0-9, maiúsculo, máx 7
+========================================= */
+function normalizarPlaca(x) {
+  const up = String(x || "").toUpperCase().trim();
+  const alnum = up.replace(/[^A-Z0-9]/g, "");
+  return alnum.slice(0, 7);
+}
+
+/* =========================================
    ✅ parser de número pt-BR
 ========================================= */
 function parseNumeroPtBR(valor) {
@@ -223,8 +232,11 @@ export default async function handler(req, res) {
   const dataHoraEscolhida = normalizarTexto(body.dataHoraEscolhida, 20);
   const encarregado = normalizarTexto(body.encarregado, 80);
 
-  // ✅ NOVO: fornecedor (coluna M)
+  // ✅ fornecedor (coluna M)
   const fornecedor = normalizarTexto(body.fornecedor, 80);
+
+  // ✅ NOVO: placa (coluna N)
+  const placaVeiculo = normalizarPlaca(body.placaVeiculo);
 
   const itens = Array.isArray(body.itens) ? body.itens : [];
 
@@ -248,7 +260,6 @@ export default async function handler(req, res) {
     if (v.tipoLancamento === "RECEBIMENTO") temRecebimento = true;
   }
 
-  // ✅ NOVO: exige fornecedor quando existir RECEBIMENTO
   if (temRecebimento && !fornecedor) {
     return bad(res, 400, 'Fornecedor é obrigatório para "Recebimento de mercadorias".');
   }
@@ -267,7 +278,6 @@ export default async function handler(req, res) {
     const status = statusPorTipo(it.tipoLancamento);
     const destino = it.lojaDestino || "";
 
-    // ✅ NOVO: fornecedor só grava quando for RECEBIMENTO
     const fornecedorLinha = (it.tipoLancamento === "RECEBIMENTO") ? fornecedor : "";
 
     return [
@@ -283,7 +293,8 @@ export default async function handler(req, res) {
       tipoTxt,                  // J
       status,                   // K
       documentoUnico,           // L
-      fornecedorLinha           // M ✅
+      fornecedorLinha,          // M ✅
+      placaVeiculo              // N ✅ (opcional)
     ];
   });
 
@@ -292,7 +303,7 @@ export default async function handler(req, res) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "BONO!A:M", // ✅ era A:L
+      range: "BONO!A:N", // ✅ agora inclui a coluna N
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values }
@@ -301,8 +312,9 @@ export default async function handler(req, res) {
     return ok(res, {
       sucesso: true,
       message: "Bono salvo com sucesso.",
-      totalItens: values.length,
-      documento: documentoUnico
+      documento: documentoUnico,
+      qtdItens: values.length,   // ✅ recomendado pro popup
+      totalItens: values.length  // ✅ mantém compatibilidade
     });
   } catch (e) {
     console.error("[BONO] Falha ao append:", e);
@@ -315,4 +327,5 @@ Fontes confiáveis:
 - Sheets API append: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
 - valueInputOption USER_ENTERED: https://developers.google.com/sheets/api/reference/rest/v4/ValueInputOption
 - Intl.DateTimeFormat + formatToParts (MDN): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/formatToParts
+- RegExp (MDN): https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Regular_expressions
 */
