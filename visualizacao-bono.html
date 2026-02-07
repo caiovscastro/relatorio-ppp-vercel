@@ -21,12 +21,17 @@
     .container{
       width: 98%;
       max-width: 1300px;
-      background:#fff;
+      background:#ededed; /* ✅ (2) cartão principal cinza claro */
       padding: 22px 8px 22px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
       box-sizing: border-box;
       margin-top: 10px;
+    }
+
+    /* ✅ (1) no computador: 30% mais estreito (1300 * 0.70 = 910) */
+    @media (min-width: 901px){
+      .container{ max-width: 910px; }
     }
 
     .logo-menu{
@@ -114,8 +119,6 @@
 
     /* ============================================================
        ✅ (1) BOTÕES LADO A LADO NO CELULAR
-       - Antes: no max-width 560px virava 1 coluna.
-       - Agora: mantém 3 colunas no celular, ajustando tamanho.
     ============================================================ */
     @media (max-width: 560px){
       .actions{ grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -240,20 +243,14 @@
     }
 
     /* ====== “corpo” do cabeçalho ====== */
-.doc-head-body{
-  margin-top: 12px;
-  background:#ffffff;
-  border: 1px solid #ededed;
-  border-radius: 14px 14px 0 0; /* ✅ remove arredondamento inferior do cartão de lojas, Data/Hora */
-  padding: 12px 12px;
-}
+    .doc-head-body{
+      margin-top: 12px;
+      background:#ffffff;
+      border: 1px solid #ededed;
+      border-radius: 14px 14px 0 0; /* ✅ remove arredondamento inferior do cartão de lojas, Data/Hora */
+      padding: 12px 12px;
+    }
 
-    /* ============================================================
-       ✅ (2) + (3) MENOS CARTÕES + "Status:" AO LADO DO ÍCONE
-       - Criamos uma linha interna única para status (topline).
-       - Essa linha fica acima da Data/Hora, e abaixo do título.
-       - Inserimos um separador horizontal antes da Data/Hora.
-    ============================================================ */
     .doc-topline{
       display:flex;
       align-items:center;
@@ -295,53 +292,43 @@
       margin: 10px 0 8px;
     }
 
-/* ✅ Ajuste: fonte igual à lista de itens (mantido) */
-.info-row{
-  display:flex;
-  align-items:center;        /* ✅ alinha texto no centro do ícone */
-  gap: 8px;                  /* ✅ aproxima ícone do texto */
-  padding: 2px 2px;
-  margin: 0;
-  line-height: 1.05;         /* ✅ reduz “altura” real da linha */
-  font-size: 12.5px;         /* ✅ igual à lista */
-  font-weight: 800;          /* ✅ igual à lista */
-  color:#1b2c55;             /* ✅ mantido */
-}
+    .info-row{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      padding: 2px 2px;
+      margin: 0;
+      line-height: 1.05;
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#1b2c55;
+    }
 
-/* ✅ remove “baseline” invisível do SVG (que cria espaço extra) */
-.info-row svg{
-  display:block;
-}
+    .info-row svg{ display:block; }
+    .info-row + .info-row{ margin-top: 2px; }
 
-/* ✅ aproxima uma linha da outra */
-.info-row + .info-row{
-  margin-top: 2px;
-}
+    .info-row .txt{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items:baseline;
+      min-width:0;
+    }
 
-.info-row .txt{
-  display:flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items:baseline;
-  min-width:0;
-}
+    .info-row .k{
+      color:#1b2c55;
+      white-space: nowrap;
+      font-weight: 800;
+    }
 
-/* rótulo */
-.info-row .k{
-  color:#1b2c55;
-  white-space: nowrap;
-  font-weight: 800;
-}
-
-/* valor */
-.info-row .v{
-  color:#111;
-  font-weight: 800;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
+    .info-row .v{
+      color:#111;
+      font-weight: 800;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
 
     .ic{
       width: 20px;
@@ -354,7 +341,6 @@
       stroke:#1f4f95;
     }
 
-    /* ✅ Botão ícone de validação (mantido) */
     .btn-status{
       border: none;
       background: transparent;
@@ -368,10 +354,6 @@
     }
     .btn-status:hover{ transform: translateY(-1px); }
 
-    /* ============================================================
-       ✅ (4) BOTÃO VALIDAR LARANJA (SEM EMOJI)
-       - Estilo de botão laranja, com texto.
-    ============================================================ */
     .btn-validar{
       border: none;
       cursor: pointer;
@@ -380,7 +362,7 @@
       font-weight: 900;
       font-size: 12.5px;
       letter-spacing: .2px;
-      background: #f39c12; /* laranja */
+      background: #f39c12;
       color: #ffffff;
       box-shadow: 0 8px 16px rgba(0,0,0,0.12);
       white-space: nowrap;
@@ -388,100 +370,84 @@
     .btn-validar:hover{ filter: brightness(0.96); transform: translateY(-1px); }
     .btn-validar:active{ transform: translateY(0px); }
 
-.doc-table-wrap{
-  margin-top: 10px;
-  border-radius: 0px; /* ✅ sem arredondamento (topo e base) */
-  overflow: hidden;
-  border: 1px solid #d8e2ff;
-  background: #fff;
-  box-shadow: 0 10px 22px rgba(0,0,0,0.10);
-}
+    .doc-table-wrap{
+      margin-top: 10px;
+      border-radius: 0px;
+      overflow: hidden;
+      border: 1px solid #d8e2ff;
+      background: #fff;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+    }
 
-/* ✅ Cabeçalho da tabela */
-.doc-table-head{
-  background: linear-gradient(to bottom, #1f4f95, #173f78);
-  color:#fff;
-  font-weight: 900;
-  padding: 10px 12px;
-  display: grid;
-  grid-template-columns: 1fr 70px 95px;
-  gap: 6px;
-  font-size: 12.5px;
-  align-items: center;
-}
+    .doc-table-head{
+      background: linear-gradient(to bottom, #1f4f95, #173f78);
+      color:#fff;
+      font-weight: 900;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr 70px 95px;
+      gap: 6px;
+      font-size: 12.5px;
+      align-items: center;
+    }
 
-/* ✅ Títulos numéricos à direita (QTD / Embalagem) */
-.doc-table-head .h-right{
-  text-align: right;
-}
+    .doc-table-head .h-right{ text-align: right; }
 
-/* ✅ Tabela */
-.doc-table{
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
+    .doc-table{
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
 
-.doc-table td{
-  border-top: 1px solid #e8eeff;
-  padding: 10px 12px;
-  font-size: 12.5px;
-  font-weight: 800;
-  color:#111;
-  vertical-align: top;
-  word-wrap: break-word;
-}
+    .doc-table td{
+      border-top: 1px solid #e8eeff;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#111;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
 
-.doc-table tr:nth-child(even) td{
-  background:#fafcff;
-}
+    .doc-table tr:nth-child(even) td{ background:#fafcff; }
 
-/* ✅ Colunas */
-.col-desc{
-  width: auto;
-}
+    .col-desc{ width: auto; }
+    .col-qtd{
+      width: 70px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .col-emb{
+      width: 95px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
 
-.col-qtd{
-  width: 70px;
-  text-align: right;
-  font-variant-numeric: tabular-nums; /* 🔹 números alinhados visualmente */
-}
+    @media (max-width: 560px){
+      .doc-head-title{ font-size: 12px; }
+      .doc-badge{ font-size: 9px; padding: 6px 10px; }
 
-.col-emb{
-  width: 95px;
-  text-align: right;
-  font-variant-numeric: tabular-nums; /* 🔹 números alinhados visualmente */
-}
-/* ✅ No celular: fonte igual à lista */
-@media (max-width: 560px){
-  .doc-head-title{ font-size: 12px; }
-  .doc-badge{ font-size: 9px; padding: 6px 10px; }
+      .info-row{ font-size: 10.5px; }
 
-  .info-row{ 
-    font-size: 10.5px; /* 🔥 MESMO TAMANHO DA LISTA */
-  }
+      .btn-status{ font-size: 12px; }
 
-  .btn-status{ font-size: 12px; }
+      .doc-statusbar{ padding: 9px 10px; }
 
-  .doc-statusbar{ padding: 9px 10px; }
+      .doc-table-head{
+        grid-template-columns: 1fr 58px 76px;
+        font-size: 10.5px;
+        padding: 9px 10px;
+        gap: 5px;
+      }
 
-  .doc-table-head{
-    grid-template-columns: 1fr 58px 76px;
-    font-size: 10.5px;
-    padding: 9px 10px;
-    gap: 5px;
-  }
+      .doc-table td{
+        font-size: 10.5px;
+        padding: 8px 10px;
+      }
 
-  .doc-table td{
-    font-size: 10.5px;
-    padding: 8px 10px;
-  }
+      .col-qtd{ width:58px; }
+      .col-emb{ width:76px; }
 
-  .col-qtd{ width:58px; }
-  .col-emb{ width:76px; }
-}
-
-      /* ✅ Botão validar compacto no celular */
       .btn-validar{ padding: 7px 10px; font-size: 10.5px; }
       .doc-topline{ padding: 9px 10px; }
       .doc-topline-left .status-title{ font-size: 10.5px; }
@@ -490,20 +456,19 @@
     .hidden{ display:none !important; }
 
     /* ===== RODAPÉ ===== */
-.assinaturas{
-  margin-top: 10px;
-  display:grid;
-  grid-template-columns: 1fr; /* 🔥 largura total */
-  gap: 10px;
-}
+    .assinaturas{
+      margin-top: 10px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
 
-    /* ✅ Ajuste solicitado: manter 2 colunas no celular também com largura total */
-@media (max-width: 650px){
-  .assinaturas{
-    grid-template-columns: 1fr; /* ✅ largura total no celular */
-    gap: 8px;
-  }
-}
+    @media (max-width: 650px){
+      .assinaturas{
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+    }
 
     .ass-box{
       background:#ffffff;
@@ -524,65 +489,47 @@
       gap: 2px;
     }
 
-/* 🔹 TÍTULOS: Responsável / Validação PPP */
-.ass-join .ass-k{
-  font-size: 12.5px;          /* 🔥 MESMO TAMANHO DA TABELA */
-  font-weight: 800;
-  color:#1f4f95;              /* 🔥 MESMO AZUL DOS ÍCONES */
-  line-height: 1.1;
-}
+    .ass-join .ass-k{
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#1f4f95;
+      line-height: 1.1;
+    }
 
-/* 🔹 VALORES: nomes / usuários */
-.ass-join .ass-v{
-  font-size: 12.5px;          /* 🔥 MESMO TAMANHO DA TABELA */
-  font-weight: 800;
-  color:#111;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space: nowrap;
-  line-height: 1.1;
-}
+    .ass-join .ass-v{
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#111;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space: nowrap;
+      line-height: 1.1;
+    }
 
-@media (max-width: 560px){
-  /* 🔹 Títulos: Responsável / Validação PPP */
-  .ass-join .ass-k{
-    font-size: 10.5px; /* igual à tabela */
-  }
+    @media (max-width: 560px){
+      .ass-join .ass-k{ font-size: 10.5px; }
+      .ass-join .ass-v{ font-size: 10.5px; }
 
-  /* 🔹 Valores */
-  .ass-join .ass-v{
-    font-size: 10.5px; /* igual à tabela */
-  }
+      .ass-join{ padding: 8px 8px; gap: 10px; }
 
-  /* 🔹 Ajustes de respiro no card unificado */
-  .ass-join{
-    padding: 8px 8px;
-    gap: 10px;
-  }
+      .ass-join .ic{
+        width: 18px;
+        height: 18px;
+        flex: 0 0 18px;
+      }
+    }
 
-  /* 🔹 Ícones */
-  .ass-join .ic{
-    width: 18px;
-    height: 18px;
-    flex: 0 0 18px;
-  }
-}
-
-    /* ============================================================
-       ✅ (5) UM ÚNICO CARTÃO PARA "Responsável" + "Validação PPP"
-       - Em vez de 2 cards separados, vira um card só com divisor vertical.
-    ============================================================ */
-.ass-join{
-  background:#ffffff;
-  border: 1px solid #eeeeee;
-  border-radius: 0 0 14px 14px; /* ✅ remove arredondamento superior */
-  padding: 10px 12px;
-  display:flex;
-  align-items:stretch;
-  gap: 12px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
-  min-width: 0;
-}
+    .ass-join{
+      background:#ffffff;
+      border: 1px solid #eeeeee;
+      border-radius: 0 0 14px 14px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:stretch;
+      gap: 12px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+      min-width: 0;
+    }
     .ass-side{
       flex: 1 1 0;
       display:flex;
@@ -974,7 +921,8 @@
               A: row[0] ?? "", B: row[1] ?? "", C: row[2] ?? "", D: row[3] ?? "",
               E: row[4] ?? "", F: row[5] ?? "", G: row[6] ?? "", H: row[7] ?? "",
               I: row[8] ?? "", J: row[9] ?? "", K: row[10] ?? "", L: row[11] ?? "",
-              M: row[12] ?? ""
+              M: row[12] ?? "",
+              N: row[13] ?? ""  /* ✅ (3) Placa coluna N */
             };
           }
           if (row && typeof row === "object") {
@@ -991,10 +939,11 @@
               J: row.J ?? row.j ?? row.tipo ?? "",
               K: row.K ?? row.k ?? row.status ?? "",
               L: row.L ?? row.l ?? row.documento ?? "",
-              M: row.M ?? row.m ?? row.fornecedor ?? ""
+              M: row.M ?? row.m ?? row.fornecedor ?? "",
+              N: row.N ?? row.n ?? row.placaVeiculo ?? row.placa ?? "" /* ✅ (3) Placa coluna N */
             };
           }
-          return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:""};
+          return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:"",N:""};
         });
 
         setMsg(`Dados carregados: ${linhas.length} itens.`, true);
@@ -1178,6 +1127,17 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       `;
     }
 
+    /* ✅ (3) Ícone Placa/Carro no mesmo estilo (ic-blue) */
+    function svgPlate(){
+      return `
+        <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.5" y="7" width="17" height="10" rx="2.2" stroke-width="2"></rect>
+          <line x1="7" y1="10" x2="17" y2="10" stroke-width="2" stroke-linecap="round"></line>
+          <line x1="7" y1="14" x2="12.5" y2="14" stroke-width="2" stroke-linecap="round"></line>
+        </svg>
+      `;
+    }
+
     function svgHourglass(){
       return `
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1214,275 +1174,286 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       `;
     }
 
-function render(){
-  const linhasFiltradas = aplicarFiltrosNasLinhas();
-  const docs = agruparPorDocumento(linhasFiltradas);
+    function render(){
+      const linhasFiltradas = aplicarFiltrosNasLinhas();
+      const docs = agruparPorDocumento(linhasFiltradas);
 
-  setTexto("contador", `${docs.length} documento(s)`);
+      setTexto("contador", `${docs.length} documento(s)`);
 
-  const wrap = document.getElementById("listaDocs");
-  wrap.innerHTML = "";
+      const wrap = document.getElementById("listaDocs");
+      wrap.innerHTML = "";
 
-  if (!docs.length){
-    wrap.innerHTML = `<div class="filtros" style="font-weight:900;color:#444;">Nenhum documento encontrado.</div>`;
-    return;
-  }
+      if (!docs.length){
+        wrap.innerHTML = `<div class="filtros" style="font-weight:900;color:#444;">Nenhum documento encontrado.</div>`;
+        return;
+      }
 
-  docs.forEach(({documento, items}) => {
-    const x = items[0];
+      docs.forEach(({documento, items}) => {
+        const x = items[0];
 
-    const dataHora = normStr(x.B) || "—";
-    const lojaOrigem = normStr(x.C) || "—";
-    const lojaDestino = normStr(x.I);
-    const destinoVazio = !normStr(lojaDestino);
+        const dataHora = normStr(x.B) || "—";
+        const lojaOrigem = normStr(x.C) || "—";
+        const lojaDestino = normStr(x.I);
+        const destinoVazio = !normStr(lojaDestino);
 
-    const tipoCanon = tipoToCanon(x.J);
-    const tituloTopo = (tipoCanon === "MOVIMENTACAO_INTERNA")
-      ? "MOVIMENTAÇÃO INTERNA"
-      : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "RECEBIMENTO DE MERCADORIAS" : (normStr(x.J) || "—").toUpperCase());
+        const tipoCanon = tipoToCanon(x.J);
+        const tituloTopo = (tipoCanon === "MOVIMENTACAO_INTERNA")
+          ? "MOVIMENTAÇÃO INTERNA"
+          : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "RECEBIMENTO DE MERCADORIAS" : (normStr(x.J) || "—").toUpperCase());
 
-    const statusCanon = statusToCanon(x.K);
+        const statusCanon = statusToCanon(x.K);
 
-    /* ✅ Recebimento: mostrar VALIDADO (não RECEBIDO) */
-    const statusTxtTopo = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
-      ? "VALIDADO"
-      : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
+        const statusTxtTopo = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+          ? "VALIDADO"
+          : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
 
-    const responsavel = normStr(x.E) || "—";
-    const usuario = normStr(x.D) || "—";
-    const fornecedor = normStr(x.M) || "—";
+        const responsavel = normStr(x.E) || "—";
+        const usuario = normStr(x.D) || "—";
+        const fornecedor = normStr(x.M) || "—";
 
-    const rowsHtml = items.map(it => {
-      const desc = escapeHtml(normStr(it.F) || "—");
-      const qtd  = escapeHtml(normStr(it.G) || "—");
-      const emb  = escapeHtml(normStr(it.H) || "—");
+        /* ✅ (3) placa do veículo (coluna N) */
+        const placaVeiculo = normStr(x.N) || "";
 
-      return `
-        <tr>
-          <td class="col-desc">${desc}</td>
-          <td class="col-qtd">${qtd}</td>
-          <td class="col-emb">${emb}</td>
-        </tr>
-      `;
-    }).join("");
+        const rowsHtml = items.map(it => {
+          const desc = escapeHtml(normStr(it.F) || "—");
+          const qtd  = escapeHtml(normStr(it.G) || "—");
+          const emb  = escapeHtml(normStr(it.H) || "—");
 
-    const card = document.createElement("div");
-    card.className = "doc-card";
+          return `
+            <tr>
+              <td class="col-desc">${desc}</td>
+              <td class="col-qtd">${qtd}</td>
+              <td class="col-emb">${emb}</td>
+            </tr>
+          `;
+        }).join("");
 
-    const linhaLojaHtml = destinoVazio
-      ? `
-        <div class="info-row">
-          ${svgStore()}
-          <div class="txt"><span class="k">Loja Recepção:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
-        </div>
-      `
-      : `
-        <div class="info-row">
-          ${svgStore()}
-          <div class="txt"><span class="k">Loja Origem:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
-        </div>
-        <div class="info-row">
-          ${svgStore()}
-          <div class="txt"><span class="k">Loja Destino:</span> <span class="v">${escapeHtml(lojaDestino)}</span></div>
-        </div>
-      `;
+        const card = document.createElement("div");
+        card.className = "doc-card";
 
-    const fornecedorHtml = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
-      ? `
-        <div class="info-row">
-          ${svgTruck()}
-          <div class="txt"><span class="k">Fornecedor:</span> <span class="v">${escapeHtml(fornecedor)}</span></div>
-        </div>
-      `
-      : ``;
+        const linhaLojaHtml = destinoVazio
+          ? `
+            <div class="info-row">
+              ${svgStore()}
+              <div class="txt"><span class="k">Loja Recepção:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
+            </div>
+          `
+          : `
+            <div class="info-row">
+              ${svgStore()}
+              <div class="txt"><span class="k">Loja Origem:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
+            </div>
+            <div class="info-row">
+              ${svgStore()}
+              <div class="txt"><span class="k">Loja Destino:</span> <span class="v">${escapeHtml(lojaDestino)}</span></div>
+            </div>
+          `;
 
-    const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
+        const fornecedorHtml = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+          ? `
+            <div class="info-row">
+              ${svgTruck()}
+              <div class="txt"><span class="k">Fornecedor:</span> <span class="v">${escapeHtml(fornecedor)}</span></div>
+            </div>
+          `
+          : ``;
 
-    const badgeClass = (statusTxtTopo === "PENDENTE") ? "badge-pendente" : "badge-validado";
-    const badgeIcon  = (statusTxtTopo === "PENDENTE") ? svgHourglass() : svgCheck();
+        /* ✅ (3) Placa com ícone no mesmo padrão (só aparece se tiver valor) */
+        const placaHtml = (placaVeiculo)
+          ? `
+            <div class="info-row">
+              ${svgPlate()}
+              <div class="txt"><span class="k">Placa:</span> <span class="v">${escapeHtml(placaVeiculo)}</span></div>
+            </div>
+          `
+          : ``;
 
-card.innerHTML = `
-  <!-- ✅ Título SEM cartão (remove o cartão cinza) -->
-  <div
-    class="doc-title-plain"
-    style="
-      font-weight:900;
-      color:#1f4f95;
-      display:flex;
-      align-items:center;   /* ✅ centraliza na vertical */
-      padding-left:12px;    /* ✅ margem à esquerda */
-      min-height:40px;      /* dá “respiro” vertical */
-    "
-  >
-    ${escapeHtml(tituloTopo)}
-  </div>
+        const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
 
-  <!-- ✅ Cartão branco: contém Status (no topo), linha e depois Data/Hora/Lojas/Fornecedor -->
-  <div class="doc-head-body">
-    <div class="doc-topline">
-      <div class="doc-topline-left">
-        ${svgInfo()}
-        <span class="status-title">Status:</span>
-      </div>
+        const badgeClass = (statusTxtTopo === "PENDENTE") ? "badge-pendente" : "badge-validado";
+        const badgeIcon  = (statusTxtTopo === "PENDENTE") ? svgHourglass() : svgCheck();
 
-      <div class="doc-topline-right">
-        ${
-          mostrarBtnValidar
-            ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
-            : ``
+        card.innerHTML = `
+          <div
+            class="doc-title-plain"
+            style="
+              font-weight:900;
+              color:#1f4f95;
+              display:flex;
+              align-items:center;
+              padding-left:12px;
+              min-height:40px;
+            "
+          >
+            ${escapeHtml(tituloTopo)}
+          </div>
+
+          <div class="doc-head-body">
+            <div class="doc-topline">
+              <div class="doc-topline-left">
+                ${svgInfo()}
+                <span class="status-title">Status:</span>
+              </div>
+
+              <div class="doc-topline-right">
+                ${
+                  mostrarBtnValidar
+                    ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
+                    : ``
+                }
+
+                <div class="doc-badge ${badgeClass}">
+                  ${badgeIcon}
+                  <span>${escapeHtml(statusTxtTopo)}</span>
+                </div>
+              </div>
+            </div>
+
+            <hr class="head-sep" />
+
+            <div class="info-row">
+              ${svgClock()}
+              <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
+            </div>
+
+            ${linhaLojaHtml}
+            ${fornecedorHtml}
+            ${placaHtml}
+          </div>
+
+          <div class="doc-table-wrap">
+            <div class="doc-table-head">
+              <div>DESCRIÇÃO</div>
+              <div class="h-right">Qtd</div>
+              <div class="h-right">Embalagem</div>
+            </div>
+
+            <table class="doc-table" aria-label="Itens do documento">
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="assinaturas">
+            <div class="ass-join">
+              <div class="ass-side">
+                ${svgPerson()}
+                <div class="ass-txt">
+                  <div class="ass-k">Responsável</div>
+                  <div class="ass-v">${escapeHtml(responsavel)}</div>
+                </div>
+              </div>
+
+              <div class="ass-divider" aria-hidden="true"></div>
+
+              <div class="ass-side">
+                ${svgShield()}
+                <div class="ass-txt">
+                  <div class="ass-k">Validação</div>
+                  <div class="ass-v">${escapeHtml(usuario)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const btn = card.querySelector('button[data-acao="validar"]');
+        if (btn){
+          btn.addEventListener("click", () => {
+            const doc = btn.getAttribute("data-doc") || "";
+            abrirModalValidar(doc);
+          });
         }
 
-        <div class="doc-badge ${badgeClass}">
-          ${badgeIcon}
-          <span>${escapeHtml(statusTxtTopo)}</span>
-        </div>
-      </div>
-    </div>
-
-    <hr class="head-sep" />
-
-    <div class="info-row">
-      ${svgClock()}
-      <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
-    </div>
-
-    ${linhaLojaHtml}
-    ${fornecedorHtml}
-  </div>
-
-  <div class="doc-table-wrap">
-    <div class="doc-table-head">
-      <div>DESCRIÇÃO</div>
-      <div class="h-right">Qtd</div>
-      <div class="h-right">Embalagem</div>
-    </div>
-
-    <table class="doc-table" aria-label="Itens do documento">
-      <tbody>
-        ${rowsHtml}
-      </tbody>
-    </table>
-  </div>
-
-  <div class="assinaturas">
-    <div class="ass-join">
-      <div class="ass-side">
-        ${svgPerson()}
-        <div class="ass-txt">
-          <div class="ass-k">Responsável</div>
-          <div class="ass-v">${escapeHtml(responsavel)}</div>
-        </div>
-      </div>
-
-      <div class="ass-divider" aria-hidden="true"></div>
-
-      <div class="ass-side">
-        ${svgShield()}
-        <div class="ass-txt">
-          <div class="ass-k">Validação</div>
-          <div class="ass-v">${escapeHtml(usuario)}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-`;
-
-    const btn = card.querySelector('button[data-acao="validar"]');
-    if (btn){
-      btn.addEventListener("click", () => {
-        const doc = btn.getAttribute("data-doc") || "";
-        abrirModalValidar(doc);
+        wrap.appendChild(card);
       });
     }
 
-    wrap.appendChild(card);
-  });
-}
+    function limparFiltros(){
+      const elLoja = document.getElementById("fLoja");
+      if (elLoja) elLoja.value = "";
 
-function limparFiltros(){
-  const elLoja = document.getElementById("fLoja");
-  if (elLoja) elLoja.value = "";
+      document.getElementById("fData").value = "";
+      document.getElementById("fTipo").value = "";
+      document.getElementById("fStatus").value = "";
 
-  document.getElementById("fData").value = "";
-  document.getElementById("fTipo").value = "";
-  document.getElementById("fStatus").value = "";
-
-  render();
-  setMsg("Filtros limpos.", true);
-}
-
-function setDataHojeNoFiltro(){
-  const el = document.getElementById("fData");
-  if (!el) return;
-  const hoje = new Date();
-  const yyyy = String(hoje.getFullYear()).padStart(4,"0");
-  const mm = String(hoje.getMonth()+1).padStart(2,"0");
-  const dd = String(hoje.getDate()).padStart(2,"0");
-  el.value = `${yyyy}-${mm}-${dd}`;
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  modal.el = document.getElementById("modalValidar");
-  modal.txt = document.getElementById("modalValidarTexto");
-  modal.btnSim = document.getElementById("btnModalSim");
-  modal.btnNao = document.getElementById("btnModalNao");
-
-  modal.btnNao.addEventListener("click", () => fecharModalValidar());
-  modal.el.addEventListener("click", (e) => { if (e.target === modal.el) fecharModalValidar(); });
-
-  modal.btnSim.addEventListener("click", async () => {
-    const doc = modal.documento;
-    if (!doc) return fecharModalValidar();
-
-    setMsg("Validando...", true);
-
-    try{
-      await validarDocumentoNoBackend(doc);
-      aplicarValidacaoLocal(doc);
-      fecharModalValidar();
-      setMsg("Bono validado com sucesso.", true);
       render();
-    } catch (err){
-      console.error(err);
-      fecharModalValidar();
-      setMsg("Falha ao validar no servidor.", false);
+      setMsg("Filtros limpos.", true);
     }
-  });
 
-  document.getElementById("btnVoltarMenu").addEventListener("click", () => {
-    window.location.href = ROTAS.menu;
-  });
+    function setDataHojeNoFiltro(){
+      const el = document.getElementById("fData");
+      if (!el) return;
+      const hoje = new Date();
+      const yyyy = String(hoje.getFullYear()).padStart(4,"0");
+      const mm = String(hoje.getMonth()+1).padStart(2,"0");
+      const dd = String(hoje.getDate()).padStart(2,"0");
+      el.value = `${yyyy}-${mm}-${dd}`;
+    }
 
-  document.getElementById("btnAtualizar").addEventListener("click", async () => {
-    await buscarDados();
-  });
+    document.addEventListener("DOMContentLoaded", async () => {
+      modal.el = document.getElementById("modalValidar");
+      modal.txt = document.getElementById("modalValidarTexto");
+      modal.btnSim = document.getElementById("btnModalSim");
+      modal.btnNao = document.getElementById("btnModalNao");
 
-  document.getElementById("btnLimpar").addEventListener("click", () => {
-    limparFiltros();
-  });
+      modal.btnNao.addEventListener("click", () => fecharModalValidar());
+      modal.el.addEventListener("click", (e) => { if (e.target === modal.el) fecharModalValidar(); });
 
-  const sessao = await obterSessaoDoBackend();
-  if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login novamente.");
+      modal.btnSim.addEventListener("click", async () => {
+        const doc = modal.documento;
+        if (!doc) return fecharModalValidar();
 
-  sessaoAtual = sessao;
+        setMsg("Validando...", true);
 
-  aplicarVisibilidadeFiltroLoja();
+        try{
+          await validarDocumentoNoBackend(doc);
+          aplicarValidacaoLocal(doc);
+          fecharModalValidar();
+          setMsg("Bono validado com sucesso.", true);
+          render();
+        } catch (err){
+          console.error(err);
+          fecharModalValidar();
+          setMsg("Falha ao validar no servidor.", false);
+        }
+      });
 
-  if (perfilEhAdmin(sessao.perfil) || perfilEhGerentePPP(sessao.perfil)) {
-    preencherSelectComLojas("fLoja", true);
-  }
+      document.getElementById("btnVoltarMenu").addEventListener("click", () => {
+        window.location.href = ROTAS.menu;
+      });
 
-  setDataHojeNoFiltro();
+      document.getElementById("btnAtualizar").addEventListener("click", async () => {
+        await buscarDados();
+      });
 
-  ["fLoja","fData","fTipo","fStatus"].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("change", () => render());
-    el.addEventListener("input", () => render());
-  });
+      document.getElementById("btnLimpar").addEventListener("click", () => {
+        limparFiltros();
+      });
 
-  await buscarDados();
-});
-</script>
+      const sessao = await obterSessaoDoBackend();
+      if (!sessao) return redirecionarParaLogin("Sessão inválida. Faça login novamente.");
+
+      sessaoAtual = sessao;
+
+      aplicarVisibilidadeFiltroLoja();
+
+      if (perfilEhAdmin(sessao.perfil) || perfilEhGerentePPP(sessao.perfil)) {
+        preencherSelectComLojas("fLoja", true);
+      }
+
+      setDataHojeNoFiltro();
+
+      ["fLoja","fData","fTipo","fStatus"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("change", () => render());
+        el.addEventListener("input", () => render());
+      });
+
+      await buscarDados();
+    });
+  </script>
 </body>
 </html>
