@@ -620,18 +620,25 @@
     </div>
   </div>
 
-  <!-- ✅ Modal de pré-visualização + confirmação Documento/Qtd -->
+  <!-- ✅ Modal (reutilizado): MOV = Whats + prévia | RECEB = só Confirmação -->
   <div class="overlay hidden" id="modalWhatsPreview">
     <div class="modal">
-      <h3>Pré-visualização da notificação.</h3>
-      <p>Deseja notificar o responsável da loja destino?</p>
+      <!-- 🔧 título dinâmico -->
+      <h3 id="waModalTitle">Pré-visualização da notificação.</h3>
+
+      <!-- 🔧 pergunta (só em MOV_INTERNA) -->
+      <p id="waModalQuestion">Deseja notificar o responsável da loja destino?</p>
 
       <div class="confirm-box wait" id="confirmBox">Aguardando confirmação da base de dados...</div>
 
+      <!-- 🔧 prévia (só em MOV_INTERNA) -->
       <div class="prewa" id="waPreviewText"></div>
 
       <div class="row-btn" style="margin-top:12px;">
+        <!-- 🔧 botão só em MOV_INTERNA -->
         <button class="btn btn-pri" id="btnAbrirWhats" disabled>Abrir WhatsApp</button>
+
+        <!-- 🔧 muda texto para OK em RECEBIMENTO -->
         <button class="btn btn-sec" id="btnCancelarWhats" disabled>Cancelar</button>
       </div>
     </div>
@@ -664,6 +671,9 @@
 
     // ✅ draft Whats (modal)
     let waDraft = { telefone: "", mensagem: "" };
+
+    // ✅ modo do popup: "MOV_INTERNA" ou "RECEBIMENTO"
+    let waModalMode = "MOV_INTERNA";
 
     function setTexto(id, txt) {
       const el = document.getElementById(id);
@@ -1194,7 +1204,39 @@
       document.getElementById("btnCancelarWhats").disabled = !podeCancelar;
     }
 
-    function abrirModalPreviewWhats(telefone, mensagem){
+    // =========================================================
+    // ✅ AJUSTE SOLICITADO:
+    // - RECEBIMENTO: só "Confirmação" + botão OK
+    // - MOV_INTERNA: mantém prévia + pergunta + abrir Whats
+    // =========================================================
+    function setModoModalWhats(modo){
+      waModalMode = (modo === "RECEBIMENTO") ? "RECEBIMENTO" : "MOV_INTERNA";
+
+      const titleEl = document.getElementById("waModalTitle");
+      const questionEl = document.getElementById("waModalQuestion");
+      const previewEl = document.getElementById("waPreviewText");
+      const btnAbrir = document.getElementById("btnAbrirWhats");
+      const btnCancel = document.getElementById("btnCancelarWhats");
+
+      if (waModalMode === "RECEBIMENTO") {
+        // 🔧 texto/visibilidade
+        if (titleEl) titleEl.textContent = "Confirmação";
+        if (questionEl) questionEl.classList.add("hidden");
+        if (previewEl) previewEl.classList.add("hidden");
+        if (btnAbrir) btnAbrir.classList.add("hidden");
+        if (btnCancel) btnCancel.textContent = "OK";
+      } else {
+        if (titleEl) titleEl.textContent = "Pré-visualização da notificação.";
+        if (questionEl) questionEl.classList.remove("hidden");
+        if (previewEl) previewEl.classList.remove("hidden");
+        if (btnAbrir) btnAbrir.classList.remove("hidden");
+        if (btnCancel) btnCancel.textContent = "Cancelar";
+      }
+    }
+
+    function abrirModalPreviewWhats(telefone, mensagem, modo = "MOV_INTERNA"){
+      setModoModalWhats(modo);
+
       waDraft = { telefone: String(telefone || ""), mensagem: String(mensagem || "") };
 
       const box = document.getElementById("waPreviewText");
@@ -1295,7 +1337,7 @@
         Number(
           dadosRetorno && (
             dadosRetorno.qtdItens ||
-            dadosRetorno.totalItens ||     // ✅ agora aceita
+            dadosRetorno.totalItens ||
             dadosRetorno.qtd ||
             dadosRetorno.itens ||
             dadosRetorno.count
@@ -1384,7 +1426,6 @@
 
         const conf = confirmarGravacaoPlanilha(dados, payload.itens.length);
         if (!conf.ok) {
-          // não muda fluxo; apenas segurança
           setMsg("Bono salvo, mas a confirmação (Documento + Qtd) não veio do backend. Verifique a API.", false);
           return;
         }
@@ -1393,25 +1434,20 @@
           `✅ Confirmado na base de dados\nDocumento: ${conf.documento}\nQtd de itens: ${conf.qtdItens}`;
 
         // ==========================================
-        // ✅ (1) AJUSTE SOLICITADO: POPUP TAMBÉM EM RECEBIMENTO
+        // ✅ RECEBIMENTO: popup só de confirmação (sem Whats, sem prévia, sem pergunta, Cancelar vira OK)
         // ==========================================
         if (tipoNoEnvio === "RECEBIMENTO") {
-          // abre o MESMO popup, mas sem Whats (botão fica desabilitado)
-          abrirModalPreviewWhats("", ""); // preview vazio
+          abrirModalPreviewWhats("", "", "RECEBIMENTO"); // 🔧 modo RECEBIMENTO
           setConfirmBox("ok", textoConfirmacaoBase);
-          // recebe/fechar: só cancelar habilitado
           habilitarBotoesWhats({ podeAbrirWhats:false, podeCancelar:true });
 
-          // limpa após confirmação (já confirmada aqui)
           limparTelaAposConfirmacao();
           setMsg("Bono finalizado e confirmado.", true);
           return;
         }
 
         // ==========================================
-        // ✅ MOVIMENTAÇÃO INTERNA: sempre abrir popup
-        // - se tiver número, habilita Whats
-        // - se não tiver número, informa no mesmo popup
+        // ✅ MOVIMENTAÇÃO INTERNA: mantém popup com prévia + Whats
         // ==========================================
         if (tipoNoEnvio === "MOV_INTERNA" && destinoNoEnvio) {
           const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
@@ -1427,13 +1463,11 @@
             itens: itensNoEnvio
           });
 
-          // abre sempre o popup
-          abrirModalPreviewWhats(telefoneResp || "", msgWhats);
+          abrirModalPreviewWhats(telefoneResp || "", msgWhats, "MOV_INTERNA");
 
           const temTelValido = !!normalizarTelefoneParaWa(telefoneResp);
 
           if (!temTelValido) {
-            // ✅ (1) pedido: no mesmo popup avisar que não encontrou WhatsApp
             setConfirmBox("ok", `${textoConfirmacaoBase}\n\n⚠ Não foi encontrado o número de WhatsApp da loja destino.`);
             habilitarBotoesWhats({ podeAbrirWhats:false, podeCancelar:true });
             setMsg("Bono confirmado. WhatsApp da loja destino não encontrado.", false);
@@ -1443,12 +1477,10 @@
             setMsg("Bono finalizado, confirmado e pronto para notificar.", true);
           }
 
-          // limpa após confirmação (já confirmada aqui)
           limparTelaAposConfirmacao();
           return;
         }
 
-        // fallback (não deveria acontecer)
         setMsg("Bono confirmado.", true);
         limparTelaAposConfirmacao();
 
