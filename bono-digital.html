@@ -29,7 +29,7 @@
 
     .titulo{
       text-align:center;
-      margin: 10px 0 10px; /* ✅ título abaixo da linha */
+      margin: 10px 0 10px;
       font-size: 24px;
       font-weight: 800;
       letter-spacing: .2px;
@@ -65,6 +65,42 @@
       line-height: 1.45;
     }
 
+    /* =========================================================
+       ✅ NOVO PADRÃO (igual print): usuário | loja | perfil (1 linha)
+    ========================================================= */
+    .info-line{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .info-item{
+      display:flex;
+      align-items:center;
+      gap: 7px;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .info-icon{
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      opacity: .85;
+      color: #0066ff; /* 🔵 azul */
+    }
+    .info-text{
+      font-weight: 900;
+      font-size: 13px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Mantidos (não removidos para não quebrar nada) */
     .linha{
       display:flex;
       justify-content: space-between;
@@ -73,7 +109,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
     .k{ color:#555; font-weight:700; }
     .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
 
@@ -308,8 +343,39 @@
       overflow:auto;
       font-size: 12px;
       line-height: 1.35;
-      white-space: pre-wrap;  /* mantém quebras de linha */
+      white-space: pre-wrap;
       word-break: break-word;
+    }
+
+    /* ✅ Caixa de confirmação (Documento + Qtd) no mesmo popup */
+    .confirm-box{
+      border: 1px solid #ececec;
+      border-radius: 12px;
+      background:#fff;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.35;
+    }
+    .confirm-box.wait{
+      color:#111;
+      opacity:.9;
+    }
+    .confirm-box.ok{
+      color:#0b6b2f;
+      border-color: rgba(11,107,47,.25);
+      background: rgba(11,107,47,.06);
+    }
+    .confirm-box.err{
+      color:#b30000;
+      border-color: rgba(179,0,0,.25);
+      background: rgba(179,0,0,.06);
+    }
+
+    /* ✅ Botão desabilitado */
+    .btn[disabled]{
+      opacity:.55;
+      cursor:not-allowed;
     }
 
     @media (max-width: 520px){
@@ -330,9 +396,39 @@
 
     <h2 class="titulo">BONO DIGITAL</h2>
 
+    <!-- ✅ (1) Card padrão print -->
     <div class="card-info" id="cardInfo">
-      <div class="linha"><span class="k">Loja:</span> <span class="v" id="infoLoja">—</span></div>
-      <div class="linha"><span class="k">Usuário:</span> <span class="v" id="infoUsuario">—</span></div>
+      <div class="info-line">
+        <div class="info-item" title="Usuário">
+          <span class="info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21a8 8 0 0 0-16 0"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </span>
+          <span class="info-text" id="infoUsuario">—</span>
+        </div>
+
+        <div class="info-item" title="Loja">
+          <span class="info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l1-5h16l1 5"></path>
+              <path d="M5 9v10h14V9"></path>
+              <path d="M9 19v-6h6v6"></path>
+            </svg>
+          </span>
+          <span class="info-text" id="infoLoja">—</span>
+        </div>
+
+        <div class="info-item" title="Perfil">
+          <span class="info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </span>
+          <span class="info-text" id="infoPerfil">—</span>
+        </div>
+      </div>
     </div>
 
     <div class="secao">
@@ -395,7 +491,8 @@
         </div>
       </div>
 
-      <div class="grid grid-1 hidden" style="margin-top:10px;" id="wrapDestino">
+      <!-- ✅ (2) Destino em MOV + Placa ao lado -->
+      <div class="grid-2-fixo hidden" style="margin-top:10px;" id="wrapDestinoLinha">
         <div>
           <label for="lojaDestino">Para onde está transferindo?</label>
           <select id="lojaDestino">
@@ -456,13 +553,32 @@
             <option value="MATRIZ">MATRIZ</option>
           </select>
         </div>
+
+        <!-- ✅ Placa (mesmo input, muda de lugar conforme tipo) -->
+        <div id="wrapPlacaMov"></div>
       </div>
 
-      <div class="grid grid-1 hidden" style="margin-top:10px;" id="wrapFornecedor">
+      <!-- ✅ (2) Fornecedor em RECEB + Placa ao lado -->
+      <div class="grid-2-fixo hidden" style="margin-top:10px;" id="wrapFornecedorLinha">
         <div>
           <label for="fornecedor">Fornecedor</label>
           <input type="text" id="fornecedor" placeholder="Informe o fornecedor" maxlength="80" />
         </div>
+
+        <div id="wrapPlacaRec"></div>
+      </div>
+
+      <!-- ✅ Input de Placa (um só). Ele é “movido” para o lado correto via JS -->
+      <div class="hidden" id="placaNode">
+        <label for="placaVeiculo">Placa do veículo (opcional)</label>
+        <input
+          type="text"
+          id="placaVeiculo"
+          placeholder="Ex: ABC1D23"
+          inputmode="text"
+          autocomplete="off"
+          maxlength="7"
+        />
       </div>
 
       <div class="btn-row-2">
@@ -503,15 +619,20 @@
     </div>
   </div>
 
-  <!-- ✅ Modal de pré-visualização do WhatsApp -->
+  <!-- ✅ Modal de pré-visualização do WhatsApp + confirmação Documento/Qtd -->
   <div class="overlay hidden" id="modalWhatsPreview">
     <div class="modal">
       <h3>Pré-visualização da notificação.</h3>
-      <p>Deseja notificar o responsável da loja destinho?</p>
+      <p>Deseja notificar o responsável da loja destino?</p>
+
+      <!-- ✅ (4) Confirmação aqui -->
+      <div class="confirm-box wait" id="confirmBox">Aguardando confirmação de gravação na planilha...</div>
+
       <div class="prewa" id="waPreviewText"></div>
+
       <div class="row-btn" style="margin-top:12px;">
-        <button class="btn btn-pri" id="btnAbrirWhats">Abrir WhatsApp</button>
-        <button class="btn btn-sec" id="btnCancelarWhats">Cancelar</button>
+        <button class="btn btn-pri" id="btnAbrirWhats" disabled>Abrir WhatsApp</button>
+        <button class="btn btn-sec" id="btnCancelarWhats" disabled>Cancelar</button>
       </div>
     </div>
   </div>
@@ -528,10 +649,7 @@
 
   <script>
     /* =========================================================
-       ✅ CONFIGURAÇÃO ÚNICA DO DOMÍNIO PÚBLICO (solicitado)
-       - Tudo que for link público (WhatsApp, mensagens etc.)
-         deve usar esta constante como fonte de verdade.
-       - Se mudar o domínio amanhã, muda só aqui.
+       ✅ CONFIGURAÇÃO ÚNICA DO DOMÍNIO PÚBLICO
     ========================================================= */
     const DOMINIO_PUBLICO = "https://ubppp.xyz";
 
@@ -541,10 +659,14 @@
     let sessaoAtual = null;
     let expTimerId = null;
 
-    let estado = { data: "", hora: "", encarregado: "", fornecedor: "", itens: [] };
+    // ✅ agora inclui placa no estado
+    let estado = { data: "", hora: "", encarregado: "", fornecedor: "", placaVeiculo: "", itens: [] };
 
     // ✅ Guarda telefone/mensagem do WhatsApp pro modal de prévia
     let waDraft = { telefone: "", mensagem: "" };
+
+    // ✅ Controle de confirmação (Documento + Qtd)
+    let confirmDraft = { documento: "", qtdItens: 0, confirmado: false };
 
     function setTexto(id, txt) {
       const el = document.getElementById(id);
@@ -567,6 +689,7 @@
         if (!resp.ok) return null;
 
         const dados = await resp.json().catch(() => null);
+        // ✅ agora suporta perfil no header (se vier do backend)
         if (!dados || !dados.sucesso || !dados.usuario || !dados.loja) return null;
         return dados;
       } catch (e) {
@@ -631,8 +754,11 @@
 
     function aplicarSessaoNaTela(sessao) {
       sessaoAtual = sessao;
+
+      // ✅ header padrão print
       setTexto("infoLoja", sessao.loja || "—");
       setTexto("infoUsuario", sessao.usuario || "—");
+      setTexto("infoPerfil", sessao.perfil || "—");
 
       const expMs = normalizarExpParaMs(sessao.exp);
       if (expMs) agendarRedirecionamentoNaExpiracao(expMs);
@@ -656,6 +782,7 @@
         if (!obj || typeof obj !== "object") return null;
         if (!Array.isArray(obj.itens)) obj.itens = [];
         if (typeof obj.fornecedor !== "string") obj.fornecedor = "";
+        if (typeof obj.placaVeiculo !== "string") obj.placaVeiculo = "";
         return obj;
       } catch (e) {
         return null;
@@ -668,7 +795,7 @@
 
     function temPendenciaValida(obj) {
       if (!obj) return false;
-      const temAlgo = (obj.data || obj.hora || obj.encarregado || obj.fornecedor || (obj.itens && obj.itens.length));
+      const temAlgo = (obj.data || obj.hora || obj.encarregado || obj.fornecedor || obj.placaVeiculo || (obj.itens && obj.itens.length));
       return !!temAlgo;
     }
 
@@ -685,6 +812,13 @@
 
     function normalizarTexto(t) {
       return String(t || "").trim();
+    }
+
+    // ✅ (2) Normalização da placa: 7 chars, A-Z0-9, maiúsculo
+    function normalizarPlaca(s){
+      const up = String(s || "").toUpperCase();
+      const alnum = up.replace(/[^A-Z0-9]/g, "");
+      return alnum.slice(0, 7);
     }
 
     function escapeHtml(s) {
@@ -736,6 +870,7 @@
       document.getElementById("horaEscolhida").value = estado.hora || "";
       document.getElementById("encarregado").value = estado.encarregado || "";
       document.getElementById("fornecedor").value = estado.fornecedor || "";
+      document.getElementById("placaVeiculo").value = estado.placaVeiculo || "";
     }
 
     function renderLista() {
@@ -881,32 +1016,58 @@
       }
     }
 
-    function atualizarVisibilidadeDestino() {
+    // ✅ (2) mover o input de placa para o lado correto conforme tipo
+    function posicionarPlacaConformeTipo(){
       const tipo = document.getElementById("tipoLancamento").value;
-      const wrap = document.getElementById("wrapDestino");
-      const sel = document.getElementById("lojaDestino");
+      const placaNode = document.getElementById("placaNode");
+      const wrapMov = document.getElementById("wrapPlacaMov");
+      const wrapRec = document.getElementById("wrapPlacaRec");
+
+      // garante que o node não some
+      placaNode.classList.remove("hidden");
 
       if (tipo === "MOV_INTERNA") {
-        wrap.classList.remove("hidden");
+        wrapMov.appendChild(placaNode);
+      } else if (tipo === "RECEBIMENTO") {
+        wrapRec.appendChild(placaNode);
       } else {
-        wrap.classList.add("hidden");
-        sel.value = "";
+        // sem tipo selecionado: some a placa (pra não ficar “solta”)
+        placaNode.classList.add("hidden");
       }
     }
 
-    function atualizarVisibilidadeFornecedor() {
+    function atualizarVisibilidadeDestinoFornecedorEPlaca() {
       const tipo = document.getElementById("tipoLancamento").value;
-      const wrap = document.getElementById("wrapFornecedor");
-      const inp = document.getElementById("fornecedor");
 
-      if (tipo === "RECEBIMENTO") {
-        wrap.classList.remove("hidden");
+      const wrapDestinoLinha = document.getElementById("wrapDestinoLinha");
+      const wrapFornecedorLinha = document.getElementById("wrapFornecedorLinha");
+
+      const selDestino = document.getElementById("lojaDestino");
+      const inpFornecedor = document.getElementById("fornecedor");
+
+      if (tipo === "MOV_INTERNA") {
+        wrapDestinoLinha.classList.remove("hidden");
+        wrapFornecedorLinha.classList.add("hidden");
+
+        inpFornecedor.value = "";
+        estado.fornecedor = "";
+        salvarLocal();
+      } else if (tipo === "RECEBIMENTO") {
+        wrapFornecedorLinha.classList.remove("hidden");
+        wrapDestinoLinha.classList.add("hidden");
+
+        selDestino.value = "";
       } else {
-        wrap.classList.add("hidden");
-        inp.value = "";
+        wrapDestinoLinha.classList.add("hidden");
+        wrapFornecedorLinha.classList.add("hidden");
+
+        selDestino.value = "";
+        inpFornecedor.value = "";
         estado.fornecedor = "";
         salvarLocal();
       }
+
+      posicionarPlacaConformeTipo();
     }
 
     function aplicarTipoEDestinoNosItens() {
@@ -940,21 +1101,18 @@
       return digits;
     }
 
-    /* =========================================================
-       ✅ ALTERAÇÃO (solicitada): link público montado por constante
-       - evita domínio hard-coded espalhado
-       - muda domínio em um lugar só
-    ========================================================= */
     function montarLinkLoginAbsoluto() {
       return `${DOMINIO_PUBLICO}/login.html`;
     }
 
+    // ✅ (3) inclui placa na mensagem: se vazio → "Não informada"
     function montarMensagemWhats({
       lojaOrigem,
       lojaDestino,
       usuario,
       dataHora,
       linkLogin,
+      placaVeiculo,
       itens = []
     }) {
       const linhas = [];
@@ -966,6 +1124,7 @@
       linhas.push(`🏪 *Origem:* ${lojaOrigem || "—"}`);
       linhas.push(`👤 *Usuário:* ${usuario || "—"}`);
       linhas.push(`🕒 *Data/Hora:* ${dataHora || "—"}`);
+      linhas.push(`🚗 *Placa:* ${placaVeiculo ? placaVeiculo : "Não informada"}`);
       linhas.push("");
 
       linhas.push("📦 *Itens do Bono:*");
@@ -1030,11 +1189,51 @@
       return true;
     }
 
+    function setConfirmBox(status, texto){
+      const box = document.getElementById("confirmBox");
+      box.classList.remove("wait", "ok", "err");
+      box.classList.add(status);
+      box.textContent = texto || "";
+    }
+
+    function habilitarBotoesWhats(ativo){
+      document.getElementById("btnAbrirWhats").disabled = !ativo;
+      document.getElementById("btnCancelarWhats").disabled = !ativo;
+    }
+
     function abrirModalPreviewWhats(telefone, mensagem){
       waDraft = { telefone: String(telefone || ""), mensagem: String(mensagem || "") };
+
       const box = document.getElementById("waPreviewText");
       if (box) box.textContent = waDraft.mensagem || "";
+
+      // ✅ (4) inicia aguardando confirmação
+      confirmDraft = { documento: "", qtdItens: 0, confirmado: false };
+      setConfirmBox("wait", "Aguardando confirmação de gravação na planilha...");
+      habilitarBotoesWhats(false);
+
       abrirModal("modalWhatsPreview");
+    }
+
+    function limparTelaAposConfirmacao(){
+      // ✅ só limpa após confirmação real
+      limparLocal();
+      estado = { data: "", hora: "", encarregado: "", fornecedor: "", placaVeiculo: "", itens: [] };
+
+      atualizarCamposNaTela();
+      renderLista();
+
+      document.getElementById("produto").value = "";
+      document.getElementById("quantidade").value = "";
+      document.getElementById("quantidade").dataset.digits = "";
+      document.getElementById("embalagem").value = "";
+      document.getElementById("tipoLancamento").value = "";
+      document.getElementById("lojaDestino").value = "";
+      document.getElementById("fornecedor").value = "";
+      document.getElementById("placaVeiculo").value = "";
+
+      atualizarVisibilidadeDestinoFornecedorEPlaca();
+      atualizarHabilitacaoQuantidade();
     }
 
     function capturarBaseDoFormulario() {
@@ -1043,11 +1242,19 @@
       estado.encarregado = normalizarTexto(document.getElementById("encarregado").value);
 
       const tipoAtual = document.getElementById("tipoLancamento").value;
+
+      // fornecedor só em recebimento
       if (tipoAtual === "RECEBIMENTO") {
         estado.fornecedor = normalizarTexto(document.getElementById("fornecedor").value);
       } else {
         estado.fornecedor = "";
       }
+
+      // ✅ placa é opcional para ambos, mas posiciona conforme tipo
+      const placaRaw = document.getElementById("placaVeiculo").value;
+      const placaNorm = normalizarPlaca(placaRaw);
+      estado.placaVeiculo = placaNorm;
+      if (placaRaw !== placaNorm) document.getElementById("placaVeiculo").value = placaNorm;
 
       salvarLocal();
     }
@@ -1090,6 +1297,24 @@
       };
     }
 
+    // ✅ (4) Aguarda confirmação (Documento + Qtd) vinda do backend
+    // Estratégia: se /api/bono-salvar já devolver documento/qtdItens, confirma na hora.
+    // Caso contrário, precisa de ajuste no backend (vou te pedir o arquivo no final).
+    async function confirmarGravacaoPlanilha(dadosRetorno, fallbackQtd){
+      const doc =
+        (dadosRetorno && (dadosRetorno.documento || dadosRetorno.numeroDocumento || dadosRetorno.doc || dadosRetorno.documentNumber)) || "";
+
+      const qtd =
+        Number(dadosRetorno && (dadosRetorno.qtdItens || dadosRetorno.qtd || dadosRetorno.itens || dadosRetorno.count)) || Number(fallbackQtd || 0);
+
+      if (doc && qtd > 0) {
+        return { ok:true, documento: String(doc), qtdItens: qtd };
+      }
+
+      // Se não veio doc/qtd: não dá pra “garantir” no front-end sozinho.
+      return { ok:false, documento:"", qtdItens:0 };
+    }
+
     async function finalizarBono() {
       capturarBaseDoFormulario();
 
@@ -1119,10 +1344,12 @@
       const destinoNoEnvio = destinoAtual;
       const itensNoEnvio = Array.isArray(estado.itens) ? estado.itens.map(it => ({ ...it })) : [];
 
+      // ✅ (2) inclui placa no payload (coluna N no backend)
       const payload = {
         dataHoraEscolhida: dataHoraPlanilha,
         encarregado: estado.encarregado,
         fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : ""),
+        placaVeiculo: (estado.placaVeiculo || ""), // ✅ COLUNA N
         itens: estado.itens.map(x => ({
           produto: x.produto,
           quantidade: x.quantidadeFmt,
@@ -1161,49 +1388,69 @@
           return;
         }
 
+        // ✅ terminou o POST, agora o “garantir” depende do retorno doc/qtd
         stopLoadingTimer();
         setLoadingPct(100);
-        setTimeout(() => {
-          hideLoading();
-        }, 250);
+        setTimeout(() => hideLoading(), 250);
 
-        limparLocal();
-        estado = { data: "", hora: "", encarregado: "", fornecedor: "", itens: [] };
-        atualizarCamposNaTela();
-        renderLista();
-
-        document.getElementById("produto").value = "";
-        document.getElementById("quantidade").value = "";
-        document.getElementById("quantidade").dataset.digits = "";
-        document.getElementById("embalagem").value = "";
-        document.getElementById("tipoLancamento").value = "";
-        document.getElementById("lojaDestino").value = "";
-        document.getElementById("fornecedor").value = "";
-        atualizarVisibilidadeDestino();
-        atualizarVisibilidadeFornecedor();
-
-        atualizarHabilitacaoQuantidade();
-
-        setMsg("Bono finalizado e salvo com sucesso.", true);
-
-        // ✅ Não abre WhatsApp automaticamente: abre modal com prévia
+        // ✅ Whats: abre popup de prévia (mas botões travados até confirmar)
         if (tipoNoEnvio === "MOV_INTERNA" && destinoNoEnvio) {
           const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
 
-          const linkLogin = montarLinkLoginAbsoluto(); // ✅ agora via DOMINIO_PUBLICO
+          const linkLogin = montarLinkLoginAbsoluto();
           const msgWhats = montarMensagemWhats({
             lojaOrigem: (sessaoAtual && sessaoAtual.loja) ? sessaoAtual.loja : "",
             lojaDestino: destinoNoEnvio,
             usuario: (sessaoAtual && sessaoAtual.usuario) ? sessaoAtual.usuario : "",
             dataHora: dataHoraPlanilha,
             linkLogin,
+            placaVeiculo: (estado.placaVeiculo || ""),
             itens: itensNoEnvio
           });
 
           if (!normalizarTelefoneParaWa(telefoneResp)) {
             setMsg("Bono salvo, mas não encontrei o WhatsApp do responsável da loja destino para enviar.", false);
+            // Mesmo assim: precisa confirmar doc/qtd antes de limpar
+            const conf = await confirmarGravacaoPlanilha(dados, payload.itens.length);
+            if (conf.ok) {
+              setMsg(`Confirmado na planilha: Doc ${conf.documento} | Itens ${conf.qtdItens}.`, true);
+              limparTelaAposConfirmacao();
+            } else {
+              setMsg("Bono salvo, mas a confirmação (Documento + Qtd) não veio do backend. Precisa ajuste na API.", false);
+              // não limpa
+            }
           } else {
             abrirModalPreviewWhats(telefoneResp, msgWhats);
+
+            // ✅ (4) agora confirma e só então libera botões + limpa
+            const conf = await confirmarGravacaoPlanilha(dados, payload.itens.length);
+            if (conf.ok) {
+              confirmDraft = { documento: conf.documento, qtdItens: conf.qtdItens, confirmado: true };
+              setConfirmBox("ok", `✅ Confirmado na planilha\nDocumento: ${conf.documento}\nQtd de itens: ${conf.qtdItens}`);
+              habilitarBotoesWhats(true);
+
+              // ✅ limpeza só depois da confirmação
+              limparTelaAposConfirmacao();
+              setMsg("Bono finalizado, confirmado e pronto para notificar.", true);
+            } else {
+              // se o backend não manda doc/qtd, você NÃO tem garantia real
+              confirmDraft = { documento: "", qtdItens: 0, confirmado: false };
+              setConfirmBox("err", "❌ Não foi possível confirmar Documento + Qtd via backend.\nEnvie o código da API /api/bono-salvar para eu ajustar.");
+              habilitarBotoesWhats(false);
+
+              // não limpa e não libera whatsapp
+              setMsg("Bono salvo, mas falta confirmação (Documento + Qtd). Precisa ajuste na API.", false);
+            }
+          }
+
+        } else {
+          // RECEBIMENTO: não manda Whats, mas ainda assim precisa confirmar antes de limpar
+          const conf = await confirmarGravacaoPlanilha(dados, payload.itens.length);
+          if (conf.ok) {
+            setMsg(`Bono finalizado e confirmado. Documento: ${conf.documento} | Itens: ${conf.qtdItens}.`, true);
+            limparTelaAposConfirmacao();
+          } else {
+            setMsg("Bono salvo, mas a confirmação (Documento + Qtd) não veio do backend. Precisa ajuste na API.", false);
           }
         }
 
@@ -1226,18 +1473,16 @@
       document.getElementById("btnContinuar").addEventListener("click", () => {
         fecharModal("modalPendente");
         atualizarCamposNaTela();
-        atualizarVisibilidadeDestino();
-        atualizarVisibilidadeFornecedor();
+        atualizarVisibilidadeDestinoFornecedorEPlaca();
         renderLista();
       });
 
       document.getElementById("btnDescartar").addEventListener("click", () => {
         limparLocal();
-        estado = { data:"", hora:"", encarregado:"", fornecedor:"", itens:[] };
+        estado = { data:"", hora:"", encarregado:"", fornecedor:"", placaVeiculo:"", itens:[] };
         fecharModal("modalPendente");
         atualizarCamposNaTela();
-        atualizarVisibilidadeDestino();
-        atualizarVisibilidadeFornecedor();
+        atualizarVisibilidadeDestinoFornecedorEPlaca();
         renderLista();
         setMsg("Pendência descartada. Você pode iniciar um novo bono.", true);
       });
@@ -1253,6 +1498,7 @@
 
       // ✅ Botões do modal de prévia
       document.getElementById("btnCancelarWhats").addEventListener("click", () => {
+        // só permite cancelar depois de confirmar
         fecharModal("modalWhatsPreview");
         waDraft = { telefone: "", mensagem: "" };
       });
@@ -1274,9 +1520,16 @@
       document.getElementById("fornecedor").addEventListener("change", capturarBaseDoFormulario);
       document.getElementById("fornecedor").addEventListener("input", capturarBaseDoFormulario);
 
+      // ✅ (2) placa: força maiúsculo e alfanumérico + max 7 em tempo real
+      document.getElementById("placaVeiculo").addEventListener("input", (e) => {
+        const el = e.target;
+        const norm = normalizarPlaca(el.value);
+        if (el.value !== norm) el.value = norm;
+        capturarBaseDoFormulario();
+      });
+
       document.getElementById("tipoLancamento").addEventListener("change", () => {
-        atualizarVisibilidadeDestino();
-        atualizarVisibilidadeFornecedor();
+        atualizarVisibilidadeDestinoFornecedorEPlaca();
         capturarBaseDoFormulario();
         aplicarTipoEDestinoNosItens();
       });
@@ -1351,16 +1604,18 @@
 
       aplicarSessaoNaTela(sessao);
 
+      // ✅ posiciona placa corretamente já no load
+      atualizarVisibilidadeDestinoFornecedorEPlaca();
+
       const pendente = carregarLocal();
       if (temPendenciaValida(pendente)) {
         estado = pendente;
-        atualizarVisibilidadeDestino();
-        atualizarVisibilidadeFornecedor();
+        atualizarCamposNaTela();
+        atualizarVisibilidadeDestinoFornecedorEPlaca();
         abrirModal("modalPendente");
       } else {
         atualizarCamposNaTela();
-        atualizarVisibilidadeDestino();
-        atualizarVisibilidadeFornecedor();
+        atualizarVisibilidadeDestinoFornecedorEPlaca();
         renderLista();
       }
 
@@ -1368,11 +1623,11 @@
     });
 
     /*
-      Fontes confiáveis (em comentários, como você já faz no projeto):
-      - const (JS): https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/const
-      - Template literals: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Template_literals
-      - encodeURIComponent: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
-      - window.open: https://developer.mozilla.org/docs/Web/API/Window/open
+      Referências confiáveis:
+      - Flexbox (layout em linha): https://developer.mozilla.org/pt-BR/docs/Web/CSS/CSS_flexible_box_layout
+      - text-overflow (ellipsis): https://developer.mozilla.org/pt-BR/docs/Web/CSS/text-overflow
+      - RegExp (sanitização): https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Regular_expressions
+      - fetch(): https://developer.mozilla.org/pt-BR/docs/Web/API/fetch
     */
   </script>
 </body>
