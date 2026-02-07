@@ -1174,6 +1174,55 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       `;
     }
 
+    /* =========================================================
+       ✅ AJUSTE SOLICITADO: FORMATAÇÃO DA COLUNA QTD
+       - UND: 1.585 (milhar com ponto)
+       - KG : 53,875 (3 casas, vírgula decimal)
+    ========================================================= */
+    function parseNumeroFlex(valor){
+      const s0 = normStr(valor);
+      if (!s0) return null;
+
+      // remove espaços
+      const s = s0.replace(/\s+/g, "");
+
+      // se vier como número já no formato JS
+      if (typeof valor === "number" && Number.isFinite(valor)) return valor;
+
+      // pt-BR: "1.585" ou "53,875"
+      // en-US: "53.875"
+      // regra simples:
+      // - se tiver vírgula, ela é decimal (remove pontos de milhar)
+      // - se não tiver vírgula, ponto é decimal
+      if (s.includes(",")){
+        const semPontos = s.replace(/\./g, "");
+        const dot = semPontos.replace(",", ".");
+        const n = Number(dot);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      const n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function formatarQtdExibicao(qtdRaw, embRaw){
+      const emb = normKey(embRaw);
+      const n = parseNumeroFlex(qtdRaw);
+      if (n == null) return normStr(qtdRaw) || "—";
+
+      if (emb === "KG"){
+        return new Intl.NumberFormat("pt-BR", {
+          minimumFractionDigits: 3,
+          maximumFractionDigits: 3
+        }).format(n);
+      }
+
+      // UND (ou qualquer outro): inteiro com milhar
+      return new Intl.NumberFormat("pt-BR", {
+        maximumFractionDigits: 0
+      }).format(n);
+    }
+
     function render(){
       const linhasFiltradas = aplicarFiltrosNasLinhas();
       const docs = agruparPorDocumento(linhasFiltradas);
@@ -1216,7 +1265,11 @@ A validação deverá ser efetuada apenas após a conferência física integral,
 
         const rowsHtml = items.map(it => {
           const desc = escapeHtml(normStr(it.F) || "—");
-          const qtd  = escapeHtml(normStr(it.G) || "—");
+
+          // ✅ AJUSTE AQUI: Qtd formatada conforme embalagem
+          const qtdFmt = formatarQtdExibicao(it.G, it.H);
+          const qtd  = escapeHtml(normStr(qtdFmt) || "—");
+
           const emb  = escapeHtml(normStr(it.H) || "—");
 
           return `
