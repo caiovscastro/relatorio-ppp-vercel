@@ -18,7 +18,7 @@
     }
 
     .container{
-      width: 92%;
+      width: 98%;
       max-width: 640px;
       background:#fff;
       padding: 22px 22px 18px;
@@ -1209,7 +1209,7 @@
 
       // ✅ (4) inicia aguardando confirmação
       confirmDraft = { documento: "", qtdItens: 0, confirmado: false };
-      setConfirmBox("wait", "Aguardando confirmação de gravação na planilha...");
+      setConfirmBox("wait", "Aguardando confirmação da base de dados...");
       habilitarBotoesWhats(false);
 
       abrirModal("modalWhatsPreview");
@@ -1426,7 +1426,7 @@
             const conf = await confirmarGravacaoPlanilha(dados, payload.itens.length);
             if (conf.ok) {
               confirmDraft = { documento: conf.documento, qtdItens: conf.qtdItens, confirmado: true };
-              setConfirmBox("ok", `✅ Confirmado na planilha\nDocumento: ${conf.documento}\nQtd de itens: ${conf.qtdItens}`);
+              setConfirmBox("ok", `✅ Confirmado na base de dados\nDocumento: ${conf.documento}\n - Qtd de itens: ${conf.qtdItens}`);
               habilitarBotoesWhats(true);
 
               // ✅ limpeza só depois da confirmação
