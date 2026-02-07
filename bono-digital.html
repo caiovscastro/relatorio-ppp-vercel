@@ -356,6 +356,7 @@
       font-size: 12px;
       font-weight: 900;
       line-height: 1.35;
+      white-space: pre-wrap;
     }
     .confirm-box.wait{
       color:#111;
@@ -494,7 +495,7 @@
       <!-- ✅ (2) Destino em MOV + Placa ao lado -->
       <div class="grid-2-fixo hidden" style="margin-top:10px;" id="wrapDestinoLinha">
         <div>
-          <label for="lojaDestino">Para onde está transferindo?</label>
+          <label for="lojaDestino">Loja Destino</label>
           <select id="lojaDestino">
             <option value="">Selecione</option>
 
@@ -545,7 +546,7 @@
             <option value="ULT 20 - TAGUATINGA">ULT 20 - TAGUATINGA</option>
             <option value="ULT 22 - VICENTE PIRES">ULT 22 - VICENTE PIRES</option>
             <option value="ULT 23 - SANTA MARIA">ULT 23 - SANTA MARIA</option>
-            <option value="ULT 24 - PAUL BRASIL">ULT 24 - PAUL BRASIL</option>
+            <option value="ULT 24 - PAU BRASIL">ULT 24 - PAU BRASIL</option>
             <option value="ULT 25 - BRASILINHA">ULT 25 - BRASILINHA</option>
 
             <option value="TOTAL DISTRIBUICAO">TOTAL DISTRIBUICAO</option>
@@ -570,7 +571,7 @@
 
       <!-- ✅ Input de Placa (um só). Ele é “movido” para o lado correto via JS -->
       <div class="hidden" id="placaNode">
-        <label for="placaVeiculo">Placa do veículo (opcional)</label>
+        <label for="placaVeiculo">Placa do veículo</label>
         <input
           type="text"
           id="placaVeiculo"
@@ -619,14 +620,13 @@
     </div>
   </div>
 
-  <!-- ✅ Modal de pré-visualização do WhatsApp + confirmação Documento/Qtd -->
+  <!-- ✅ Modal de pré-visualização + confirmação Documento/Qtd -->
   <div class="overlay hidden" id="modalWhatsPreview">
     <div class="modal">
       <h3>Pré-visualização da notificação.</h3>
       <p>Deseja notificar o responsável da loja destino?</p>
 
-      <!-- ✅ (4) Confirmação aqui -->
-      <div class="confirm-box wait" id="confirmBox">Aguardando confirmação de gravação na planilha...</div>
+      <div class="confirm-box wait" id="confirmBox">Aguardando confirmação da base de dados...</div>
 
       <div class="prewa" id="waPreviewText"></div>
 
@@ -659,14 +659,11 @@
     let sessaoAtual = null;
     let expTimerId = null;
 
-    // ✅ agora inclui placa no estado
+    // ✅ inclui placa no estado
     let estado = { data: "", hora: "", encarregado: "", fornecedor: "", placaVeiculo: "", itens: [] };
 
-    // ✅ Guarda telefone/mensagem do WhatsApp pro modal de prévia
+    // ✅ draft Whats (modal)
     let waDraft = { telefone: "", mensagem: "" };
-
-    // ✅ Controle de confirmação (Documento + Qtd)
-    let confirmDraft = { documento: "", qtdItens: 0, confirmado: false };
 
     function setTexto(id, txt) {
       const el = document.getElementById(id);
@@ -689,7 +686,6 @@
         if (!resp.ok) return null;
 
         const dados = await resp.json().catch(() => null);
-        // ✅ agora suporta perfil no header (se vier do backend)
         if (!dados || !dados.sucesso || !dados.usuario || !dados.loja) return null;
         return dados;
       } catch (e) {
@@ -755,7 +751,6 @@
     function aplicarSessaoNaTela(sessao) {
       sessaoAtual = sessao;
 
-      // ✅ header padrão print
       setTexto("infoLoja", sessao.loja || "—");
       setTexto("infoUsuario", sessao.usuario || "—");
       setTexto("infoPerfil", sessao.perfil || "—");
@@ -814,7 +809,7 @@
       return String(t || "").trim();
     }
 
-    // ✅ (2) Normalização da placa: 7 chars, A-Z0-9, maiúsculo
+    // ✅ placa: 7 chars, A-Z0-9, maiúsculo
     function normalizarPlaca(s){
       const up = String(s || "").toUpperCase();
       const alnum = up.replace(/[^A-Z0-9]/g, "");
@@ -1016,14 +1011,13 @@
       }
     }
 
-    // ✅ (2) mover o input de placa para o lado correto conforme tipo
+    // ✅ mover o input de placa para o lado correto conforme tipo
     function posicionarPlacaConformeTipo(){
       const tipo = document.getElementById("tipoLancamento").value;
       const placaNode = document.getElementById("placaNode");
       const wrapMov = document.getElementById("wrapPlacaMov");
       const wrapRec = document.getElementById("wrapPlacaRec");
 
-      // garante que o node não some
       placaNode.classList.remove("hidden");
 
       if (tipo === "MOV_INTERNA") {
@@ -1031,7 +1025,6 @@
       } else if (tipo === "RECEBIMENTO") {
         wrapRec.appendChild(placaNode);
       } else {
-        // sem tipo selecionado: some a placa (pra não ficar “solta”)
         placaNode.classList.add("hidden");
       }
     }
@@ -1105,7 +1098,7 @@
       return `${DOMINIO_PUBLICO}/login.html`;
     }
 
-    // ✅ (3) inclui placa na mensagem: se vazio → "Não informada"
+    // ✅ inclui placa na mensagem
     function montarMensagemWhats({
       lojaOrigem,
       lojaDestino,
@@ -1196,9 +1189,9 @@
       box.textContent = texto || "";
     }
 
-    function habilitarBotoesWhats(ativo){
-      document.getElementById("btnAbrirWhats").disabled = !ativo;
-      document.getElementById("btnCancelarWhats").disabled = !ativo;
+    function habilitarBotoesWhats({ podeAbrirWhats, podeCancelar }){
+      document.getElementById("btnAbrirWhats").disabled = !podeAbrirWhats;
+      document.getElementById("btnCancelarWhats").disabled = !podeCancelar;
     }
 
     function abrirModalPreviewWhats(telefone, mensagem){
@@ -1207,16 +1200,13 @@
       const box = document.getElementById("waPreviewText");
       if (box) box.textContent = waDraft.mensagem || "";
 
-      // ✅ (4) inicia aguardando confirmação
-      confirmDraft = { documento: "", qtdItens: 0, confirmado: false };
       setConfirmBox("wait", "Aguardando confirmação da base de dados...");
-      habilitarBotoesWhats(false);
+      habilitarBotoesWhats({ podeAbrirWhats:false, podeCancelar:false });
 
       abrirModal("modalWhatsPreview");
     }
 
     function limparTelaAposConfirmacao(){
-      // ✅ só limpa após confirmação real
       limparLocal();
       estado = { data: "", hora: "", encarregado: "", fornecedor: "", placaVeiculo: "", itens: [] };
 
@@ -1243,14 +1233,12 @@
 
       const tipoAtual = document.getElementById("tipoLancamento").value;
 
-      // fornecedor só em recebimento
       if (tipoAtual === "RECEBIMENTO") {
         estado.fornecedor = normalizarTexto(document.getElementById("fornecedor").value);
       } else {
         estado.fornecedor = "";
       }
 
-      // ✅ placa é opcional para ambos, mas posiciona conforme tipo
       const placaRaw = document.getElementById("placaVeiculo").value;
       const placaNorm = normalizarPlaca(placaRaw);
       estado.placaVeiculo = placaNorm;
@@ -1297,21 +1285,24 @@
       };
     }
 
-    // ✅ (4) Aguarda confirmação (Documento + Qtd) vinda do backend
-    // Estratégia: se /api/bono-salvar já devolver documento/qtdItens, confirma na hora.
-    // Caso contrário, precisa de ajuste no backend (vou te pedir o arquivo no final).
-    async function confirmarGravacaoPlanilha(dadosRetorno, fallbackQtd){
+    // ✅ Confirmação baseada no retorno do backend (doc + qtd)
+    function confirmarGravacaoPlanilha(dadosRetorno, fallbackQtd){
       const doc =
         (dadosRetorno && (dadosRetorno.documento || dadosRetorno.numeroDocumento || dadosRetorno.doc || dadosRetorno.documentNumber)) || "";
 
+      // ✅ ajuste importante: sua API devolve totalItens (e antes não era lido)
       const qtd =
-        Number(dadosRetorno && (dadosRetorno.qtdItens || dadosRetorno.qtd || dadosRetorno.itens || dadosRetorno.count)) || Number(fallbackQtd || 0);
+        Number(
+          dadosRetorno && (
+            dadosRetorno.qtdItens ||
+            dadosRetorno.totalItens ||     // ✅ agora aceita
+            dadosRetorno.qtd ||
+            dadosRetorno.itens ||
+            dadosRetorno.count
+          )
+        ) || Number(fallbackQtd || 0);
 
-      if (doc && qtd > 0) {
-        return { ok:true, documento: String(doc), qtdItens: qtd };
-      }
-
-      // Se não veio doc/qtd: não dá pra “garantir” no front-end sozinho.
+      if (doc && qtd > 0) return { ok:true, documento: String(doc), qtdItens: qtd };
       return { ok:false, documento:"", qtdItens:0 };
     }
 
@@ -1344,12 +1335,11 @@
       const destinoNoEnvio = destinoAtual;
       const itensNoEnvio = Array.isArray(estado.itens) ? estado.itens.map(it => ({ ...it })) : [];
 
-      // ✅ (2) inclui placa no payload (coluna N no backend)
       const payload = {
         dataHoraEscolhida: dataHoraPlanilha,
         encarregado: estado.encarregado,
         fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : ""),
-        placaVeiculo: (estado.placaVeiculo || ""), // ✅ COLUNA N
+        placaVeiculo: (estado.placaVeiculo || ""),
         itens: estado.itens.map(x => ({
           produto: x.produto,
           quantidade: x.quantidadeFmt,
@@ -1388,12 +1378,41 @@
           return;
         }
 
-        // ✅ terminou o POST, agora o “garantir” depende do retorno doc/qtd
         stopLoadingTimer();
         setLoadingPct(100);
         setTimeout(() => hideLoading(), 250);
 
-        // ✅ Whats: abre popup de prévia (mas botões travados até confirmar)
+        const conf = confirmarGravacaoPlanilha(dados, payload.itens.length);
+        if (!conf.ok) {
+          // não muda fluxo; apenas segurança
+          setMsg("Bono salvo, mas a confirmação (Documento + Qtd) não veio do backend. Verifique a API.", false);
+          return;
+        }
+
+        const textoConfirmacaoBase =
+          `✅ Confirmado na base de dados\nDocumento: ${conf.documento}\nQtd de itens: ${conf.qtdItens}`;
+
+        // ==========================================
+        // ✅ (1) AJUSTE SOLICITADO: POPUP TAMBÉM EM RECEBIMENTO
+        // ==========================================
+        if (tipoNoEnvio === "RECEBIMENTO") {
+          // abre o MESMO popup, mas sem Whats (botão fica desabilitado)
+          abrirModalPreviewWhats("", ""); // preview vazio
+          setConfirmBox("ok", textoConfirmacaoBase);
+          // recebe/fechar: só cancelar habilitado
+          habilitarBotoesWhats({ podeAbrirWhats:false, podeCancelar:true });
+
+          // limpa após confirmação (já confirmada aqui)
+          limparTelaAposConfirmacao();
+          setMsg("Bono finalizado e confirmado.", true);
+          return;
+        }
+
+        // ==========================================
+        // ✅ MOVIMENTAÇÃO INTERNA: sempre abrir popup
+        // - se tiver número, habilita Whats
+        // - se não tiver número, informa no mesmo popup
+        // ==========================================
         if (tipoNoEnvio === "MOV_INTERNA" && destinoNoEnvio) {
           const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
 
@@ -1408,51 +1427,30 @@
             itens: itensNoEnvio
           });
 
-          if (!normalizarTelefoneParaWa(telefoneResp)) {
-            setMsg("Bono salvo, mas não encontrei o WhatsApp do responsável da loja destino para enviar.", false);
-            // Mesmo assim: precisa confirmar doc/qtd antes de limpar
-            const conf = await confirmarGravacaoPlanilha(dados, payload.itens.length);
-            if (conf.ok) {
-              setMsg(`Confirmado na planilha: Doc ${conf.documento} | Itens ${conf.qtdItens}.`, true);
-              limparTelaAposConfirmacao();
-            } else {
-              setMsg("Bono salvo, mas a confirmação (Documento + Qtd) não veio do backend. Precisa ajuste na API.", false);
-              // não limpa
-            }
+          // abre sempre o popup
+          abrirModalPreviewWhats(telefoneResp || "", msgWhats);
+
+          const temTelValido = !!normalizarTelefoneParaWa(telefoneResp);
+
+          if (!temTelValido) {
+            // ✅ (1) pedido: no mesmo popup avisar que não encontrou WhatsApp
+            setConfirmBox("ok", `${textoConfirmacaoBase}\n\n⚠ Não foi encontrado o número de WhatsApp da loja destino.`);
+            habilitarBotoesWhats({ podeAbrirWhats:false, podeCancelar:true });
+            setMsg("Bono confirmado. WhatsApp da loja destino não encontrado.", false);
           } else {
-            abrirModalPreviewWhats(telefoneResp, msgWhats);
-
-            // ✅ (4) agora confirma e só então libera botões + limpa
-            const conf = await confirmarGravacaoPlanilha(dados, payload.itens.length);
-            if (conf.ok) {
-              confirmDraft = { documento: conf.documento, qtdItens: conf.qtdItens, confirmado: true };
-              setConfirmBox("ok", `✅ Confirmado na base de dados\nDocumento: ${conf.documento}\n - Qtd de itens: ${conf.qtdItens}`);
-              habilitarBotoesWhats(true);
-
-              // ✅ limpeza só depois da confirmação
-              limparTelaAposConfirmacao();
-              setMsg("Bono finalizado, confirmado e pronto para notificar.", true);
-            } else {
-              // se o backend não manda doc/qtd, você NÃO tem garantia real
-              confirmDraft = { documento: "", qtdItens: 0, confirmado: false };
-              setConfirmBox("err", "❌ Não foi possível confirmar Documento + Qtd via backend.\nEnvie o código da API /api/bono-salvar para eu ajustar.");
-              habilitarBotoesWhats(false);
-
-              // não limpa e não libera whatsapp
-              setMsg("Bono salvo, mas falta confirmação (Documento + Qtd). Precisa ajuste na API.", false);
-            }
+            setConfirmBox("ok", textoConfirmacaoBase);
+            habilitarBotoesWhats({ podeAbrirWhats:true, podeCancelar:true });
+            setMsg("Bono finalizado, confirmado e pronto para notificar.", true);
           }
 
-        } else {
-          // RECEBIMENTO: não manda Whats, mas ainda assim precisa confirmar antes de limpar
-          const conf = await confirmarGravacaoPlanilha(dados, payload.itens.length);
-          if (conf.ok) {
-            setMsg(`Bono finalizado e confirmado. Documento: ${conf.documento} | Itens: ${conf.qtdItens}.`, true);
-            limparTelaAposConfirmacao();
-          } else {
-            setMsg("Bono salvo, mas a confirmação (Documento + Qtd) não veio do backend. Precisa ajuste na API.", false);
-          }
+          // limpa após confirmação (já confirmada aqui)
+          limparTelaAposConfirmacao();
+          return;
         }
+
+        // fallback (não deveria acontecer)
+        setMsg("Bono confirmado.", true);
+        limparTelaAposConfirmacao();
 
       } catch (e) {
         console.error(e);
@@ -1496,20 +1494,17 @@
         await finalizarBono();
       });
 
-      // ✅ Botões do modal de prévia
+      // ✅ Botões do modal
       document.getElementById("btnCancelarWhats").addEventListener("click", () => {
-        // só permite cancelar depois de confirmar
         fecharModal("modalWhatsPreview");
         waDraft = { telefone: "", mensagem: "" };
       });
 
       document.getElementById("btnAbrirWhats").addEventListener("click", () => {
-        fecharModal("modalWhatsPreview");
         const okAbrir = abrirWhatsAppComMensagem(waDraft.telefone, waDraft.mensagem);
         if (!okAbrir) {
           setMsg("Não foi possível abrir o WhatsApp (telefone inválido).", false);
         }
-        waDraft = { telefone: "", mensagem: "" };
       });
 
       ["dataEscolhida","horaEscolhida","encarregado"].forEach(id => {
@@ -1520,7 +1515,7 @@
       document.getElementById("fornecedor").addEventListener("change", capturarBaseDoFormulario);
       document.getElementById("fornecedor").addEventListener("input", capturarBaseDoFormulario);
 
-      // ✅ (2) placa: força maiúsculo e alfanumérico + max 7 em tempo real
+      // ✅ placa: normaliza em tempo real
       document.getElementById("placaVeiculo").addEventListener("input", (e) => {
         const el = e.target;
         const norm = normalizarPlaca(el.value);
@@ -1604,7 +1599,6 @@
 
       aplicarSessaoNaTela(sessao);
 
-      // ✅ posiciona placa corretamente já no load
       atualizarVisibilidadeDestinoFornecedorEPlaca();
 
       const pendente = carregarLocal();
@@ -1622,13 +1616,18 @@
       atualizarHabilitacaoQuantidade();
     });
 
-    /*
-      Referências confiáveis:
-      - Flexbox (layout em linha): https://developer.mozilla.org/pt-BR/docs/Web/CSS/CSS_flexible_box_layout
-      - text-overflow (ellipsis): https://developer.mozilla.org/pt-BR/docs/Web/CSS/text-overflow
-      - RegExp (sanitização): https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Regular_expressions
-      - fetch(): https://developer.mozilla.org/pt-BR/docs/Web/API/fetch
-    */
+    // (mantido) - funções usadas antes e ainda necessárias
+    function redirecionarParaLogin(motivo) {
+      if (motivo) setMsg(motivo, false);
+      window.location.href = ROTAS.login;
+    }
+
+    function bloquearPontuacao(e){
+      const k = e.key;
+      if (k === "." || k === "," || k === ";" || k === "-" || k === "+" ) {
+        e.preventDefault();
+      }
+    }
   </script>
 </body>
 </html>
