@@ -217,41 +217,100 @@ function statusPorTipo(tipoLancamento) {
 
 /* =========================================================
    ✅ CONFIRMAÇÃO REAL: RELER NA PLANILHA O QUE FOI GRAVADO
-   - usa updates.updatedRange do append
-   - valida qtd de linhas e Documento na coluna L
+   + ✅ RETRY ATÉ 10s (backoff com jitter)
 ========================================================= */
-async function confirmarLeituraNaPlanilha({ sheets, documentoUnico, qtdEsperada, updatedRange }) {
+function sleep(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function clamp(n, min, max){
+  return Math.max(min, Math.min(max, n));
+}
+
+/**
+ * Tenta confirmar a releitura várias vezes, por até ~10s.
+ * - Backoff crescente + jitter (para evitar “thundering herd”)
+ * - Se confirmar, retorna ok:true
+ * - Se estourar o tempo, retorna ok:false com motivo
+ */
+async function confirmarLeituraNaPlanilhaComRetry({ sheets, documentoUnico, qtdEsperada, updatedRange, timeoutMs = 10_000 }) {
+  const startedAt = Date.now();
+
   if (!updatedRange || typeof updatedRange !== "string") {
     return { ok: false, motivo: "append sem updatedRange; não foi possível verificar a base de dados." };
   }
 
   const r = updatedRange.trim(); // ex: "BONO!A123:N127"
 
-  const getResp = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range: r,
-    majorDimension: "ROWS",
-    valueRenderOption: "FORMATTED_VALUE",
-    dateTimeRenderOption: "FORMATTED_STRING"
-  });
+  // tentativas com backoff (ms). total aproximado <= 10s (com pequenas variações pelo jitter)
+  const delaysBase = [150, 250, 400, 650, 900, 1200, 1600, 2000, 2400];
 
-  const rows = Array.isArray(getResp?.data?.values) ? getResp.data.values : [];
-  if (!rows.length) return { ok: false, motivo: "releitura retornou 0 linhas." };
+  let tentativa = 0;
+  let ultimoMotivo = "sem tentativa";
 
-  // ✅ pode existir linhas “curtas”; garantimos índice 11 (coluna L)
-  const docs = rows.map(row => (row && row[11] != null) ? String(row[11]).trim() : "");
+  while (true) {
+    tentativa++;
 
-  const qtdLida = rows.length;
-  if (qtdLida !== Number(qtdEsperada)) {
-    return { ok: false, motivo: `qtd lida (${qtdLida}) diferente da enviada (${qtdEsperada}).` };
+    try {
+      const getResp = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: r,
+        majorDimension: "ROWS",
+        valueRenderOption: "FORMATTED_VALUE",
+        dateTimeRenderOption: "FORMATTED_STRING"
+      });
+
+      const rows = Array.isArray(getResp?.data?.values) ? getResp.data.values : [];
+      if (!rows.length) {
+        ultimoMotivo = "releitura retornou 0 linhas.";
+      } else {
+        const docs = rows.map(row => (row && row[11] != null) ? String(row[11]).trim() : "");
+
+        const qtdLida = rows.length;
+        if (qtdLida !== Number(qtdEsperada)) {
+          ultimoMotivo = `qtd lida (${qtdLida}) diferente da enviada (${qtdEsperada}).`;
+        } else {
+          const todasBatem = docs.every(d => d === String(documentoUnico));
+          if (!todasBatem) {
+            ultimoMotivo = "Documento relido não confere com o Documento gerado.";
+          } else {
+            return {
+              ok: true,
+              documento: String(documentoUnico),
+              qtdItens: qtdLida,
+              rangeConfirmado: r,
+              tentativas: tentativa,
+              tempoMs: Date.now() - startedAt
+            };
+          }
+        }
+      }
+    } catch (err) {
+      // Falha transitória de rede/API também entra em retry
+      ultimoMotivo = `erro na releitura: ${String(err?.message || err)}`.slice(0, 180);
+    }
+
+    const elapsed = Date.now() - startedAt;
+    if (elapsed >= timeoutMs) {
+      return {
+        ok: false,
+        motivo: `não confirmou em ${timeoutMs}ms. Último motivo: ${ultimoMotivo}`,
+        rangeConfirmado: r,
+        tentativas: tentativa,
+        tempoMs: elapsed
+      };
+    }
+
+    // calcula atraso da próxima tentativa com jitter e respeita o tempo restante
+    const base = delaysBase[Math.min(tentativa - 1, delaysBase.length - 1)];
+    const jitter = Math.floor(Math.random() * 120); // 0..119ms
+    const delay = base + jitter;
+
+    const restante = timeoutMs - elapsed;
+    const aguardar = clamp(delay, 60, restante);
+
+    await sleep(aguardar);
   }
-
-  const todasBatem = docs.every(d => d === String(documentoUnico));
-  if (!todasBatem) {
-    return { ok: false, motivo: "Documento relido não confere com o Documento gerado." };
-  }
-
-  return { ok: true, documento: String(documentoUnico), qtdItens: qtdLida, rangeConfirmado: r };
 }
 
 export default async function handler(req, res) {
@@ -311,7 +370,7 @@ export default async function handler(req, res) {
 
   const spStamp = getSaoPauloStamp();
 
-  // ⚠️ continua sendo gerado aqui, mas AGORA serve como “chave de correlação”
+  // ⚠️ continua sendo gerado aqui, mas serve como “chave de correlação”
   // A certeza vem da RELEITURA (values.get), não do ato de gerar.
   const documentoUnico = montarDocumentoUnico({ loja, usuario, spStamp });
 
@@ -351,30 +410,40 @@ export default async function handler(req, res) {
       requestBody: { values }
     });
 
-    // ✅ updatedRange é a “pista” exata do que foi inserido
     const updatedRange = appendResp?.data?.updates?.updatedRange || "";
 
-    // ✅ AGORA SIM: reler na planilha e validar
-    const conf = await confirmarLeituraNaPlanilha({
+    // ✅ RELER COM RETRY (até 10s)
+    const conf = await confirmarLeituraNaPlanilhaComRetry({
       sheets,
       documentoUnico,
       qtdEsperada: values.length,
-      updatedRange
+      updatedRange,
+      timeoutMs: 10_000
     });
 
     if (!conf.ok) {
-      console.error("[BONO] Gravou, mas não confirmou na releitura:", conf.motivo, { updatedRange });
-      return bad(res, 500, `Bono salvo, mas NÃO foi possível confirmar a leitura na base de dados. Motivo: ${conf.motivo}`);
+      console.error("[BONO] Gravou, mas não confirmou na releitura (retry):", conf.motivo, {
+        updatedRange,
+        tentativas: conf.tentativas,
+        tempoMs: conf.tempoMs
+      });
+
+      return bad(
+        res,
+        500,
+        `Bono salvo, mas NÃO foi possível confirmar a leitura na base de dados em até 10s. Verifique na tela de visualização. Motivo: ${conf.motivo}`
+      );
     }
 
-    // ✅ resposta baseada em LEITURA confirmada
     return ok(res, {
       sucesso: true,
       message: "Bono salvo e confirmado na base de dados.",
       documento: conf.documento,
       qtdItens: conf.qtdItens,
       totalItens: conf.qtdItens,
-      rangeConfirmado: conf.rangeConfirmado // opcional (se não quiser expor, remova)
+      rangeConfirmado: conf.rangeConfirmado, // opcional
+      tentativasConfirmacao: conf.tentativas, // opcional (se não quiser expor, remova)
+      tempoConfirmacaoMs: conf.tempoMs        // opcional (se não quiser expor, remova)
     });
 
   } catch (e) {
@@ -385,7 +454,8 @@ export default async function handler(req, res) {
 
 /*
 Fontes confiáveis:
-- Sheets API append (retorna updates.updatedRange): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+- Google Cloud: Retry e backoff para erros transitórios: https://cloud.google.com/apis/design/errors#retrying_requests
+- Sheets API append (updates.updatedRange): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
 - Sheets API get (reler valores): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
 - google-api-nodejs-client (Sheets): https://github.com/googleapis/google-api-nodejs-client
 */
