@@ -2285,99 +2285,96 @@ function renderMeses12(labels, values, corBarra){
            - NÃO usa dataInicio/dataFim
            - Usa: lojasSel + abordagemSel + turnosSel + gravSel
            ========================================================= */
-(function atualizarGrafico12Meses(){
-  const { keys: mesesKeys, labels: mesesLabels } = getLast12MonthsInfo();
-  const idxPorMes = new Map(mesesKeys.map((k, i) => [k, i]));
-  const valores = new Array(mesesKeys.length).fill(0);
+function renderMeses12(labels, values, corMeses12){
+  const ctx = document.getElementById("chartMeses12");
+  if (!ctx) return;
 
-  // ✅ cor: só ULT = verde; BIG ou todas = roxo
-  const COR_PADRAO = "#A98AE8";
-  const COR_ULT = "#43A047";
-  const selArr = [...obterLojasSelecionadas().values()];
-  const hasBIG = selArr.some(x => String(x).startsWith("BIG"));
-  const hasULT = selArr.some(x => String(x).startsWith("ULT"));
-  const corMeses12 = (hasULT && !hasBIG) ? COR_ULT : COR_PADRAO;
+  if (chartMeses12) chartMeses12.destroy();
 
-  // Base SEM filtro de dataInicio/dataFim, mas com lojas/abordagem/turno
-  const registrosSemData = registros.filter(r => {
-    {
-      const lojaKey = normLoja(r.loja);
-      if (!lojasSel.has(lojaKey)) return false;
+  // ✅ remove meses sem dados (fica só meses com valor > 0)
+  const dadosFiltrados = (labels || [])
+    .map((lbl, i) => ({
+      label: String(lbl ?? "").trim(),
+      value: Number(values?.[i]) || 0
+    }))
+    .filter(item => item.value > 0);
+
+  const labelsFinal = dadosFiltrados.map(i => i.label);
+  const valuesFinal = dadosFiltrados.map(i => i.value);
+
+  // ✅ plugin: escreve o valor (R$) no final da barra (horizontal)
+  const valueAtEndPluginMeses12 = {
+    id: "valueAtEndPluginMeses12",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
+
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "bold 12px Arial";
+      ctx.fillStyle = "#111";
+
+      meta.data.forEach((bar, i) => {
+        const val = chart.data.datasets[0].data[i];
+        if (!(Number(val) > 0)) return;
+
+        const texto = formatarBRL(val);
+        const xRaw = bar.x + 8;
+        const x = Math.min(xRaw, chart.width - 8);
+        ctx.fillText(texto, x, bar.y);
+      });
+
+      ctx.restore();
     }
+  };
 
-    {
-      const tipo = tipoAbordagemNorm(r);
-      if (!abordagemPassaFiltro(tipo, abordagemSel)) return false;
-    }
+  const maxVal = Math.max(0, ...(valuesFinal || []).map(v => Number(v) || 0));
+  const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.12) : 1;
 
-    {
-      const min = horaOcorridoParaMinutos(r);
-      if (min === null) return false;
-
-      const okManha = turnosSel.MANHA && minutoDentroDeTurno(min, "MANHA");
-      const okTarde = turnosSel.TARDE && minutoDentroDeTurno(min, "TARDE");
-      const okMadr = turnosSel.MADRUGADA && minutoDentroDeTurno(min, "MADRUGADA");
-
-      if (!(okManha || okTarde || okMadr)) return false;
-    }
-
-    // precisa de data válida pra entrar no mês
-    const iso = dataOcorridoParaISO(r);
-    if (!iso) return false;
-
-    // só considera se cair nos últimos 12 meses (YYYY-MM)
-    const mesKey = iso.slice(0, 7);
-    if (!idxPorMes.has(mesKey)) return false;
-
-    return true;
+  chartMeses12 = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labelsFinal,
+      datasets: [{
+        label: "Valor",
+        data: valuesFinal,
+        backgroundColor: corMeses12 || "#A98AE8",
+        clip: false
+      }]
+    },
+    options: {
+      indexAxis: "y", // ✅ barras horizontais (como na imagem)
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 56 } }, // espaço pro texto do valor
+      plugins: {
+        legend: { display: false }, // ✅ sem legenda
+        tooltip: {
+          callbacks: {
+            label: (item) => `Valor: ${formatarBRL(item.raw)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          suggestedMax,
+          ticks: { display: false }, // ✅ sem rótulos/eixo
+          grid: { display: false },
+          border: { display: false }
+        },
+        y: {
+          ticks: { autoSkip: false, font: { size: 11 } },
+          grid: { display: false },
+          border: { display: false }
+        }
+      }
+    },
+    plugins: [valueAtEndPluginMeses12]
   });
-
-  // Calcula valor total por ocorrência (para classificar gravidade) SEM filtro de datas
-  const valorPorOccSemData = new Map();
-  const mesPorOcc = new Map(); // ✅ guarda o mês (YYYY-MM) de cada ocorrência
-
-  for (const r of registrosSemData) {
-    const k = chaveOcorrencia(r);
-    if (!k) continue;
-
-    // fixa o mês da ocorrência (1ª vez que aparece)
-    if (!mesPorOcc.has(k)) {
-      const iso = dataOcorridoParaISO(r);
-      if (iso) mesPorOcc.set(k, iso.slice(0, 7));
-    }
-
-    const qtd = parseNumeroBr(r.quantidade);
-    const vUnit = parseNumeroBr(r.valorUnitario);
-    const totalLinha = qtd * vUnit;
-
-    valorPorOccSemData.set(
-      k,
-      (valorPorOccSemData.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
-    );
-  }
-
-  // filtra por gravidade (com base no valor total da ocorrência)
-  const occAprovadasSemData = new Set();
-  for (const [k, vTot] of valorPorOccSemData.entries()) {
-    const classe = classificarGravidade(vTot);
-    if (gravidadePassaFiltro(classe, gravSel)) occAprovadasSemData.add(k);
-  }
-
-  // ✅ soma R$ por mês (uma vez por ocorrência)
-  for (const k of occAprovadasSemData.values()) {
-    const mesKey = mesPorOcc.get(k);
-    if (!mesKey) continue;
-
-    const idx = idxPorMes.get(mesKey);
-    if (idx === undefined) continue;
-
-    valores[idx] += (Number(valorPorOccSemData.get(k)) || 0);
-  }
-
-  // ✅ render no estilo da imagem (horizontal + valor no fim)
-  renderMeses12(mesesLabels, valores, corMeses12);
-})();
-
+}
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
           `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
