@@ -2269,156 +2269,82 @@
            - NÃO usa dataInicio/dataFim
            - Usa: lojasSel + abordagemSel + turnosSel + gravSel
            ========================================================= */
-        (function atualizarGrafico12Meses(){
-          const { keys: mesesKeys, labels: mesesLabels } = getLast12MonthsInfo();
-          const idxPorMes = new Map(mesesKeys.map((k, i) => [k, i]));
-          const valores = new Array(mesesKeys.length).fill(0);
+function renderMeses12(labels, values){
+  const ctx = document.getElementById("chartMeses12");
+  if (!ctx) return;
 
-          // Base SEM filtro de dataInicio/dataFim, mas com lojas/abordagem/turno
-          const registrosSemData = registros.filter(r => {
-            {
-              const lojaKey = normLoja(r.loja);
-              if (!lojasSel.has(lojaKey)) return false;
-            }
+  if (chartMeses12) chartMeses12.destroy();
 
-            {
-              const tipo = tipoAbordagemNorm(r);
-              if (!abordagemPassaFiltro(tipo, abordagemSel)) return false;
-            }
+  const valueAtEndPlugin = {
+    id: "valueAtEndPluginMeses12",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
 
-            {
-              const min = horaOcorridoParaMinutos(r);
-              if (min === null) return false;
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "bold 12px Arial";
+      ctx.fillStyle = "#111";
 
-              const okManha = turnosSel.MANHA && minutoDentroDeTurno(min, "MANHA");
-              const okTarde = turnosSel.TARDE && minutoDentroDeTurno(min, "TARDE");
-              const okMadr = turnosSel.MADRUGADA && minutoDentroDeTurno(min, "MADRUGADA");
+      meta.data.forEach((bar, i) => {
+        const val = Number(chart.data.datasets[0].data[i]) || 0;
+        const xRaw = bar.x + 10;                 // “fora” da barra, à direita
+        const x = Math.min(xRaw, chart.width - 8);
+        ctx.fillText(formatarBRL(val), x, bar.y);
+      });
 
-              if (!(okManha || okTarde || okMadr)) return false;
-            }
-
-            // precisa de data válida pra entrar no mês
-            const iso = dataOcorridoParaISO(r);
-            if (!iso) return false;
-
-            // só considera se cair nos últimos 12 meses (YYYY-MM)
-            const mesKey = iso.slice(0, 7);
-            if (!idxPorMes.has(mesKey)) return false;
-
-            return true;
-          });
-
-          // Calcula valor total por ocorrência (para classificar gravidade) SEM filtro de datas
-          const valorPorOccSemData = new Map();
-          for (const r of registrosSemData) {
-            const k = chaveOcorrencia(r);
-            if (!k) continue;
-
-            const qtd = parseNumeroBr(r.quantidade);
-            const vUnit = parseNumeroBr(r.valorUnitario);
-            const totalLinha = qtd * vUnit;
-
-            valorPorOccSemData.set(
-              k,
-              (valorPorOccSemData.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
-            );
-          }
-
-          const occAprovadasSemData = new Set();
-          for (const [k, vTot] of valorPorOccSemData.entries()) {
-            const classe = classificarGravidade(vTot);
-            if (gravidadePassaFiltro(classe, gravSel)) occAprovadasSemData.add(k);
-          }
-
-          // Conta ocorrências únicas por mês
-          const seenOcc = new Set();
-          for (const r of registrosSemData) {
-            const k = chaveOcorrencia(r);
-            if (!k || seenOcc.has(k)) continue;
-            if (!occAprovadasSemData.has(k)) continue;
-
-            const iso = dataOcorridoParaISO(r);
-            if (!iso) continue;
-
-            const mesKey = iso.slice(0, 7);
-            const idx = idxPorMes.get(mesKey);
-            if (idx === undefined) continue;
-
-            seenOcc.add(k);
-            valores[idx] += 1;
-          }
-
-          renderMeses12(mesesLabels, valores);
-        })();
-
-        subInfo.textContent =
-          `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
-          `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
-
-        status.textContent = CACHE_ATUALIZADO_EM
-          ? `Filtros aplicados (dados carregados em: ${CACHE_ATUALIZADO_EM.toLocaleString("pt-BR")}).`
-          : "Filtros aplicados.";
-      } catch (e) {
-        console.error("Erro ao aplicar filtros:", e);
-        document.getElementById("status").textContent = "Erro ao aplicar filtros.";
-        document.getElementById("subInfo").textContent = "Erro ao montar.";
-      }
+      ctx.restore();
     }
+  };
 
-    function renderTopLojas(labels, values) {
-      const ctx = document.getElementById("chartTopLojas");
-      if (chartTopLojas) chartTopLojas.destroy();
+  const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
+  const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.15) : 1;
 
-      const valueOnTopPlugin = {
-        id: "valueOnTopPlugin",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
-
-          ctx.save();
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
-          ctx.font = "bold 12px Arial";
-          ctx.fillStyle = "#111";
-
-          meta.data.forEach((bar, i) => {
-            const val = chart.data.datasets[0].data[i];
-            ctx.fillText(String(val), bar.x, bar.y - 6);
-          });
-
-          ctx.restore();
+  chartMeses12 = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Valor (R$)",
+        data: values,
+        backgroundColor: "#A98AE8",
+        clip: false
+      }]
+    },
+    options: {
+      indexAxis: "y",                 // ✅ estilo da sua imagem (barras horizontais)
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 70 } }, // ✅ espaço pro valor “fora” da barra
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (item) => `Valor: ${formatarBRL(Number(item.raw) || 0)}`
+          }
         }
-      };
-
-      const corBIG = "#6A1B9A";
-      const corULT = "#43A047";
-
-      const bgColors = labels.map((lbl) => {
-        const s = String(lbl || "").toUpperCase().trim();
-        if (s.startsWith("BIG")) return corBIG;
-        if (s.startsWith("ULT")) return corULT;
-        return "#777";
-      });
-
-      const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
-      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
-
-      chartTopLojas = new Chart(ctx, {
-        type: "bar",
-        data: { labels, datasets: [{ label: "Ocorrências", data: values, backgroundColor: bgColors }] },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
-          scales: {
-            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
-            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
-          }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          suggestedMax,
+          ticks: { display: false },   // ✅ estilo “limpo”
+          grid: { display: false },
+          border: { display: false }
         },
-        plugins: [valueOnTopPlugin]
-      });
-    }
+        y: {
+          ticks: { autoSkip: false, font: { size: 11 } },
+          grid: { display: false },
+          border: { display: false }
+        }
+      }
+    },
+    plugins: [valueAtEndPlugin]
+  });
+}
+
 
     function renderDept(labels, values, corBarra) {
       const ctx = document.getElementById("chartDept");
