@@ -108,25 +108,30 @@
     /* =========================================================
        ✅ (NOVO) COLUNA ESQUERDA COM 2 CARTÕES EMPILHADOS
        ========================================================= */
-    .sidecol{
-      display: flex;
-      flex-direction: column;
-      gap: 12px; /* mesmo gap do layout */
-      min-width: 0;
-    }
+.sidecol{
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* mesmo gap do layout */
+  min-width: 0;
+  height: 100%;            /* ✅ permite o card esticar */
+}
 
-    /* =========================================================
-       ✅ (NOVO) Cartão do gráfico 12 meses (mesma largura da sidebar)
-       ========================================================= */
-    .meses12-tile{
-      min-height: 420px; /* ocupa bem o espaço marcado no print */
-      padding: 12px 14px;
-    }
-    .meses12-wrap{
-      position: relative;
-      height: 360px;
-      min-width: 0;
-    }
+/* =========================================================
+   ✅ Cartão do gráfico 12 meses ocupa TODA a altura disponível
+   ========================================================= */
+.meses12-tile{
+  flex: 1 1 auto;          /* ✅ ocupa toda a altura da coluna */
+  min-height: 0;           /* ✅ remove trava de altura */
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column; /* ✅ permite o gráfico crescer */
+}
+
+.meses12-wrap{
+  position: relative;
+  flex: 1 1 auto;          /* ✅ gráfico cresce junto com o card */
+  min-height: 0;
+}
 
     /* =========================================================
        ✅ (NOVO) Cartão da imagem acima do título "Filtros"
@@ -830,7 +835,7 @@
 
         <!-- ✅ (NOVO) Cartão entre o Filtros e o rodapé "Filtros aplicados" -->
         <div class="tile meses12-tile">
-          <h3>Ocorrências (últimos 12 meses)</h3>
+          <h3>VALOR REC. POR MÊS</h3>
           <div class="meses12-wrap">
             <canvas id="chartMeses12"></canvas>
           </div>
