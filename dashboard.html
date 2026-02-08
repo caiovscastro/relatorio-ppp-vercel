@@ -2284,123 +2284,104 @@ function renderMeses12(labels, values, corBarra){
            ✅ (NOVO) Gráfico 12 meses
            - NÃO usa dataInicio/dataFim
            - Usa: lojasSel + abordagemSel + turnosSel + gravSel
+           - Mostra VALOR (R$) por mês (uma vez por ocorrência)
+           - Remove meses sem dados
+           - Cor: só ULT = verde; BIG ou todas = roxo
            ========================================================= */
-function renderMeses12(labels, values, corMeses12){
-  const ctx = document.getElementById("chartMeses12");
-  if (!ctx) return;
+        (function atualizarGrafico12Meses(){
+          const info = getLast12MonthsInfo();
+          const mesesKeys = info.keys;      // YYYY-MM (ordem crescente)
+          const mesesLabels = info.labels;  // ex: fev/26
+          const idxPorMes = new Map(mesesKeys.map((k, i) => [k, i]));
+          const valores = new Array(mesesKeys.length).fill(0);
 
-  if (chartMeses12) chartMeses12.destroy();
+          // ✅ cor: só ULT = verde; BIG ou todas = roxo
+          const COR_PADRAO = "#A98AE8";
+          const COR_ULT = "#43A047";
+          const selArr = Array.from(obterLojasSelecionadas().values());
+          const hasBIG = selArr.some(x => String(x || "").toUpperCase().startsWith("BIG"));
+          const hasULT = selArr.some(x => String(x || "").toUpperCase().startsWith("ULT"));
+          const corMeses12 = (hasULT && !hasBIG) ? COR_ULT : COR_PADRAO;
 
-  // ✅ remove meses sem dados (fica só meses com valor > 0)
-  const dadosFiltrados = (labels || [])
-    .map((lbl, i) => ({
-      label: String(lbl ?? "").trim(),
-      value: Number(values?.[i]) || 0
-    }))
-    .filter(item => item.value > 0);
+          // Base SEM filtro de dataInicio/dataFim, mas com lojas/abordagem/turno
+          const registrosSemData = registros.filter(r => {
+            {
+              const lojaKey = normLoja(r.loja);
+              if (!lojasSel.has(lojaKey)) return false;
+            }
 
-  const labelsFinal = dadosFiltrados.map(i => i.label);
-  const valuesFinal = dadosFiltrados.map(i => i.value);
+            {
+              const tipo = tipoAbordagemNorm(r);
+              if (!abordagemPassaFiltro(tipo, abordagemSel)) return false;
+            }
 
-  // ✅ plugin: escreve o valor (R$) no final da barra (horizontal)
-function renderMeses12(labels, values, corMeses12){
-  const canvas = document.getElementById("chartMeses12");
-  if (!canvas) return;
+            {
+              const min = horaOcorridoParaMinutos(r);
+              if (min === null) return false;
 
-  if (chartMeses12) chartMeses12.destroy();
+              const okManha = turnosSel.MANHA && minutoDentroDeTurno(min, "MANHA");
+              const okTarde = turnosSel.TARDE && minutoDentroDeTurno(min, "TARDE");
+              const okMadr = turnosSel.MADRUGADA && minutoDentroDeTurno(min, "MADRUGADA");
 
-  // ✅ remove meses sem dados (0 / vazio / NaN)
-  const labelsFinal = [];
-  const valuesFinal = [];
-  for (let i = 0; i < (labels || []).length; i++) {
-    const v = Number((values || [])[i]) || 0;
-    if (v > 0) {
-      labelsFinal.push(labels[i]);
-      valuesFinal.push(v);
-    }
-  }
+              if (!(okManha || okTarde || okMadr)) return false;
+            }
 
-  const valueAtEndPluginMeses12 = {
-    id: "valueAtEndPluginMeses12",
-    afterDatasetsDraw(chart) {
-      const ctx = chart.ctx;
-      const meta = chart.getDatasetMeta(0);
-      if (!meta || !meta.data) return;
+            // precisa de data válida pra entrar no mês
+            const iso = dataOcorridoParaISO(r);
+            if (!iso) return false;
 
-      const area = chart.chartArea;
-      if (!area) return;
+            // só considera se cair nos últimos 12 meses (YYYY-MM)
+            const mesKey = iso.slice(0, 7);
+            if (!idxPorMes.has(mesKey)) return false;
 
-      ctx.save();
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.font = "bold 12px Arial";
-      ctx.fillStyle = "#111";
+            return true;
+          });
 
-      meta.data.forEach((bar, i) => {
-        const val = Number(chart.data.datasets[0].data[i]) || 0;
-        if (!(val > 0)) return;
+          // Calcula valor total por ocorrência (para classificar gravidade) SEM filtro de datas
+          const valorPorOccSemData = new Map();
+          const mesPorOcc = new Map(); // guarda o mês (YYYY-MM) da ocorrência
 
-        const texto = formatarBRL(val);
+          for (const r of registrosSemData) {
+            const k = chaveOcorrencia(r);
+            if (!k) continue;
 
-        // ✅ usa chartArea (evita texto fora do canvas)
-        const xRaw = (bar.x ?? area.left) + 8;
-        const x = Math.min(xRaw, area.right - 2);
-        const y = (bar.y ?? area.top);
+            // fixa o mês da ocorrência (1ª vez que aparece)
+            if (!mesPorOcc.has(k)) {
+              const iso = dataOcorridoParaISO(r);
+              if (iso) mesPorOcc.set(k, iso.slice(0, 7));
+            }
 
-        ctx.fillText(texto, x, y);
-      });
+            const qtd = parseNumeroBr(r.quantidade);
+            const vUnit = parseNumeroBr(r.valorUnitario);
+            const totalLinha = qtd * vUnit;
 
-      ctx.restore();
-    }
-  };
-
-  const maxVal = Math.max(0, ...valuesFinal);
-  const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.12) : 1;
-
-  chartMeses12 = new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: labelsFinal,
-      datasets: [{
-        label: "Valor",
-        data: valuesFinal,
-        backgroundColor: corMeses12 || "#A98AE8",
-        clip: false,
-        borderWidth: 0,
-        borderRadius: 8
-      }]
-    },
-    options: {
-      indexAxis: "y", // ✅ horizontal
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: { padding: { right: 80 } }, // ✅ espaço pro "R$"
-      plugins: {
-        legend: { display: false }, // ✅ sem legenda
-        tooltip: {
-          callbacks: {
-            label: (item) => `Valor: ${formatarBRL(item.raw)}`
+            valorPorOccSemData.set(
+              k,
+              (valorPorOccSemData.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
+            );
           }
-        }
-      },
-      scales: {
-        x: {
-          beginAtZero: true,
-          suggestedMax,
-          ticks: { display: false }, // ✅ sem números no eixo
-          grid: { display: false },
-          border: { display: false }
-        },
-        y: {
-          ticks: { autoSkip: false, font: { size: 11 } }, // ✅ mostra só meses com dados
-          grid: { display: false },
-          border: { display: false }
-        }
-      }
-    },
-    plugins: [valueAtEndPluginMeses12]
-  });
-}
+
+          // filtra por gravidade (com base no valor total da ocorrência)
+          const occAprovadasSemData = new Set();
+          for (const [k, vTot] of valorPorOccSemData.entries()) {
+            const classe = classificarGravidade(vTot);
+            if (gravidadePassaFiltro(classe, gravSel)) occAprovadasSemData.add(k);
+          }
+
+          // ✅ soma R$ por mês (uma vez por ocorrência)
+          for (const k of occAprovadasSemData.values()) {
+            const mesKey = mesPorOcc.get(k);
+            if (!mesKey) continue;
+
+            const idx = idxPorMes.get(mesKey);
+            if (idx === undefined) continue;
+
+            valores[idx] += (Number(valorPorOccSemData.get(k)) || 0);
+          }
+
+          renderMeses12(mesesLabels, valores, corMeses12);
+        })();
+
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
           `${setOccFiltrado.size.toLocaleString("pt-BR")} ocorrências`;
@@ -2413,6 +2394,110 @@ function renderMeses12(labels, values, corMeses12){
         document.getElementById("status").textContent = "Erro ao aplicar filtros.";
         document.getElementById("subInfo").textContent = "Erro ao montar.";
       }
+    }
+
+    /* =========================================================
+       ✅ render gráfico 12 meses (horizontal, R$, sem vazios)
+       ========================================================= */
+    function renderMeses12(labels, values, corMeses12){
+      const canvas = document.getElementById("chartMeses12");
+      if (!canvas) return;
+
+      if (chartMeses12) chartMeses12.destroy();
+
+      // ✅ remove meses sem dados (0 / vazio / NaN) mantendo a ordem
+      const labelsFinal = [];
+      const valuesFinal = [];
+      for (let i = 0; i < (labels || []).length; i++) {
+        const v = Number((values || [])[i]) || 0;
+        if (v > 0) {
+          labelsFinal.push(labels[i]);
+          valuesFinal.push(v);
+        }
+      }
+
+      const valueAtEndPluginMeses12 = {
+        id: "valueAtEndPluginMeses12",
+        afterDatasetsDraw(chart) {
+          const ctx = chart.ctx;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data) return;
+
+          const area = chart.chartArea;
+          if (!area) return;
+
+          ctx.save();
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.font = "bold 12px Arial";
+          ctx.fillStyle = "#111";
+
+          meta.data.forEach((bar, i) => {
+            const val = Number(chart.data.datasets[0].data[i]) || 0;
+            if (!(val > 0)) return;
+
+            const texto = formatarBRL(val);
+
+            const xRaw = ((bar.x !== undefined && bar.x !== null) ? bar.x : area.left) + 8;
+            const x = Math.min(xRaw, area.right - 2);
+            const y = ((bar.y !== undefined && bar.y !== null) ? bar.y : area.top);
+
+            ctx.fillText(texto, x, y);
+          });
+
+          ctx.restore();
+        }
+      };
+
+      let maxVal = 0;
+      for (let i = 0; i < valuesFinal.length; i++) {
+        if (valuesFinal[i] > maxVal) maxVal = valuesFinal[i];
+      }
+      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.12) : 1;
+
+      chartMeses12 = new Chart(canvas, {
+        type: "bar",
+        data: {
+          labels: labelsFinal,
+          datasets: [{
+            label: "Valor",
+            data: valuesFinal,
+            backgroundColor: corMeses12 || "#A98AE8",
+            clip: false,
+            borderWidth: 0,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          indexAxis: "y", // ✅ horizontal (como na imagem)
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { right: 80 } }, // espaço pro "R$"
+          plugins: {
+            legend: { display: false }, // ✅ sem legenda
+            tooltip: {
+              callbacks: {
+                label: (item) => `Valor: ${formatarBRL(item.raw)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              suggestedMax,
+              ticks: { display: false }, // ✅ sem rótulos/eixo
+              grid: { display: false },
+              border: { display: false }
+            },
+            y: {
+              ticks: { autoSkip: false, font: { size: 11 } }, // ✅ só meses com dados
+              grid: { display: false },
+              border: { display: false }
+            }
+          }
+        },
+        plugins: [valueAtEndPluginMeses12]
+      });
     }
 
     function renderTopLojas(labels, values) {
