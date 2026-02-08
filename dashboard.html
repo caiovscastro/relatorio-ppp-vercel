@@ -2303,12 +2303,32 @@ function renderMeses12(labels, values, corMeses12){
   const valuesFinal = dadosFiltrados.map(i => i.value);
 
   // ✅ plugin: escreve o valor (R$) no final da barra (horizontal)
+function renderMeses12(labels, values, corMeses12){
+  const canvas = document.getElementById("chartMeses12");
+  if (!canvas) return;
+
+  if (chartMeses12) chartMeses12.destroy();
+
+  // ✅ remove meses sem dados (0 / vazio / NaN)
+  const labelsFinal = [];
+  const valuesFinal = [];
+  for (let i = 0; i < (labels || []).length; i++) {
+    const v = Number((values || [])[i]) || 0;
+    if (v > 0) {
+      labelsFinal.push(labels[i]);
+      valuesFinal.push(v);
+    }
+  }
+
   const valueAtEndPluginMeses12 = {
     id: "valueAtEndPluginMeses12",
     afterDatasetsDraw(chart) {
-      const { ctx } = chart;
+      const ctx = chart.ctx;
       const meta = chart.getDatasetMeta(0);
       if (!meta || !meta.data) return;
+
+      const area = chart.chartArea;
+      if (!area) return;
 
       ctx.save();
       ctx.textAlign = "left";
@@ -2317,23 +2337,27 @@ function renderMeses12(labels, values, corMeses12){
       ctx.fillStyle = "#111";
 
       meta.data.forEach((bar, i) => {
-        const val = chart.data.datasets[0].data[i];
-        if (!(Number(val) > 0)) return;
+        const val = Number(chart.data.datasets[0].data[i]) || 0;
+        if (!(val > 0)) return;
 
         const texto = formatarBRL(val);
-        const xRaw = bar.x + 8;
-        const x = Math.min(xRaw, chart.width - 8);
-        ctx.fillText(texto, x, bar.y);
+
+        // ✅ usa chartArea (evita texto fora do canvas)
+        const xRaw = (bar.x ?? area.left) + 8;
+        const x = Math.min(xRaw, area.right - 2);
+        const y = (bar.y ?? area.top);
+
+        ctx.fillText(texto, x, y);
       });
 
       ctx.restore();
     }
   };
 
-  const maxVal = Math.max(0, ...(valuesFinal || []).map(v => Number(v) || 0));
+  const maxVal = Math.max(0, ...valuesFinal);
   const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.12) : 1;
 
-  chartMeses12 = new Chart(ctx, {
+  chartMeses12 = new Chart(canvas, {
     type: "bar",
     data: {
       labels: labelsFinal,
@@ -2341,14 +2365,16 @@ function renderMeses12(labels, values, corMeses12){
         label: "Valor",
         data: valuesFinal,
         backgroundColor: corMeses12 || "#A98AE8",
-        clip: false
+        clip: false,
+        borderWidth: 0,
+        borderRadius: 8
       }]
     },
     options: {
-      indexAxis: "y", // ✅ barras horizontais (como na imagem)
+      indexAxis: "y", // ✅ horizontal
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { right: 56 } }, // espaço pro texto do valor
+      layout: { padding: { right: 80 } }, // ✅ espaço pro "R$"
       plugins: {
         legend: { display: false }, // ✅ sem legenda
         tooltip: {
@@ -2361,12 +2387,12 @@ function renderMeses12(labels, values, corMeses12){
         x: {
           beginAtZero: true,
           suggestedMax,
-          ticks: { display: false }, // ✅ sem rótulos/eixo
+          ticks: { display: false }, // ✅ sem números no eixo
           grid: { display: false },
           border: { display: false }
         },
         y: {
-          ticks: { autoSkip: false, font: { size: 11 } },
+          ticks: { autoSkip: false, font: { size: 11 } }, // ✅ mostra só meses com dados
           grid: { display: false },
           border: { display: false }
         }
