@@ -106,6 +106,29 @@
     }
 
     /* =========================================================
+       ✅ (NOVO) COLUNA ESQUERDA COM 2 CARTÕES EMPILHADOS
+       ========================================================= */
+    .sidecol{
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* mesmo gap do layout */
+      min-width: 0;
+    }
+
+    /* =========================================================
+       ✅ (NOVO) Cartão do gráfico 12 meses (mesma largura da sidebar)
+       ========================================================= */
+    .meses12-tile{
+      min-height: 420px; /* ocupa bem o espaço marcado no print */
+      padding: 12px 14px;
+    }
+    .meses12-wrap{
+      position: relative;
+      height: 360px;
+      min-width: 0;
+    }
+
+    /* =========================================================
        ✅ (NOVO) Cartão da imagem acima do título "Filtros"
        ========================================================= */
     .side-img-card{
@@ -622,6 +645,10 @@
       .sidebar .dd-panel.dd-lojas{
         width: min(320px, calc(100vw - 40px)); /* ✅ mantém seu 320, mas respeita a tela */
       }
+
+      /* ✅ (NOVO) gráfico 12 meses no mobile ocupa bem e não estoura */
+      .meses12-tile{ min-height: 360px; }
+      .meses12-wrap{ height: 300px; }
     }
 
     /* =========================================================
@@ -667,136 +694,149 @@
 
     <div class="layout">
 
-      <!-- ✅ NOVO: CARTÃO ESQUERDO COM TODOS OS FILTROS -->
-      <div class="tile sidebar">
+      <!-- ✅ (ALTERADO) Coluna esquerda agora tem 2 cartões (Filtros + Gráfico 12 meses) -->
+      <div class="sidecol">
 
-        <!-- ✅ (NOVO) Cartão com imagem acima do título "Filtros" -->
-        <div class="side-img-card">
-          <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Imagem do painel" />
+        <!-- ✅ NOVO: CARTÃO ESQUERDO COM TODOS OS FILTROS -->
+        <div class="tile sidebar">
+
+          <!-- ✅ (NOVO) Cartão com imagem acima do título "Filtros" -->
+          <div class="side-img-card">
+            <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Imagem do painel" />
+          </div>
+
+          <h3>Filtros</h3>
+
+          <div class="side-stack">
+
+            <!-- 1) Atualizar -->
+            <!-- ✅ FIX 2: Atualizar força re-fetch; filtros não fazem fetch -->
+            <button class="btn btn-refresh" onclick="carregar(true)">Atualizar</button>
+
+            <!-- 2) Voltar -->
+            <button class="btn btn-back" onclick="voltar()">Voltar</button>
+
+            <!-- 3) Data inicio -->
+            <input id="dataInicio" class="input-filter input-date" type="date" aria-label="Data início" title="Data início" />
+
+            <!-- 4) Data fim -->
+            <input id="dataFim" class="input-filter input-date" type="date" aria-label="Data fim" title="Data fim" />
+
+            <!-- 5) Lojas -->
+            <div class="dd-wrap" id="lojaWrap">
+              <button type="button" class="btn-dd" id="btnLoja" aria-haspopup="true" aria-expanded="false">
+                Lojas ▾
+              </button>
+              <div class="dd-panel dd-lojas" id="lojaPanel" role="menu" aria-label="Filtro de lojas">
+                <div class="hint">Carregando lojas...</div>
+              </div>
+            </div>
+
+            <!-- 6) Tipo de abordagem (coluna T) -->
+            <div class="dd-wrap" id="abordagemWrap">
+              <button type="button" class="btn-dd" id="btnAbordagem" aria-haspopup="true" aria-expanded="false">
+                Tipo de abordagem ▾
+              </button>
+
+              <div class="dd-panel" id="abordagemPanel" role="menu" aria-label="Filtro de tipo de abordagem">
+                <div class="item">
+                  <input type="checkbox" id="ckReativa" checked />
+                  <label class="lbl" for="ckReativa">Reativa</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckPreventiva" checked />
+                  <label class="lbl" for="ckPreventiva">Preventiva</label>
+                </div>
+
+                <div class="hint"></div>
+              </div>
+            </div>
+
+            <!-- 7) Turnos -->
+            <div class="dd-wrap" id="turnoWrap">
+              <button type="button" class="btn-dd" id="btnTurno" aria-haspopup="true" aria-expanded="false">
+                Turnos ▾
+              </button>
+
+              <div class="dd-panel" id="turnoPanel" role="menu" aria-label="Filtro de turnos">
+                <div class="item">
+                  <input type="checkbox" id="ckManha" checked />
+                  <label class="lbl" for="ckManha">Manhã</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckTarde" checked />
+                  <label class="lbl" for="ckTarde">Tarde</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckMadrugada" checked />
+                  <label class="lbl" for="ckMadrugada">Madrugada</label>
+                </div>
+
+                <div class="hint">
+                  Manhã: 07:00–14:00<br/>
+                  Tarde: 14:01–22:00<br/>
+                  Madrugada: 22:01–06:59
+                </div>
+              </div>
+            </div>
+
+            <!-- 8) Gravidade -->
+            <div class="dd-wrap" id="gravidadeWrap">
+              <button type="button" class="btn-dd" id="btnGravidade" aria-haspopup="true" aria-expanded="false">
+                Gravidade ▾
+              </button>
+
+              <div class="dd-panel" id="gravidadePanel" role="menu" aria-label="Filtro de gravidade">
+                <div class="item">
+                  <input type="checkbox" id="ckLeve" checked />
+                  <label class="lbl" for="ckLeve">Leve</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckMedia" checked />
+                  <label class="lbl" for="ckMedia">Média</label>
+                </div>
+
+                <div class="item">
+                  <input type="checkbox" id="ckGrave" checked />
+                  <label class="lbl" for="ckGrave">Grave</label>
+                </div>
+
+                <div class="hint">
+                  Leve: &lt; 100<br/>
+                  Média: 100–499,99<br/>
+                  Grave: ≥ 500
+                </div>
+              </div>
+            </div>
+
+            <!-- 9) Caixa de valor -->
+            <input
+              id="valorVenda"
+              class="input-filter input-money"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Valor Rotativos (ex: 0,00)"
+              aria-label="Valor para participação"
+              title="Valor Rotativos"
+            />
+          </div>
         </div>
 
-        <h3>Filtros</h3>
-
-        <div class="side-stack">
-
-          <!-- 1) Atualizar -->
-          <!-- ✅ FIX 2: Atualizar força re-fetch; filtros não fazem fetch -->
-          <button class="btn btn-refresh" onclick="carregar(true)">Atualizar</button>
-
-          <!-- 2) Voltar -->
-          <button class="btn btn-back" onclick="voltar()">Voltar</button>
-
-          <!-- 3) Data inicio -->
-          <input id="dataInicio" class="input-filter input-date" type="date" aria-label="Data início" title="Data início" />
-
-          <!-- 4) Data fim -->
-          <input id="dataFim" class="input-filter input-date" type="date" aria-label="Data fim" title="Data fim" />
-
-          <!-- 5) Lojas -->
-          <div class="dd-wrap" id="lojaWrap">
-            <button type="button" class="btn-dd" id="btnLoja" aria-haspopup="true" aria-expanded="false">
-              Lojas ▾
-            </button>
-            <div class="dd-panel dd-lojas" id="lojaPanel" role="menu" aria-label="Filtro de lojas">
-              <div class="hint">Carregando lojas...</div>
-            </div>
+        <!-- ✅ (NOVO) Cartão entre o Filtros e o rodapé "Filtros aplicados" -->
+        <div class="tile meses12-tile">
+          <h3>Ocorrências (últimos 12 meses)</h3>
+          <div class="meses12-wrap">
+            <canvas id="chartMeses12"></canvas>
           </div>
-
-          <!-- 6) Tipo de abordagem (coluna T) -->
-          <div class="dd-wrap" id="abordagemWrap">
-            <button type="button" class="btn-dd" id="btnAbordagem" aria-haspopup="true" aria-expanded="false">
-              Tipo de abordagem ▾
-            </button>
-
-            <div class="dd-panel" id="abordagemPanel" role="menu" aria-label="Filtro de tipo de abordagem">
-              <div class="item">
-                <input type="checkbox" id="ckReativa" checked />
-                <label class="lbl" for="ckReativa">Reativa</label>
-              </div>
-
-              <div class="item">
-                <input type="checkbox" id="ckPreventiva" checked />
-                <label class="lbl" for="ckPreventiva">Preventiva</label>
-              </div>
-
-              <div class="hint"></div>
-            </div>
-          </div>
-
-          <!-- 7) Turnos -->
-          <div class="dd-wrap" id="turnoWrap">
-            <button type="button" class="btn-dd" id="btnTurno" aria-haspopup="true" aria-expanded="false">
-              Turnos ▾
-            </button>
-
-            <div class="dd-panel" id="turnoPanel" role="menu" aria-label="Filtro de turnos">
-              <div class="item">
-                <input type="checkbox" id="ckManha" checked />
-                <label class="lbl" for="ckManha">Manhã</label>
-              </div>
-
-              <div class="item">
-                <input type="checkbox" id="ckTarde" checked />
-                <label class="lbl" for="ckTarde">Tarde</label>
-              </div>
-
-              <div class="item">
-                <input type="checkbox" id="ckMadrugada" checked />
-                <label class="lbl" for="ckMadrugada">Madrugada</label>
-              </div>
-
-              <div class="hint">
-                Manhã: 07:00–14:00<br/>
-                Tarde: 14:01–22:00<br/>
-                Madrugada: 22:01–06:59
-              </div>
-            </div>
-          </div>
-
-          <!-- 8) Gravidade -->
-          <div class="dd-wrap" id="gravidadeWrap">
-            <button type="button" class="btn-dd" id="btnGravidade" aria-haspopup="true" aria-expanded="false">
-              Gravidade ▾
-            </button>
-
-            <div class="dd-panel" id="gravidadePanel" role="menu" aria-label="Filtro de gravidade">
-              <div class="item">
-                <input type="checkbox" id="ckLeve" checked />
-                <label class="lbl" for="ckLeve">Leve</label>
-              </div>
-
-              <div class="item">
-                <input type="checkbox" id="ckMedia" checked />
-                <label class="lbl" for="ckMedia">Média</label>
-              </div>
-
-              <div class="item">
-                <input type="checkbox" id="ckGrave" checked />
-                <label class="lbl" for="ckGrave">Grave</label>
-              </div>
-
-              <div class="hint">
-                Leve: &lt; 100<br/>
-                Média: 100–499,99<br/>
-                Grave: ≥ 500
-              </div>
-            </div>
-          </div>
-
-          <!-- 9) Caixa de valor -->
-          <input
-            id="valorVenda"
-            class="input-filter input-money"
-            type="text"
-            inputmode="decimal"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="Valor Rotativos (ex: 0,00)"
-            aria-label="Valor para participação"
-            title="Valor Rotativos"
-          />
         </div>
-      </div>
+
+      </div><!-- /sidecol -->
 
       <!-- ✅ CONTEÚDO PRINCIPAL -->
       <div class="grid">
@@ -907,6 +947,9 @@
     let chartPctBandeira = null;
     let chartTopProdutos = null;
     let chartGravidade = null;
+
+    /* ✅ (NOVO) gráfico 12 meses */
+    let chartMeses12 = null;
 
     let totalValorOcorrenciasAtual = 0;
 
@@ -1884,6 +1927,101 @@
       }
     }
 
+    /* =========================================================
+       ✅ (NOVO) util: últimos 12 meses (labels e chaves YYYY-MM)
+       ========================================================= */
+    function getLast12MonthsInfo(){
+      const meses = [];
+      const labels = [];
+      const hoje = new Date();
+
+      // mês atual inclusive
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const key = `${yyyy}-${mm}`; // YYYY-MM
+        meses.push(key);
+
+        const nomeMes = d.toLocaleString("pt-BR", { month: "short" }).replace(".", "");
+        const lbl = `${nomeMes}/${String(yyyy).slice(2)}`; // ex: fev/26
+        labels.push(lbl);
+      }
+
+      return { keys: meses, labels };
+    }
+
+    /* =========================================================
+       ✅ (NOVO) render gráfico 12 meses
+       ========================================================= */
+    function renderMeses12(labels, values){
+      const ctx = document.getElementById("chartMeses12");
+      if (!ctx) return;
+
+      if (chartMeses12) chartMeses12.destroy();
+
+      const valueOnTopPlugin = {
+        id: "valueOnTopPluginMeses12",
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data) return;
+
+          ctx.save();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.font = "bold 11px Arial";
+          ctx.fillStyle = "#111";
+
+          meta.data.forEach((bar, i) => {
+            const val = chart.data.datasets[0].data[i];
+            const y = bar.y - 6;
+            ctx.fillText(String(val ?? 0), bar.x, y);
+          });
+
+          ctx.restore();
+        }
+      };
+
+      const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
+      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.25) : 1;
+
+      chartMeses12 = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Ocorrências",
+            data: values,
+            backgroundColor: "#A98AE8"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              border: { display: false },
+              ticks: { maxRotation: 0, minRotation: 0, autoSkip: false, font: { size: 11 } }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax,
+              ticks: { display: false },
+              grid: { display: false },
+              border: { display: false }
+            }
+          }
+        },
+        plugins: [valueOnTopPlugin]
+      });
+    }
+
     function aplicarFiltros() {
       const status = document.getElementById("status");
       const subInfo = document.getElementById("subInfo");
@@ -2125,6 +2263,93 @@
         renderTopLojas(topLabels, topValues);
         renderDept(deptLabels, deptValues, corDeptTopProd);
         renderTopProdutos(prodLabels, prodValues, corDeptTopProd);
+
+        /* =========================================================
+           ✅ (NOVO) Gráfico 12 meses
+           - NÃO usa dataInicio/dataFim
+           - Usa: lojasSel + abordagemSel + turnosSel + gravSel
+           ========================================================= */
+        (function atualizarGrafico12Meses(){
+          const { keys: mesesKeys, labels: mesesLabels } = getLast12MonthsInfo();
+          const idxPorMes = new Map(mesesKeys.map((k, i) => [k, i]));
+          const valores = new Array(mesesKeys.length).fill(0);
+
+          // Base SEM filtro de dataInicio/dataFim, mas com lojas/abordagem/turno
+          const registrosSemData = registros.filter(r => {
+            {
+              const lojaKey = normLoja(r.loja);
+              if (!lojasSel.has(lojaKey)) return false;
+            }
+
+            {
+              const tipo = tipoAbordagemNorm(r);
+              if (!abordagemPassaFiltro(tipo, abordagemSel)) return false;
+            }
+
+            {
+              const min = horaOcorridoParaMinutos(r);
+              if (min === null) return false;
+
+              const okManha = turnosSel.MANHA && minutoDentroDeTurno(min, "MANHA");
+              const okTarde = turnosSel.TARDE && minutoDentroDeTurno(min, "TARDE");
+              const okMadr = turnosSel.MADRUGADA && minutoDentroDeTurno(min, "MADRUGADA");
+
+              if (!(okManha || okTarde || okMadr)) return false;
+            }
+
+            // precisa de data válida pra entrar no mês
+            const iso = dataOcorridoParaISO(r);
+            if (!iso) return false;
+
+            // só considera se cair nos últimos 12 meses (YYYY-MM)
+            const mesKey = iso.slice(0, 7);
+            if (!idxPorMes.has(mesKey)) return false;
+
+            return true;
+          });
+
+          // Calcula valor total por ocorrência (para classificar gravidade) SEM filtro de datas
+          const valorPorOccSemData = new Map();
+          for (const r of registrosSemData) {
+            const k = chaveOcorrencia(r);
+            if (!k) continue;
+
+            const qtd = parseNumeroBr(r.quantidade);
+            const vUnit = parseNumeroBr(r.valorUnitario);
+            const totalLinha = qtd * vUnit;
+
+            valorPorOccSemData.set(
+              k,
+              (valorPorOccSemData.get(k) || 0) + (isNaN(totalLinha) ? 0 : totalLinha)
+            );
+          }
+
+          const occAprovadasSemData = new Set();
+          for (const [k, vTot] of valorPorOccSemData.entries()) {
+            const classe = classificarGravidade(vTot);
+            if (gravidadePassaFiltro(classe, gravSel)) occAprovadasSemData.add(k);
+          }
+
+          // Conta ocorrências únicas por mês
+          const seenOcc = new Set();
+          for (const r of registrosSemData) {
+            const k = chaveOcorrencia(r);
+            if (!k || seenOcc.has(k)) continue;
+            if (!occAprovadasSemData.has(k)) continue;
+
+            const iso = dataOcorridoParaISO(r);
+            if (!iso) continue;
+
+            const mesKey = iso.slice(0, 7);
+            const idx = idxPorMes.get(mesKey);
+            if (idx === undefined) continue;
+
+            seenOcc.add(k);
+            valores[idx] += 1;
+          }
+
+          renderMeses12(mesesLabels, valores);
+        })();
 
         subInfo.textContent =
           `${registrosFiltrados.length.toLocaleString("pt-BR")} registros | ` +
