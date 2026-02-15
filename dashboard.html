@@ -2531,21 +2531,26 @@
             clip: false
           }]
         },
-options: {
-y: {
-  ticks: {
-    autoSkip: false,
-    padding: 6,
-    callback: function(value){
-      const label = this.getLabelForValue(value);
-      return ellipsisEnd(label, maxLen);
-    }
+scales: {
+  x: {
+    beginAtZero: true,
+    ticks: { display: false },
+    grid: { display: false },
+    border: { display: false }
   },
-  grid: { display: false },
-  border: { display: false }
-             }
-          }
-        },
+  y: {
+    ticks: {
+      autoSkip: false,
+      padding: 6,
+      callback: function(value){
+        const label = this.getLabelForValue(value);
+        return ellipsisEnd(label, maxLen);
+      }
+    },
+    grid: { display: false },
+    border: { display: false }
+  }
+}
         plugins: [barShadowPlugin, valueAtEndPlugin]
       });
     }
