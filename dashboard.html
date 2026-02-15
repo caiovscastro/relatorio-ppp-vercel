@@ -1138,12 +1138,12 @@
         if (!ctx) return;
 
         ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,0.22)";
-        ctx.shadowBlur = 10;
+        ctx.shadowColor = "rgba(0,0,0,0.4)";
+        ctx.shadowBlur = 22;
 
         // ✅ pedido: colunas -> sombra p/ direita; barras -> sombra p/ baixo
-        ctx.shadowOffsetX = isHorizontal ? 0 : 6;
-        ctx.shadowOffsetY = isHorizontal ? 6 : 0;
+        ctx.shadowOffsetX = isHorizontal ? 0 : 10;
+        ctx.shadowOffsetY = isHorizontal ? 10 : 0;
       },
       afterDatasetsDraw(chart){
         const ctx = chart.ctx;
