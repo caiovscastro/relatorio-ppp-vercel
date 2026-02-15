@@ -2564,38 +2564,57 @@ options: {
     },
 
 y: {
-ticks: {
-  autoSkip: false,
-  padding: 6,
+  ticks: {
+    autoSkip: false,
+    padding: 6,
+    align: "start",
+    crossAlign: "near",
 
-  // ✅ força começar pela 1ª letra (não “come” o início)
-  align: "start",
-  crossAlign: "near",
+    // corta no FINAL (nunca no início)
+    callback: function(value){
+      const label = this.getLabelForValue(value);
 
-  callback: function(value){
-    const label = this.getLabelForValue(value);
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const maxLen = isMobile ? 18 : 16; // menor => eixo mais estreito
 
-    const isMobile = window.matchMedia("(max-width: 640px)").matches;
-    const maxLen = isMobile ? 18 : 22;
+      const text = String(label ?? "").trim();
+      if (!text) return "N/I";
+      if (text.length <= maxLen) return text;
+      return text.slice(0, maxLen - 1) + "…";
+    }
+  },
 
-    const text = String(label ?? "").trim();
-    if (!text) return "N/I";
-    if (text.length <= maxLen) return text;
-
-    // ✅ corta só no final
-    return text.slice(0, maxLen - 1) + "…";
-  }
-},
-
+  // ✅ chave: eixo "minimamente suficiente" (design limpo + sem cortar 1ª letra)
   afterFit: (scale) => {
+    const chart = scale.chart;
+    const ctx = chart.ctx;
+
     const isMobile = window.matchMedia("(max-width: 640px)").matches;
-    const minW = isMobile ? 120 : 120; // largura menor p/ permitir corte
-    scale.width = Math.max(scale.width, minW);
+    const maxLen = isMobile ? 18 : 16;
+
+    ctx.save();
+    ctx.font = "12px Arial"; // mantenha coerente com o visual do tick
+    const labels = (chart.data.labels || []).slice(0, 12); // seu gráfico usa até 12
+
+    let maxW = 0;
+    for (const raw of labels) {
+      let t = String(raw ?? "").trim();
+      if (!t) t = "N/I";
+      if (t.length > maxLen) t = t.slice(0, maxLen - 1) + "…";
+      maxW = Math.max(maxW, ctx.measureText(t).width);
+    }
+    ctx.restore();
+
+    const paddingPx = 14;                 // respiro mínimo
+    const minW = isMobile ? 95 : 105;     // mínimo “bonito”
+    const maxWCap = isMobile ? 150 : 170; // trava pra não “roubar” espaço das barras
+
+    // largura final: o menor possível, mas suficiente pra não clipar o início
+    scale.width = Math.min(maxWCap, Math.max(minW, Math.ceil(maxW + paddingPx)));
   },
 
   grid: { display: false },
   border: { display: false }
-     }
    }
   },
         plugins: [barShadowPlugin, valueAtEndPlugin]
