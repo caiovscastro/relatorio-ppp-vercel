@@ -2543,7 +2543,7 @@ options: {
   indexAxis: "y",
   responsive: true,
   maintainAspectRatio: false,
-  layout: { padding: { left: 10, right: 46 } },
+  layout: { padding: { left: 18, right: 46 } },
 
   plugins: {
     legend: { display: false },
@@ -2571,7 +2571,7 @@ y: {
       const label = this.getLabelForValue(value);
 
       const isMobile = window.matchMedia("(max-width: 640px)").matches;
-      const maxLen = isMobile ? 18 : 16; // ajuste fino aqui se quiser
+      const maxLen = isMobile ? 18 : 22; // ajuste fino aqui se quiser
 
       const text = String(label ?? "").trim();
       if (!text) return "N/I";
