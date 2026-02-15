@@ -2561,7 +2561,7 @@ options: {
       // ✅ ADICIONE SÓ ISSO (não remove nada do que já existe)
       afterFit: (scale) => {
         const isMobile = window.matchMedia("(max-width: 640px)").matches;
-        const minW = isMobile ? 140 : 120; // ajuste fino se precisar
+        const minW = isMobile ? 140 : 125; // ajuste fino se precisar
         scale.width = Math.max(scale.width, minW);
       },
 
