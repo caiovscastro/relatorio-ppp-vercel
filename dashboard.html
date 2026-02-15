@@ -2812,7 +2812,17 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: true, position: "bottom" },
+legend: {
+  display: true,
+  position: "bottom",
+  align: "center",
+  labels: {
+    boxWidth: 14,
+    boxHeight: 10,
+    padding: 10,
+    font: { size: 12 }
+  }
+},
             tooltip: {
               callbacks: {
                 label: (ctx) => {
