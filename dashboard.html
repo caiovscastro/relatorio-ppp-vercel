@@ -2564,14 +2564,31 @@ options: {
     },
 
     y: {
-      ticks: {
-        autoSkip: false,
-        padding: 6,
-        callback: function(value){
-          const label = this.getLabelForValue(value);
-          return ellipsisEnd(label, maxLen);
-        }
-      },
+ticks: {
+  autoSkip: false,
+  padding: 6,
+  callback: function(value){
+    const label = this.getLabelForValue(value);
+    const ctx = this.chart.ctx;
+
+    ctx.save();
+    ctx.font = "bold 12px Arial"; // mesma fonte usada no gráfico
+
+    const maxWidth = this.width - 10; // largura real disponível
+    let text = String(label || "").trim();
+
+    while (ctx.measureText(text).width > maxWidth && text.length > 1) {
+      text = text.slice(0, -1);
+    }
+
+    if (text !== label) {
+      text = text.slice(0, -1) + "…";
+    }
+
+    ctx.restore();
+    return text;
+  }
+},
 
       afterFit: (scale) => {
         const isMobile = window.matchMedia("(max-width: 640px)").matches;
