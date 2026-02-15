@@ -835,7 +835,7 @@
 
         <!-- ✅ (ALTERADO) SWAP: aqui agora é "Ocorrências por departamento" -->
         <div class="tile meses12-tile">
-          <h3>Ocorrências por departamento</h3>
+          <h3>OCORRÊNCIAS POR DPTO</h3>
           <div class="meses12-wrap">
             <canvas id="chartDept"></canvas>
           </div>
@@ -911,7 +911,7 @@
 
           <!-- ✅ (ALTERADO) SWAP: aqui agora é "VALOR REC. POR MÊS" e em colunas -->
           <div class="tile">
-            <h3>VALOR REC. POR MÊS</h3>
+            <h3>VALOR RECUPERADO POR MÊS</h3>
             <div class="canvas-wrap" style="height: 260px;">
               <canvas id="chartMeses12"></canvas>
             </div>
@@ -962,24 +962,6 @@
     let REGISTROS_CACHE = null;
     let CACHE_OK = false;
     let CACHE_ATUALIZADO_EM = null;
-
-    // ✅ REQ #1 e #5: padronizar fonte dos gráficos e “negrito leve” nas legendas
-    const CHART_FONT_FAMILY = "Arial";
-    const CHART_FONT_SIZE = 12;       // mesmo patamar do Top 5 lojas
-    const CHART_FONT_WEIGHT_LIGHTBOLD = 600;
-
-    // ✅ REQ #1: diminuir degradê (menos variação)
-    const GRAD_ALPHA_MAX = 1.0;
-    const GRAD_ALPHA_MIN = 0.72;
-
-    // ✅ aplica defaults globais do Chart.js (mínimo, sem quebrar)
-    Chart.defaults.font.family = CHART_FONT_FAMILY;
-    Chart.defaults.font.size = CHART_FONT_SIZE;
-    Chart.defaults.plugins.legend.labels.font = {
-      family: CHART_FONT_FAMILY,
-      size: CHART_FONT_SIZE,
-      weight: CHART_FONT_WEIGHT_LIGHTBOLD
-    };
 
     const LOJAS_LISTA = [
       { bandeira:"BIG", label:"BIG 01 - 106 NORTE" },
@@ -1086,8 +1068,7 @@
     }
 
     /* =========================================================
-       ✅ HELPERS: degradê por barra (agora mais suave)
-       + sombra (colunas: direita / barras: baixo)
+       ✅ (ALTERADO) HELPERS: degradê por barra (mais leve)
        ========================================================= */
     function hexToRgb(hex){
       const h = String(hex || "").trim().replace("#","");
@@ -1108,19 +1089,19 @@
       return `rgba(${r},${g},${b},${alpha})`;
     }
 
-    function buildGradientAlphaColors(baseHex, n, aMax = GRAD_ALPHA_MAX, aMin = GRAD_ALPHA_MIN){
+    function buildGradientAlphaColors(baseHex, n, aMax = 1.0, aMin = 0.75){
       const len = Math.max(1, Number(n) || 1);
       if (len === 1) return [rgbaFromHex(baseHex, aMax)];
       const out = [];
       for (let i = 0; i < len; i++){
         const t = i / (len - 1);
-        const a = aMax + (aMin - aMax) * t;
+        const a = aMax + (aMin - aMax) * t; // 1 -> 0.75 (degradê menor)
         out.push(rgbaFromHex(baseHex, a));
       }
       return out;
     }
 
-    function buildGradientAlphaColorsPerBar(baseHexArr, aMax = GRAD_ALPHA_MAX, aMin = GRAD_ALPHA_MIN){
+    function buildGradientAlphaColorsPerBar(baseHexArr, aMax = 1.0, aMin = 0.75){
       const n = (baseHexArr || []).length;
       if (n === 0) return [];
       if (n === 1) return [rgbaFromHex(baseHexArr[0], aMax)];
@@ -1156,7 +1137,7 @@
     };
 
     /* =========================================================
-       ✅ datas padrão ao iniciar
+       ✅ NOVO (REQ 1): datas padrão ao iniciar
        ========================================================= */
     function setDatasPadraoInicioMesHoje(){
       const elIni = document.getElementById("dataInicio");
@@ -1176,7 +1157,7 @@
     }
 
     /* =========================================================
-       ✅ trava de seleção para perfil BASE_PPP
+       ✅ NOVO (REQ 2): trava de seleção para perfil BASE_PPP
        ========================================================= */
     function isPerfilBasePPP(){
       const s = obterSessaoAtual();
@@ -1732,15 +1713,11 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // ✅ REQ #2: arredondar (sem casas decimais) no dashboard
+    /* ✅ (ALTERADO) sem casas decimais no dashboard */
     function formatarBRL(n) {
       const v = Number(n) || 0;
-      return v.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      });
+      const r = Math.round(v);
+      return r.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
     }
 
     function dataOcorridoParaISO(r) {
@@ -1872,7 +1849,6 @@
       return neg ? -Math.abs(n) : n;
     }
 
-    // ✅ REQ #2: percentual sem casas decimais
     function atualizarParticipacao() {
       const el = document.getElementById("pctParticipacao");
       const inp = document.getElementById("valorVenda");
@@ -1884,12 +1860,12 @@
       let pct = 0;
       if (venda !== 0) pct = (base * 100) / venda;
 
-      const pctStr = String(Math.round(Number.isFinite(pct) ? pct : 0));
-      el.textContent = `Recup. x Rotativos: ${pctStr}%`;
+      const pctInt = Math.round(Number.isFinite(pct) ? pct : 0);
+      el.textContent = `Recup. x Rotativos: ${pctInt}%`;
     }
 
     /* =========================================================
-       ✅ Progresso 0–100% (mantido)
+       ✅ (NOVO) Progresso 0–100% (5 em 5)
        ========================================================= */
     let __envioTimer = null;
     let __envioPct = 0;
@@ -2353,10 +2329,7 @@
     }
 
     /* =========================================================
-       ✅ VALOR REC. POR MÊS (colunas)
-       - rótulo usa formatarBRL (agora sem decimais)
-       - fonte padronizada
-       - degradê mais suave
+       ✅ VALOR RECUPERADO POR MÊS (colunas) + rótulo 12px + sem decimais
        ========================================================= */
     function renderMeses12(labels, values, corMeses12){
       const canvas = document.getElementById("chartMeses12");
@@ -2384,7 +2357,7 @@
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
-          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
+          ctx.font = "bold 12px Arial"; /* ✅ mesmo do Top 5 */
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
@@ -2397,7 +2370,7 @@
         }
       };
 
-      const bg = buildGradientAlphaColors(corMeses12 || "#A98AE8", valuesFinal.length);
+      const bg = buildGradientAlphaColors(corMeses12 || "#A98AE8", valuesFinal.length, 1.0, 0.75);
 
       let maxVal = 0;
       for (let i = 0; i < valuesFinal.length; i++) if (valuesFinal[i] > maxVal) maxVal = valuesFinal[i];
@@ -2433,14 +2406,6 @@
       });
     }
 
-    // ✅ truncar no final (não no começo)
-    function truncarFinal(txt, maxLen){
-      const s = String(txt || "");
-      if (!s) return "";
-      const m = Math.max(4, Number(maxLen) || 0);
-      return s.length > m ? (s.slice(0, m - 1) + "…") : s;
-    }
-
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
       if (chartTopLojas) chartTopLojas.destroy();
@@ -2455,12 +2420,12 @@
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
-          ctx.font = `bold ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`; // mantém referência do Top 5
+          ctx.font = "bold 12px Arial";
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
-            const val = chart.data.datasets[0].data[i];
-            ctx.fillText(String(Math.round(Number(val) || 0)), bar.x, bar.y - 6);
+            const val = Number(chart.data.datasets[0].data[i]) || 0;
+            ctx.fillText(String(Math.round(val)), bar.x, bar.y - 6); /* ✅ arredondado */
           });
 
           ctx.restore();
@@ -2477,21 +2442,18 @@
         return "#777777";
       });
 
-      const bgColors = buildGradientAlphaColorsPerBar(baseHex);
+      const bgColors = buildGradientAlphaColorsPerBar(baseHex, 1.0, 0.75);
 
       const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
       const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
 
       chartTopLojas = new Chart(ctx, {
         type: "bar",
-        data: { labels, datasets: [{ label: "Ocorrências", data: values.map(v => Math.round(Number(v) || 0)), backgroundColor: bgColors }] },
+        data: { labels, datasets: [{ label: "Ocorrências", data: values, backgroundColor: bgColors }] },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
-          },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } } },
           scales: {
             x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
             y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
@@ -2501,10 +2463,18 @@
       });
     }
 
-    // ✅ REQ #4: dept sem cortar início; truncar final; puxar gráfico “pra frente”
     function renderDept(labels, values, corBarra) {
       const ctx = document.getElementById("chartDept");
       if (chartDept) chartDept.destroy();
+
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const maxChars = isMobile ? 18 : 26;
+
+      const labelsAdj = (labels || []).map((t) => {
+        const s = String(t || "").trim();
+        if (!s) return "N/I";
+        return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s; /* ✅ corta o final */
+      });
 
       const valueAtEndPlugin = {
         id: "valueAtEndPlugin",
@@ -2516,32 +2486,29 @@
           ctx.save();
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
-          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
+          ctx.font = "bold 12px Arial"; /* ✅ mesmo do Top 5 */
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
-            const val = Math.round(Number(chart.data.datasets[0].data[i]) || 0);
+            const val = Number(chart.data.datasets[0].data[i]) || 0;
             const xRaw = bar.x + 8;
             const x = Math.min(xRaw, chart.width - 8);
-            ctx.fillText(String(val), x, bar.y);
+            ctx.fillText(String(Math.round(val)), x, bar.y); /* ✅ arredondado */
           });
 
           ctx.restore();
         }
       };
 
-      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
-
-      const isMobile = window.matchMedia("(max-width: 640px)").matches;
-      const maxChars = isMobile ? 16 : 22; // truncar no final
+      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.75);
 
       chartDept = new Chart(ctx, {
         type: "bar",
         data: {
-          labels: (labels || []).map(l => truncarFinal(l, maxChars)),
+          labels: labelsAdj,
           datasets: [{
             label: "Ocorrências por departamento",
-            data: (values || []).map(v => Math.round(Number(v) || 0)),
+            data: values,
             backgroundColor: bg,
             clip: false
           }]
@@ -2550,28 +2517,20 @@
           indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
-
-          // ✅ empurra área útil para a direita (não “come” começo do texto)
-          layout: { padding: { left: 18, right: 46 } },
-
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
-          },
+          layout: { padding: { right: 46 } },
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } } },
           scales: {
             x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
             y: {
               ticks: {
                 autoSkip: false,
-                padding: 8,
+                padding: 6,
                 align: "start",
-                crossAlign: "near",
-                font: { size: CHART_FONT_SIZE, weight: CHART_FONT_WEIGHT_LIGHTBOLD }
+                crossAlign: "near"
               },
-              // ✅ garante uma largura mínima do eixo Y para não cortar o início
               afterFit: (scale) => {
-                const minW = isMobile ? 150 : 190;
-                const maxW = isMobile ? 210 : 260;
+                const minW = isMobile ? 150 : 200;
+                const maxW = isMobile ? 200 : 280;
                 scale.width = Math.max(minW, Math.min(scale.width, maxW));
               },
               grid: { display: false },
@@ -2602,7 +2561,7 @@
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
+          ctx.font = "bold 12px Arial"; /* ✅ padronizado */
           ctx.fillStyle = "#111";
 
           meta.data.forEach((arc, i) => {
@@ -2612,8 +2571,9 @@
             if (!(val > 0)) return;
 
             const pct = (val * 100 / totalVis);
+            const pctInt = Math.round(pct); /* ✅ sem decimais */
             const pos = arc.tooltipPosition();
-            ctx.fillText(`${Math.round(pct)}%`, pos.x, pos.y); // ✅ REQ #2: sem decimais
+            ctx.fillText(`${pctInt}%`, pos.x, pos.y);
           });
 
           ctx.restore();
@@ -2625,7 +2585,7 @@
         data: {
           labels: ["BIG", "ULT"],
           datasets: [{
-            data: [Math.round(Number(qtdBIG) || 0), Math.round(Number(qtdULT) || 0)],
+            data: [qtdBIG || 0, qtdULT || 0],
             backgroundColor: ["#A98AE8", "#43A047"]
           }]
         },
@@ -2637,7 +2597,7 @@
             legend: {
               display: true,
               position: "bottom",
-              labels: { font: { size: CHART_FONT_SIZE, weight: CHART_FONT_WEIGHT_LIGHTBOLD } }
+              labels: { font: { weight: 600 } } /* ✅ negrito leve */
             },
             tooltip: {
               callbacks: {
@@ -2683,21 +2643,21 @@
           ctx.save();
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
-          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
+          ctx.font = "bold 12px Arial";
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
-            const val = Math.round(Number(chart.data.datasets[0].data[i]) || 0);
+            const val = Number(chart.data.datasets[0].data[i]) || 0;
             const xRaw = bar.x + 8;
             const x = Math.min(xRaw, chart.width - 8);
-            ctx.fillText(String(val), x, bar.y);
+            ctx.fillText(String(Math.round(val)), x, bar.y); /* ✅ arredondado */
           });
 
           ctx.restore();
         }
       };
 
-      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
+      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.75);
 
       chartTopProdutos = new Chart(ctx, {
         type: "bar",
@@ -2705,7 +2665,7 @@
           labels: labelsAdj,
           datasets: [{
             label: "Registros",
-            data: (values || []).map(v => Math.round(Number(v) || 0)),
+            data: values,
             backgroundColor: bg,
             clip: false
           }]
@@ -2724,7 +2684,7 @@
             y: {
               ticks: {
                 autoSkip: false,
-                font: { size: CHART_FONT_SIZE, weight: CHART_FONT_WEIGHT_LIGHTBOLD },
+                font: { size: isMobile ? 10 : 11 },
                 padding: 6,
                 align: "start",
                 crossAlign: "near"
@@ -2767,7 +2727,7 @@
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
+          ctx.font = "bold 12px Arial";
           ctx.fillStyle = "#fff";
 
           const area = chart.chartArea || { top: 0, bottom: chart.height, left: 0, right: chart.width };
@@ -2782,6 +2742,7 @@
             if (!(val > 0)) return;
 
             const pct = (val * 100 / totalVis);
+            const pctInt = Math.round(pct); /* ✅ sem decimais */
 
             const startA = Number(arc.startAngle || 0);
             const endA = Number(arc.endAngle || 0);
@@ -2802,7 +2763,7 @@
               i,
               x,
               y,
-              text: `${Math.round(pct)}%` // ✅ REQ #2: sem decimais
+              text: `${pctInt}%`
             });
           });
 
@@ -2829,7 +2790,7 @@
         data: {
           labels: ["Leve", "Média", "Grave"],
           datasets: [{
-            data: [Math.round(Number(qtdLeve) || 0), Math.round(Number(qtdMedia) || 0), Math.round(Number(qtdGrave) || 0)],
+            data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
             backgroundColor: ["#1E88E5", "#6A5ACD", "#FF2DA1"],
             borderWidth: 0
           }]
@@ -2841,7 +2802,7 @@
             legend: {
               display: true,
               position: "bottom",
-              labels: { font: { size: CHART_FONT_SIZE, weight: CHART_FONT_WEIGHT_LIGHTBOLD } }
+              labels: { font: { weight: 600 } } /* ✅ negrito leve */
             },
             tooltip: {
               callbacks: {
