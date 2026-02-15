@@ -2515,34 +2515,46 @@
           borderWidth: 0
         }]
       },
-      options: {
-        indexAxis: "y",
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { right: 46 } },
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
-        },
-        scales: {
-          x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
-          y: {
-            ticks: {
-              autoSkip: false,
-              padding: 6,
-              align: "start",
-              crossAlign: "near"
-            },
-            afterFit: (scale) => {
-              const minW = isMobile ? 150 : 200;
-              const maxW = isMobile ? 220 : 300;
-              scale.width = Math.max(minW, Math.min(scale.width, maxW));
-            },
-            grid: { display: false },
-            border: { display: false }
-          }
-        }
+options: {
+  indexAxis: "y",
+  responsive: true,
+  maintainAspectRatio: false,
+
+  // ✅ dá mais espaço útil para as barras no desktop
+  layout: { padding: { left: 8, right: 56 } },
+
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}`
+      }
+    }
+  },
+
+  scales: {
+    x: {
+      beginAtZero: true,
+      // ✅ evita barras “achatadas” no desktop
+      suggestedMax: Math.max(1, ...(values || []).map(v => Number(v) || 0)) * 1.2,
+      ticks: { display: false },
+      grid: { display: false },
+      border: { display: false }
+    },
+    y: {
+      ticks: {
+        autoSkip: false,
+        padding: 8
       },
+      // ✅ fixa largura suficiente do eixo Y no desktop
+      afterFit: (scale) => {
+        scale.width = isMobile ? 160 : 220;
+      },
+      grid: { display: false },
+      border: { display: false }
+    }
+  }
+},
       plugins: [barShadowPlugin, valueAtEndPlugin]
     });
   }
