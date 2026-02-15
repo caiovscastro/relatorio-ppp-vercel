@@ -2526,6 +2526,8 @@
         return t.slice(0, Math.max(1, max - 1)) + "…";
       };
 
+const maxVal = Math.max(1, ...(values || []).map(v => Number(v) || 0));
+      
       chartDept = new Chart(ctx, {
         type: "bar",
         data: {
@@ -2542,12 +2544,25 @@ options: {
   responsive: true,
   maintainAspectRatio: false,
   layout: { padding: { left: 10, right: 46 } },
+
   plugins: {
     legend: { display: false },
-    tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
+    tooltip: {
+      callbacks: {
+        label: (item) => `Ocorrências: ${item.raw}`
+      }
+    }
   },
+
   scales: {
-    x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+    x: {
+      beginAtZero: true,
+      max: maxVal, // ← faz a barra ocupar 100% da largura
+      ticks: { display: false },
+      grid: { display: false },
+      border: { display: false }
+    },
+
     y: {
       ticks: {
         autoSkip: false,
@@ -2558,10 +2573,9 @@ options: {
         }
       },
 
-      // ✅ ADICIONE SÓ ISSO (não remove nada do que já existe)
       afterFit: (scale) => {
         const isMobile = window.matchMedia("(max-width: 640px)").matches;
-        const minW = isMobile ? 140 : 125; // ajuste fino se precisar
+        const minW = isMobile ? 140 : 125;
         scale.width = Math.max(scale.width, minW);
       },
 
