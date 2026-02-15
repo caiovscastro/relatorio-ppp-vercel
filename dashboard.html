@@ -57,7 +57,7 @@
        ========================================================= */
     .layout{
       display: grid;
-      grid-template-columns: 310px minmax(0, 1fr); /* ✅ evita overflow no conteúdo */
+      grid-template-columns: 300px minmax(0, 1fr); /* ✅ evita overflow no conteúdo */
       gap: 12px;
       align-items: start;
       min-width: 0;
@@ -2561,7 +2561,7 @@ options: {
       // ✅ ADICIONE SÓ ISSO (não remove nada do que já existe)
       afterFit: (scale) => {
         const isMobile = window.matchMedia("(max-width: 640px)").matches;
-        const minW = isMobile ? 140 : 170; // ajuste fino se precisar
+        const minW = isMobile ? 140 : 140; // ajuste fino se precisar
         scale.width = Math.max(scale.width, minW);
       },
 
