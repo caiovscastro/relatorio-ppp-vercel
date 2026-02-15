@@ -2537,31 +2537,39 @@
             clip: false
           }]
         },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { left: 10, right: 46 } },
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
-          },
-          scales: {
-            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
-            y: {
-              ticks: {
-                autoSkip: false,
-                padding: 6,
-                callback: function(value){
-                  const label = this.getLabelForValue(value);
-                  return ellipsisEnd(label, maxLen);
-                }
-              },
-              grid: { display: false },
-              border: { display: false }
-            }
-          }
-        },
+options: {
+  indexAxis: "y",
+  responsive: true,
+  maintainAspectRatio: false,
+  layout: { padding: { left: 10, right: 46 } },
+  plugins: {
+    legend: { display: false },
+    tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
+  },
+  scales: {
+    x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+    y: {
+      ticks: {
+        autoSkip: false,
+        padding: 6,
+        callback: function(value){
+          const label = this.getLabelForValue(value);
+          return ellipsisEnd(label, maxLen);
+        }
+      },
+
+      // ✅ ADICIONE SÓ ISSO (não remove nada do que já existe)
+      afterFit: (scale) => {
+        const isMobile = window.matchMedia("(max-width: 640px)").matches;
+        const minW = isMobile ? 140 : 190; // ajuste fino se precisar
+        scale.width = Math.max(scale.width, minW);
+      },
+
+      grid: { display: false },
+      border: { display: false }
+    }
+  }
+},
         plugins: [barShadowPlugin, valueAtEndPlugin]
       });
     }
