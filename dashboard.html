@@ -2327,516 +2327,514 @@
         document.getElementById("subInfo").textContent = "Erro ao montar.";
       }
     }
+  /* =========================================================
+     ✅ VALOR RECUPERADO POR MÊS (colunas) + rótulo 12px + sem decimais
+     ========================================================= */
+  function renderMeses12(labels, values, corMeses12){
+    const canvas = document.getElementById("chartMeses12");
+    if (!canvas) return;
 
-    /* =========================================================
-       ✅ VALOR RECUPERADO POR MÊS (colunas) + rótulo 12px + sem decimais
-       ========================================================= */
-    function renderMeses12(labels, values, corMeses12){
-      const canvas = document.getElementById("chartMeses12");
-      if (!canvas) return;
+    if (chartMeses12) chartMeses12.destroy();
 
-      if (chartMeses12) chartMeses12.destroy();
-
-      const labelsFinal = [];
-      const valuesFinal = [];
-      for (let i = 0; i < (labels || []).length; i++) {
-        const v = Number((values || [])[i]) || 0;
-        if (v > 0) {
-          labelsFinal.push(labels[i]);
-          valuesFinal.push(v);
-        }
+    const labelsFinal = [];
+    const valuesFinal = [];
+    for (let i = 0; i < (labels || []).length; i++) {
+      const v = Number((values || [])[i]) || 0;
+      if (v > 0) {
+        labelsFinal.push(labels[i]);
+        valuesFinal.push(v);
       }
-
-      const valueOnTopPluginMeses12 = {
-        id: "valueOnTopPluginMeses12",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
-
-          ctx.save();
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
-          ctx.font = "bold 12px Arial"; /* ✅ mesmo do Top 5 */
-          ctx.fillStyle = "#111";
-
-          meta.data.forEach((bar, i) => {
-            const val = Number(chart.data.datasets[0].data[i]) || 0;
-            if (!(val > 0)) return;
-            ctx.fillText(formatarBRL(val), bar.x, bar.y - 6);
-          });
-
-          ctx.restore();
-        }
-      };
-
-      const bg = buildGradientAlphaColors(corMeses12 || "#A98AE8", valuesFinal.length, 1.0, 0.75);
-
-      let maxVal = 0;
-      for (let i = 0; i < valuesFinal.length; i++) if (valuesFinal[i] > maxVal) maxVal = valuesFinal[i];
-      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.18) : 1;
-
-      chartMeses12 = new Chart(canvas, {
-        type: "bar",
-        data: {
-          labels: labelsFinal,
-          datasets: [{
-            label: "Valor",
-            data: valuesFinal,
-            backgroundColor: bg,
-            clip: false,
-            borderWidth: 0,
-            borderRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { top: 18 } },
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Valor: ${formatarBRL(item.raw)}` } }
-          },
-          scales: {
-            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
-            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
-          }
-        },
-        plugins: [barShadowPlugin, valueOnTopPluginMeses12]
-      });
     }
 
-    function renderTopLojas(labels, values) {
-      const ctx = document.getElementById("chartTopLojas");
-      if (chartTopLojas) chartTopLojas.destroy();
+    const valueOnTopPluginMeses12 = {
+      id: "valueOnTopPluginMeses12",
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
 
-      const valueOnTopPlugin = {
-        id: "valueOnTopPlugin",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.font = "bold 12px Arial"; /* ✅ mesmo do Top 5 */
+        ctx.fillStyle = "#111";
 
-          ctx.save();
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
-          ctx.font = "bold 12px Arial";
-          ctx.fillStyle = "#111";
+        meta.data.forEach((bar, i) => {
+          const val = Number(chart.data.datasets[0].data[i]) || 0;
+          if (!(val > 0)) return;
+          ctx.fillText(formatarBRL(val), bar.x, bar.y - 6);
+        });
 
-          meta.data.forEach((bar, i) => {
-            const val = Number(chart.data.datasets[0].data[i]) || 0;
-            ctx.fillText(String(Math.round(val)), bar.x, bar.y - 6); /* ✅ arredondado */
-          });
+        ctx.restore();
+      }
+    };
 
-          ctx.restore();
-        }
-      };
+    const bg = buildGradientAlphaColors(corMeses12 || "#A98AE8", valuesFinal.length, 1.0, 0.75);
 
-      const corBIG = "#6A1B9A";
-      const corULT = "#43A047";
+    let maxVal = 0;
+    for (let i = 0; i < valuesFinal.length; i++) if (valuesFinal[i] > maxVal) maxVal = valuesFinal[i];
+    const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.18) : 1;
 
-      const baseHex = labels.map((lbl) => {
-        const s = String(lbl || "").toUpperCase().trim();
-        if (s.startsWith("BIG")) return corBIG;
-        if (s.startsWith("ULT")) return corULT;
-        return "#777777";
-      });
-
-      const bgColors = buildGradientAlphaColorsPerBar(baseHex, 1.0, 0.75);
-
-      const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
-      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
-
-      chartTopLojas = new Chart(ctx, {
-        type: "bar",
-        data: { labels, datasets: [{ label: "Ocorrências", data: values, backgroundColor: bgColors }] },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } } },
-          scales: {
-            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
-            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
-          }
-        },
-        plugins: [barShadowPlugin, valueOnTopPlugin]
-      });
-    }
-
-    function renderDept(labels, values, corBarra) {
-      const ctx = document.getElementById("chartDept");
-      if (chartDept) chartDept.destroy();
-
-      const isMobile = window.matchMedia("(max-width: 640px)").matches;
-      const maxChars = isMobile ? 18 : 26;
-
-      const labelsAdj = (labels || []).map((t) => {
-        const s = String(t || "").trim();
-        if (!s) return "N/I";
-        return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s; /* ✅ corta o final */
-      });
-
-      const valueAtEndPlugin = {
-        id: "valueAtEndPlugin",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
-
-          ctx.save();
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial"; /* ✅ mesmo do Top 5 */
-          ctx.fillStyle = "#111";
-
-          meta.data.forEach((bar, i) => {
-            const val = Number(chart.data.datasets[0].data[i]) || 0;
-            const xRaw = bar.x + 8;
-            const x = Math.min(xRaw, chart.width - 8);
-            ctx.fillText(String(Math.round(val)), x, bar.y); /* ✅ arredondado */
-          });
-
-          ctx.restore();
-        }
-      };
-
-      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.75);
-
-      chartDept = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: labelsAdj,
-          datasets: [{
-            label: "Ocorrências por departamento",
-            data: values,
-            backgroundColor: bg,
-            clip: false
-          }]
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { right: 46 } },
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } } },
-          scales: {
-            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
-            y: {
-              ticks: {
-                autoSkip: false,
-                padding: 6,
-                align: "start",
-                crossAlign: "near"
-              },
-              afterFit: (scale) => {
-                const minW = isMobile ? 150 : 200;
-                const maxW = isMobile ? 200 : 280;
-                scale.width = Math.max(minW, Math.min(scale.width, maxW));
-              },
-              grid: { display: false },
-              border: { display: false }
-            }
-          }
-        },
-        plugins: [barShadowPlugin, valueAtEndPlugin]
-      });
-    }
-
-    function renderPctBandeira(qtdBIG, qtdULT) {
-      const ctx = document.getElementById("chartPctBandeira");
-      if (chartPctBandeira) chartPctBandeira.destroy();
-
-      const pctLabelPlugin = {
-        id: "pctLabelPlugin",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
-
-          const vis = [ chart.getDataVisibility(0), chart.getDataVisibility(1) ];
-          const dataArr = chart.data.datasets[0].data || [];
-          const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
-          if (!(totalVis > 0)) return;
-
-          ctx.save();
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial"; /* ✅ padronizado */
-          ctx.fillStyle = "#111";
-
-          meta.data.forEach((arc, i) => {
-            if (!vis[i]) return;
-
-            const val = Number(dataArr[i] || 0);
-            if (!(val > 0)) return;
-
-            const pct = (val * 100 / totalVis);
-            const pctInt = Math.round(pct); /* ✅ sem decimais */
-            const pos = arc.tooltipPosition();
-            ctx.fillText(`${pctInt}%`, pos.x, pos.y);
-          });
-
-          ctx.restore();
-        }
-      };
-
-      chartPctBandeira = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: ["BIG", "ULT"],
-          datasets: [{
-            data: [qtdBIG || 0, qtdULT || 0],
-            backgroundColor: ["#A98AE8", "#43A047"]
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: "62%",
-          plugins: {
-            legend: {
-              display: true,
-              position: "bottom",
-              labels: { font: { weight: 600 } } /* ✅ negrito leve */
-            },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const v = Number(ctx.raw || 0);
-
-                  const chart = ctx.chart;
-                  const vis = [ chart.getDataVisibility(0), chart.getDataVisibility(1) ];
-                  const dataArr = chart.data.datasets[0].data || [];
-                  const totalVis = dataArr.reduce((acc, x, i) => acc + (vis[i] ? (Number(x) || 0) : 0), 0);
-
-                  const pct = totalVis > 0 ? (v * 100 / totalVis) : 0;
-                  return `${ctx.label}: ${Math.round(v)} (${Math.round(pct)}%)`;
-                }
-              }
-            }
-          }
-        },
-        plugins: [pctLabelPlugin]
-      });
-    }
-
-    function renderTopProdutos(labels, values, corBarra) {
-      const ctx = document.getElementById("chartTopProdutos");
-      if (chartTopProdutos) chartTopProdutos.destroy();
-
-      const isMobile = window.matchMedia("(max-width: 640px)").matches;
-
-      const maxChars = isMobile ? 18 : 30;
-      const labelsAdj = (labels || []).map((t) => {
-        const s = String(t || "").trim();
-        if (!s) return "N/I";
-        return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s;
-      });
-
-      const valueOutsidePlugin = {
-        id: "valueOutsidePluginProdutos",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
-
-          ctx.save();
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial";
-          ctx.fillStyle = "#111";
-
-          meta.data.forEach((bar, i) => {
-            const val = Number(chart.data.datasets[0].data[i]) || 0;
-            const xRaw = bar.x + 8;
-            const x = Math.min(xRaw, chart.width - 8);
-            ctx.fillText(String(Math.round(val)), x, bar.y); /* ✅ arredondado */
-          });
-
-          ctx.restore();
-        }
-      };
-
-// ✅ deixa as barras mais “sólidas” (menos transparente) + garante escala boa
-const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.88);
-
-const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
-const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
-
-chartDept = new Chart(ctx, {
-  type: "bar",
-  data: {
-    labels: labelsAdj,
-    datasets: [{
-      label: "Ocorrências por departamento",
-      data: values,
-      backgroundColor: bg,
-      borderWidth: 0,
-      clip: false
-    }]
-  },
-  options: {
-    indexAxis: "y",
-    responsive: true,
-    maintainAspectRatio: false,
-    layout: { padding: { right: 46 } },
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-        suggestedMax,            // ✅ evita barra “micro”
-        ticks: { display: false },
-        grid: { display: false },
-        border: { display: false }
+    chartMeses12 = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: labelsFinal,
+        datasets: [{
+          label: "Valor",
+          data: valuesFinal,
+          backgroundColor: bg,
+          clip: false,
+          borderWidth: 0,
+          borderRadius: 8
+        }]
       },
-      y: {
-        ticks: {
-          autoSkip: false,
-          padding: 6,
-          align: "start",
-          crossAlign: "near"
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 18 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (item) => `Valor: ${formatarBRL(item.raw)}` } }
         },
-        afterFit: (scale) => {
-          const minW = isMobile ? 150 : 200;
-          const maxW = isMobile ? 200 : 280;
-          scale.width = Math.max(minW, Math.min(scale.width, maxW));
-        },
-        grid: { display: false },
-        border: { display: false }
-      }
-    }
-  },
-  plugins: [barShadowPlugin, valueAtEndPlugin]
-});
-    }
-
-    function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
-      const ctx = document.getElementById("chartGravidade");
-      if (chartGravidade) chartGravidade.destroy();
-
-      const pctLabelPlugin = {
-        id: "pctLabelPluginGravidade",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
-
-          const vis = [
-            chart.getDataVisibility(0),
-            chart.getDataVisibility(1),
-            chart.getDataVisibility(2)
-          ];
-
-          const dataArr = chart.data.datasets[0].data || [];
-          const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
-          if (!(totalVis > 0)) return;
-
-          ctx.save();
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial";
-          ctx.fillStyle = "#fff";
-
-          const area = chart.chartArea || { top: 0, bottom: chart.height, left: 0, right: chart.width };
-          const minGap = 14;
-
-          const labelsPos = [];
-
-          meta.data.forEach((arc, i) => {
-            if (!vis[i]) return;
-
-            const val = Number(dataArr[i] || 0);
-            if (!(val > 0)) return;
-
-            const pct = (val * 100 / totalVis);
-            const pctInt = Math.round(pct); /* ✅ sem decimais */
-
-            const startA = Number(arc.startAngle || 0);
-            const endA = Number(arc.endAngle || 0);
-            const midA = (startA + endA) / 2;
-            const span = Math.abs(endA - startA);
-
-            const isSmall = (span < 0.35) || (pct < 6);
-
-            const outer = Number(arc.outerRadius || 0);
-            const r = outer * (isSmall ? 0.92 : 0.62);
-
-            let x = (Number(arc.x || 0) + Math.cos(midA) * r);
-            let y = (Number(arc.y || 0) + Math.sin(midA) * r);
-
-            y += isSmall ? -12 : 6;
-
-            labelsPos.push({
-              i,
-              x,
-              y,
-              text: `${pctInt}%`
-            });
-          });
-
-          labelsPos.sort((a, b) => a.y - b.y);
-
-          for (let k = 1; k < labelsPos.length; k++) {
-            if ((labelsPos[k].y - labelsPos[k - 1].y) < minGap) {
-              labelsPos[k].y = labelsPos[k - 1].y + minGap;
-            }
-          }
-
-          labelsPos.forEach((p) => {
-            const xClamped = Math.max(area.left + 10, Math.min(p.x, area.right - 10));
-            const yClamped = Math.max(area.top + 10, Math.min(p.y, area.bottom - 10));
-            ctx.fillText(p.text, xClamped, yClamped);
-          });
-
-          ctx.restore();
+        scales: {
+          x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
+          y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
         }
-      };
+      },
+      plugins: [barShadowPlugin, valueOnTopPluginMeses12]
+    });
+  }
 
-      chartGravidade = new Chart(ctx, {
-        type: "pie",
-        data: {
-          labels: ["Leve", "Média", "Grave"],
-          datasets: [{
-            data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
-            backgroundColor: ["#1E88E5", "#6A5ACD", "#FF2DA1"],
-            borderWidth: 0
-          }]
+  function renderTopLojas(labels, values) {
+    const ctx = document.getElementById("chartTopLojas");
+    if (!ctx) return;
+    if (chartTopLojas) chartTopLojas.destroy();
+
+    const valueOnTopPlugin = {
+      id: "valueOnTopPlugin",
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.font = "bold 12px Arial";
+        ctx.fillStyle = "#111";
+
+        meta.data.forEach((bar, i) => {
+          const val = Number(chart.data.datasets[0].data[i]) || 0;
+          ctx.fillText(String(Math.round(val)), bar.x, bar.y - 6); /* ✅ arredondado */
+        });
+
+        ctx.restore();
+      }
+    };
+
+    const corBIG = "#6A1B9A";
+    const corULT = "#43A047";
+
+    const baseHex = labels.map((lbl) => {
+      const s = String(lbl || "").toUpperCase().trim();
+      if (s.startsWith("BIG")) return corBIG;
+      if (s.startsWith("ULT")) return corULT;
+      return "#777777";
+    });
+
+    const bgColors = buildGradientAlphaColorsPerBar(baseHex, 1.0, 0.75);
+
+    const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
+    const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
+
+    chartTopLojas = new Chart(ctx, {
+      type: "bar",
+      data: { labels, datasets: [{ label: "Ocorrências", data: values, backgroundColor: bgColors }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } } },
+        scales: {
+          x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
+          y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
+        }
+      },
+      plugins: [barShadowPlugin, valueOnTopPlugin]
+    });
+  }
+
+  function renderDept(labels, values, corBarra) {
+    const ctx = document.getElementById("chartDept");
+    if (!ctx) return;
+    if (chartDept) chartDept.destroy();
+
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    const maxChars = isMobile ? 18 : 26;
+
+    const labelsAdj = (labels || []).map((t) => {
+      const s = String(t || "").trim();
+      if (!s) return "N/I";
+      return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s; /* ✅ corta o final */
+    });
+
+    const valueAtEndPlugin = {
+      id: "valueAtEndPlugin",
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold 12px Arial"; /* ✅ mesmo do Top 5 */
+        ctx.fillStyle = "#111";
+
+        meta.data.forEach((bar, i) => {
+          const val = Number(chart.data.datasets[0].data[i]) || 0;
+          const xRaw = bar.x + 8;
+          const x = Math.min(xRaw, chart.width - 8);
+          ctx.fillText(String(Math.round(val)), x, bar.y); /* ✅ arredondado */
+        });
+
+        ctx.restore();
+      }
+    };
+
+    const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.75);
+
+    chartDept = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labelsAdj,
+        datasets: [{
+          label: "Ocorrências por departamento",
+          data: values,
+          backgroundColor: bg,
+          clip: false,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { right: 46 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: true,
-              position: "bottom",
-              labels: { font: { weight: 600 } } /* ✅ negrito leve */
+        scales: {
+          x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+          y: {
+            ticks: {
+              autoSkip: false,
+              padding: 6,
+              align: "start",
+              crossAlign: "near"
             },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const chart = ctx.chart;
-                  const dataArr = chart.data.datasets[0].data || [];
-                  const vis = [
-                    chart.getDataVisibility(0),
-                    chart.getDataVisibility(1),
-                    chart.getDataVisibility(2)
-                  ];
-                  const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
+            afterFit: (scale) => {
+              const minW = isMobile ? 150 : 200;
+              const maxW = isMobile ? 220 : 300;
+              scale.width = Math.max(minW, Math.min(scale.width, maxW));
+            },
+            grid: { display: false },
+            border: { display: false }
+          }
+        }
+      },
+      plugins: [barShadowPlugin, valueAtEndPlugin]
+    });
+  }
 
-                  const v = Number(ctx.raw || 0);
-                  const pct = totalVis > 0 ? (v * 100 / totalVis) : 0;
-                  return `${ctx.label}: ${Math.round(v)} (${Math.round(pct)}%)`;
-                }
+  function renderPctBandeira(qtdBIG, qtdULT) {
+    const ctx = document.getElementById("chartPctBandeira");
+    if (!ctx) return;
+    if (chartPctBandeira) chartPctBandeira.destroy();
+
+    const pctLabelPlugin = {
+      id: "pctLabelPlugin",
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+
+        const vis = [ chart.getDataVisibility(0), chart.getDataVisibility(1) ];
+        const dataArr = chart.data.datasets[0].data || [];
+        const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
+        if (!(totalVis > 0)) return;
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold 12px Arial"; /* ✅ padronizado */
+        ctx.fillStyle = "#111";
+
+        meta.data.forEach((arc, i) => {
+          if (!vis[i]) return;
+
+          const val = Number(dataArr[i] || 0);
+          if (!(val > 0)) return;
+
+          const pct = (val * 100 / totalVis);
+          const pctInt = Math.round(pct); /* ✅ sem decimais */
+          const pos = arc.tooltipPosition();
+          ctx.fillText(`${pctInt}%`, pos.x, pos.y);
+        });
+
+        ctx.restore();
+      }
+    };
+
+    chartPctBandeira = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["BIG", "ULT"],
+        datasets: [{
+          data: [qtdBIG || 0, qtdULT || 0],
+          backgroundColor: ["#A98AE8", "#43A047"]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "62%",
+        plugins: {
+          legend: {
+            display: true,
+            position: "bottom",
+            labels: { font: { weight: 600 } } /* ✅ negrito leve */
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const v = Number(ctx.raw || 0);
+
+                const chart = ctx.chart;
+                const vis = [ chart.getDataVisibility(0), chart.getDataVisibility(1) ];
+                const dataArr = chart.data.datasets[0].data || [];
+                const totalVis = dataArr.reduce((acc, x, i) => acc + (vis[i] ? (Number(x) || 0) : 0), 0);
+
+                const pct = totalVis > 0 ? (v * 100 / totalVis) : 0;
+                return `${ctx.label}: ${Math.round(v)} (${Math.round(pct)}%)`;
               }
             }
           }
+        }
+      },
+      plugins: [pctLabelPlugin]
+    });
+  }
+
+  function renderTopProdutos(labels, values, corBarra) {
+    const ctx = document.getElementById("chartTopProdutos");
+    if (!ctx) return;
+    if (chartTopProdutos) chartTopProdutos.destroy();
+
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+
+    const maxChars = isMobile ? 18 : 30;
+    const labelsAdj = (labels || []).map((t) => {
+      const s = String(t || "").trim();
+      if (!s) return "N/I";
+      return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s;
+    });
+
+    const valueOutsidePlugin = {
+      id: "valueOutsidePluginProdutos",
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold 12px Arial";
+        ctx.fillStyle = "#111";
+
+        meta.data.forEach((bar, i) => {
+          const val = Number(chart.data.datasets[0].data[i]) || 0;
+          const xRaw = bar.x + 8;
+          const x = Math.min(xRaw, chart.width - 8);
+          ctx.fillText(String(Math.round(val)), x, bar.y); /* ✅ arredondado */
+        });
+
+        ctx.restore();
+      }
+    };
+
+    const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.75);
+
+    chartTopProdutos = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labelsAdj,
+        datasets: [{
+          label: "Registros",
+          data: values,
+          backgroundColor: bg,
+          clip: false
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { left: 16, right: 46 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (item) => `Registros: ${Math.round(Number(item.raw) || 0)}` } }
         },
-        plugins: [pctLabelPlugin]
-      });
-    }
-  </script>
+        scales: {
+          x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+          y: {
+            ticks: {
+              autoSkip: false,
+              font: { size: isMobile ? 10 : 11 },
+              padding: 6,
+              align: "start",
+              crossAlign: "near"
+            },
+            afterFit: (scale) => {
+              const minW = isMobile ? 140 : 170;
+              const maxW = isMobile ? 180 : 240;
+              scale.width = Math.max(minW, Math.min(scale.width, maxW));
+            },
+            grid: { display: false },
+            border: { display: false }
+          }
+        }
+      },
+      plugins: [barShadowPlugin, valueOutsidePlugin]
+    });
+  }
+
+  function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
+    const ctx = document.getElementById("chartGravidade");
+    if (!ctx) return;
+    if (chartGravidade) chartGravidade.destroy();
+
+    const pctLabelPlugin = {
+      id: "pctLabelPluginGravidade",
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+
+        const vis = [
+          chart.getDataVisibility(0),
+          chart.getDataVisibility(1),
+          chart.getDataVisibility(2)
+        ];
+
+        const dataArr = chart.data.datasets[0].data || [];
+        const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
+        if (!(totalVis > 0)) return;
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold 12px Arial";
+        ctx.fillStyle = "#fff";
+
+        const area = chart.chartArea || { top: 0, bottom: chart.height, left: 0, right: chart.width };
+        const minGap = 14;
+
+        const labelsPos = [];
+
+        meta.data.forEach((arc, i) => {
+          if (!vis[i]) return;
+
+          const val = Number(dataArr[i] || 0);
+          if (!(val > 0)) return;
+
+          const pct = (val * 100 / totalVis);
+          const pctInt = Math.round(pct); /* ✅ sem decimais */
+
+          const startA = Number(arc.startAngle || 0);
+          const endA = Number(arc.endAngle || 0);
+          const midA = (startA + endA) / 2;
+          const span = Math.abs(endA - startA);
+
+          const isSmall = (span < 0.35) || (pct < 6);
+
+          const outer = Number(arc.outerRadius || 0);
+          const r = outer * (isSmall ? 0.92 : 0.62);
+
+          let x = (Number(arc.x || 0) + Math.cos(midA) * r);
+          let y = (Number(arc.y || 0) + Math.sin(midA) * r);
+
+          y += isSmall ? -12 : 6;
+
+          labelsPos.push({
+            i,
+            x,
+            y,
+            text: `${pctInt}%`
+          });
+        });
+
+        labelsPos.sort((a, b) => a.y - b.y);
+
+        for (let k = 1; k < labelsPos.length; k++) {
+          if ((labelsPos[k].y - labelsPos[k - 1].y) < minGap) {
+            labelsPos[k].y = labelsPos[k - 1].y + minGap;
+          }
+        }
+
+        labelsPos.forEach((p) => {
+          const xClamped = Math.max(area.left + 10, Math.min(p.x, area.right - 10));
+          const yClamped = Math.max(area.top + 10, Math.min(p.y, area.bottom - 10));
+          ctx.fillText(p.text, xClamped, yClamped);
+        });
+
+        ctx.restore();
+      }
+    };
+
+    chartGravidade = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: ["Leve", "Média", "Grave"],
+        datasets: [{
+          data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
+          backgroundColor: ["#1E88E5", "#6A5ACD", "#FF2DA1"],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: "bottom",
+            labels: { font: { weight: 600 } } /* ✅ negrito leve */
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const chart = ctx.chart;
+                const dataArr = chart.data.datasets[0].data || [];
+                const vis = [
+                  chart.getDataVisibility(0),
+                  chart.getDataVisibility(1),
+                  chart.getDataVisibility(2)
+                ];
+                const totalVis = dataArr.reduce((acc, v, i) => acc + (vis[i] ? (Number(v) || 0) : 0), 0);
+
+                const v = Number(ctx.raw || 0);
+                const pct = totalVis > 0 ? (v * 100 / totalVis) : 0;
+                return `${ctx.label}: ${Math.round(v)} (${Math.round(pct)}%)`;
+              }
+            }
+          }
+        }
+      },
+      plugins: [pctLabelPlugin]
+    });
+  }
+</script>
 </body>
 </html>
