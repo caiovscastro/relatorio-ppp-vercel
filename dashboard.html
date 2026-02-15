@@ -2582,7 +2582,7 @@ y: {
 
   afterFit: (scale) => {
     const isMobile = window.matchMedia("(max-width: 640px)").matches;
-    const minW = isMobile ? 120 : 95; // largura menor p/ permitir corte
+    const minW = isMobile ? 120 : 120; // largura menor p/ permitir corte
     scale.width = Math.max(scale.width, minW);
   },
 
