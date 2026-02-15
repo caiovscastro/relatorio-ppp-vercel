@@ -157,19 +157,24 @@
     }
 
     /* =========================================================
-       Grid base
+       Grid base (✅ AJUSTE: agora 2 colunas no desktop)
        ========================================================= */
     .grid{
       display: grid;
-
-      /* ✅ AJUSTE 2: 1ª coluna mais larga (Ocorrências) para caber as 3 legendas lado a lado */
-      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr);
-
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* ✅ 2 colunas */
       gap: 12px;
       min-width: 0;
     }
 
-    /* Topo ocupando as 3 colunas do grid */
+    /* ✅ bloco do topo direito: 2 cards lado a lado */
+    .top-right{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+      min-width: 0;
+    }
+
+    /* Topo ocupando as colunas do grid */
     .topbar{
       grid-column: 1 / -1;
       display: flex;
@@ -557,9 +562,11 @@
 
     /* ====== Responsivo ====== */
     @media (max-width: 980px){
+      /* mantém comportamento existente no seu projeto */
       .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .row2{ grid-template-columns: minmax(0,1fr); }
       .layout{ grid-template-columns: minmax(0,1fr); }
+      .top-right{ grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
     }
 
     /* =========================================================
@@ -595,6 +602,7 @@
       }
 
       .grid{ grid-template-columns: 1fr; }
+      .top-right{ grid-template-columns: 1fr; } /* ✅ no mobile empilha */
       .big-number .n{ font-size: 82px; }
       .canvas-wrap{ height: 240px; }
       .bandeira-num{ font-size: 40px; }
@@ -854,7 +862,7 @@
           </div>
         </div>
 
-        <!-- 1) Ocorrências + Pizza Gravidade -->
+        <!-- 1) Ocorrências + Pizza Gravidade (✅ coluna esquerda, mesma largura do Top5) -->
         <div class="tile">
           <h3>Ocorrências</h3>
 
@@ -871,34 +879,39 @@
           </div>
         </div>
 
-        <!-- 2) Ocorrências por bandeira -->
-        <div class="tile bandeira-tile">
-          <h3>Ocorrências por bandeira</h3>
+        <!-- ✅ (NOVO) Coluna direita do topo: Bandeira + Percentual lado a lado -->
+        <div class="top-right">
 
-          <div class="bandeira-split" aria-label="Ocorrências por bandeira (BIG e ULT)">
-            <div class="bandeira-col">
-              <div class="bandeira-num" id="bandeiraBIG">0</div>
-              <div class="bandeira-valor" id="valorBIG">R$ 0</div>
-              <img class="bandeira-logo" src="https://i.ibb.co/Kz5DZ8nP/1001316505.png" alt="Big Box" />
-            </div>
+          <!-- 2) Ocorrências por bandeira -->
+          <div class="tile bandeira-tile">
+            <h3>Ocorrências por bandeira</h3>
 
-            <div class="bandeira-divider" aria-hidden="true"></div>
+            <div class="bandeira-split" aria-label="Ocorrências por bandeira (BIG e ULT)">
+              <div class="bandeira-col">
+                <div class="bandeira-num" id="bandeiraBIG">0</div>
+                <div class="bandeira-valor" id="valorBIG">R$ 0</div>
+                <img class="bandeira-logo" src="https://i.ibb.co/Kz5DZ8nP/1001316505.png" alt="Big Box" />
+              </div>
 
-            <div class="bandeira-col">
-              <div class="bandeira-num" id="bandeiraULT">0</div>
-              <div class="bandeira-valor" id="valorULT">R$ 0</div>
-              <img class="bandeira-logo" src="https://i.ibb.co/RTb7sqbz/1001317603.png" alt="Ultrabox" />
+              <div class="bandeira-divider" aria-hidden="true"></div>
+
+              <div class="bandeira-col">
+                <div class="bandeira-num" id="bandeiraULT">0</div>
+                <div class="bandeira-valor" id="valorULT">R$ 0</div>
+                <img class="bandeira-logo" src="https://i.ibb.co/RTb7sqbz/1001317603.png" alt="Ultrabox" />
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- 3) Percentual por bandeira -->
-        <div class="tile">
-          <h3>Percentual por bandeira</h3>
-          <div class="canvas-wrap" style="height: 210px;">
-            <canvas id="chartPctBandeira"></canvas>
+          <!-- 3) Percentual por bandeira -->
+          <div class="tile">
+            <h3>Percentual por bandeira</h3>
+            <div class="canvas-wrap" style="height: 210px;">
+              <canvas id="chartPctBandeira"></canvas>
+            </div>
           </div>
-        </div>
+
+        </div><!-- /top-right -->
 
         <!-- LINHA DE BAIXO -->
         <div class="row2">
@@ -2339,10 +2352,6 @@
 
     /* =========================================================
        ✅ VALOR REC. POR MÊS (colunas)
-       - REQ 1: degradê suave
-       - REQ 2: rótulo sem decimais (formatarBRL já resolve)
-       - REQ 4: sem cantos arredondados
-       - REQ 5: padding top igual ao Top5
        ========================================================= */
     function renderMeses12(labels, values, corMeses12){
       const canvas = document.getElementById("chartMeses12");
@@ -2399,13 +2408,13 @@
             backgroundColor: bg,
             clip: false,
             borderWidth: 0,
-            borderRadius: 0  /* ✅ REQ 4 */
+            borderRadius: 0
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { top: 18 } }, /* ✅ REQ 5: igual Top5 */
+          layout: { padding: { top: 18 } },
           plugins: {
             legend: { display: false },
             tooltip: { callbacks: { label: (item) => `Valor: ${formatarBRL(item.raw)}` } }
@@ -2455,7 +2464,6 @@
         return "#777777";
       });
 
-      // ✅ REQ 1: degradê suave
       const bgColors = buildGradientAlphaColorsPerBar(baseHex);
 
       const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
@@ -2467,7 +2475,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { top: 18 } }, /* ✅ REQ 5: igual Meses */
+          layout: { padding: { top: 18 } },
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
           scales: {
             x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
@@ -2506,13 +2514,11 @@
         }
       };
 
-      // ✅ REQ 1: degradê suave
       const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
 
       const isMobile = window.matchMedia("(max-width: 640px)").matches;
       const maxLen = isMobile ? 18 : 26;
 
-      // ✅ REQ 3: cortar no FINAL com "…" (sem cortar no início)
       const ellipsisEnd = (s, max) => {
         const t = String(s ?? "").trim();
         if (!t) return "N/I";
@@ -2531,42 +2537,31 @@
             clip: false
           }]
         },
-options: {
-  indexAxis: "y",
-  responsive: true,
-  maintainAspectRatio: false,
-  layout: { padding: { left: 10, right: 46 } },
-
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      callbacks: {
-        label: (item) => `Ocorrências: ${item.raw}`
-      }
-    }
-  },
-
-  scales: {   // 👈 AQUI dentro de options
-    x: {
-      beginAtZero: true,
-      ticks: { display: false },
-      grid: { display: false },
-      border: { display: false }
-    },
-    y: {
-      ticks: {
-        autoSkip: false,
-        padding: 6,
-        callback: function(value){
-          const label = this.getLabelForValue(value);
-          return ellipsisEnd(label, maxLen);
-        }
-      },
-      grid: { display: false },
-      border: { display: false }
-    }
-  }
-},
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { left: 10, right: 46 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
+          },
+          scales: {
+            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
+            y: {
+              ticks: {
+                autoSkip: false,
+                padding: 6,
+                callback: function(value){
+                  const label = this.getLabelForValue(value);
+                  return ellipsisEnd(label, maxLen);
+                }
+              },
+              grid: { display: false },
+              border: { display: false }
+            }
+          }
+        },
         plugins: [barShadowPlugin, valueAtEndPlugin]
       });
     }
@@ -2601,8 +2596,6 @@ options: {
 
             const pct = (val * 100 / totalVis);
             const pos = arc.tooltipPosition();
-
-            // ✅ REQ 2: sem casas decimais
             ctx.fillText(`${pct.toFixed(0)}%`, pos.x, pos.y);
           });
 
@@ -2636,7 +2629,7 @@ options: {
                   const totalVis = dataArr.reduce((acc, x, i) => acc + (vis[i] ? (Number(x) || 0) : 0), 0);
 
                   const pct = totalVis > 0 ? (Number(v) * 100 / totalVis) : 0;
-                  return `${ctx.label}: ${v} (${pct.toFixed(0)}%)`; // ✅ REQ 2
+                  return `${ctx.label}: ${v} (${pct.toFixed(0)}%)`;
                 }
               }
             }
@@ -2683,7 +2676,6 @@ options: {
         }
       };
 
-      // ✅ REQ 1: degradê suave
       const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
 
       chartTopProdutos = new Chart(ctx, {
@@ -2785,7 +2777,6 @@ options: {
 
             y += isSmall ? -12 : 6;
 
-            // ✅ REQ 2: sem casas decimais
             labelsPos.push({ i, x, y, text: `${pct.toFixed(0)}%` });
           });
 
@@ -2836,7 +2827,7 @@ options: {
 
                   const v = Number(ctx.raw || 0);
                   const pct = totalVis > 0 ? (v * 100 / totalVis) : 0;
-                  return `${ctx.label}: ${v} (${pct.toFixed(0)}%)`; // ✅ REQ 2
+                  return `${ctx.label}: ${v} (${pct.toFixed(0)}%)`;
                 }
               }
             }
