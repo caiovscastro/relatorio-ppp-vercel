@@ -2657,50 +2657,60 @@
         }
       };
 
-      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.75);
+// ✅ deixa as barras mais “sólidas” (menos transparente) + garante escala boa
+const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.88);
 
-      chartTopProdutos = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: labelsAdj,
-          datasets: [{
-            label: "Registros",
-            data: values,
-            backgroundColor: bg,
-            clip: false
-          }]
+const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
+const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
+
+chartDept = new Chart(ctx, {
+  type: "bar",
+  data: {
+    labels: labelsAdj,
+    datasets: [{
+      label: "Ocorrências por departamento",
+      data: values,
+      backgroundColor: bg,
+      borderWidth: 0,
+      clip: false
+    }]
+  },
+  options: {
+    indexAxis: "y",
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { right: 46 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        suggestedMax,            // ✅ evita barra “micro”
+        ticks: { display: false },
+        grid: { display: false },
+        border: { display: false }
+      },
+      y: {
+        ticks: {
+          autoSkip: false,
+          padding: 6,
+          align: "start",
+          crossAlign: "near"
         },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { left: 16, right: 46 } },
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Registros: ${Math.round(Number(item.raw) || 0)}` } }
-          },
-          scales: {
-            x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
-            y: {
-              ticks: {
-                autoSkip: false,
-                font: { size: isMobile ? 10 : 11 },
-                padding: 6,
-                align: "start",
-                crossAlign: "near"
-              },
-              afterFit: (scale) => {
-                const minW = isMobile ? 140 : 170;
-                const maxW = isMobile ? 180 : 240;
-                scale.width = Math.max(minW, Math.min(scale.width, maxW));
-              },
-              grid: { display: false },
-              border: { display: false }
-            }
-          }
+        afterFit: (scale) => {
+          const minW = isMobile ? 150 : 200;
+          const maxW = isMobile ? 200 : 280;
+          scale.width = Math.max(minW, Math.min(scale.width, maxW));
         },
-        plugins: [barShadowPlugin, valueOutsidePlugin]
-      });
+        grid: { display: false },
+        border: { display: false }
+      }
+    }
+  },
+  plugins: [barShadowPlugin, valueAtEndPlugin]
+});
     }
 
     function renderGravidade(qtdLeve, qtdMedia, qtdGrave) {
