@@ -2604,9 +2604,9 @@ options: {
           }
           ctx.restore();
 
-          const paddingPx = 10;
-          const minW = isMobile ? 85 : 90;
-          const maxWCap = isMobile ? 130 : 140;
+          const paddingPx = 8;
+          const minW = isMobile ? 95 : 100;
+          const maxWCap = isMobile ? 140 : 150;
 
           scale.width = Math.min(maxWCap, Math.max(minW, Math.ceil(maxW + paddingPx)));
         }catch(e){}
