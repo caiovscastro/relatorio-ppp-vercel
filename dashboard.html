@@ -2563,44 +2563,32 @@ options: {
       border: { display: false }
     },
 
-    y: {
-ticks: {
-  autoSkip: false,
-  padding: 6,
-  callback: function(value){
-    const label = this.getLabelForValue(value);
-    const ctx = this.chart.ctx;
+y: {
+  ticks: {
+    autoSkip: false,
+    padding: 6,
+    callback: function(value){
+      const label = this.getLabelForValue(value);
 
-    ctx.save();
-    ctx.font = "bold 12px Arial"; // mesma fonte usada no gráfico
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const maxLen = isMobile ? 18 : 16; // ajuste fino aqui se quiser
 
-    const maxWidth = this.width - 10; // largura real disponível
-    let text = String(label || "").trim();
-
-    while (ctx.measureText(text).width > maxWidth && text.length > 1) {
-      text = text.slice(0, -1);
+      const text = String(label ?? "").trim();
+      if (!text) return "N/I";
+      if (text.length <= maxLen) return text;
+      return text.slice(0, maxLen - 1) + "…";
     }
+  },
 
-    if (text !== label) {
-      text = text.slice(0, -1) + "…";
-    }
+  afterFit: (scale) => {
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    const minW = isMobile ? 120 : 95; // largura menor p/ permitir corte
+    scale.width = Math.max(scale.width, minW);
+  },
 
-    ctx.restore();
-    return text;
-  }
-},
-
-      afterFit: (scale) => {
-        const isMobile = window.matchMedia("(max-width: 640px)").matches;
-        const minW = isMobile ? 140 : 125;
-        scale.width = Math.max(scale.width, minW);
-      },
-
-      grid: { display: false },
-      border: { display: false }
-    }
-  }
-},
+  grid: { display: false },
+  border: { display: false }
+}
         plugins: [barShadowPlugin, valueAtEndPlugin]
       });
     }
