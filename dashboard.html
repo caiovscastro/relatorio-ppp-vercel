@@ -2564,21 +2564,28 @@ options: {
     },
 
 y: {
-  ticks: {
-    autoSkip: false,
-    padding: 6,
-    callback: function(value){
-      const label = this.getLabelForValue(value);
+ticks: {
+  autoSkip: false,
+  padding: 6,
 
-      const isMobile = window.matchMedia("(max-width: 640px)").matches;
-      const maxLen = isMobile ? 18 : 22; // ajuste fino aqui se quiser
+  // ✅ força começar pela 1ª letra (não “come” o início)
+  align: "start",
+  crossAlign: "near",
 
-      const text = String(label ?? "").trim();
-      if (!text) return "N/I";
-      if (text.length <= maxLen) return text;
-      return text.slice(0, maxLen - 1) + "…";
-    }
-  },
+  callback: function(value){
+    const label = this.getLabelForValue(value);
+
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    const maxLen = isMobile ? 18 : 22;
+
+    const text = String(label ?? "").trim();
+    if (!text) return "N/I";
+    if (text.length <= maxLen) return text;
+
+    // ✅ corta só no final
+    return text.slice(0, maxLen - 1) + "…";
+  }
+},
 
   afterFit: (scale) => {
     const isMobile = window.matchMedia("(max-width: 640px)").matches;
