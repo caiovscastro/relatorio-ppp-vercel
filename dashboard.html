@@ -2463,102 +2463,110 @@
     });
   }
 
-  function renderDept(labels, values, corBarra) {
-    const ctx = document.getElementById("chartDept");
-    if (!ctx) return;
-    if (chartDept) chartDept.destroy();
+function renderDept(labels, values, corBarra) {
+  const ctx = document.getElementById("chartDept");
+  if (chartDept) chartDept.destroy();
 
-    const isMobile = window.matchMedia("(max-width: 640px)").matches;
-    const maxChars = isMobile ? 18 : 26;
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+  const maxChars = isMobile ? 18 : 26;
 
-    const labelsAdj = (labels || []).map((t) => {
-      const s = String(t || "").trim();
-      if (!s) return "N/I";
-      return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s; /* ✅ corta o final */
-    });
+  const labelsAdj = (labels || []).map((t) => {
+    const s = String(t || "").trim();
+    if (!s) return "N/I";
+    return s.length > maxChars ? (s.slice(0, maxChars) + "…") : s; // corta o FINAL
+  });
 
-    const valueAtEndPlugin = {
-      id: "valueAtEndPlugin",
-      afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        const meta = chart.getDatasetMeta(0);
-        if (!meta || !meta.data) return;
+  const valueAtEndPlugin = {
+    id: "valueAtEndPlugin",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
 
-        ctx.save();
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        ctx.font = "bold 12px Arial"; /* ✅ mesmo do Top 5 */
-        ctx.fillStyle = "#111";
+      const area = chart.chartArea;
+      if (!area) return;
 
-        meta.data.forEach((bar, i) => {
-          const val = Number(chart.data.datasets[0].data[i]) || 0;
-          const xRaw = bar.x + 8;
-          const x = Math.min(xRaw, chart.width - 8);
-          ctx.fillText(String(Math.round(val)), x, bar.y); /* ✅ arredondado */
-        });
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "bold 12px Arial";
+      ctx.fillStyle = "#111";
 
-        ctx.restore();
-      }
-    };
+      meta.data.forEach((bar, i) => {
+        const val = Number(chart.data.datasets[0].data[i]) || 0;
+        const txt = String(Math.round(val));
 
-    const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.75);
+        const textW = ctx.measureText(txt).width;
+        const xRaw = bar.x + 8;
 
-    chartDept = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: labelsAdj,
-        datasets: [{
-          label: "Ocorrências por departamento",
-          data: values,
-          backgroundColor: bg,
-          clip: false,
-          borderWidth: 0
-        }]
-      },
-options: {
-  indexAxis: "y",
-  responsive: true,
-  maintainAspectRatio: false,
+        // ✅ clamp real pela área do gráfico (não pelo chart.width)
+        const xMax = area.right - textW - 4;
+        const x = Math.max(area.left + 4, Math.min(xRaw, xMax));
 
-  // ✅ dá mais espaço útil para as barras no desktop
-  layout: { padding: { left: 8, right: 56 } },
+        ctx.fillText(txt, x, bar.y);
+      });
 
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      callbacks: {
-        label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}`
-      }
+      ctx.restore();
     }
-  },
+  };
 
-  scales: {
-    x: {
-      beginAtZero: true,
-      // ✅ evita barras “achatadas” no desktop
-      suggestedMax: Math.max(1, ...(values || []).map(v => Number(v) || 0)) * 1.2,
-      ticks: { display: false },
-      grid: { display: false },
-      border: { display: false }
+  const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
+  const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
+
+  chartDept = new Chart(ctx, { // ✅ tem que ser chartDept (não chartTopProdutos)
+    type: "bar",
+    data: {
+      labels: labelsAdj,
+      datasets: [{
+        label: "Ocorrências por departamento",
+        data: values,
+
+        // ✅ força barra visível no desktop (sem depender do gradiente/alpha)
+        backgroundColor: rgbaFromHex(corBarra || "#A98AE8", 0.88),
+        borderWidth: 0,
+        clip: false
+      }]
     },
-    y: {
-      ticks: {
-        autoSkip: false,
-        padding: 8
-      },
-      // ✅ fixa largura suficiente do eixo Y no desktop
-      afterFit: (scale) => {
-        scale.width = isMobile ? 160 : 220;
-      },
-      grid: { display: false },
-      border: { display: false }
-    }
-  }
-},
-      plugins: [barShadowPlugin, valueAtEndPlugin]
-    });
-  }
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { left: 12, right: 56 } },
 
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
+      },
+
+      scales: {
+        x: {
+          beginAtZero: true,
+          suggestedMax,
+          ticks: { display: false },
+          grid: { display: false },
+          border: { display: false }
+        },
+        y: {
+          ticks: {
+            autoSkip: false,
+            padding: 8,
+            align: "start",
+            crossAlign: "near"
+          },
+          afterFit: (scale) => {
+            // ✅ largura suficiente p/ não cortar o começo no desktop
+            const minW = isMobile ? 150 : 220;
+            const maxW = isMobile ? 220 : 320;
+            scale.width = Math.max(minW, Math.min(scale.width, maxW));
+          },
+          grid: { display: false },
+          border: { display: false }
+        }
+      }
+    },
+    plugins: [barShadowPlugin, valueAtEndPlugin]
+  });
+}
   function renderPctBandeira(qtdBIG, qtdULT) {
     const ctx = document.getElementById("chartPctBandeira");
     if (!ctx) return;
