@@ -2531,24 +2531,40 @@
             clip: false
           }]
         },
-scales: {
-  x: {
-    beginAtZero: true,
-    ticks: { display: false },
-    grid: { display: false },
-    border: { display: false }
-  },
-  y: {
-    ticks: {
-      autoSkip: false,
-      padding: 6,
-      callback: function(value){
-        const label = this.getLabelForValue(value);
-        return ellipsisEnd(label, maxLen);
+options: {
+  indexAxis: "y",
+  responsive: true,
+  maintainAspectRatio: false,
+  layout: { padding: { left: 10, right: 46 } },
+
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: (item) => `Ocorrências: ${item.raw}`
       }
+    }
+  },
+
+  scales: {   // 👈 AQUI dentro de options
+    x: {
+      beginAtZero: true,
+      ticks: { display: false },
+      grid: { display: false },
+      border: { display: false }
     },
-    grid: { display: false },
-    border: { display: false }
+    y: {
+      ticks: {
+        autoSkip: false,
+        padding: 6,
+        callback: function(value){
+          const label = this.getLabelForValue(value);
+          return ellipsisEnd(label, maxLen);
+        }
+      },
+      grid: { display: false },
+      border: { display: false }
+    }
   }
 }
         plugins: [barShadowPlugin, valueAtEndPlugin]
