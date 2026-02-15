@@ -108,30 +108,30 @@
     /* =========================================================
        ✅ (NOVO) COLUNA ESQUERDA COM 2 CARTÕES EMPILHADOS
        ========================================================= */
-.sidecol{
-  display: flex;
-  flex-direction: column;
-  gap: 12px; /* mesmo gap do layout */
-  min-width: 0;
-  height: 100%;            /* ✅ permite o card esticar */
-}
+    .sidecol{
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* mesmo gap do layout */
+      min-width: 0;
+      height: 100%;            /* ✅ permite o card esticar */
+    }
 
-/* =========================================================
-   ✅ Cartão do gráfico 12 meses ocupa TODA a altura disponível
-   ========================================================= */
-.meses12-tile{
-  flex: 1 1 auto;          /* ✅ ocupa toda a altura da coluna */
-  min-height: 0;           /* ✅ remove trava de altura */
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column; /* ✅ permite o gráfico crescer */
-}
+    /* =========================================================
+       ✅ Cartão do gráfico 12 meses ocupa TODA a altura disponível
+       ========================================================= */
+    .meses12-tile{
+      flex: 1 1 auto;          /* ✅ ocupa toda a altura da coluna */
+      min-height: 0;           /* ✅ remove trava de altura */
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column; /* ✅ permite o gráfico crescer */
+    }
 
-.meses12-wrap{
-  position: relative;
-  flex: 1 1 auto;          /* ✅ gráfico cresce junto com o card */
-  min-height: 0;
-}
+    .meses12-wrap{
+      position: relative;
+      flex: 1 1 auto;          /* ✅ gráfico cresce junto com o card */
+      min-height: 0;
+    }
 
     /* =========================================================
        ✅ (NOVO) Cartão da imagem acima do título "Filtros"
@@ -833,11 +833,11 @@
           </div>
         </div>
 
-        <!-- ✅ (NOVO) Cartão entre o Filtros e o rodapé "Filtros aplicados" -->
+        <!-- ✅ (ALTERADO) SWAP: aqui agora é "Ocorrências por departamento" -->
         <div class="tile meses12-tile">
-          <h3>VALOR REC. POR MÊS</h3>
+          <h3>Ocorrências por departamento</h3>
           <div class="meses12-wrap">
-            <canvas id="chartMeses12"></canvas>
+            <canvas id="chartDept"></canvas>
           </div>
         </div>
 
@@ -909,10 +909,11 @@
             </div>
           </div>
 
+          <!-- ✅ (ALTERADO) SWAP: aqui agora é "VALOR REC. POR MÊS" e em colunas -->
           <div class="tile">
-            <h3>Ocorrências por departamento</h3>
+            <h3>VALOR REC. POR MÊS</h3>
             <div class="canvas-wrap" style="height: 260px;">
-              <canvas id="chartDept"></canvas>
+              <canvas id="chartMeses12"></canvas>
             </div>
           </div>
         </div>
@@ -1065,6 +1066,76 @@
     function voltar() {
       window.location.href = "/menu.html";
     }
+
+    /* =========================================================
+       ✅ (NOVO) HELPERS: degradê por barra (1ª forte -> última suave)
+       + sombra (colunas: direita / barras: baixo)
+       ========================================================= */
+    function hexToRgb(hex){
+      const h = String(hex || "").trim().replace("#","");
+      if (h.length === 3){
+        const r = parseInt(h[0]+h[0],16), g = parseInt(h[1]+h[1],16), b = parseInt(h[2]+h[2],16);
+        return { r, g, b };
+      }
+      if (h.length === 6){
+        const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+        return { r, g, b };
+      }
+      return { r: 0, g: 0, b: 0 };
+    }
+
+    function rgbaFromHex(hex, a){
+      const { r,g,b } = hexToRgb(hex);
+      const alpha = Math.max(0, Math.min(1, Number(a)));
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function buildGradientAlphaColors(baseHex, n, aMax = 1.0, aMin = 0.35){
+      const len = Math.max(1, Number(n) || 1);
+      if (len === 1) return [rgbaFromHex(baseHex, aMax)];
+      const out = [];
+      for (let i = 0; i < len; i++){
+        const t = i / (len - 1);
+        const a = aMax + (aMin - aMax) * t; // 1 -> 0.35
+        out.push(rgbaFromHex(baseHex, a));
+      }
+      return out;
+    }
+
+    function buildGradientAlphaColorsPerBar(baseHexArr, aMax = 1.0, aMin = 0.35){
+      const n = (baseHexArr || []).length;
+      if (n === 0) return [];
+      if (n === 1) return [rgbaFromHex(baseHexArr[0], aMax)];
+      return baseHexArr.map((hex, i) => {
+        const t = i / (n - 1);
+        const a = aMax + (aMin - aMax) * t;
+        return rgbaFromHex(hex, a);
+      });
+    }
+
+    const barShadowPlugin = {
+      id: "barShadowPlugin",
+      beforeDatasetsDraw(chart, args, pluginOptions){
+        const idxAxis = (chart.options && chart.options.indexAxis) ? chart.options.indexAxis : "x";
+        const isHorizontal = (idxAxis === "y");
+
+        const ctx = chart.ctx;
+        if (!ctx) return;
+
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.22)";
+        ctx.shadowBlur = 10;
+
+        // ✅ pedido: colunas -> sombra p/ direita; barras -> sombra p/ baixo
+        ctx.shadowOffsetX = isHorizontal ? 0 : 6;
+        ctx.shadowOffsetY = isHorizontal ? 6 : 0;
+      },
+      afterDatasetsDraw(chart){
+        const ctx = chart.ctx;
+        if (!ctx) return;
+        ctx.restore();
+      }
+    };
 
     /* =========================================================
        ✅ NOVO (REQ 1): datas padrão ao iniciar
@@ -1465,23 +1536,18 @@
 
       panel.innerHTML = html.join("");
 
-      /* =========================================================
-         ✅ ALTERADO (REQ 2): para BASE_PPP, impedimos troca de loja
-         - aqui bloqueamos o "change" em lojas que NÃO são a do login
-         ========================================================= */
       panel.querySelectorAll('input[type="checkbox"][data-loja]').forEach((ck) => {
         ck.addEventListener("change", () => {
           const key = ck.getAttribute("data-loja");
           if (!key) return;
 
-          // 🔒 Se BASE_PPP: só permite a loja do login ficar marcada
           if (isPerfilBasePPP()) {
             const minha = lojaLogadaKey();
             if (key !== minha) {
-              ck.checked = false;              // garante que não marcou
-              return;                          // não altera o Set global
+              ck.checked = false;
+              return;
             }
-            ck.checked = true;                 // garante que continua marcada
+            ck.checked = true;
             LOJAS_SELECIONADAS = new Set([minha]);
             atualizarChecksBandeira();
             atualizarTituloLojas();
@@ -1489,7 +1555,6 @@
             return;
           }
 
-          // comportamento original (demais perfis)
           if (ck.checked) LOJAS_SELECIONADAS.add(key);
           else LOJAS_SELECIONADAS.delete(key);
 
@@ -1499,16 +1564,12 @@
         });
       });
 
-      /* =========================================================
-         ✅ ALTERADO (REQ 2): para BASE_PPP, bloqueia BIG/ULT
-         ========================================================= */
       panel.querySelectorAll('input[type="checkbox"][id^="ckBand_"]').forEach((ckBand) => {
         ckBand.addEventListener("change", () => {
-          // 🔒 BASE_PPP não pode marcar/desmarcar por bandeira
           if (isPerfilBasePPP()) {
             ckBand.checked = false;
             ckBand.indeterminate = false;
-            aplicarRestricaoLojasBasePPP(); // reforça estado
+            aplicarRestricaoLojasBasePPP();
             return;
           }
 
@@ -1534,7 +1595,6 @@
       atualizarChecksBandeira();
       atualizarTituloLojas();
 
-      /* ✅ REQ 2: depois de montar a lista, aplica a trava BASE_PPP */
       aplicarRestricaoLojasBasePPP();
     }
 
@@ -1542,7 +1602,6 @@
       const panel = document.getElementById("lojaPanel");
       if (!panel) return;
 
-      // 🔒 BASE_PPP não usa BIG/ULT para marcar todas (mas mantemos seguro)
       if (isPerfilBasePPP()) {
         ["BIG","ULT"].forEach((band) => {
           const ckBand = panel.querySelector(`#ckBand_${band}`);
@@ -1575,7 +1634,6 @@
       const panel = document.getElementById("lojaPanel");
       if (!panel) return;
 
-      // 🔒 BASE_PPP: força somente a loja do login no Set global
       if (isPerfilBasePPP()) {
         const minha = lojaLogadaKey();
         LOJAS_SELECIONADAS = new Set(minha ? [minha] : []);
@@ -1612,7 +1670,6 @@
     }
 
     function obterLojasSelecionadas(){
-      // 🔒 BASE_PPP: sempre devolve só a loja logada
       if (isPerfilBasePPP()) {
         const minha = lojaLogadaKey();
         return new Set(minha ? [minha] : []);
@@ -1868,7 +1925,6 @@
       }, 180);
     }
 
-    // ✅ garante que o overlay apareça antes do fetch (evita "piscou e não vi")
     function esperarPintarUI() {
       return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
     }
@@ -1878,7 +1934,6 @@
       const subInfo = document.getElementById("subInfo");
 
       try {
-        // ✅ sem fetch: mantém rápido e NÃO mostra overlay
         if (CACHE_OK && Array.isArray(REGISTROS_CACHE) && !forcarFetch) {
           status.textContent = "Aplicando filtros (sem atualizar dados)...";
           aplicarFiltros();
@@ -1888,7 +1943,6 @@
         status.textContent = "Carregando relatórios...";
         subInfo.textContent = "Carregando dados...";
 
-        // ✅ AQUI: progresso real ligado ao fluxo de rede do dashboard
         iniciarProgressoEnvio();
         await esperarPintarUI();
 
@@ -1900,12 +1954,8 @@
             credentials: "include"
           });
 
-          // ✅ o "concluído" só acontece depois de parsear o JSON
           dados = await resp.json().catch(() => ({}));
-        } finally {
-          // ⚠️ não finaliza aqui, porque queremos validar antes.
-          // (a finalização fica após validações abaixo)
-        }
+        } finally {}
 
         if (!resp.ok || !dados.sucesso || !Array.isArray(dados.registros)) {
           status.textContent = (dados && dados.message) ? dados.message : "Falha ao carregar dados do dashboard.";
@@ -1921,7 +1971,6 @@
         status.textContent = "Dados atualizados. Aplicando filtros...";
         aplicarFiltros();
 
-        // ✅ só fecha depois que terminou tudo com sucesso
         finalizarProgressoEnvio();
 
       } catch (e) {
@@ -1932,116 +1981,25 @@
       }
     }
 
-    /* =========================================================
-       ✅ (NOVO) util: últimos 12 meses (labels e chaves YYYY-MM)
-       ========================================================= */
     function getLast12MonthsInfo(){
       const meses = [];
       const labels = [];
       const hoje = new Date();
 
-      // mês atual inclusive
       for (let i = 11; i >= 0; i--) {
         const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const key = `${yyyy}-${mm}`; // YYYY-MM
+        const key = `${yyyy}-${mm}`;
         meses.push(key);
 
         const nomeMes = d.toLocaleString("pt-BR", { month: "short" }).replace(".", "");
-        const lbl = `${nomeMes}/${String(yyyy).slice(2)}`; // ex: fev/26
+        const lbl = `${nomeMes}/${String(yyyy).slice(2)}`;
         labels.push(lbl);
       }
 
       return { keys: meses, labels };
     }
-
-    /* =========================================================
-       ✅ (NOVO) render gráfico 12 meses
-       ========================================================= */
-function renderMeses12(labels, values, corBarra){
-  const ctx = document.getElementById("chartMeses12");
-  if (!ctx) return;
-
-  if (chartMeses12) chartMeses12.destroy();
-
-  // meses sem valor => null (barra “some” e fica em branco)
-  const valuesPlot = (values || []).map(v => {
-    const n = Number(v) || 0;
-    return n > 0 ? n : null;
-  });
-
-  const valueAtEndPlugin = {
-    id: "valueAtEndPluginMeses12",
-    afterDatasetsDraw(chart) {
-      const { ctx } = chart;
-      const meta = chart.getDatasetMeta(0);
-      if (!meta || !meta.data) return;
-
-      ctx.save();
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.font = "bold 11px Arial";
-      ctx.fillStyle = "#111";
-
-      meta.data.forEach((bar, i) => {
-        const val = chart.data.datasets[0].data[i];
-        if (val === null || val === undefined) return; // mês “em branco”
-
-        const txt = formatarBRL(val);
-        const xRaw = bar.x + 8;
-        const x = Math.min(xRaw, chart.width - 8);
-        ctx.fillText(txt, x, bar.y);
-      });
-
-      ctx.restore();
-    }
-  };
-
-  const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
-  const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.15) : 1;
-
-  chartMeses12 = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels, // ordem já vem crescente (mais antigo -> mais recente)
-      datasets: [{
-        data: valuesPlot,
-        backgroundColor: corBarra || "#A98AE8",
-        clip: false
-      }]
-    },
-    options: {
-      indexAxis: "y",               // ✅ estilo da imagem (horizontal)
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: { padding: { right: 58 } }, // espaço pro R$ no fim
-      plugins: {
-        legend: { display: false },  // ✅ sem legenda
-        tooltip: {
-          callbacks: {
-            label: (item) => `Valor: ${formatarBRL(item.raw || 0)}`
-          }
-        }
-      },
-      scales: {
-        x: {                         // ✅ sem rótulos/sem grid
-          beginAtZero: true,
-          suggestedMax,
-          ticks: { display: false },
-          grid: { display: false },
-          border: { display: false }
-        },
-        y: {                         // mês aparece na esquerda (necessário pra “ordem por mês” fazer sentido)
-          ticks: { autoSkip: false, font: { size: 11 } },
-          grid: { display: false },
-          border: { display: false }
-        }
-      }
-    },
-    plugins: [valueAtEndPlugin]
-  });
-}
 
     function aplicarFiltros() {
       const status = document.getElementById("status");
@@ -2285,22 +2243,13 @@ function renderMeses12(labels, values, corBarra){
         renderDept(deptLabels, deptValues, corDeptTopProd);
         renderTopProdutos(prodLabels, prodValues, corDeptTopProd);
 
-        /* =========================================================
-           ✅ (NOVO) Gráfico 12 meses
-           - NÃO usa dataInicio/dataFim
-           - Usa: lojasSel + abordagemSel + turnosSel + gravSel
-           - Mostra VALOR (R$) por mês (uma vez por ocorrência)
-           - Remove meses sem dados
-           - Cor: só ULT = verde; BIG ou todas = roxo
-           ========================================================= */
         (function atualizarGrafico12Meses(){
           const info = getLast12MonthsInfo();
-          const mesesKeys = info.keys;      // YYYY-MM (ordem crescente)
-          const mesesLabels = info.labels;  // ex: fev/26
+          const mesesKeys = info.keys;
+          const mesesLabels = info.labels;
           const idxPorMes = new Map(mesesKeys.map((k, i) => [k, i]));
           const valores = new Array(mesesKeys.length).fill(0);
 
-          // ✅ cor: só ULT = verde; BIG ou todas = roxo
           const COR_PADRAO = "#A98AE8";
           const COR_ULT = "#43A047";
           const selArr = Array.from(obterLojasSelecionadas().values());
@@ -2308,7 +2257,6 @@ function renderMeses12(labels, values, corBarra){
           const hasULT = selArr.some(x => String(x || "").toUpperCase().startsWith("ULT"));
           const corMeses12 = (hasULT && !hasBIG) ? COR_ULT : COR_PADRAO;
 
-          // Base SEM filtro de dataInicio/dataFim, mas com lojas/abordagem/turno
           const registrosSemData = registros.filter(r => {
             {
               const lojaKey = normLoja(r.loja);
@@ -2331,26 +2279,22 @@ function renderMeses12(labels, values, corBarra){
               if (!(okManha || okTarde || okMadr)) return false;
             }
 
-            // precisa de data válida pra entrar no mês
             const iso = dataOcorridoParaISO(r);
             if (!iso) return false;
 
-            // só considera se cair nos últimos 12 meses (YYYY-MM)
             const mesKey = iso.slice(0, 7);
             if (!idxPorMes.has(mesKey)) return false;
 
             return true;
           });
 
-          // Calcula valor total por ocorrência (para classificar gravidade) SEM filtro de datas
           const valorPorOccSemData = new Map();
-          const mesPorOcc = new Map(); // guarda o mês (YYYY-MM) da ocorrência
+          const mesPorOcc = new Map();
 
           for (const r of registrosSemData) {
             const k = chaveOcorrencia(r);
             if (!k) continue;
 
-            // fixa o mês da ocorrência (1ª vez que aparece)
             if (!mesPorOcc.has(k)) {
               const iso = dataOcorridoParaISO(r);
               if (iso) mesPorOcc.set(k, iso.slice(0, 7));
@@ -2366,14 +2310,12 @@ function renderMeses12(labels, values, corBarra){
             );
           }
 
-          // filtra por gravidade (com base no valor total da ocorrência)
           const occAprovadasSemData = new Set();
           for (const [k, vTot] of valorPorOccSemData.entries()) {
             const classe = classificarGravidade(vTot);
             if (gravidadePassaFiltro(classe, gravSel)) occAprovadasSemData.add(k);
           }
 
-          // ✅ soma R$ por mês (uma vez por ocorrência)
           for (const k of occAprovadasSemData.values()) {
             const mesKey = mesPorOcc.get(k);
             if (!mesKey) continue;
@@ -2402,7 +2344,9 @@ function renderMeses12(labels, values, corBarra){
     }
 
     /* =========================================================
-       ✅ render gráfico 12 meses (horizontal, R$, sem vazios)
+       ✅ (ALTERADO) VALOR REC. POR MÊS agora é COLUNAS (vertical)
+       + degradê (1ª forte -> última suave)
+       + sombra (direita)
        ========================================================= */
     function renderMeses12(labels, values, corMeses12){
       const canvas = document.getElementById("chartMeses12");
@@ -2410,7 +2354,6 @@ function renderMeses12(labels, values, corBarra){
 
       if (chartMeses12) chartMeses12.destroy();
 
-      // ✅ remove meses sem dados (0 / vazio / NaN) mantendo a ordem
       const labelsFinal = [];
       const valuesFinal = [];
       for (let i = 0; i < (labels || []).length; i++) {
@@ -2421,44 +2364,34 @@ function renderMeses12(labels, values, corBarra){
         }
       }
 
-      const valueAtEndPluginMeses12 = {
-        id: "valueAtEndPluginMeses12",
+      const valueOnTopPluginMeses12 = {
+        id: "valueOnTopPluginMeses12",
         afterDatasetsDraw(chart) {
-          const ctx = chart.ctx;
+          const { ctx } = chart;
           const meta = chart.getDatasetMeta(0);
           if (!meta || !meta.data) return;
 
-          const area = chart.chartArea;
-          if (!area) return;
-
           ctx.save();
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.font = "bold 11px Arial";
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
             const val = Number(chart.data.datasets[0].data[i]) || 0;
             if (!(val > 0)) return;
-
-            const texto = formatarBRL(val);
-
-            const xRaw = ((bar.x !== undefined && bar.x !== null) ? bar.x : area.left) + 8;
-            const x = Math.min(xRaw, area.right - 2);
-            const y = ((bar.y !== undefined && bar.y !== null) ? bar.y : area.top);
-
-            ctx.fillText(texto, x, y);
+            ctx.fillText(formatarBRL(val), bar.x, bar.y - 6);
           });
 
           ctx.restore();
         }
       };
 
+      const bg = buildGradientAlphaColors(corMeses12 || "#A98AE8", valuesFinal.length, 1.0, 0.35);
+
       let maxVal = 0;
-      for (let i = 0; i < valuesFinal.length; i++) {
-        if (valuesFinal[i] > maxVal) maxVal = valuesFinal[i];
-      }
-      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.12) : 1;
+      for (let i = 0; i < valuesFinal.length; i++) if (valuesFinal[i] > maxVal) maxVal = valuesFinal[i];
+      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.18) : 1;
 
       chartMeses12 = new Chart(canvas, {
         type: "bar",
@@ -2467,41 +2400,26 @@ function renderMeses12(labels, values, corBarra){
           datasets: [{
             label: "Valor",
             data: valuesFinal,
-            backgroundColor: corMeses12 || "#A98AE8",
+            backgroundColor: bg,
             clip: false,
             borderWidth: 0,
             borderRadius: 8
           }]
         },
         options: {
-          indexAxis: "y", // ✅ horizontal (como na imagem)
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { right: 80 } }, // espaço pro "R$"
+          layout: { padding: { top: 18 } },
           plugins: {
-            legend: { display: false }, // ✅ sem legenda
-            tooltip: {
-              callbacks: {
-                label: (item) => `Valor: ${formatarBRL(item.raw)}`
-              }
-            }
+            legend: { display: false },
+            tooltip: { callbacks: { label: (item) => `Valor: ${formatarBRL(item.raw)}` } }
           },
           scales: {
-            x: {
-              beginAtZero: true,
-              suggestedMax,
-              ticks: { display: false }, // ✅ sem rótulos/eixo
-              grid: { display: false },
-              border: { display: false }
-            },
-            y: {
-              ticks: { autoSkip: false, font: { size: 11 } }, // ✅ só meses com dados
-              grid: { display: false },
-              border: { display: false }
-            }
+            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
+            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
           }
         },
-        plugins: [valueAtEndPluginMeses12]
+        plugins: [barShadowPlugin, valueOnTopPluginMeses12]
       });
     }
 
@@ -2534,12 +2452,15 @@ function renderMeses12(labels, values, corBarra){
       const corBIG = "#6A1B9A";
       const corULT = "#43A047";
 
-      const bgColors = labels.map((lbl) => {
+      const baseHex = labels.map((lbl) => {
         const s = String(lbl || "").toUpperCase().trim();
         if (s.startsWith("BIG")) return corBIG;
         if (s.startsWith("ULT")) return corULT;
-        return "#777";
+        return "#777777";
       });
+
+      // ✅ degradê por barra (1ª forte -> última suave), preservando cor base por loja
+      const bgColors = buildGradientAlphaColorsPerBar(baseHex, 1.0, 0.35);
 
       const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
       const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
@@ -2556,7 +2477,7 @@ function renderMeses12(labels, values, corBarra){
             y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
           }
         },
-        plugins: [valueOnTopPlugin]
+        plugins: [barShadowPlugin, valueOnTopPlugin]
       });
     }
 
@@ -2588,6 +2509,8 @@ function renderMeses12(labels, values, corBarra){
         }
       };
 
+      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.35);
+
       chartDept = new Chart(ctx, {
         type: "bar",
         data: {
@@ -2595,7 +2518,7 @@ function renderMeses12(labels, values, corBarra){
           datasets: [{
             label: "Ocorrências por departamento",
             data: values,
-            backgroundColor: corBarra || "#A98AE8",
+            backgroundColor: bg,
             clip: false
           }]
         },
@@ -2610,7 +2533,7 @@ function renderMeses12(labels, values, corBarra){
             y: { ticks: { autoSkip: false }, grid: { display: false }, border: { display: false } }
           }
         },
-        plugins: [valueAtEndPlugin]
+        plugins: [barShadowPlugin, valueAtEndPlugin]
       });
     }
 
@@ -2724,6 +2647,8 @@ function renderMeses12(labels, values, corBarra){
         }
       };
 
+      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.35);
+
       chartTopProdutos = new Chart(ctx, {
         type: "bar",
         data: {
@@ -2731,7 +2656,7 @@ function renderMeses12(labels, values, corBarra){
           datasets: [{
             label: "Registros",
             data: values,
-            backgroundColor: corBarra || "#A98AE8",
+            backgroundColor: bg,
             clip: false
           }]
         },
@@ -2764,7 +2689,7 @@ function renderMeses12(labels, values, corBarra){
             }
           }
         },
-        plugins: [valueOutsidePlugin]
+        plugins: [barShadowPlugin, valueOutsidePlugin]
       });
     }
 
