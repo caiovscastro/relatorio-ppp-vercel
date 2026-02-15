@@ -861,8 +861,8 @@
           <div class="ocorrencias-split">
             <div class="big-number" style="height:auto;">
               <div class="n" id="totalOcorrencias">0</div>
-              <div class="valor" id="totalValorOcorrencias">R$ 0,00</div>
-              <div class="participacao" id="pctParticipacao">Recup. x Rotativos: 0,00%</div>
+              <div class="valor" id="totalValorOcorrencias">R$ 0</div>
+              <div class="participacao" id="pctParticipacao">Recup. x Rotativos: 0%</div>
             </div>
 
             <div class="ocorrencias-pie">
@@ -878,7 +878,7 @@
           <div class="bandeira-split" aria-label="Ocorrências por bandeira (BIG e ULT)">
             <div class="bandeira-col">
               <div class="bandeira-num" id="bandeiraBIG">0</div>
-              <div class="bandeira-valor" id="valorBIG">R$ 0,00</div>
+              <div class="bandeira-valor" id="valorBIG">R$ 0</div>
               <img class="bandeira-logo" src="https://i.ibb.co/Kz5DZ8nP/1001316505.png" alt="Big Box" />
             </div>
 
@@ -886,7 +886,7 @@
 
             <div class="bandeira-col">
               <div class="bandeira-num" id="bandeiraULT">0</div>
-              <div class="bandeira-valor" id="valorULT">R$ 0,00</div>
+              <div class="bandeira-valor" id="valorULT">R$ 0</div>
               <img class="bandeira-logo" src="https://i.ibb.co/RTb7sqbz/1001317603.png" alt="Ultrabox" />
             </div>
           </div>
@@ -962,6 +962,24 @@
     let REGISTROS_CACHE = null;
     let CACHE_OK = false;
     let CACHE_ATUALIZADO_EM = null;
+
+    // ✅ REQ #1 e #5: padronizar fonte dos gráficos e “negrito leve” nas legendas
+    const CHART_FONT_FAMILY = "Arial";
+    const CHART_FONT_SIZE = 12;       // mesmo patamar do Top 5 lojas
+    const CHART_FONT_WEIGHT_LIGHTBOLD = 600;
+
+    // ✅ REQ #1: diminuir degradê (menos variação)
+    const GRAD_ALPHA_MAX = 1.0;
+    const GRAD_ALPHA_MIN = 0.72;
+
+    // ✅ aplica defaults globais do Chart.js (mínimo, sem quebrar)
+    Chart.defaults.font.family = CHART_FONT_FAMILY;
+    Chart.defaults.font.size = CHART_FONT_SIZE;
+    Chart.defaults.plugins.legend.labels.font = {
+      family: CHART_FONT_FAMILY,
+      size: CHART_FONT_SIZE,
+      weight: CHART_FONT_WEIGHT_LIGHTBOLD
+    };
 
     const LOJAS_LISTA = [
       { bandeira:"BIG", label:"BIG 01 - 106 NORTE" },
@@ -1068,7 +1086,7 @@
     }
 
     /* =========================================================
-       ✅ (NOVO) HELPERS: degradê por barra (1ª forte -> última suave)
+       ✅ HELPERS: degradê por barra (agora mais suave)
        + sombra (colunas: direita / barras: baixo)
        ========================================================= */
     function hexToRgb(hex){
@@ -1090,19 +1108,19 @@
       return `rgba(${r},${g},${b},${alpha})`;
     }
 
-    function buildGradientAlphaColors(baseHex, n, aMax = 1.0, aMin = 0.35){
+    function buildGradientAlphaColors(baseHex, n, aMax = GRAD_ALPHA_MAX, aMin = GRAD_ALPHA_MIN){
       const len = Math.max(1, Number(n) || 1);
       if (len === 1) return [rgbaFromHex(baseHex, aMax)];
       const out = [];
       for (let i = 0; i < len; i++){
         const t = i / (len - 1);
-        const a = aMax + (aMin - aMax) * t; // 1 -> 0.35
+        const a = aMax + (aMin - aMax) * t;
         out.push(rgbaFromHex(baseHex, a));
       }
       return out;
     }
 
-    function buildGradientAlphaColorsPerBar(baseHexArr, aMax = 1.0, aMin = 0.35){
+    function buildGradientAlphaColorsPerBar(baseHexArr, aMax = GRAD_ALPHA_MAX, aMin = GRAD_ALPHA_MIN){
       const n = (baseHexArr || []).length;
       if (n === 0) return [];
       if (n === 1) return [rgbaFromHex(baseHexArr[0], aMax)];
@@ -1138,9 +1156,7 @@
     };
 
     /* =========================================================
-       ✅ NOVO (REQ 1): datas padrão ao iniciar
-       - dataInicio = 1º dia do mês atual
-       - dataFim = hoje
+       ✅ datas padrão ao iniciar
        ========================================================= */
     function setDatasPadraoInicioMesHoje(){
       const elIni = document.getElementById("dataInicio");
@@ -1155,15 +1171,12 @@
       const primeiroDia = `${yyyy}-${mm}-01`;
       const hojeISO = `${yyyy}-${mm}-${ddHoje}`;
 
-      // ✅ seta valores diretamente (input type="date" usa ISO yyyy-mm-dd)
       elIni.value = primeiroDia;
       elFim.value = hojeISO;
     }
 
     /* =========================================================
-       ✅ NOVO (REQ 2): trava de seleção para perfil BASE_PPP
-       - somente a loja do login fica marcada
-       - usuário não consegue marcar outra loja
+       ✅ trava de seleção para perfil BASE_PPP
        ========================================================= */
     function isPerfilBasePPP(){
       const s = obterSessaoAtual();
@@ -1177,7 +1190,6 @@
     }
 
     function aplicarRestricaoLojasBasePPP(){
-      // Só aplica se for BASE_PPP
       if (!isPerfilBasePPP()) return;
 
       const panel = document.getElementById("lojaPanel");
@@ -1186,21 +1198,16 @@
       const lojaKey = lojaLogadaKey();
       if (!lojaKey) return;
 
-      // ✅ Set global: somente a loja logada
       LOJAS_SELECIONADAS = new Set([lojaKey]);
 
-      // ✅ Marca/desmarca no DOM e bloqueia interação
       panel.querySelectorAll('input[type="checkbox"][data-loja]').forEach((ck) => {
         const key = ck.getAttribute("data-loja") || "";
         const isMinha = (key === lojaKey);
 
         ck.checked = isMinha;
-
-        // 🔒 bloqueia alteração (mesmo se clicar direto no checkbox)
         ck.disabled = !isMinha;
       });
 
-      // 🔒 também bloqueia os "marcar BIG/ULT"
       panel.querySelectorAll('input[type="checkbox"][id^="ckBand_"]').forEach((ckBand) => {
         ckBand.checked = false;
         ckBand.indeterminate = false;
@@ -1218,7 +1225,6 @@
 
       document.getElementById("app").style.display = "block";
 
-      /* ✅ REQ 1: aplica datas padrão ao iniciar a tela */
       setDatasPadraoInicioMesHoje();
 
       document.getElementById("dataInicio")?.addEventListener("change", aplicarFiltros);
@@ -1726,9 +1732,15 @@
       return isNaN(n) ? 0 : n;
     }
 
+    // ✅ REQ #2: arredondar (sem casas decimais) no dashboard
     function formatarBRL(n) {
       const v = Number(n) || 0;
-      return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      return v.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
     }
 
     function dataOcorridoParaISO(r) {
@@ -1860,6 +1872,7 @@
       return neg ? -Math.abs(n) : n;
     }
 
+    // ✅ REQ #2: percentual sem casas decimais
     function atualizarParticipacao() {
       const el = document.getElementById("pctParticipacao");
       const inp = document.getElementById("valorVenda");
@@ -1871,16 +1884,12 @@
       let pct = 0;
       if (venda !== 0) pct = (base * 100) / venda;
 
-      const pctStr = (Number.isFinite(pct) ? pct : 0).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-
+      const pctStr = String(Math.round(Number.isFinite(pct) ? pct : 0));
       el.textContent = `Recup. x Rotativos: ${pctStr}%`;
     }
 
     /* =========================================================
-       ✅ (NOVO) Progresso 0–100% (5 em 5) e só some após concluir envio
+       ✅ Progresso 0–100% (mantido)
        ========================================================= */
     let __envioTimer = null;
     let __envioPct = 0;
@@ -2344,9 +2353,10 @@
     }
 
     /* =========================================================
-       ✅ (ALTERADO) VALOR REC. POR MÊS agora é COLUNAS (vertical)
-       + degradê (1ª forte -> última suave)
-       + sombra (direita)
+       ✅ VALOR REC. POR MÊS (colunas)
+       - rótulo usa formatarBRL (agora sem decimais)
+       - fonte padronizada
+       - degradê mais suave
        ========================================================= */
     function renderMeses12(labels, values, corMeses12){
       const canvas = document.getElementById("chartMeses12");
@@ -2374,7 +2384,7 @@
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
-          ctx.font = "bold 11px Arial";
+          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
@@ -2387,7 +2397,7 @@
         }
       };
 
-      const bg = buildGradientAlphaColors(corMeses12 || "#A98AE8", valuesFinal.length, 1.0, 0.35);
+      const bg = buildGradientAlphaColors(corMeses12 || "#A98AE8", valuesFinal.length);
 
       let maxVal = 0;
       for (let i = 0; i < valuesFinal.length; i++) if (valuesFinal[i] > maxVal) maxVal = valuesFinal[i];
@@ -2423,6 +2433,14 @@
       });
     }
 
+    // ✅ truncar no final (não no começo)
+    function truncarFinal(txt, maxLen){
+      const s = String(txt || "");
+      if (!s) return "";
+      const m = Math.max(4, Number(maxLen) || 0);
+      return s.length > m ? (s.slice(0, m - 1) + "…") : s;
+    }
+
     function renderTopLojas(labels, values) {
       const ctx = document.getElementById("chartTopLojas");
       if (chartTopLojas) chartTopLojas.destroy();
@@ -2437,12 +2455,12 @@
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
-          ctx.font = "bold 12px Arial";
+          ctx.font = `bold ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`; // mantém referência do Top 5
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
             const val = chart.data.datasets[0].data[i];
-            ctx.fillText(String(val), bar.x, bar.y - 6);
+            ctx.fillText(String(Math.round(Number(val) || 0)), bar.x, bar.y - 6);
           });
 
           ctx.restore();
@@ -2459,19 +2477,21 @@
         return "#777777";
       });
 
-      // ✅ degradê por barra (1ª forte -> última suave), preservando cor base por loja
-      const bgColors = buildGradientAlphaColorsPerBar(baseHex, 1.0, 0.35);
+      const bgColors = buildGradientAlphaColorsPerBar(baseHex);
 
       const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
       const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
 
       chartTopLojas = new Chart(ctx, {
         type: "bar",
-        data: { labels, datasets: [{ label: "Ocorrências", data: values, backgroundColor: bgColors }] },
+        data: { labels, datasets: [{ label: "Ocorrências", data: values.map(v => Math.round(Number(v) || 0)), backgroundColor: bgColors }] },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
+          },
           scales: {
             x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false }, border: { display: false } },
             y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
@@ -2481,6 +2501,7 @@
       });
     }
 
+    // ✅ REQ #4: dept sem cortar início; truncar final; puxar gráfico “pra frente”
     function renderDept(labels, values, corBarra) {
       const ctx = document.getElementById("chartDept");
       if (chartDept) chartDept.destroy();
@@ -2495,11 +2516,11 @@
           ctx.save();
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial";
+          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
-            const val = chart.data.datasets[0].data[i];
+            const val = Math.round(Number(chart.data.datasets[0].data[i]) || 0);
             const xRaw = bar.x + 8;
             const x = Math.min(xRaw, chart.width - 8);
             ctx.fillText(String(val), x, bar.y);
@@ -2509,15 +2530,18 @@
         }
       };
 
-      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.35);
+      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
+
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const maxChars = isMobile ? 16 : 22; // truncar no final
 
       chartDept = new Chart(ctx, {
         type: "bar",
         data: {
-          labels,
+          labels: (labels || []).map(l => truncarFinal(l, maxChars)),
           datasets: [{
             label: "Ocorrências por departamento",
-            data: values,
+            data: (values || []).map(v => Math.round(Number(v) || 0)),
             backgroundColor: bg,
             clip: false
           }]
@@ -2526,11 +2550,33 @@
           indexAxis: "y",
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { right: 46 } },
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } } },
+
+          // ✅ empurra área útil para a direita (não “come” começo do texto)
+          layout: { padding: { left: 18, right: 46 } },
+
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (item) => `Ocorrências: ${Math.round(Number(item.raw) || 0)}` } }
+          },
           scales: {
             x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
-            y: { ticks: { autoSkip: false }, grid: { display: false }, border: { display: false } }
+            y: {
+              ticks: {
+                autoSkip: false,
+                padding: 8,
+                align: "start",
+                crossAlign: "near",
+                font: { size: CHART_FONT_SIZE, weight: CHART_FONT_WEIGHT_LIGHTBOLD }
+              },
+              // ✅ garante uma largura mínima do eixo Y para não cortar o início
+              afterFit: (scale) => {
+                const minW = isMobile ? 150 : 190;
+                const maxW = isMobile ? 210 : 260;
+                scale.width = Math.max(minW, Math.min(scale.width, maxW));
+              },
+              grid: { display: false },
+              border: { display: false }
+            }
           }
         },
         plugins: [barShadowPlugin, valueAtEndPlugin]
@@ -2556,7 +2602,7 @@
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.font = "bold 13px Arial";
+          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
           ctx.fillStyle = "#111";
 
           meta.data.forEach((arc, i) => {
@@ -2567,7 +2613,7 @@
 
             const pct = (val * 100 / totalVis);
             const pos = arc.tooltipPosition();
-            ctx.fillText(`${pct.toFixed(1)}%`, pos.x, pos.y);
+            ctx.fillText(`${Math.round(pct)}%`, pos.x, pos.y); // ✅ REQ #2: sem decimais
           });
 
           ctx.restore();
@@ -2579,7 +2625,7 @@
         data: {
           labels: ["BIG", "ULT"],
           datasets: [{
-            data: [qtdBIG || 0, qtdULT || 0],
+            data: [Math.round(Number(qtdBIG) || 0), Math.round(Number(qtdULT) || 0)],
             backgroundColor: ["#A98AE8", "#43A047"]
           }]
         },
@@ -2588,19 +2634,23 @@
           maintainAspectRatio: false,
           cutout: "62%",
           plugins: {
-            legend: { display: true, position: "bottom" },
+            legend: {
+              display: true,
+              position: "bottom",
+              labels: { font: { size: CHART_FONT_SIZE, weight: CHART_FONT_WEIGHT_LIGHTBOLD } }
+            },
             tooltip: {
               callbacks: {
                 label: (ctx) => {
-                  const v = ctx.raw || 0;
+                  const v = Number(ctx.raw || 0);
 
                   const chart = ctx.chart;
                   const vis = [ chart.getDataVisibility(0), chart.getDataVisibility(1) ];
                   const dataArr = chart.data.datasets[0].data || [];
                   const totalVis = dataArr.reduce((acc, x, i) => acc + (vis[i] ? (Number(x) || 0) : 0), 0);
 
-                  const pct = totalVis > 0 ? (Number(v) * 100 / totalVis) : 0;
-                  return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
+                  const pct = totalVis > 0 ? (v * 100 / totalVis) : 0;
+                  return `${ctx.label}: ${Math.round(v)} (${Math.round(pct)}%)`;
                 }
               }
             }
@@ -2633,11 +2683,11 @@
           ctx.save();
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial";
+          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
           ctx.fillStyle = "#111";
 
           meta.data.forEach((bar, i) => {
-            const val = chart.data.datasets[0].data[i];
+            const val = Math.round(Number(chart.data.datasets[0].data[i]) || 0);
             const xRaw = bar.x + 8;
             const x = Math.min(xRaw, chart.width - 8);
             ctx.fillText(String(val), x, bar.y);
@@ -2647,7 +2697,7 @@
         }
       };
 
-      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length, 1.0, 0.35);
+      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
 
       chartTopProdutos = new Chart(ctx, {
         type: "bar",
@@ -2655,7 +2705,7 @@
           labels: labelsAdj,
           datasets: [{
             label: "Registros",
-            data: values,
+            data: (values || []).map(v => Math.round(Number(v) || 0)),
             backgroundColor: bg,
             clip: false
           }]
@@ -2667,14 +2717,14 @@
           layout: { padding: { left: 16, right: 46 } },
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Registros: ${item.raw}` } }
+            tooltip: { callbacks: { label: (item) => `Registros: ${Math.round(Number(item.raw) || 0)}` } }
           },
           scales: {
             x: { beginAtZero: true, ticks: { display: false }, grid: { display: false }, border: { display: false } },
             y: {
               ticks: {
                 autoSkip: false,
-                font: { size: isMobile ? 10 : 11 },
+                font: { size: CHART_FONT_SIZE, weight: CHART_FONT_WEIGHT_LIGHTBOLD },
                 padding: 6,
                 align: "start",
                 crossAlign: "near"
@@ -2717,7 +2767,7 @@
           ctx.save();
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial";
+          ctx.font = `${CHART_FONT_WEIGHT_LIGHTBOLD} ${CHART_FONT_SIZE}px ${CHART_FONT_FAMILY}`;
           ctx.fillStyle = "#fff";
 
           const area = chart.chartArea || { top: 0, bottom: chart.height, left: 0, right: chart.width };
@@ -2752,7 +2802,7 @@
               i,
               x,
               y,
-              text: `${pct.toFixed(1)}%`
+              text: `${Math.round(pct)}%` // ✅ REQ #2: sem decimais
             });
           });
 
@@ -2779,7 +2829,7 @@
         data: {
           labels: ["Leve", "Média", "Grave"],
           datasets: [{
-            data: [qtdLeve || 0, qtdMedia || 0, qtdGrave || 0],
+            data: [Math.round(Number(qtdLeve) || 0), Math.round(Number(qtdMedia) || 0), Math.round(Number(qtdGrave) || 0)],
             backgroundColor: ["#1E88E5", "#6A5ACD", "#FF2DA1"],
             borderWidth: 0
           }]
@@ -2788,7 +2838,11 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: true, position: "bottom" },
+            legend: {
+              display: true,
+              position: "bottom",
+              labels: { font: { size: CHART_FONT_SIZE, weight: CHART_FONT_WEIGHT_LIGHTBOLD } }
+            },
             tooltip: {
               callbacks: {
                 label: (ctx) => {
@@ -2803,7 +2857,7 @@
 
                   const v = Number(ctx.raw || 0);
                   const pct = totalVis > 0 ? (v * 100 / totalVis) : 0;
-                  return `${ctx.label}: ${v} (${pct.toFixed(1)}%)`;
+                  return `${ctx.label}: ${Math.round(v)} (${Math.round(pct)}%)`;
                 }
               }
             }
