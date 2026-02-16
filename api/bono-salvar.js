@@ -227,12 +227,6 @@ function clamp(n, min, max){
   return Math.max(min, Math.min(max, n));
 }
 
-/**
- * Tenta confirmar a releitura várias vezes, por até ~10s.
- * - Backoff crescente + jitter (para evitar “thundering herd”)
- * - Se confirmar, retorna ok:true
- * - Se estourar o tempo, retorna ok:false com motivo
- */
 async function confirmarLeituraNaPlanilhaComRetry({ sheets, documentoUnico, qtdEsperada, updatedRange, timeoutMs = 10_000 }) {
   const startedAt = Date.now();
 
@@ -240,9 +234,8 @@ async function confirmarLeituraNaPlanilhaComRetry({ sheets, documentoUnico, qtdE
     return { ok: false, motivo: "append sem updatedRange; não foi possível verificar a base de dados." };
   }
 
-  const r = updatedRange.trim(); // ex: "BONO!A123:N127"
+  const r = updatedRange.trim(); // ex: "BONO!A123:O127"
 
-  // tentativas com backoff (ms). total aproximado <= 10s (com pequenas variações pelo jitter)
   const delaysBase = [150, 250, 400, 650, 900, 1200, 1600, 2000, 2400];
 
   let tentativa = 0;
@@ -286,7 +279,6 @@ async function confirmarLeituraNaPlanilhaComRetry({ sheets, documentoUnico, qtdE
         }
       }
     } catch (err) {
-      // Falha transitória de rede/API também entra em retry
       ultimoMotivo = `erro na releitura: ${String(err?.message || err)}`.slice(0, 180);
     }
 
@@ -301,9 +293,8 @@ async function confirmarLeituraNaPlanilhaComRetry({ sheets, documentoUnico, qtdE
       };
     }
 
-    // calcula atraso da próxima tentativa com jitter e respeita o tempo restante
     const base = delaysBase[Math.min(tentativa - 1, delaysBase.length - 1)];
-    const jitter = Math.floor(Math.random() * 120); // 0..119ms
+    const jitter = Math.floor(Math.random() * 120);
     const delay = base + jitter;
 
     const restante = timeoutMs - elapsed;
@@ -330,10 +321,7 @@ export default async function handler(req, res) {
   const dataHoraEscolhida = normalizarTexto(body.dataHoraEscolhida, 20);
   const encarregado = normalizarTexto(body.encarregado, 80);
 
-  // ✅ fornecedor (coluna M)
   const fornecedor = normalizarTexto(body.fornecedor, 80);
-
-  // ✅ placa (coluna N)
   const placaVeiculo = normalizarPlaca(body.placaVeiculo);
 
   const itens = Array.isArray(body.itens) ? body.itens : [];
@@ -369,9 +357,6 @@ export default async function handler(req, res) {
   }
 
   const spStamp = getSaoPauloStamp();
-
-  // ⚠️ continua sendo gerado aqui, mas serve como “chave de correlação”
-  // A certeza vem da RELEITURA (values.get), não do ato de gerar.
   const documentoUnico = montarDocumentoUnico({ loja, usuario, spStamp });
 
   const values = itensValidos.map((it) => {
@@ -395,7 +380,8 @@ export default async function handler(req, res) {
       status,                   // K
       documentoUnico,           // L
       fornecedorLinha,          // M
-      placaVeiculo              // N
+      placaVeiculo,             // N
+      ""                        // O ✅ Usuario q validou (vazio no salvar)
     ];
   });
 
@@ -404,7 +390,7 @@ export default async function handler(req, res) {
 
     const appendResp = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "BONO!A:N",
+      range: "BONO!A1:O1", // ✅ ancora na tabela A:O (evita “escorregar” para N:AB)
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values }
@@ -412,7 +398,6 @@ export default async function handler(req, res) {
 
     const updatedRange = appendResp?.data?.updates?.updatedRange || "";
 
-    // ✅ RELER COM RETRY (até 10s)
     const conf = await confirmarLeituraNaPlanilhaComRetry({
       sheets,
       documentoUnico,
@@ -441,9 +426,9 @@ export default async function handler(req, res) {
       documento: conf.documento,
       qtdItens: conf.qtdItens,
       totalItens: conf.qtdItens,
-      rangeConfirmado: conf.rangeConfirmado, // opcional
-      tentativasConfirmacao: conf.tentativas, // opcional (se não quiser expor, remova)
-      tempoConfirmacaoMs: conf.tempoMs        // opcional (se não quiser expor, remova)
+      rangeConfirmado: conf.rangeConfirmado,
+      tentativasConfirmacao: conf.tentativas,
+      tempoConfirmacaoMs: conf.tempoMs
     });
 
   } catch (e) {
@@ -451,11 +436,3 @@ export default async function handler(req, res) {
     return bad(res, 500, "Falha ao salvar (BONO).");
   }
 }
-
-/*
-Fontes confiáveis:
-- Google Cloud: Retry e backoff para erros transitórios: https://cloud.google.com/apis/design/errors#retrying_requests
-- Sheets API append (updates.updatedRange): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
-- Sheets API get (reler valores): https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
-- google-api-nodejs-client (Sheets): https://github.com/googleapis/google-api-nodejs-client
-*/
