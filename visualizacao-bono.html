@@ -62,6 +62,7 @@
       font-weight: 900;
     }
 
+    /* ===== Filtros ===== */
     .filtros{
       border: 1px solid #ececec;
       border-radius: 12px;
@@ -148,6 +149,7 @@
     }
     .ok{ color:#0b6b2f; }
 
+    /* ===== Lista de cartões ===== */
     .resultados-top{
       display:flex;
       align-items:center;
@@ -170,6 +172,49 @@
       padding: 5px;
       margin-bottom: 15px;
       overflow:hidden;
+    }
+
+    .doc-head{
+      border-radius: 14px;
+      border: 1px solid #eeeeee;
+      background: #f7f7f7;
+      padding: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    .doc-head-title{
+      font-size: 22px;
+      font-weight: 900;
+      color:#153b6f;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      margin: 2px 2px 10px;
+    }
+
+    .doc-badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 900;
+      letter-spacing: .2px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge-pendente{
+      background:#f6eadc;
+      border-color:#f0ddc1;
+      color:#a85d10;
+    }
+    .badge-validado{
+      background:#deefe3;
+      border-color:#cfe6d6;
+      color:#0b6b2f;
     }
 
     .doc-head-body{
@@ -270,29 +315,6 @@
       stroke:#1f4f95;
     }
 
-    .doc-badge{
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-weight: 900;
-      letter-spacing: .2px;
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-
-    .badge-pendente{
-      background:#f6eadc;
-      border-color:#f0ddc1;
-      color:#a85d10;
-    }
-    .badge-validado{
-      background:#deefe3;
-      border-color:#cfe6d6;
-      color:#0b6b2f;
-    }
-
     .btn-validar{
       border: none;
       cursor: pointer;
@@ -309,7 +331,7 @@
     .btn-validar:hover{ filter: brightness(0.96); transform: translateY(-1px); }
     .btn-validar:active{ transform: translateY(0px); }
 
-    /* ✅ Botão Excluir (somente admin) */
+    /* ✅ botão Excluir (só admin) */
     .btn-excluir{
       border: none;
       cursor: pointer;
@@ -323,7 +345,7 @@
       box-shadow: 0 8px 16px rgba(0,0,0,0.12);
       white-space: nowrap;
     }
-    .btn-excluir:hover{ filter: brightness(0.95); transform: translateY(-1px); }
+    .btn-excluir:hover{ filter: brightness(0.96); transform: translateY(-1px); }
     .btn-excluir:active{ transform: translateY(0px); }
 
     .doc-table-wrap{
@@ -367,6 +389,7 @@
 
     .doc-table tr:nth-child(even) td{ background:#fafcff; }
 
+    .col-desc{ width: auto; }
     .col-qtd{
       width: 70px;
       text-align: right;
@@ -379,10 +402,10 @@
     }
 
     @media (max-width: 560px){
+      .doc-head-title{ font-size: 12px; }
       .doc-badge{ font-size: 9px; padding: 6px 10px; }
+
       .info-row{ font-size: 10.5px; }
-      .doc-topline{ padding: 9px 10px; }
-      .doc-topline-left .status-title{ font-size: 10.5px; }
 
       .doc-table-head{
         grid-template-columns: 1fr 58px 76px;
@@ -390,24 +413,84 @@
         padding: 9px 10px;
         gap: 5px;
       }
+
       .doc-table td{
         font-size: 10.5px;
         padding: 8px 10px;
       }
+
       .col-qtd{ width:58px; }
       .col-emb{ width:76px; }
 
-      .btn-validar{ padding: 7px 10px; font-size: 10.5px; }
-      .btn-excluir{ padding: 7px 10px; font-size: 10.5px; }
+      .btn-validar, .btn-excluir{ padding: 7px 10px; font-size: 10.5px; }
+      .doc-topline{ padding: 9px 10px; }
+      .doc-topline-left .status-title{ font-size: 10.5px; }
     }
 
     .hidden{ display:none !important; }
 
+    /* ===== RODAPÉ ===== */
     .assinaturas{
       margin-top: 10px;
       display:grid;
       grid-template-columns: 1fr;
       gap: 10px;
+    }
+
+    @media (max-width: 650px){
+      .assinaturas{
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+    }
+
+    .ass-box{
+      background:#ffffff;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:flex-start;
+      gap: 10px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+      min-width: 0;
+    }
+
+    .ass-box .ass-txt{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+    }
+
+    .ass-join .ass-k{
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#1f4f95;
+      line-height: 1.1;
+    }
+
+    .ass-join .ass-v{
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#111;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space: nowrap;
+      line-height: 1.1;
+    }
+
+    @media (max-width: 560px){
+      .ass-join .ass-k{ font-size: 10.5px; }
+      .ass-join .ass-v{ font-size: 10.5px; }
+
+      .ass-join{ padding: 8px 8px; gap: 10px; }
+
+      .ass-join .ic{
+        width: 18px;
+        height: 18px;
+        flex: 0 0 18px;
+      }
     }
 
     .ass-join{
@@ -434,7 +517,13 @@
       border-radius: 1px;
     }
 
-    /* ✅ Modal genérico */
+    @media (max-width: 560px){
+      .ass-join{ padding: 8px 8px; gap: 10px; }
+      .ass-side{ gap: 8px; }
+      .ass-divider{ background: rgba(0,0,0,0.12); }
+    }
+
+    /* ✅ Modal (popup) base */
     .modal-backdrop{
       position: fixed;
       inset: 0;
@@ -491,26 +580,24 @@
     .btn-sim:hover{ opacity:.92; }
     .btn-nao:hover{ background:#dedede; }
 
-    /* input do modal excluir */
-    .modal-input{
+    /* modal excluir */
+    .danger-title{ color:#b30000; }
+    .confirm-box{
       margin-top: 10px;
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    .modal-input label{
-      margin-bottom: 6px;
-    }
-    .modal-input input{
-      width:100%;
-      padding: 10px;
+    .confirm-box input{
+      border: 1px solid #d8d8d8;
       border-radius: 10px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-      font-weight: 800;
+      padding: 10px;
+      font-weight: 900;
     }
     .hint{
-      margin-top: 8px;
       font-size: 12px;
-      font-weight: 900;
       color:#444;
+      font-weight: 800;
     }
   </style>
 </head>
@@ -583,7 +670,7 @@
     <div id="listaDocs"></div>
   </div>
 
-  <!-- ✅ Modal validar -->
+  <!-- ✅ Modal validação -->
   <div class="modal-backdrop" id="modalValidar">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalValidarTitulo">
       <div class="modal-header" id="modalValidarTitulo">Validação do Bono</div>
@@ -595,17 +682,17 @@
     </div>
   </div>
 
-  <!-- ✅ Modal excluir (admin) -->
+  <!-- ✅ Modal excluir -->
   <div class="modal-backdrop" id="modalExcluir">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalExcluirTitulo">
-      <div class="modal-header" id="modalExcluirTitulo">Excluir documento</div>
+      <div class="modal-header danger-title" id="modalExcluirTitulo">Exclusão de Documento</div>
       <div class="modal-body">
         <div id="modalExcluirTexto"></div>
 
-        <div class="modal-input">
-          <label for="modalExcluirUser">Digite seu usuário para confirmar</label>
-          <input id="modalExcluirUser" type="text" autocomplete="off" />
-          <div class="hint" id="modalExcluirHint"></div>
+        <div class="confirm-box">
+          <label for="confirmUser">Digite seu usuário para confirmar</label>
+          <input id="confirmUser" type="text" autocomplete="off" placeholder="ex: caio.castro" />
+          <div class="hint" id="hintUser"></div>
         </div>
       </div>
       <div class="modal-actions">
@@ -639,7 +726,7 @@
       "ULT 06 - SOBRADINHO","ULT 07 - ADE","ULT 08 - ARAPOANGA","ULT 09 - CEI NORTE","ULT 10 - ESTRUTURAL",
       "ULT 11 - ITAPOA","ULT 12 - SAO SEBASTIAO","ULT 13 - RECANTO","ULT 14 - AGUAS LINDAS","ULT 15 - SOL NASCENTE",
       "ULT 16 - PARANOA PARK","ULT 17 - SAMAMBAIA","ULT 18 - BRAZLANDIA","ULT 19 - VIA PARK","ULT 20 - TAGUATINGA",
-      "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 24 - PAU BRASIL","ULT 25 - BRASILINHA",
+      "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 24 - PAUL BRASIL","ULT 25 - BRASILINHA",
       "TOTAL DISTRIBUICAO","INDUSPAN","MATRIZ"
     ];
 
@@ -654,8 +741,13 @@
       el.classList.toggle("ok", !!ok);
     }
 
-    function normStr(s){ return String(s ?? "").trim(); }
-    function normKey(s){ return normStr(s).toUpperCase().replace(/\s+/g, " "); }
+    function normStr(s){
+      return String(s ?? "").trim();
+    }
+
+    function normKey(s){
+      return normStr(s).toUpperCase().replace(/\s+/g, " ");
+    }
 
     function escapeHtml(s) {
       return String(s ?? "")
@@ -671,7 +763,6 @@
     }
     function perfilEhGerentePPP(perfil){
       const p = normKey(perfil);
-      // ✅ corrigido (antes tinha um typo que quebrava JS)
       return p.includes("GERENTE_PPP") || (p.includes("GERENTE") && p.includes("PPP"));
     }
     function perfilEhBasePPP(perfil){
@@ -851,26 +942,26 @@
               E: row[4] ?? "", F: row[5] ?? "", G: row[6] ?? "", H: row[7] ?? "",
               I: row[8] ?? "", J: row[9] ?? "", K: row[10] ?? "", L: row[11] ?? "",
               M: row[12] ?? "", N: row[13] ?? "",
-              O: row[14] ?? "" // ✅ validador (coluna O)
+              O: row[14] ?? ""  /* ✅ validador */
             };
           }
           if (row && typeof row === "object") {
             return {
-              A: row.A ?? row.a ?? "",
-              B: row.B ?? row.b ?? "",
-              C: row.C ?? row.c ?? "",
-              D: row.D ?? row.d ?? "",
-              E: row.E ?? row.e ?? "",
-              F: row.F ?? row.f ?? "",
-              G: row.G ?? row.g ?? "",
-              H: row.H ?? row.h ?? "",
-              I: row.I ?? row.i ?? "",
-              J: row.J ?? row.j ?? "",
-              K: row.K ?? row.k ?? "",
-              L: row.L ?? row.l ?? "",
-              M: row.M ?? row.m ?? "",
-              N: row.N ?? row.n ?? "",
-              O: row.O ?? row.o ?? "" // ✅ validador
+              A: row.A ?? row.a ?? row.dataHoraRede ?? "",
+              B: row.B ?? row.b ?? row.dataHora ?? row.dataHoraFiltro ?? "",
+              C: row.C ?? row.c ?? row.lojaOrigem ?? "",
+              D: row.D ?? row.d ?? row.usuario ?? "",
+              E: row.E ?? row.e ?? row.responsavel ?? "",
+              F: row.F ?? row.f ?? row.descricao ?? "",
+              G: row.G ?? row.g ?? row.quantidade ?? "",
+              H: row.H ?? row.h ?? row.embalagem ?? "",
+              I: row.I ?? row.i ?? row.lojaDestino ?? "",
+              J: row.J ?? row.j ?? row.tipo ?? "",
+              K: row.K ?? row.k ?? row.status ?? "",
+              L: row.L ?? row.l ?? row.documento ?? "",
+              M: row.M ?? row.m ?? row.fornecedor ?? "",
+              N: row.N ?? row.n ?? row.placaVeiculo ?? row.placa ?? "",
+              O: row.O ?? row.o ?? row.validador ?? row.usuarioValidador ?? ""
             };
           }
           return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:"",N:"",O:""};
@@ -956,22 +1047,15 @@
       return itens;
     }
 
-    // ===== Modais =====
+    // ===== Modal Validar =====
     const modalValidar = {
       el: null, txt: null, btnSim: null, btnNao: null,
       documento: ""
     };
 
-    const modalExcluir = {
-      el: null, txt: null, input: null, hint: null,
-      btnSim: null, btnCancelar: null,
-      documento: ""
-    };
-
     function abrirModalValidar(documento){
       modalValidar.documento = documento;
-      modalValidar.txt.textContent =
-`Este Bono encontra-se pendente de validação. Confirma a validação do documento?
+      modalValidar.txt.textContent = `Este Bono encontra-se pendente de validação. Confirma a validação do documento?
 A validação deverá ser efetuada apenas após a conferência física integral, garantindo que 100% dos produtos estejam em total conformidade com este documento.`;
       modalValidar.el.classList.add("show");
     }
@@ -980,18 +1064,28 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       modalValidar.documento = "";
     }
 
+    // ===== Modal Excluir =====
+    const modalExcluir = {
+      el: null, txt: null, input: null, hint: null,
+      btnSim: null, btnCancelar: null,
+      documento: ""
+    };
+
     function abrirModalExcluir(documento){
       modalExcluir.documento = documento;
-      modalExcluir.txt.textContent =
-`A exclusão do documento é irreversível.
-Tem certeza que deseja excluir este documento?
-
-Documento: ${documento}`;
+      const u = normStr(sessaoAtual?.usuario || "");
+      modalExcluir.txt.innerHTML = `
+        <div style="font-weight:900;">
+          Esta exclusão é <span style="color:#b30000;">irreversível</span>.
+          Tem certeza que deseja excluir o documento <span style="color:#1f4f95;">${escapeHtml(documento)}</span>?
+        </div>
+      `;
       modalExcluir.input.value = "";
-      modalExcluir.hint.textContent = `Usuário logado: ${sessaoAtual?.usuario ?? ""}`;
+      modalExcluir.hint.textContent = u ? `Usuário logado: ${u}` : "";
       modalExcluir.el.classList.add("show");
       setTimeout(() => modalExcluir.input.focus(), 50);
     }
+
     function fecharModalExcluir(){
       modalExcluir.el.classList.remove("show");
       modalExcluir.documento = "";
@@ -1025,12 +1119,24 @@ Documento: ${documento}`;
       const dados = await resp.json().catch(() => null);
       const ok = !!(dados && (dados.sucesso ?? dados.success ?? dados.ok));
 
-      if (!resp.ok || !ok) throw new Error(`Falha ao validar (${resp.status})`);
+      if (!resp.ok || !ok) {
+        throw new Error(`Falha ao validar (${resp.status})`);
+      }
+
       return true;
     }
 
-    async function excluirDocumentoNoBackend(documento){
-      const payload = { documento };
+    function aplicarValidacaoLocal(documento){
+      const validador = normStr(sessaoAtual?.usuario || "");
+      linhas = linhas.map(r => {
+        const doc = normStr(r.L) || "SEM_DOCUMENTO";
+        if (doc !== documento) return r;
+        return { ...r, K: "VALIDADO", O: validador };
+      });
+    }
+
+    async function excluirDocumentoNoBackend(documento, confirmUser){
+      const payload = { documento, confirmUser };
 
       const resp = await fetch(ENDPOINT_EXCLUIR, {
         method: "POST",
@@ -1047,23 +1153,17 @@ Documento: ${documento}`;
 
       const dados = await resp.json().catch(() => null);
       const ok = !!(dados && (dados.sucesso ?? dados.success ?? dados.ok));
-      if (!resp.ok || !ok) throw new Error(`Falha ao excluir (${resp.status})`);
 
-      return dados;
-    }
+      if (!resp.ok || !ok) {
+        const msg = (dados && (dados.message || dados.mensagem)) ? String(dados.message || dados.mensagem) : `Falha ao excluir (${resp.status})`;
+        throw new Error(msg);
+      }
 
-    function aplicarValidacaoLocal(documento){
-      const user = normStr(sessaoAtual?.usuario);
-      linhas = linhas.map(r => {
-        const doc = normStr(r.L) || "SEM_DOCUMENTO";
-        if (doc !== documento) return r;
-        return { ...r, K: "VALIDADO", O: user };
-      });
+      return true;
     }
 
     function aplicarExclusaoLocal(documento){
-      // remove do dataset local (já que L some no backend ao limpar)
-      linhas = linhas.filter(r => normKey(normStr(r.L)) !== normKey(documento));
+      linhas = linhas.filter(r => normKey(normStr(r.L) || "SEM_DOCUMENTO") !== normKey(documento));
     }
 
     // ===== Ícones (SVG) =====
@@ -1076,6 +1176,7 @@ Documento: ${documento}`;
         </svg>
       `;
     }
+
     function svgClock(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1086,6 +1187,7 @@ Documento: ${documento}`;
         </svg>
       `;
     }
+
     function svgStore(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1096,6 +1198,7 @@ Documento: ${documento}`;
         </svg>
       `;
     }
+
     function svgTruck(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1106,6 +1209,7 @@ Documento: ${documento}`;
         </svg>
       `;
     }
+
     function svgPlate(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1115,6 +1219,7 @@ Documento: ${documento}`;
         </svg>
       `;
     }
+
     function svgHourglass(){
       return `
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1124,6 +1229,7 @@ Documento: ${documento}`;
         </svg>
       `;
     }
+
     function svgCheck(){
       return `
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1131,6 +1237,7 @@ Documento: ${documento}`;
         </svg>
       `;
     }
+
     function svgPerson(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1139,6 +1246,7 @@ Documento: ${documento}`;
         </svg>
       `;
     }
+
     function svgShield(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1148,21 +1256,12 @@ Documento: ${documento}`;
       `;
     }
 
-    /* ✅ ícone para "usuário validou" (usado no badge) */
-    function svgUserMark(){
-      return `
-        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="8" r="3.2" stroke="#0b6b2f" stroke-width="2"></circle>
-          <path d="M5.5 20c1.4-3.8 11.6-3.8 13 0" stroke="#0b6b2f" stroke-width="2" stroke-linecap="round"></path>
-        </svg>
-      `;
-    }
-
     function parseNumeroFlex(valor){
       const s0 = normStr(valor);
       if (!s0) return null;
 
       const s = s0.replace(/\s+/g, "");
+
       if (typeof valor === "number" && Number.isFinite(valor)) return valor;
 
       if (s.includes(",")){
@@ -1222,21 +1321,22 @@ Documento: ${documento}`;
 
         const statusCanon = statusToCanon(x.K);
 
-        const statusBase = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+        const responsavel = normStr(x.E) || "—";
+        const usuarioOrigemRegistro = normStr(x.D) || "—";
+        const fornecedor = normStr(x.M) || "—";
+        const placaVeiculo = normStr(x.N) || "";
+
+        // ✅ validador (coluna O)
+        const validador = normStr(x.O) || "";
+
+        // ✅ texto do badge (VALIDADO + usuário)
+        const statusTxtTopoBase = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
           ? "VALIDADO"
           : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
 
-        // ✅ usuário validador (coluna O). fallback: usuário da linha (D).
-        const validador = normStr(x.O) || "";
-        const statusTxtTopo =
-          (statusBase === "VALIDADO" && validador)
-            ? `VALIDADO 👤${validador}`
-            : statusBase;
-
-        const responsavel = normStr(x.E) || "—";
-        const usuarioLinha = normStr(x.D) || "—";
-        const fornecedor = normStr(x.M) || "—";
-        const placaVeiculo = normStr(x.N) || "";
+        const statusTxtTopo = (statusTxtTopoBase === "VALIDADO" && validador)
+          ? `VALIDADO 👤 ${validador}`
+          : statusTxtTopoBase;
 
         const rowsHtml = items.map(it => {
           const desc = escapeHtml(normStr(it.F) || "—");
@@ -1293,12 +1393,10 @@ Documento: ${documento}`;
           : ``;
 
         const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
-        const mostrarBtnExcluir = !!sessaoAtual && perfilEhAdmin(sessaoAtual.perfil);
+        const mostrarBtnExcluir = !!(sessaoAtual && perfilEhAdmin(sessaoAtual.perfil));
 
-        const badgeClass = (statusBase === "PENDENTE") ? "badge-pendente" : "badge-validado";
-        const badgeIcon  = (statusBase === "PENDENTE")
-          ? svgHourglass()
-          : (validador ? svgUserMark() : svgCheck());
+        const badgeClass = (statusTxtTopoBase === "PENDENTE") ? "badge-pendente" : "badge-validado";
+        const badgeIcon  = (statusTxtTopoBase === "PENDENTE") ? svgHourglass() : svgCheck();
 
         card.innerHTML = `
           <div
@@ -1335,7 +1433,7 @@ Documento: ${documento}`;
                     : ``
                 }
 
-                <div class="doc-badge ${badgeClass}">
+                <div class="doc-badge ${badgeClass}" title="${escapeHtml(statusTxtTopo)}">
                   ${badgeIcon}
                   <span>${escapeHtml(statusTxtTopo)}</span>
                 </div>
@@ -1384,7 +1482,7 @@ Documento: ${documento}`;
                 ${svgShield()}
                 <div class="ass-txt">
                   <div class="ass-k">Validação</div>
-                  <div class="ass-v">${escapeHtml(validador || usuarioLinha)}</div>
+                  <div class="ass-v">${escapeHtml(validador || usuarioOrigemRegistro)}</div>
                 </div>
               </div>
             </div>
@@ -1449,17 +1547,6 @@ Documento: ${documento}`;
       modalValidar.btnNao.addEventListener("click", () => fecharModalValidar());
       modalValidar.el.addEventListener("click", (e) => { if (e.target === modalValidar.el) fecharModalValidar(); });
 
-      // modal excluir
-      modalExcluir.el = document.getElementById("modalExcluir");
-      modalExcluir.txt = document.getElementById("modalExcluirTexto");
-      modalExcluir.input = document.getElementById("modalExcluirUser");
-      modalExcluir.hint = document.getElementById("modalExcluirHint");
-      modalExcluir.btnSim = document.getElementById("btnExcluirSim");
-      modalExcluir.btnCancelar = document.getElementById("btnExcluirCancelar");
-
-      modalExcluir.btnCancelar.addEventListener("click", () => fecharModalExcluir());
-      modalExcluir.el.addEventListener("click", (e) => { if (e.target === modalExcluir.el) fecharModalExcluir(); });
-
       modalValidar.btnSim.addEventListener("click", async () => {
         const doc = modalValidar.documento;
         if (!doc) return fecharModalValidar();
@@ -1479,31 +1566,44 @@ Documento: ${documento}`;
         }
       });
 
+      // modal excluir
+      modalExcluir.el = document.getElementById("modalExcluir");
+      modalExcluir.txt = document.getElementById("modalExcluirTexto");
+      modalExcluir.input = document.getElementById("confirmUser");
+      modalExcluir.hint = document.getElementById("hintUser");
+      modalExcluir.btnSim = document.getElementById("btnExcluirSim");
+      modalExcluir.btnCancelar = document.getElementById("btnExcluirCancelar");
+
+      modalExcluir.btnCancelar.addEventListener("click", () => fecharModalExcluir());
+      modalExcluir.el.addEventListener("click", (e) => { if (e.target === modalExcluir.el) fecharModalExcluir(); });
+
       modalExcluir.btnSim.addEventListener("click", async () => {
+        if (!sessaoAtual || !perfilEhAdmin(sessaoAtual.perfil)) {
+          fecharModalExcluir();
+          return setMsg("Perfil sem permissão para exclusão.", false);
+        }
+
         const doc = modalExcluir.documento;
+        const typed = normStr(modalExcluir.input.value);
+        const logged = normStr(sessaoAtual.usuario);
+
         if (!doc) return fecharModalExcluir();
 
-        const digitado = normStr(modalExcluir.input.value);
-        const user = normStr(sessaoAtual?.usuario);
-
-        // ✅ "bater certinho" = igualdade exata (case-sensitive)
-        if (!digitado || digitado !== user){
-          setMsg("Confirmação inválida. Digite exatamente o usuário logado.", false);
-          return;
+        if (!typed || normKey(typed) !== normKey(logged)) {
+          return setMsg("Usuário digitado não confere com o usuário logado.", false);
         }
 
         setMsg("Excluindo documento...", true);
 
         try{
-          await excluirDocumentoNoBackend(doc);
+          await excluirDocumentoNoBackend(doc, typed);
           aplicarExclusaoLocal(doc);
           fecharModalExcluir();
           setMsg("Documento excluído com sucesso.", true);
           render();
         } catch (err){
           console.error(err);
-          fecharModalExcluir();
-          setMsg("Falha ao excluir no servidor.", false);
+          setMsg(err?.message ? String(err.message) : "Falha ao excluir no servidor.", false);
         }
       });
 
