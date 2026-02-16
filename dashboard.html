@@ -2517,7 +2517,7 @@
       const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
 
       const isMobile = window.matchMedia("(max-width: 640px)").matches;
-      const maxLen = isMobile ? 18 : 26;
+      const maxLen = isMobile ? 25 : 35;
 
       const ellipsisEnd = (s, max) => {
         const t = String(s ?? "").trim();
@@ -2573,7 +2573,7 @@ options: {
           const label = this.getLabelForValue(value);
 
           const isMobile = window.matchMedia("(max-width: 640px)").matches;
-          const maxLen = isMobile ? 18 : 16;
+          const maxLen = isMobile ? 16 : 15;
 
           const text = String(label ?? "").trim();
           if (!text) return "N/I";
