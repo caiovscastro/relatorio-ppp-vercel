@@ -1,4 +1,3 @@
-// /api/bono-validar.js
 import { google } from "googleapis";
 import { requireSession } from "./_authUsuarios.js";
 
@@ -9,17 +8,12 @@ const spreadsheetId = process.env.SPREADSHEET_ID;
 function bad(res, status, message, extra = {}) {
   return res.status(status).json({ sucesso: false, message, ...extra });
 }
-
 function ok(res, obj) {
   return res.status(200).json(obj);
 }
 
-function normStr(v) {
-  return String(v ?? "").trim();
-}
-function normKey(v) {
-  return normStr(v).toUpperCase().replace(/\s+/g, " ");
-}
+function normStr(v) { return String(v ?? "").trim(); }
+function normKey(v) { return normStr(v).toUpperCase().replace(/\s+/g, " "); }
 
 function statusParaPlanilha(statusRecebido) {
   const s = normKey(statusRecebido);
@@ -34,7 +28,6 @@ async function getSheetsClient() {
     key: privateKey,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
-
   return google.sheets({ version: "v4", auth });
 }
 
@@ -62,18 +55,14 @@ export default async function handler(req, res) {
     const documento = normStr(body.documento);
     const status = statusParaPlanilha(body.status);
 
-    if (!documento) {
-      return bad(res, 400, "Campo 'documento' é obrigatório.");
-    }
+    if (!documento) return bad(res, 400, "Campo 'documento' é obrigatório.");
 
-    const usuarioValidador = normStr(session.usuario);
-    if (!usuarioValidador) {
-      return bad(res, 401, "Sessão inválida (usuário ausente).");
-    }
+    const usuarioLogado = normStr(session.usuario || session.user || "");
+    if (!usuarioLogado) return bad(res, 401, "Sessão sem usuário.");
 
     const sheets = await getSheetsClient();
 
-    // ✅ agora inclui coluna O (validador)
+    // ✅ lê até O pra garantir existência do range
     const leitura = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "BONO!A:O",
@@ -83,9 +72,7 @@ export default async function handler(req, res) {
     });
 
     const values = leitura.data.values || [];
-    if (values.length <= 1) {
-      return ok(res, { sucesso: true, atualizadas: 0, status_gravado: status });
-    }
+    if (values.length <= 1) return ok(res, { sucesso: true, atualizadas: 0, status_gravado: status });
 
     const updates = [];
     for (let i = 1; i < values.length; i++) {
@@ -94,14 +81,12 @@ export default async function handler(req, res) {
 
       if (docCell && normKey(docCell) === normKey(documento)) {
         const sheetRow = i + 1;
-        updates.push({ range: `BONO!K${sheetRow}`, values: [[status]] }); // Status
-        updates.push({ range: `BONO!O${sheetRow}`, values: [[usuarioValidador]] }); // ✅ Validador
+        updates.push({ range: `BONO!K${sheetRow}`, values: [[status]] });          // K
+        updates.push({ range: `BONO!O${sheetRow}`, values: [[usuarioLogado]] });  // O
       }
     }
 
-    if (!updates.length) {
-      return bad(res, 404, "Documento não encontrado para validação.");
-    }
+    if (!updates.length) return bad(res, 404, "Documento não encontrado para validação.");
 
     await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId,
@@ -113,10 +98,11 @@ export default async function handler(req, res) {
 
     return ok(res, {
       sucesso: true,
-      atualizadas: updates.length,
+      atualizadas: Math.floor(updates.length / 2),
       status_gravado: status,
-      validador_gravado: usuarioValidador,
+      usuario_gravado: usuarioLogado
     });
+
   } catch (e) {
     console.error("[BONO-VALIDAR] Erro:", e);
     return bad(res, 500, "Falha ao validar no servidor.", {
