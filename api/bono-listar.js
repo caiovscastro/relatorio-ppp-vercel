@@ -1,4 +1,3 @@
-// /api/bono-listar.js
 import { google } from "googleapis";
 import { requireSession } from "./_authUsuarios.js";
 
@@ -12,7 +11,6 @@ const RANGE_LISTAR = "BONO!A:O";
 function bad(res, status, message) {
   return res.status(status).json({ sucesso: false, message });
 }
-
 function ok(res, obj) {
   return res.status(200).json(obj);
 }
@@ -23,13 +21,10 @@ async function getSheetsClient() {
     key: privateKey,
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
   });
-
   return google.sheets({ version: "v4", auth });
 }
 
-function normStr(v) {
-  return String(v ?? "").trim();
-}
+function normStr(v) { return String(v ?? "").trim(); }
 
 function normalizarLinha(row = []) {
   return {
@@ -47,7 +42,7 @@ function normalizarLinha(row = []) {
     L: row[11] ?? "",
     M: row[12] ?? "",
     N: row[13] ?? "",
-    O: row[14] ?? "", // ✅ Validador
+    O: row[14] ?? "", // ✅ validador
   };
 }
 
@@ -61,7 +56,7 @@ function primeiraLinhaPareceCabecalho(row = []) {
   const pistas = [
     "data", "hora", "loja", "origem", "destino", "usuário", "usuario",
     "respons", "produto", "quant", "embal", "tipo", "status", "documento", "doc",
-    "fornecedor", "placa", "veiculo", "veículo", "validador", "validou"
+    "fornecedor", "placa", "validad", "valid"
   ];
   const hits = pistas.reduce((acc, p) => acc + (joined.includes(p) ? 1 : 0), 0);
   return hits >= 3;
@@ -94,20 +89,13 @@ export default async function handler(req, res) {
     const values = Array.isArray(resp.data.values) ? resp.data.values : [];
 
     let rows = values.filter((r) => Array.isArray(r) && !linhaEhVazia(r));
-
-    if (rows.length && primeiraLinhaPareceCabecalho(rows[0])) {
-      rows = rows.slice(1);
-    }
+    if (rows.length && primeiraLinhaPareceCabecalho(rows[0])) rows = rows.slice(1);
 
     const linhas = rows
       .map(normalizarLinha)
       .filter((r) => normStr(r.L) !== "" || normStr(r.F) !== "");
 
-    return ok(res, {
-      sucesso: true,
-      dados: linhas,
-      total: linhas.length,
-    });
+    return ok(res, { sucesso: true, dados: linhas, total: linhas.length });
 
   } catch (e) {
     console.error("[BONO-LISTAR] Erro:", e);
