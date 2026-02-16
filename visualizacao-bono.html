@@ -73,6 +73,7 @@
       margin: 0 0 10px;
     }
 
+    /* 1ª linha: Loja, Tipo, Status (sempre 3 colunas, inclusive no celular) */
     .grid-top{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -80,6 +81,7 @@
       margin-bottom: 10px;
     }
 
+    /* 2ª linha: Direção + Busca (sempre lado a lado, inclusive no celular) */
     .grid-mid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -87,6 +89,7 @@
       margin-bottom: 10px;
     }
 
+    /* 3ª linha: datas lado a lado */
     .grid-datas{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -94,8 +97,8 @@
     }
 
     @media (max-width: 560px){
-      .grid-top{ grid-template-columns: 1fr 1fr; gap: 8px; }
-      .grid-mid{ grid-template-columns: 1fr; gap: 8px; }
+      .grid-top{ grid-template-columns: 1fr 1fr 1fr; gap: 8px; } /* ✅ req #3 */
+      .grid-mid{ grid-template-columns: 1fr 1fr; gap: 8px; }     /* ✅ req #3 */
       .grid-datas{ grid-template-columns: 1fr 1fr; gap: 8px; }
     }
 
@@ -139,6 +142,7 @@
       stroke:#1f4f95;
     }
 
+    /* 4ª linha: botões */
     .actions{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -185,7 +189,6 @@
       flex-wrap: wrap;
     }
 
-    /* ✅ REQ #4: contador em verde e texto “Quantidade de documentos” */
     .contador{
       font-weight: 900;
       font-size: 13px;
@@ -198,8 +201,7 @@
       background: #ffffff;
       box-shadow: 0 14px 34px rgba(0,0,0,0.16);
       padding: 5px;
-      /* ✅ REQ #3: 50% mais distante (15px -> 23px) */
-      margin-bottom: 23px;
+      margin-bottom: 23px; /* 15px -> 23px (50% maior) */
       overflow:hidden;
     }
 
@@ -217,6 +219,7 @@
       overflow:hidden;
       text-overflow: ellipsis;
       flex: 0 0 auto;
+      /* desktop mantém como está (sem font-size explícito) */
     }
 
     .badge-pendente{
@@ -448,6 +451,9 @@
       .btn-validar, .btn-excluir{ padding: 7px 10px; font-size: 10.5px; }
       .doc-topline{ padding: 9px 10px; }
       .doc-topline-left .status-title{ font-size: 10.5px; }
+
+      /* ✅ req #1: PENDENTE/VALIDADO + 👤usuario menor no celular */
+      .doc-badge{ font-size: 11px; }
     }
 
     .hidden{ display:none !important; }
@@ -488,7 +494,7 @@
       border-radius: 1px;
     }
 
-    /* ✅ REQ #1: Responsável quebra linha e não invade a coluna “Validação” */
+    /* ✅ Responsável quebra linha e não invade a coluna “Validação” */
     .ass-resp{ flex: 1 1 58%; }
     .ass-val{  flex: 1 1 42%; }
 
@@ -515,10 +521,10 @@
       min-width:0;
     }
     .ass-resp .ass-v{
-      white-space: normal;       /* quebra linha */
-      overflow: visible;         /* não corta */
+      white-space: normal;
+      overflow: visible;
       text-overflow: clip;
-      word-break: break-word;    /* garante quebra */
+      word-break: break-word;
     }
 
     @media (max-width: 560px){
@@ -616,8 +622,6 @@
 
     <hr class="linha-logo" />
 
-    <!-- ✅ REQ #2: removido o título “BONO DIGITAL” (era este bloco) -->
-
     <div class="filtros">
       <div class="filtros-titulo">Filtros</div>
 
@@ -648,14 +652,13 @@
         </div>
       </div>
 
-      <!-- ✅ REQ #5 + #6: novo seletor + busca -->
       <div class="grid-mid">
         <div>
-          <label for="fDirecao">Documentos</label>
+          <label for="fDirecao">Direção</label>
           <select id="fDirecao">
             <option value="">Todos</option>
-            <option value="ENVIEI">Enviei</option>
-            <option value="RECEBI">Recebi</option>
+            <option value="ENVIEI">Saída</option>
+            <option value="RECEBI">Entrada</option>
           </select>
         </div>
 
@@ -693,7 +696,7 @@
     </div>
 
     <div class="resultados-top">
-      <div class="contador" id="contador">Quantidade de documentos: 0</div>
+      <div class="contador" id="contador">0 documento(s)</div>
     </div>
 
     <div id="listaDocs"></div>
@@ -1004,8 +1007,10 @@
           return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:"",N:"",O:""};
         });
 
-        setMsg(`Dados carregados: ${linhas.length} itens.`, true);
-        render();
+        /* ✅ req #6: dados carregados sempre do mais recente para o mais antigo */
+        linhas.sort((a,b) => (extrairDataISO(b.B) || "").localeCompare(extrairDataISO(a.B) || ""));
+
+        render(); /* render atualiza contador + msg com qtd de documentos do filtro */
 
       } catch (e) {
         console.error(e);
@@ -1035,7 +1040,6 @@
       return f.loja;
     }
 
-    /* ✅ REQ #5: trava/destrava seletor (Todos/Enviei/Recebi) */
     function atualizarEstadoDirecao(){
       const sel = document.getElementById("fDirecao");
       if (!sel) return;
@@ -1087,7 +1091,6 @@
         if (f.tipo && f.tipo !== tipoCanon) return false;
         if (f.status && f.status !== statusCanon) return false;
 
-        /* ✅ REQ #5: Enviei/Recebi (só quando liberado) */
         const direcaoCanon = normKey(f.direcao);
         if (lojaEfetiva && tipoCanon !== "RECEBIMENTO_MERCADORIAS") {
           if (direcaoCanon === "ENVIEI"){
@@ -1098,7 +1101,6 @@
           }
         }
 
-        /* ✅ REQ #6: busca por descrição (coluna F) */
         if (buscaKey){
           const descKey = normSearch(r.F);
           if (!descKey.includes(buscaKey)) return false;
@@ -1117,12 +1119,14 @@
       });
 
       const itens = Array.from(map.entries()).map(([documento, items]) => {
-        const primeiro = items[0] || {};
-        const dataISO = extrairDataISO(primeiro.B);
+        /* ✅ req #6: robusto (independe da ordem interna dos itens do doc) */
+        const dataISO = items.reduce((mx, it) => {
+          const d = extrairDataISO(it.B);
+          return (d && d > mx) ? d : mx;
+        }, "");
         return { documento, items, dataISO };
       });
 
-      /* ✅ sempre mais recente -> mais antigo */
       itens.sort((a,b) => (b.dataISO || "").localeCompare(a.dataISO || ""));
       return itens;
     }
@@ -1353,7 +1357,18 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       const linhasFiltradas = aplicarFiltrosNasLinhas();
       const docs = agruparPorDocumento(linhasFiltradas);
 
-      setTexto("contador", `Quantidade de documentos: ${docs.length}`);
+      setTexto("contador", `${docs.length} documento(s)`);
+
+      /* ✅ req #5: msg mostra sempre a quantidade de documentos do filtro (sem “itens”) */
+      const msgEl = document.getElementById("msg");
+      const cur = normStr(msgEl ? msgEl.textContent : "");
+      const auto =
+        !cur ||
+        cur.startsWith("Carregando dados") ||
+        cur.startsWith("Filtros limpos") ||
+        cur.startsWith("Dados carregados") ||
+        cur.endsWith("documento(s)");
+      if (auto) setMsg(`${docs.length} documento(s)`, true);
 
       const wrap = document.getElementById("listaDocs");
       wrap.innerHTML = "";
@@ -1695,7 +1710,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         el.addEventListener("change", () => { atualizarEstadoDirecao(); render(); });
       });
 
-      /* busca em tempo real */
       const fBusca = document.getElementById("fBusca");
       if (fBusca){
         fBusca.addEventListener("input", () => render());
