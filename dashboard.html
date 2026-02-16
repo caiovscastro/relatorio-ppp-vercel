@@ -2573,7 +2573,7 @@ options: {
           const label = this.getLabelForValue(value);
 
           const isMobile = window.matchMedia("(max-width: 640px)").matches;
-          const maxLen = isMobile ? 14 : 13;
+          const maxLen = isMobile ? 15 : 13;
 
           const text = String(label ?? "").trim();
           if (!text) return "N/I";
@@ -2589,7 +2589,7 @@ options: {
           if (!ctx) return;
 
           const isMobile = window.matchMedia("(max-width: 640px)").matches;
-          const maxLen = isMobile ? 14 : 13;
+          const maxLen = isMobile ? 15 : 13;
 
           ctx.save();
           ctx.font = "12px Arial";
