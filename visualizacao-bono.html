@@ -204,6 +204,7 @@
       max-width: 100%;
       overflow:hidden;
       text-overflow: ellipsis;
+      flex: 0 0 auto;
     }
 
     .badge-pendente{
@@ -234,6 +235,7 @@
       border: 1px solid #e7e7e7;
       border-radius: 999px;
       padding: 10px 12px;
+      min-width: 0;
     }
 
     .doc-topline-left{
@@ -243,6 +245,7 @@
       min-width: 0;
       font-weight: 900;
       color:#1b2c55;
+      flex: 0 0 auto;
     }
 
     .doc-topline-left .status-title{
@@ -251,13 +254,19 @@
       white-space: nowrap;
     }
 
+    /* ✅ REQ #2: manter VALIDAR + EXCLUIR + PENDENTE/VALIDADO na mesma linha (até no celular) */
     .doc-topline-right{
       display:flex;
       align-items:center;
       gap: 10px;
       justify-content:flex-end;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;           /* ✅ não quebra */
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: auto;            /* ✅ se faltar espaço, rola horizontal */
+      -webkit-overflow-scrolling: touch;
     }
+    .doc-topline-right::-webkit-scrollbar{ height: 0px; }
 
     .head-sep{
       border: none;
@@ -327,6 +336,7 @@
       color: #ffffff;
       box-shadow: 0 8px 16px rgba(0,0,0,0.12);
       white-space: nowrap;
+      flex: 0 0 auto;
     }
     .btn-validar:hover{ filter: brightness(0.96); transform: translateY(-1px); }
     .btn-validar:active{ transform: translateY(0px); }
@@ -344,6 +354,7 @@
       color: #ffffff;
       box-shadow: 0 8px 16px rgba(0,0,0,0.12);
       white-space: nowrap;
+      flex: 0 0 auto;
     }
     .btn-excluir:hover{ filter: brightness(0.96); transform: translateY(-1px); }
     .btn-excluir:active{ transform: translateY(0px); }
@@ -1329,11 +1340,12 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         // ✅ validador (coluna O)
         const validador = normStr(x.O) || "";
 
-        // ✅ texto do badge (VALIDADO + usuário)
+        // base do status (mantém lógica)
         const statusTxtTopoBase = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
           ? "VALIDADO"
           : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
 
+        // ✅ texto do badge (mantém SVG de verificado antes de "VALIDADO")
         const statusTxtTopo = (statusTxtTopoBase === "VALIDADO" && validador)
           ? `VALIDADO 👤 ${validador}`
           : statusTxtTopoBase;
