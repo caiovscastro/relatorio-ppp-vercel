@@ -64,7 +64,6 @@ export default async function handler(req, res) {
 
     const sheets = await getSheetsClient();
 
-    // ✅ lê BONO!A:O para achar as linhas do documento (coluna L = índice 11)
     const leitura = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "BONO!A:O",
@@ -77,20 +76,20 @@ export default async function handler(req, res) {
     if (values.length <= 1) return ok(res, { sucesso: true, limpadas: 0 });
 
     const linhasParaLimpar = [];
-    for (let i = 1; i < values.length; i++) { // ignora cabeçalho
+    for (let i = 1; i < values.length; i++) {
       const row = values[i] || [];
       const docCell = normStr(row[11]); // L
       if (docCell && normKey(docCell) === normKey(documento)) {
-        linhasParaLimpar.push(i + 1); // 1-based row number na planilha
+        linhasParaLimpar.push(i + 1); // 1-based
       }
     }
 
+    // ✅ REQ #4: não retornar 404 (tratamos como já limpo / não encontrado)
     if (!linhasParaLimpar.length) {
-      return bad(res, 404, "Documento não encontrado para exclusão.");
+      return ok(res, { sucesso: true, limpadas: 0, message: "Documento não encontrado (possivelmente já limpo)." });
     }
 
-    // ✅ limpar A:O da(s) linha(s) do documento (mantém a linha física)
-    const emptyRow = Array.from({ length: 15 }, () => ""); // A..O = 15 colunas
+    const emptyRow = Array.from({ length: 15 }, () => ""); // A..O
     const data = linhasParaLimpar.map((rowNumber) => ({
       range: `BONO!A${rowNumber}:O${rowNumber}`,
       values: [emptyRow],
