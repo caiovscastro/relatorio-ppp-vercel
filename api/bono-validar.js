@@ -23,7 +23,7 @@ function normKey(v) {
 
 function statusParaPlanilha(statusRecebido) {
   const s = normKey(statusRecebido);
-  if (s.includes("VALID")) return "Validado"; // ✅ padrão da sua planilha
+  if (s.includes("VALID")) return "Validado";
   if (s.includes("PEND")) return "PENDENTE";
   return "Validado";
 }
@@ -66,12 +66,17 @@ export default async function handler(req, res) {
       return bad(res, 400, "Campo 'documento' é obrigatório.");
     }
 
+    const usuarioValidador = normStr(session.usuario);
+    if (!usuarioValidador) {
+      return bad(res, 401, "Sessão inválida (usuário ausente).");
+    }
+
     const sheets = await getSheetsClient();
 
-    // ✅ Pode ser A:M agora (não muda índices de K e L)
+    // ✅ agora inclui coluna O (validador)
     const leitura = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "BONO!A:M",
+      range: "BONO!A:O",
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
       dateTimeRenderOption: "FORMATTED_STRING",
@@ -89,10 +94,8 @@ export default async function handler(req, res) {
 
       if (docCell && normKey(docCell) === normKey(documento)) {
         const sheetRow = i + 1;
-        updates.push({
-          range: `BONO!K${sheetRow}`,
-          values: [[status]],
-        });
+        updates.push({ range: `BONO!K${sheetRow}`, values: [[status]] }); // Status
+        updates.push({ range: `BONO!O${sheetRow}`, values: [[usuarioValidador]] }); // ✅ Validador
       }
     }
 
@@ -112,6 +115,7 @@ export default async function handler(req, res) {
       sucesso: true,
       atualizadas: updates.length,
       status_gravado: status,
+      validador_gravado: usuarioValidador,
     });
   } catch (e) {
     console.error("[BONO-VALIDAR] Erro:", e);
