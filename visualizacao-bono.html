@@ -22,7 +22,7 @@
 
     /* ✅ REQ #3: cartão principal camuflado/invisível */
     .container{
-      width: 98%;
+      width: 97%;
       max-width: 1300px;
 
       background: transparent;
@@ -731,8 +731,9 @@
     let linhas = [];
     let ENDPOINT_LISTAR_RESOLVIDO = "";
 
-    const ENDPOINT_VALIDAR = "/api/bono-validar.js";
-    const ENDPOINT_EXCLUIR = "/api/bono-excluir.js";
+    /* ✅ FIX 404 Vercel: tenta com .js e sem .js (não quebra nada) */
+    const ENDPOINT_VALIDAR = ["/api/bono-validar.js", "/api/bono-validar"];
+    const ENDPOINT_EXCLUIR = ["/api/bono-excluir.js", "/api/bono-excluir"];
 
     const LOJAS = [
       "BIG 01 - 106 NORTE","BIG 02 - 402 NORTE","BIG 03 - 413 SUL","BIG 04 - 301 SW","BIG 05 - 408 NORTE",
@@ -1109,29 +1110,52 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       return normKey(lojaDestino) === normKey(sessaoAtual.loja);
     }
 
+    /* ============================
+       ✅ FIX 404: POST com fallback
+       ============================ */
+    async function postComFallback(endpoints, payload){
+      let lastErr = null;
+
+      for (const ep of endpoints){
+        try{
+          const resp = await fetch(ep, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (resp.status === 404) {
+            lastErr = new Error(`Endpoint não encontrado: ${ep}`);
+            continue;
+          }
+
+          const ct = (resp.headers.get("content-type") || "").toLowerCase();
+          if (!ct.includes("application/json")) {
+            const t = await resp.text().catch(() => "");
+            throw new Error(`Backend não retornou JSON (${resp.status}): ${(t || "").slice(0, 200)}`);
+          }
+
+          const dados = await resp.json().catch(() => null);
+          const ok = !!(dados && (dados.sucesso ?? dados.success ?? dados.ok));
+
+          if (!resp.ok || !ok) {
+            const msg = (dados && (dados.message || dados.mensagem)) ? String(dados.message || dados.mensagem) : `Falha (${resp.status})`;
+            throw new Error(msg);
+          }
+
+          return dados;
+        } catch (e){
+          lastErr = e;
+          continue;
+        }
+      }
+
+      throw lastErr || new Error("Falha ao chamar endpoint.");
+    }
+
     async function validarDocumentoNoBackend(documento){
-      const payload = { documento: documento, status: "VALIDADO" };
-
-      const resp = await fetch(ENDPOINT_VALIDAR, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Accept": "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const ct = (resp.headers.get("content-type") || "").toLowerCase();
-      if (!ct.includes("application/json")) {
-        const t = await resp.text().catch(() => "");
-        throw new Error(`Backend não retornou JSON (${resp.status}): ${(t || "").slice(0, 200)}`);
-      }
-
-      const dados = await resp.json().catch(() => null);
-      const ok = !!(dados && (dados.sucesso ?? dados.success ?? dados.ok));
-
-      if (!resp.ok || !ok) {
-        throw new Error(`Falha ao validar (${resp.status})`);
-      }
-
+      await postComFallback(ENDPOINT_VALIDAR, { documento: documento, status: "VALIDADO" });
       return true;
     }
 
@@ -1145,29 +1169,7 @@ A validação deverá ser efetuada apenas após a conferência física integral,
     }
 
     async function excluirDocumentoNoBackend(documento, confirmUser){
-      const payload = { documento, confirmUser };
-
-      const resp = await fetch(ENDPOINT_EXCLUIR, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Accept": "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const ct = (resp.headers.get("content-type") || "").toLowerCase();
-      if (!ct.includes("application/json")) {
-        const t = await resp.text().catch(() => "");
-        throw new Error(`Backend não retornou JSON (${resp.status}): ${(t || "").slice(0, 200)}`);
-      }
-
-      const dados = await resp.json().catch(() => null);
-      const ok = !!(dados && (dados.sucesso ?? dados.success ?? dados.ok));
-
-      if (!resp.ok || !ok) {
-        const msg = (dados && (dados.message || dados.mensagem)) ? String(dados.message || dados.mensagem) : `Falha ao excluir (${resp.status})`;
-        throw new Error(msg);
-      }
-
+      await postComFallback(ENDPOINT_EXCLUIR, { documento, confirmUser });
       return true;
     }
 
