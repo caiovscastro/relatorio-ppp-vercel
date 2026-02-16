@@ -9,7 +9,6 @@ const spreadsheetId = process.env.SPREADSHEET_ID;
 function bad(res, status, message, extra = {}) {
   return res.status(status).json({ sucesso: false, message, ...extra });
 }
-
 function ok(res, obj) {
   return res.status(200).json(obj);
 }
@@ -29,13 +28,6 @@ async function getSheetsClient() {
   });
 
   return google.sheets({ version: "v4", auth });
-}
-
-async function getSheetIdByName(sheets, title) {
-  const meta = await sheets.spreadsheets.get({ spreadsheetId });
-  const sh = (meta.data.sheets || []).find(s => s?.properties?.title === title);
-  const sheetId = sh?.properties?.sheetId;
-  return Number.isFinite(sheetId) ? sheetId : null;
 }
 
 export default async function handler(req, res) {
@@ -71,10 +63,8 @@ export default async function handler(req, res) {
     }
 
     const sheets = await getSheetsClient();
-    const sheetId = await getSheetIdByName(sheets, "BONO");
-    if (sheetId == null) return bad(res, 500, "Aba 'BONO' não encontrada.");
 
-    // lê tudo para achar linhas do documento (L)
+    // ✅ lê BONO!A:O para achar as linhas do documento (coluna L = índice 11)
     const leitura = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "BONO!A:O",
@@ -84,42 +74,37 @@ export default async function handler(req, res) {
     });
 
     const values = leitura.data.values || [];
-    if (values.length <= 1) return ok(res, { sucesso: true, excluidas: 0 });
+    if (values.length <= 1) return ok(res, { sucesso: true, limpadas: 0 });
 
-    // encontra índices (0-based) das linhas a excluir (ignorando cabeçalho)
-    const linhasParaExcluir = [];
-    for (let i = 1; i < values.length; i++) {
+    const linhasParaLimpar = [];
+    for (let i = 1; i < values.length; i++) { // ignora cabeçalho
       const row = values[i] || [];
       const docCell = normStr(row[11]); // L
       if (docCell && normKey(docCell) === normKey(documento)) {
-        linhasParaExcluir.push(i); // 0-based na grade
+        linhasParaLimpar.push(i + 1); // 1-based row number na planilha
       }
     }
 
-    if (!linhasParaExcluir.length) {
+    if (!linhasParaLimpar.length) {
       return bad(res, 404, "Documento não encontrado para exclusão.");
     }
 
-    // deletar de baixo pra cima (para não deslocar índices)
-    linhasParaExcluir.sort((a,b) => b - a);
-
-    const requests = linhasParaExcluir.map(idx => ({
-      deleteDimension: {
-        range: {
-          sheetId,
-          dimension: "ROWS",
-          startIndex: idx,
-          endIndex: idx + 1,
-        }
-      }
+    // ✅ limpar A:O da(s) linha(s) do documento (mantém a linha física)
+    const emptyRow = Array.from({ length: 15 }, () => ""); // A..O = 15 colunas
+    const data = linhasParaLimpar.map((rowNumber) => ({
+      range: `BONO!A${rowNumber}:O${rowNumber}`,
+      values: [emptyRow],
     }));
 
-    await sheets.spreadsheets.batchUpdate({
+    await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId,
-      requestBody: { requests }
+      requestBody: {
+        valueInputOption: "RAW",
+        data,
+      },
     });
 
-    return ok(res, { sucesso: true, excluidas: linhasParaExcluir.length });
+    return ok(res, { sucesso: true, limpadas: linhasParaLimpar.length });
   } catch (e) {
     console.error("[BONO-EXCLUIR] Erro:", e);
     return bad(res, 500, "Falha ao excluir no servidor.", {
