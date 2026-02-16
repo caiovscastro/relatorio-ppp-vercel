@@ -19,7 +19,7 @@
     }
 
     .container{
-      width: 97%;
+      width: 98%;
       max-width: 1300px;
       background:#ededed;
       padding: 22px 8px 22px;
@@ -737,7 +737,7 @@
       "ULT 06 - SOBRADINHO","ULT 07 - ADE","ULT 08 - ARAPOANGA","ULT 09 - CEI NORTE","ULT 10 - ESTRUTURAL",
       "ULT 11 - ITAPOA","ULT 12 - SAO SEBASTIAO","ULT 13 - RECANTO","ULT 14 - AGUAS LINDAS","ULT 15 - SOL NASCENTE",
       "ULT 16 - PARANOA PARK","ULT 17 - SAMAMBAIA","ULT 18 - BRAZLANDIA","ULT 19 - VIA PARK","ULT 20 - TAGUATINGA",
-      "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 24 - PAUL BRASIL","ULT 25 - BRASILINHA",
+      "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 24 - PAU BRASIL","ULT 25 - BRASILINHA",
       "TOTAL DISTRIBUICAO","INDUSPAN","MATRIZ"
     ];
 
@@ -1347,7 +1347,7 @@ A validação deverá ser efetuada apenas após a conferência física integral,
 
         // ✅ texto do badge (mantém SVG de verificado antes de "VALIDADO")
         const statusTxtTopo = (statusTxtTopoBase === "VALIDADO" && validador)
-          ? `VALIDADO 👤 ${validador}`
+          ? `VALIDADO 👤${validador}`
           : statusTxtTopoBase;
 
         const rowsHtml = items.map(it => {
