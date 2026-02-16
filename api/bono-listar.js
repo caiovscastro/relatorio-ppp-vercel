@@ -6,8 +6,8 @@ const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
-// ✅ Agora inclui a coluna N (Placa do veículo)
-const RANGE_LISTAR = "BONO!A:N";
+// ✅ Agora inclui a coluna O (Validador)
+const RANGE_LISTAR = "BONO!A:O";
 
 function bad(res, status, message) {
   return res.status(status).json({ sucesso: false, message });
@@ -33,20 +33,21 @@ function normStr(v) {
 
 function normalizarLinha(row = []) {
   return {
-    A: row[0] ?? "",  // Data/Hora rede
-    B: row[1] ?? "",  // Data/Hora escolhida
-    C: row[2] ?? "",  // Loja origem
-    D: row[3] ?? "",  // Usuário
-    E: row[4] ?? "",  // Responsável
-    F: row[5] ?? "",  // Produto
-    G: row[6] ?? "",  // Quantidade
-    H: row[7] ?? "",  // Embalagem
-    I: row[8] ?? "",  // Loja destino
-    J: row[9] ?? "",  // Tipo
-    K: row[10] ?? "", // Status (ex.: "Validado" / "PENDENTE")
-    L: row[11] ?? "", // Documento
-    M: row[12] ?? "", // Fornecedor
-    N: row[13] ?? "", // ✅ Placa do veículo
+    A: row[0] ?? "",
+    B: row[1] ?? "",
+    C: row[2] ?? "",
+    D: row[3] ?? "",
+    E: row[4] ?? "",
+    F: row[5] ?? "",
+    G: row[6] ?? "",
+    H: row[7] ?? "",
+    I: row[8] ?? "",
+    J: row[9] ?? "",
+    K: row[10] ?? "",
+    L: row[11] ?? "",
+    M: row[12] ?? "",
+    N: row[13] ?? "",
+    O: row[14] ?? "", // ✅ Validador
   };
 }
 
@@ -60,8 +61,7 @@ function primeiraLinhaPareceCabecalho(row = []) {
   const pistas = [
     "data", "hora", "loja", "origem", "destino", "usuário", "usuario",
     "respons", "produto", "quant", "embal", "tipo", "status", "documento", "doc",
-    "fornecedor",
-    "placa", "veiculo", "veículo"
+    "fornecedor", "placa", "veiculo", "veículo", "validador", "validou"
   ];
   const hits = pistas.reduce((acc, p) => acc + (joined.includes(p) ? 1 : 0), 0);
   return hits >= 3;
