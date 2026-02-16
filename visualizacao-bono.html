@@ -2,11 +2,13 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ✅ REQ #2: remove “zoom” no celular ao abrir (viewport travado igual seus outros módulos) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <title>BONO DIGITAL</title>
 
   <style>
     html, body{ width:100%; max-width:100%; overflow-x:hidden; }
+    html{ -webkit-text-size-adjust: 100%; } /* ✅ REQ #2: evita ajuste/zoom de texto no mobile */
     body{
       background:#f3f3f3;
       font-family: Arial, sans-serif;
@@ -14,23 +16,25 @@
       justify-content:center;
       align-items:flex-start;
       min-height:100vh;
-      margin:2px;
+      margin:0; /* ✅ REQ #3: sem margem no “cartão principal”/layout */
       color:#111;
     }
 
+    /* ✅ REQ #3: cartão principal camuflado/invisível */
     .container{
-      width: 98%;
+      width: 100%;
       max-width: 1300px;
-      background:#ededed;
-      padding: 22px 8px 22px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      box-shadow: none;
       box-sizing: border-box;
-      margin-top: 10px;
+      margin-top: 0;
     }
 
     @media (min-width: 901px){
-      .container{ max-width: 910px; }
+      .container{ max-width: 910px; } /* mantido (seu comportamento atual) */
     }
 
     .logo-menu{
@@ -254,16 +258,21 @@
       white-space: nowrap;
     }
 
-    /* ✅ REQ #2: manter VALIDAR + EXCLUIR + PENDENTE/VALIDADO na mesma linha (até no celular) */
+    /* ✅ REQ #1: no celular some “Status:” (desktop mantém) */
+    @media (max-width: 560px){
+      .doc-topline-left .status-title{ display:none !important; }
+    }
+
+    /* ✅ manter VALIDAR + EXCLUIR + PENDENTE/VALIDADO na mesma linha */
     .doc-topline-right{
       display:flex;
       align-items:center;
       gap: 10px;
       justify-content:flex-end;
-      flex-wrap: nowrap;           /* ✅ não quebra */
+      flex-wrap: nowrap;
       min-width: 0;
       max-width: 100%;
-      overflow-x: auto;            /* ✅ se faltar espaço, rola horizontal */
+      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
     .doc-topline-right::-webkit-scrollbar{ height: 0px; }
@@ -341,7 +350,6 @@
     .btn-validar:hover{ filter: brightness(0.96); transform: translateY(-1px); }
     .btn-validar:active{ transform: translateY(0px); }
 
-    /* ✅ botão Excluir (só admin) */
     .btn-excluir{
       border: none;
       cursor: pointer;
@@ -435,7 +443,7 @@
 
       .btn-validar, .btn-excluir{ padding: 7px 10px; font-size: 10.5px; }
       .doc-topline{ padding: 9px 10px; }
-      .doc-topline-left .status-title{ font-size: 10.5px; }
+      .doc-topline-left .status-title{ font-size: 10.5px; } /* (não aparece no mobile por regra acima) */
     }
 
     .hidden{ display:none !important; }
@@ -591,7 +599,6 @@
     .btn-sim:hover{ opacity:.92; }
     .btn-nao:hover{ background:#dedede; }
 
-    /* modal excluir */
     .danger-title{ color:#b30000; }
     .confirm-box{
       margin-top: 10px;
@@ -953,7 +960,7 @@
               E: row[4] ?? "", F: row[5] ?? "", G: row[6] ?? "", H: row[7] ?? "",
               I: row[8] ?? "", J: row[9] ?? "", K: row[10] ?? "", L: row[11] ?? "",
               M: row[12] ?? "", N: row[13] ?? "",
-              O: row[14] ?? ""  /* ✅ validador */
+              O: row[14] ?? ""
             };
           }
           if (row && typeof row === "object") {
@@ -1058,11 +1065,7 @@
       return itens;
     }
 
-    // ===== Modal Validar =====
-    const modalValidar = {
-      el: null, txt: null, btnSim: null, btnNao: null,
-      documento: ""
-    };
+    const modalValidar = { el: null, txt: null, btnSim: null, btnNao: null, documento: "" };
 
     function abrirModalValidar(documento){
       modalValidar.documento = documento;
@@ -1075,12 +1078,7 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       modalValidar.documento = "";
     }
 
-    // ===== Modal Excluir =====
-    const modalExcluir = {
-      el: null, txt: null, input: null, hint: null,
-      btnSim: null, btnCancelar: null,
-      documento: ""
-    };
+    const modalExcluir = { el: null, txt: null, input: null, hint: null, btnSim: null, btnCancelar: null, documento: "" };
 
     function abrirModalExcluir(documento){
       modalExcluir.documento = documento;
@@ -1177,7 +1175,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       linhas = linhas.filter(r => normKey(normStr(r.L) || "SEM_DOCUMENTO") !== normKey(documento));
     }
 
-    // ===== Ícones (SVG) =====
     function svgInfo(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1187,7 +1184,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-
     function svgClock(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1198,7 +1194,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-
     function svgStore(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1209,7 +1204,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-
     function svgTruck(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1220,7 +1214,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-
     function svgPlate(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1230,7 +1223,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-
     function svgHourglass(){
       return `
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1240,7 +1232,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-
     function svgCheck(){
       return `
         <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1248,7 +1239,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-
     function svgPerson(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1257,7 +1247,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-
     function svgShield(){
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1292,15 +1281,10 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       if (n == null) return normStr(qtdRaw) || "—";
 
       if (emb === "KG"){
-        return new Intl.NumberFormat("pt-BR", {
-          minimumFractionDigits: 3,
-          maximumFractionDigits: 3
-        }).format(n);
+        return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(n);
       }
 
-      return new Intl.NumberFormat("pt-BR", {
-        maximumFractionDigits: 0
-      }).format(n);
+      return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
     }
 
     function render(){
@@ -1336,16 +1320,12 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         const usuarioOrigemRegistro = normStr(x.D) || "—";
         const fornecedor = normStr(x.M) || "—";
         const placaVeiculo = normStr(x.N) || "";
-
-        // ✅ validador (coluna O)
         const validador = normStr(x.O) || "";
 
-        // base do status (mantém lógica)
         const statusTxtTopoBase = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
           ? "VALIDADO"
           : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
 
-        // ✅ texto do badge (mantém SVG de verificado antes de "VALIDADO")
         const statusTxtTopo = (statusTxtTopoBase === "VALIDADO" && validador)
           ? `VALIDADO 👤${validador}`
           : statusTxtTopoBase;
@@ -1550,7 +1530,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      // modal validar
       modalValidar.el = document.getElementById("modalValidar");
       modalValidar.txt = document.getElementById("modalValidarTexto");
       modalValidar.btnSim = document.getElementById("btnModalSim");
@@ -1578,7 +1557,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         }
       });
 
-      // modal excluir
       modalExcluir.el = document.getElementById("modalExcluir");
       modalExcluir.txt = document.getElementById("modalExcluirTexto");
       modalExcluir.input = document.getElementById("confirmUser");
