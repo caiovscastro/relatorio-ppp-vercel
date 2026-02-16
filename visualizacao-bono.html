@@ -2,13 +2,13 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ REQ #2: remove “zoom” no celular ao abrir (viewport travado igual seus outros módulos) -->
+  <!-- ✅ remove “zoom” no celular ao abrir (viewport travado igual seus outros módulos) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <title>BONO DIGITAL</title>
 
   <style>
     html, body{ width:100%; max-width:100%; overflow-x:hidden; }
-    html{ -webkit-text-size-adjust: 100%; } /* ✅ REQ #2: evita ajuste/zoom de texto no mobile */
+    html{ -webkit-text-size-adjust: 100%; } /* ✅ evita ajuste/zoom de texto no mobile */
     body{
       background:#f3f3f3;
       font-family: Arial, sans-serif;
@@ -16,15 +16,14 @@
       justify-content:center;
       align-items:flex-start;
       min-height:100vh;
-      margin:0; /* ✅ REQ #3: sem margem no “cartão principal”/layout */
+      margin:0;
       color:#111;
     }
 
-    /* ✅ REQ #3: cartão principal camuflado/invisível */
+    /* ✅ cartão principal camuflado/invisível */
     .container{
       width: 97%;
       max-width: 1300px;
-
       background: transparent;
       padding: 0;
       border-radius: 0;
@@ -34,7 +33,7 @@
     }
 
     @media (min-width: 901px){
-      .container{ max-width: 910px; } /* mantido (seu comportamento atual) */
+      .container{ max-width: 910px; }
     }
 
     .logo-menu{
@@ -59,13 +58,6 @@
       margin: 6px 0 14px;
     }
 
-    .titulo{
-      text-align:center;
-      margin: 8px 0 12px;
-      font-size: 20px;
-      font-weight: 900;
-    }
-
     /* ===== Filtros ===== */
     .filtros{
       border: 1px solid #ececec;
@@ -88,6 +80,13 @@
       margin-bottom: 10px;
     }
 
+    .grid-mid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
     .grid-datas{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -95,7 +94,8 @@
     }
 
     @media (max-width: 560px){
-      .grid-top{ grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+      .grid-top{ grid-template-columns: 1fr 1fr; gap: 8px; }
+      .grid-mid{ grid-template-columns: 1fr; gap: 8px; }
       .grid-datas{ grid-template-columns: 1fr 1fr; gap: 8px; }
     }
 
@@ -115,6 +115,28 @@
       font-size: 14px;
       outline:none;
       background:#fff;
+    }
+
+    /* ✅ Busca com ícone */
+    .search-wrap{
+      position: relative;
+      width:100%;
+    }
+    .search-wrap input{
+      padding-left: 42px;
+    }
+    .search-ic{
+      position:absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      pointer-events:none;
+      opacity: .85;
+    }
+    .search-ic path, .search-ic circle, .search-ic line{
+      stroke:#1f4f95;
     }
 
     .actions{
@@ -162,10 +184,12 @@
       margin: 6px 0 6px;
       flex-wrap: wrap;
     }
+
+    /* ✅ REQ #4: contador em verde e texto “Quantidade de documentos” */
     .contador{
       font-weight: 900;
       font-size: 13px;
-      color:#222;
+      color:#0b6b2f;
     }
 
     .doc-card{
@@ -174,25 +198,9 @@
       background: #ffffff;
       box-shadow: 0 14px 34px rgba(0,0,0,0.16);
       padding: 5px;
-      margin-bottom: 15px;
+      /* ✅ REQ #3: 50% mais distante (15px -> 23px) */
+      margin-bottom: 23px;
       overflow:hidden;
-    }
-
-    .doc-head{
-      border-radius: 14px;
-      border: 1px solid #eeeeee;
-      background: #f7f7f7;
-      padding: 12px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
-    }
-
-    .doc-head-title{
-      font-size: 22px;
-      font-weight: 900;
-      color:#153b6f;
-      letter-spacing: .4px;
-      text-transform: uppercase;
-      margin: 2px 2px 10px;
     }
 
     .doc-badge{
@@ -258,12 +266,11 @@
       white-space: nowrap;
     }
 
-    /* ✅ REQ #1: no celular some “Status:” (desktop mantém) */
+    /* no celular some “Status:” */
     @media (max-width: 560px){
       .doc-topline-left .status-title{ display:none !important; }
     }
 
-    /* ✅ manter VALIDAR + EXCLUIR + PENDENTE/VALIDADO na mesma linha */
     .doc-topline-right{
       display:flex;
       align-items:center;
@@ -421,9 +428,6 @@
     }
 
     @media (max-width: 560px){
-      .doc-head-title{ font-size: 12px; }
-      .doc-badge{ font-size: 9px; padding: 6px 10px; }
-
       .info-row{ font-size: 10.5px; }
 
       .doc-table-head{
@@ -443,7 +447,7 @@
 
       .btn-validar, .btn-excluir{ padding: 7px 10px; font-size: 10.5px; }
       .doc-topline{ padding: 9px 10px; }
-      .doc-topline-left .status-title{ font-size: 10.5px; } /* (não aparece no mobile por regra acima) */
+      .doc-topline-left .status-title{ font-size: 10.5px; }
     }
 
     .hidden{ display:none !important; }
@@ -457,59 +461,7 @@
     }
 
     @media (max-width: 650px){
-      .assinaturas{
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
-    }
-
-    .ass-box{
-      background:#ffffff;
-      border: 1px solid #eeeeee;
-      border-radius: 14px;
-      padding: 10px 12px;
-      display:flex;
-      align-items:flex-start;
-      gap: 10px;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
-      min-width: 0;
-    }
-
-    .ass-box .ass-txt{
-      min-width:0;
-      display:flex;
-      flex-direction:column;
-      gap: 2px;
-    }
-
-    .ass-join .ass-k{
-      font-size: 12.5px;
-      font-weight: 800;
-      color:#1f4f95;
-      line-height: 1.1;
-    }
-
-    .ass-join .ass-v{
-      font-size: 12.5px;
-      font-weight: 800;
-      color:#111;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space: nowrap;
-      line-height: 1.1;
-    }
-
-    @media (max-width: 560px){
-      .ass-join .ass-k{ font-size: 10.5px; }
-      .ass-join .ass-v{ font-size: 10.5px; }
-
-      .ass-join{ padding: 8px 8px; gap: 10px; }
-
-      .ass-join .ic{
-        width: 18px;
-        height: 18px;
-        flex: 0 0 18px;
-      }
+      .assinaturas{ grid-template-columns: 1fr; gap: 8px; }
     }
 
     .ass-join{
@@ -536,10 +488,46 @@
       border-radius: 1px;
     }
 
+    /* ✅ REQ #1: Responsável quebra linha e não invade a coluna “Validação” */
+    .ass-resp{ flex: 1 1 58%; }
+    .ass-val{  flex: 1 1 42%; }
+
+    .ass-txt{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+    }
+    .ass-k{
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#1f4f95;
+      line-height: 1.1;
+    }
+    .ass-v{
+      font-size: 12.5px;
+      font-weight: 800;
+      color:#111;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space: nowrap;
+      line-height: 1.1;
+      min-width:0;
+    }
+    .ass-resp .ass-v{
+      white-space: normal;       /* quebra linha */
+      overflow: visible;         /* não corta */
+      text-overflow: clip;
+      word-break: break-word;    /* garante quebra */
+    }
+
     @media (max-width: 560px){
       .ass-join{ padding: 8px 8px; gap: 10px; }
       .ass-side{ gap: 8px; }
       .ass-divider{ background: rgba(0,0,0,0.12); }
+      .ass-k{ font-size: 10.5px; }
+      .ass-v{ font-size: 10.5px; }
+      .ic{ width: 18px; height: 18px; flex: 0 0 18px; }
     }
 
     /* ✅ Modal (popup) base */
@@ -628,7 +616,7 @@
 
     <hr class="linha-logo" />
 
-    <div class="titulo">BONO DIGITAL</div>
+    <!-- ✅ REQ #2: removido o título “BONO DIGITAL” (era este bloco) -->
 
     <div class="filtros">
       <div class="filtros-titulo">Filtros</div>
@@ -660,6 +648,29 @@
         </div>
       </div>
 
+      <!-- ✅ REQ #5 + #6: novo seletor + busca -->
+      <div class="grid-mid">
+        <div>
+          <label for="fDirecao">Documentos</label>
+          <select id="fDirecao">
+            <option value="">Todos</option>
+            <option value="ENVIEI">Enviei</option>
+            <option value="RECEBI">Recebi</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="fBusca">Buscar por descrição</label>
+          <div class="search-wrap">
+            <svg class="search-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
+              <line x1="16.8" y1="16.8" x2="21" y2="21" stroke-width="2" stroke-linecap="round"></line>
+            </svg>
+            <input id="fBusca" type="text" placeholder="Digite parte da descrição..." autocomplete="off" />
+          </div>
+        </div>
+      </div>
+
       <div class="grid-datas">
         <div>
           <label for="fData">Data início</label>
@@ -682,7 +693,7 @@
     </div>
 
     <div class="resultados-top">
-      <div class="contador" id="contador">0 documento(s)</div>
+      <div class="contador" id="contador">Quantidade de documentos: 0</div>
     </div>
 
     <div id="listaDocs"></div>
@@ -731,7 +742,7 @@
     let linhas = [];
     let ENDPOINT_LISTAR_RESOLVIDO = "";
 
-    /* ✅ FIX 404 Vercel: tenta com .js e sem .js (não quebra nada) */
+    /* tenta com .js e sem .js */
     const ENDPOINT_VALIDAR = ["/api/bono-validar.js", "/api/bono-validar"];
     const ENDPOINT_EXCLUIR = ["/api/bono-excluir.js", "/api/bono-excluir"];
 
@@ -766,6 +777,13 @@
 
     function normKey(s){
       return normStr(s).toUpperCase().replace(/\s+/g, " ");
+    }
+
+    function normSearch(s){
+      return normStr(s)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase();
     }
 
     function escapeHtml(s) {
@@ -1004,7 +1022,9 @@
         dataIni: normStr(document.getElementById("fData").value),
         dataFim: normStr(document.getElementById("fDataFim").value),
         tipo: normStr(document.getElementById("fTipo").value),
-        status: normStr(document.getElementById("fStatus").value)
+        status: normStr(document.getElementById("fStatus").value),
+        direcao: normStr(document.getElementById("fDirecao").value),
+        busca: normStr(document.getElementById("fBusca").value)
       };
     }
 
@@ -1015,6 +1035,27 @@
       return f.loja;
     }
 
+    /* ✅ REQ #5: trava/destrava seletor (Todos/Enviei/Recebi) */
+    function atualizarEstadoDirecao(){
+      const sel = document.getElementById("fDirecao");
+      if (!sel) return;
+
+      const f = lerFiltros();
+      const lojaEfetiva = lojaSelecionadaEfetiva();
+      const tipoCanon = tipoToCanon(f.tipo);
+
+      const deveTravar =
+        !lojaEfetiva ||
+        (tipoCanon === "RECEBIMENTO_MERCADORIAS");
+
+      if (deveTravar){
+        sel.value = "";
+        sel.disabled = true;
+      } else {
+        sel.disabled = false;
+      }
+    }
+
     function aplicarFiltrosNasLinhas(){
       const f = lerFiltros();
       const lojaEfetiva = lojaSelecionadaEfetiva();
@@ -1023,6 +1064,8 @@
       const fim = f.dataFim;
       const dtMin = (ini && fim) ? (ini <= fim ? ini : fim) : (ini || "");
       const dtMax = (ini && fim) ? (ini <= fim ? fim : ini) : (fim || "");
+
+      const buscaKey = normSearch(f.busca);
 
       return linhas.filter(r => {
         const dataISO = extrairDataISO(r.B);
@@ -1044,6 +1087,23 @@
         if (f.tipo && f.tipo !== tipoCanon) return false;
         if (f.status && f.status !== statusCanon) return false;
 
+        /* ✅ REQ #5: Enviei/Recebi (só quando liberado) */
+        const direcaoCanon = normKey(f.direcao);
+        if (lojaEfetiva && tipoCanon !== "RECEBIMENTO_MERCADORIAS") {
+          if (direcaoCanon === "ENVIEI"){
+            if (normKey(lojaOrigem) !== normKey(lojaEfetiva)) return false;
+          }
+          if (direcaoCanon === "RECEBI"){
+            if (normKey(lojaDestino) !== normKey(lojaEfetiva)) return false;
+          }
+        }
+
+        /* ✅ REQ #6: busca por descrição (coluna F) */
+        if (buscaKey){
+          const descKey = normSearch(r.F);
+          if (!descKey.includes(buscaKey)) return false;
+        }
+
         return true;
       });
     }
@@ -1062,6 +1122,7 @@
         return { documento, items, dataISO };
       });
 
+      /* ✅ sempre mais recente -> mais antigo */
       itens.sort((a,b) => (b.dataISO || "").localeCompare(a.dataISO || ""));
       return itens;
     }
@@ -1110,9 +1171,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       return normKey(lojaDestino) === normKey(sessaoAtual.loja);
     }
 
-    /* ============================
-       ✅ FIX 404: POST com fallback
-       ============================ */
     async function postComFallback(endpoints, payload){
       let lastErr = null;
 
@@ -1290,10 +1348,12 @@ A validação deverá ser efetuada apenas após a conferência física integral,
     }
 
     function render(){
+      atualizarEstadoDirecao();
+
       const linhasFiltradas = aplicarFiltrosNasLinhas();
       const docs = agruparPorDocumento(linhasFiltradas);
 
-      setTexto("contador", `${docs.length} documento(s)`);
+      setTexto("contador", `Quantidade de documentos: ${docs.length}`);
 
       const wrap = document.getElementById("listaDocs");
       wrap.innerHTML = "";
@@ -1462,7 +1522,7 @@ A validação deverá ser efetuada apenas após a conferência física integral,
 
           <div class="assinaturas">
             <div class="ass-join">
-              <div class="ass-side">
+              <div class="ass-side ass-resp">
                 ${svgPerson()}
                 <div class="ass-txt">
                   <div class="ass-k">Responsável</div>
@@ -1472,7 +1532,7 @@ A validação deverá ser efetuada apenas após a conferência física integral,
 
               <div class="ass-divider" aria-hidden="true"></div>
 
-              <div class="ass-side">
+              <div class="ass-side ass-val">
                 ${svgShield()}
                 <div class="ass-txt">
                   <div class="ass-k">Validação</div>
@@ -1512,6 +1572,10 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       document.getElementById("fTipo").value = "";
       document.getElementById("fStatus").value = "";
 
+      document.getElementById("fDirecao").value = "";
+      document.getElementById("fBusca").value = "";
+
+      atualizarEstadoDirecao();
       render();
       setMsg("Filtros limpos.", true);
     }
@@ -1623,13 +1687,19 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       }
 
       setDatasHojeNosFiltros();
+      atualizarEstadoDirecao();
 
-      ["fLoja","fData","fDataFim","fTipo","fStatus"].forEach(id => {
+      ["fLoja","fData","fDataFim","fTipo","fStatus","fDirecao"].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.addEventListener("change", () => render());
-        el.addEventListener("input", () => render());
+        el.addEventListener("change", () => { atualizarEstadoDirecao(); render(); });
       });
+
+      /* busca em tempo real */
+      const fBusca = document.getElementById("fBusca");
+      if (fBusca){
+        fBusca.addEventListener("input", () => render());
+      }
 
       await buscarDados();
     });
