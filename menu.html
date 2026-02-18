@@ -4,44 +4,57 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MENU PPP</title>
-<link rel="icon" type="image/png" href="/LogoBigUltra.png">
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#030712">
+  <link rel="icon" type="image/png" href="/LogoBigUltra.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#030712">
 
   <style>
+    html, body { height: 100%; }
     body{
-      background: #f3f3f3;
       font-family: Arial, sans-serif;
+      min-height:100vh;
+      margin:0;
+
       display:flex;
       justify-content:center;
       align-items:center;
-      min-height:100vh;
-      margin:2;
-      color:#111;
+
+      background:
+        radial-gradient(1200px 650px at 50% -10%, rgba(64, 110, 255, 0.20), rgba(0,0,0,0) 60%),
+        radial-gradient(900px 520px at 50% 110%, rgba(0, 120, 255, 0.10), rgba(0,0,0,0) 60%),
+        linear-gradient(180deg, #050a16 0%, #0a1330 55%, #07101f 100%);
+      padding: 18px;
+      box-sizing: border-box;
+      color: rgba(255,255,255,0.92);
     }
 
-.container{
-  width: 92%;
-  max-width: 620px;
-  background:#fff;
-  padding: 22px 22px 18px;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-  box-sizing: border-box;
-}
+    .container{
+      width: 92%;
+      max-width: 520px;
 
-/* … resto do CSS … */
+      padding: 22px 22px 18px;
+      border-radius: 22px;
 
-.hidden{ display:none !important; }
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow:
+        0 18px 42px rgba(0,0,0,0.55),
+        inset 0 1px 0 rgba(255,255,255,0.06);
 
-/* 📱 AJUSTE MOBILE — SEM RISCO */
-@media (max-width: 480px){
-  .container{
-    width: 98%;
-    max-width: none;
-    padding: 18px 12px;
-  }
-}
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+
+      box-sizing: border-box;
+    }
+
+    /* 📱 AJUSTE MOBILE — SEM RISCO */
+    @media (max-width: 480px){
+      .container{
+        width: 98%;
+        max-width: none;
+        padding: 18px 12px;
+      }
+    }
 
     /* Logo */
     .logo-menu{
@@ -51,38 +64,44 @@
       margin: 0 0 8px;
     }
     .logo-menu img{
-      max-width: 220px;
-      width: 70%;
+      max-width: 260px;
+      width: 78%;
       height: auto;
       display:block;
       user-select:none;
       -webkit-user-drag: none;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.45));
     }
 
-    /* Linha bem desfaçada abaixo do logo */
+    /* Linha suave abaixo do logo */
     .linha-logo{
       border: none;
       height: 1px;
       background: linear-gradient(
         to right,
-        transparent,
-        rgba(0,0,0,0.12),
-        transparent
+        rgba(255,255,255,0.06),
+        rgba(255,255,255,0.18),
+        rgba(255,255,255,0.06)
       );
-      margin: 6px 0 14px;
+      margin: 8px 0 14px;
     }
 
+    /* Card info (barra escura do print) */
     .card-info{
-      background: #f7f7f7;
-      border: 1px solid #e6e6e6;
-      border-radius: 10px;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
       padding: 10px 12px;
-      margin-bottom: 14px;
-      font-size: 13px;
+      margin-bottom: 16px;
+
+      font-size: 13px; /* manter */
       line-height: 1.45;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.05),
+        0 10px 22px rgba(0,0,0,0.25);
     }
 
-    /* ✅ NOVO: infos em uma única linha + ícones (como no print) */
     .info-line{
       display:flex;
       align-items:center;
@@ -98,56 +117,73 @@
       min-width: 0;
       overflow: hidden;
     }
-.info-icon{
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  opacity: .85;
-
-  /* 🔵 azul */
-  color: #0066ff;
-}
+    .info-icon{
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      opacity: .9;
+      color: #4aa3ff; /* azul do print */
+    }
     .info-text{
       font-weight: 900;
-      font-size: 13px;
+      font-size: 13px; /* manter */
       overflow:hidden;
       text-overflow: ellipsis;
+      color: rgba(255,255,255,0.92);
     }
 
-    /* Mantidos (não usados no novo layout, mas não removidos para não quebrar nada) */
-    .linha{
-      display:flex;
-      justify-content: space-between;
-      gap: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .k{ color:#555; font-weight:700; }
-    .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
-
+    /* Botões (estilo do print) */
     .btn{
       width:100%;
-      padding: 12px;
+      padding: 16px 14px;
       border: none;
-      border-radius: 8px;
+      border-radius: 18px;
       cursor: pointer;
-      font-size: 15px;
-      font-weight: 700;
-      margin-top: 10px;
+      font-size: 18px;
+      font-weight: 800;
+      margin-top: 12px;
+
+      color: rgba(255,255,255,0.95);
+      box-shadow:
+        0 14px 26px rgba(0,0,0,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.16);
+
+      transition: filter .12s ease, transform .04s ease;
+    }
+    .btn:hover{ filter: brightness(1.03); }
+    .btn:active{ transform: translateY(1px); }
+
+    /* Gradientes iguais ao print */
+    .btn-green{
+      background: linear-gradient(180deg, #42d36a 0%, #18a553 55%, #118444 100%);
+    }
+    .btn-blue{
+      background: linear-gradient(180deg, #4aa3ff 0%, #2f6bff 55%, #1f57ff 100%);
+    }
+    .btn-purple{
+      background: linear-gradient(180deg, #8b5dff 0%, #6a35e8 55%, #4a22b8 100%);
+    }
+    .btn-orange{
+      background: linear-gradient(180deg, #f2a129 0%, #d47a00 55%, #b85f00 100%);
+    }
+    .btn-cyan{
+      background: linear-gradient(180deg, #32d1df 0%, #12a8c0 55%, #0b7e98 100%);
+    }
+    .btn-gray{
+      background: linear-gradient(180deg, #9aa6b2 0%, #6e7a86 55%, #55606a 100%);
     }
 
-    .btn-prim{ background:#0066ff; color:#fff; }
-    .btn-prim:hover{ background:#0050cc; }
-
-    .btn-sec{ background:#e9e9e9; color:#111; }
-    .btn-sec:hover{ background:#dedede; }
-
-    .btn-danger{ background:#b30000; color:#fff; }
-    .btn-danger:hover{ background:#900000; }
+    /* Estado "sem acesso": visualmente igual, mas com leve dessaturação */
+    .no-access{
+      filter: saturate(0.65) brightness(0.95);
+      cursor: not-allowed;
+    }
+    .no-access:hover{
+      filter: saturate(0.65) brightness(0.98);
+    }
 
     .mensagem{
       margin-top: 12px;
@@ -155,10 +191,35 @@
       font-weight:700;
       font-size: 13px;
       min-height: 18px;
-      color:#b30000;
+      color: rgba(255,255,255,0.75);
     }
 
-    .hidden{ display:none !important; }
+    /* Toast 2s */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      z-index: 9999;
+
+      background: rgba(0,0,0,0.78);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      padding: 10px 14px;
+
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+
+      box-shadow: 0 16px 30px rgba(0,0,0,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .12s ease;
+      max-width: 92vw;
+      text-align: center;
+    }
+    .toast.show{ opacity: 1; }
   </style>
 </head>
 
@@ -170,16 +231,13 @@
       <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo PPP" />
     </div>
 
-    <!-- Linha desfaçada abaixo do logo -->
     <hr class="linha-logo" />
 
     <!-- Card só faz sentido LOGADO -->
     <div class="card-info" id="cardInfo">
-      <!-- ✅ NOVO: uma única linha com ícones -->
       <div class="info-line">
         <div class="info-item" title="Usuário">
           <span class="info-icon" aria-hidden="true">
-            <!-- user icon -->
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21a8 8 0 0 0-16 0"></path>
               <circle cx="12" cy="7" r="4"></circle>
@@ -190,7 +248,6 @@
 
         <div class="info-item" title="Loja">
           <span class="info-icon" aria-hidden="true">
-            <!-- store icon -->
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l1-5h16l1 5"></path>
               <path d="M5 9v10h14V9"></path>
@@ -202,7 +259,6 @@
 
         <div class="info-item" title="Perfil">
           <span class="info-icon" aria-hidden="true">
-            <!-- shield icon -->
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
@@ -212,30 +268,26 @@
       </div>
     </div>
 
-    <!-- PPP Ocorrências -->
-    <button class="btn btn-prim" id="btnLancamento">Lançamento de ocorrências</button>
-    <button class="btn btn-sec"  id="btnGerencial">Cupons de ocorrências</button>
-    <button class="btn btn-sec"  id="btnDashboard">Dashboard ocorrências</button>
+    <!-- Botões (sempre visíveis) -->
+    <button class="btn btn-green"  id="btnLancamento">Lançamento de ocorrências</button>
+    <button class="btn btn-blue"   id="btnGerencial">Cupons de ocorrências</button>
+    <button class="btn btn-purple" id="btnDashboard">Dashboard ocorrências</button>
 
-    <!-- Carrinhos -->
-    <button class="btn btn-sec"  id="btnContagemCarrinhos">Contagem de carrinhos</button>
-    <button class="btn btn-sec"  id="btnDashboardCarrinhos">Dashboard carrinhos</button>
+    <button class="btn btn-orange" id="btnContagemCarrinhos">Contagem de carrinhos</button>
+    <button class="btn btn-cyan"   id="btnDashboardCarrinhos">Dashboard carrinhos</button>
 
-    <!-- Bono digital -->
-    <button class="btn btn-sec" id="btnBonoDigital">Bono digital</button>
+    <button class="btn btn-blue"   id="btnBonoDigital">Bono digital</button>
+    <button class="btn btn-purple" id="btnVisualizacaoBono">Visualização Lançamentos Bono</button>
 
-    <!-- ✅ NOVO -->
-    <button class="btn btn-sec" id="btnVisualizacaoBono">Visualização Lançamentos Bono</button>
+    <button class="btn btn-orange" id="btnUsuariosAdmin">Gestão de Usuários</button>
 
-    <!-- ✅ NOVO (ADMIN): botão para acessar tela de usuários -->
-    <button class="btn btn-sec hidden" id="btnUsuariosAdmin">Gestão de Usuários</button>
-
-    <!-- Sessão -->
-    <button class="btn btn-danger" id="btnSair">Sair</button>
-    <button class="btn btn-sec hidden" id="btnLogin">Ir para o Login</button>
+    <button class="btn btn-gray" id="btnSair">Sair</button>
+    <button class="btn btn-gray" id="btnLogin">Ir para o Login</button>
 
     <div class="mensagem" id="msg"></div>
   </div>
+
+  <div class="toast" id="toast">Acesso indisponível para o perfil</div>
 
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
@@ -247,9 +299,7 @@
       contagemCarrinhos: "/contagem-carrinhos.html",
       dashboardCarrinhos: "/dashboard-carrinhos.html",
       bonoDigital: "/bono-digital.html",
-      // ✅ NOVO
       visualizacaoBono: "/visualizacao-bono.html",
-      // ✅ NOVO (ADMIN)
       usuariosAdmin: "/usuarios.html",
       login: "/login.html",
       logoutApi: "/api/logout"
@@ -303,57 +353,103 @@
       if (el) el.textContent = txt;
     }
 
-    function esconderTodosBotoesPrivados() {
-      ["btnLancamento","btnGerencial","btnDashboard","btnContagemCarrinhos","btnDashboardCarrinhos","btnBonoDigital","btnVisualizacaoBono","btnUsuariosAdmin"]
-        .forEach(id => document.getElementById(id).classList.add("hidden"));
+    // Toast 2s (notificação breve)
+    let toastTimer = null;
+    function showToast(txt) {
+      const t = document.getElementById("toast");
+      if (!t) return;
+      t.textContent = txt || "Acesso indisponível para o perfil";
+      t.classList.add("show");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        t.classList.remove("show");
+      }, 2000);
     }
 
     function entrarModoDeslogado(mensagem) {
       sessaoAtual = null;
       limparTimerExpiracao();
-      document.getElementById("cardInfo").classList.add("hidden");
-      esconderTodosBotoesPrivados();
-      document.getElementById("btnSair").classList.add("hidden");
-      document.getElementById("btnLogin").classList.remove("hidden");
+      document.getElementById("cardInfo").style.display = "none";
+
+      // ✅ mantém botões visíveis; apenas controla login/sair como antes
+      document.getElementById("btnSair").style.display = "none";
+      document.getElementById("btnLogin").style.display = "";
+
       setTexto("msg", mensagem || "Sessão encerrada. Se precisar, faça login novamente.");
+
+      // sem sessão: bloquear ações (mantém visível)
+      aplicarPermissoes("");
     }
 
     function entrarModoLogado(sessao) {
       sessaoAtual = sessao;
-      document.getElementById("cardInfo").classList.remove("hidden");
+      document.getElementById("cardInfo").style.display = "";
+
       setTexto("infoLoja", sessao.loja || "—");
       setTexto("infoUsuario", sessao.usuario || "—");
       setTexto("infoPerfil", sessao.perfil || "—");
+
       aplicarPermissoes(sessao.perfil);
-      document.getElementById("btnSair").classList.remove("hidden");
-      document.getElementById("btnLogin").classList.add("hidden");
+
+      document.getElementById("btnSair").style.display = "";
+      document.getElementById("btnLogin").style.display = "none";
+
       setTexto("msg", "");
+
       const expMs = normalizarExpParaMs(sessao.exp);
       if (expMs) agendarModoDeslogadoNaExpiracao(expMs);
     }
 
+    // ✅ Agora: NINGUÉM some com botões. Só marca quais têm acesso.
     function aplicarPermissoes(perfil) {
       const p = String(perfil || "").trim().toUpperCase();
-      esconderTodosBotoesPrivados();
+
+      // Regras originais preservadas:
       const podeTudo = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
       const podeBase = (p === "BASE_PPP");
 
-      if (podeTudo || podeBase) {
-        btnLancamento.classList.remove("hidden");
-        btnDashboard.classList.remove("hidden");
-        btnContagemCarrinhos.classList.remove("hidden");
-        btnDashboardCarrinhos.classList.remove("hidden");
-      }
-      if (podeTudo) btnGerencial.classList.remove("hidden");
+      const acesso = {
+        lancamento: (podeTudo || podeBase),
+        dashboard: (podeTudo || podeBase),
+        contagemCarrinhos: (podeTudo || podeBase),
+        dashboardCarrinhos: (podeTudo || podeBase),
 
-      // ✅ Bono (sempre visível logado)
-      btnBonoDigital.classList.remove("hidden");
-      btnVisualizacaoBono.classList.remove("hidden");
+        gerencial: (podeTudo),
 
-      // ✅ NOVO (ADMIN): botão Usuários
-      if (p === "ADMINISTRADOR") {
-        btnUsuariosAdmin.classList.remove("hidden");
-      }
+        // Bono: no seu código atual é sempre visível logado.
+        // Aqui: mantém visível sempre, e permite acesso sempre que estiver logado.
+        // Se estiver deslogado, bloqueia.
+        bonoDigital: !!p,
+        visualizacaoBono: !!p,
+
+        // Usuários: só ADMIN
+        usuariosAdmin: (p === "ADMINISTRADOR"),
+
+        // Sair: só faz sentido logado
+        sair: !!p
+      };
+
+      // Aplicar visual "no-access" quando não tem acesso
+      setNoAccess("btnLancamento", !acesso.lancamento);
+      setNoAccess("btnDashboard", !acesso.dashboard);
+      setNoAccess("btnContagemCarrinhos", !acesso.contagemCarrinhos);
+      setNoAccess("btnDashboardCarrinhos", !acesso.dashboardCarrinhos);
+      setNoAccess("btnGerencial", !acesso.gerencial);
+      setNoAccess("btnBonoDigital", !acesso.bonoDigital);
+      setNoAccess("btnVisualizacaoBono", !acesso.visualizacaoBono);
+      setNoAccess("btnUsuariosAdmin", !acesso.usuariosAdmin);
+
+      // btnSair é tratado por display (logado/deslogado), mas deixo coerente:
+      setNoAccess("btnSair", !acesso.sair);
+    }
+
+    function setNoAccess(btnId, noAccess) {
+      const el = document.getElementById(btnId);
+      if (!el) return;
+      if (noAccess) el.classList.add("no-access");
+      else el.classList.remove("no-access");
+      // Não usa disabled nativo pra não “quebrar” estilos/hover; o bloqueio é no onclick.
+      el.dataset.noAccess = noAccess ? "1" : "0";
     }
 
     function setSessaoGestor(sessao) {
@@ -376,6 +472,20 @@
       } catch {}
     }
 
+    // Helper: se bloqueado -> toast 2s
+    function guardAcesso(btnId, onAllowed) {
+      const el = document.getElementById(btnId);
+      if (!el) return;
+      el.onclick = () => {
+        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida.");
+        if (el.dataset.noAccess === "1") {
+          showToast("Acesso indisponível para o perfil");
+          return;
+        }
+        onAllowed();
+      };
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("btnLogin").addEventListener("click", () => {
         window.location.href = ROTAS.login;
@@ -385,41 +495,37 @@
       if (!sessao) entrarModoDeslogado("Você está no menu, mas sem sessão ativa.");
       else entrarModoLogado(sessao);
 
-      btnLancamento.onclick = () => sessaoAtual ? location.href = ROTAS.lancamento : entrarModoDeslogado("Sessão inválida.");
-      btnDashboard.onclick = () => sessaoAtual ? location.href = ROTAS.dashboard : entrarModoDeslogado("Sessão inválida.");
-      btnContagemCarrinhos.onclick = () => sessaoAtual ? location.href = ROTAS.contagemCarrinhos : entrarModoDeslogado("Sessão inválida.");
-      btnDashboardCarrinhos.onclick = () => sessaoAtual ? location.href = ROTAS.dashboardCarrinhos : entrarModoDeslogado("Sessão inválida.");
-      btnBonoDigital.onclick = () => sessaoAtual ? location.href = ROTAS.bonoDigital : entrarModoDeslogado("Sessão inválida.");
+      // Rotas protegidas por permissão (bloqueia no clique com toast)
+      guardAcesso("btnLancamento", () => location.href = ROTAS.lancamento);
+      guardAcesso("btnDashboard", () => location.href = ROTAS.dashboard);
+      guardAcesso("btnContagemCarrinhos", () => location.href = ROTAS.contagemCarrinhos);
+      guardAcesso("btnDashboardCarrinhos", () => location.href = ROTAS.dashboardCarrinhos);
+      guardAcesso("btnBonoDigital", () => location.href = ROTAS.bonoDigital);
+      guardAcesso("btnVisualizacaoBono", () => location.href = ROTAS.visualizacaoBono);
+      guardAcesso("btnUsuariosAdmin", () => location.href = ROTAS.usuariosAdmin);
 
-      // ✅ NOVO
-      btnVisualizacaoBono.onclick = () => sessaoAtual ? location.href = ROTAS.visualizacaoBono : entrarModoDeslogado("Sessão inválida.");
-
-      // ✅ NOVO (ADMIN)
-      btnUsuariosAdmin.onclick = () => {
-        if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida.");
-        const p = String(sessaoAtual.perfil || "").toUpperCase();
-        if (p !== "ADMINISTRADOR") {
-          msg.textContent = "Acesso negado: seu perfil não tem permissão para Usuários (Admin).";
-          return;
-        }
-        location.href = ROTAS.usuariosAdmin;
-      };
-
+      // Gerencial: mantém a lógica extra (sessionStorage) e só bloqueia com toast se sem acesso
+      const btnGerencial = document.getElementById("btnGerencial");
       btnGerencial.onclick = () => {
         if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida.");
-        const p = String(sessaoAtual.perfil || "").toUpperCase();
-        if (p !== "GERENTE_PPP" && p !== "ADMINISTRADOR") {
-          msg.textContent = "Acesso negado: seu perfil não tem permissão para o Gerencial PPP.";
+        if (btnGerencial.dataset.noAccess === "1") {
+          showToast("Acesso indisponível para o perfil");
           return;
         }
         if (!setSessaoGestor(sessaoAtual)) {
-          msg.textContent = "Não foi possível iniciar sessão do gestor.";
+          setTexto("msg", "Não foi possível iniciar sessão do gestor.");
           return;
         }
         location.href = ROTAS.gerencial;
       };
 
+      // Sair: preserva comportamento (logout + limpar storage) — se sem sessão, toast (coerente)
+      const btnSair = document.getElementById("btnSair");
       btnSair.onclick = async () => {
+        if (!sessaoAtual) {
+          showToast("Acesso indisponível para o perfil");
+          return;
+        }
         try { sessionStorage.removeItem(STORAGE_KEY_GESTOR); } catch {}
         await logoutBackendSeguro();
         entrarModoDeslogado("Sessão encerrada. Se precisar, faça login novamente.");
