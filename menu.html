@@ -38,28 +38,24 @@
     .container{
       width: 97%;
       max-width: 520px;
-
-      padding: 22px 22px 18px;
+      padding: 14px 14px 8px;
       border-radius: 22px;
-
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.10);
-      box-shadow:
-        0 18px 42px rgba(0,0,0,0.55),
-        inset 0 1px 0 rgba(255,255,255,0.06);
-
+      box-shadow: 0 18px 42px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.06);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
 
       box-sizing: border-box;
 
       /* ✅ evita “colar” no topo/borda e melhora scroll */
-      margin: 0 0 18px;
+      margin: 10 10 10px;
     }
 
     /* 📱 AJUSTE MOBILE — SEM RISCO */
     @media (max-width: 480px){
-      body{ padding: 18px 12px 12px; }
+      body{ padding: 14px 8px 8px; }
       .container{
         width: 98%;
         max-width: none;
