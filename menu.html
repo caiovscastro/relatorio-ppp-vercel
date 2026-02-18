@@ -10,21 +10,28 @@
 
   <style>
     html, body { height: 100%; }
+
     body{
       font-family: Arial, sans-serif;
-      min-height:100vh;
-      margin:0;
+      min-height: 100vh;
+      margin: 0;
 
       display:flex;
       justify-content:center;
-      align-items:center;
+
+      /* ✅ FIX: não cortar topo em telas baixas */
+      align-items: flex-start;
+      overflow-y: auto;
 
       background:
         radial-gradient(1200px 650px at 50% -10%, rgba(64, 110, 255, 0.20), rgba(0,0,0,0) 60%),
         radial-gradient(900px 520px at 50% 110%, rgba(0, 120, 255, 0.10), rgba(0,0,0,0) 60%),
         linear-gradient(180deg, #050a16 0%, #0a1330 55%, #07101f 100%);
-      padding: 18px;
+
+      /* ✅ dá respiro no topo e base */
+      padding: 24px 18px 18px;
       box-sizing: border-box;
+
       color: rgba(255,255,255,0.92);
     }
 
@@ -45,10 +52,14 @@
       -webkit-backdrop-filter: blur(10px);
 
       box-sizing: border-box;
+
+      /* ✅ evita “colar” no topo/borda e melhora scroll */
+      margin: 0 0 18px;
     }
 
     /* 📱 AJUSTE MOBILE — SEM RISCO */
     @media (max-width: 480px){
+      body{ padding: 18px 12px 12px; }
       .container{
         width: 98%;
         max-width: none;
@@ -94,7 +105,7 @@
       padding: 10px 12px;
       margin-bottom: 16px;
 
-      font-size: 13px; /* manter */
+      font-size: 13px;
       line-height: 1.45;
 
       box-shadow:
@@ -125,11 +136,11 @@
       justify-content: center;
       flex: 0 0 auto;
       opacity: .9;
-      color: #4aa3ff; /* azul do print */
+      color: #4aa3ff;
     }
     .info-text{
       font-weight: 900;
-      font-size: 13px; /* manter */
+      font-size: 13px;
       overflow:hidden;
       text-overflow: ellipsis;
       color: rgba(255,255,255,0.92);
@@ -138,7 +149,10 @@
     /* Botões (estilo do print) */
     .btn{
       width:100%;
-      padding: 16px 14px;
+
+      /* ✅ REQ #2: 30% mais baixo (16px -> 11px) */
+      padding: 11px 14px;
+
       border: none;
       border-radius: 18px;
       cursor: pointer;
@@ -353,7 +367,6 @@
       if (el) el.textContent = txt;
     }
 
-    // Toast 2s (notificação breve)
     let toastTimer = null;
     function showToast(txt) {
       const t = document.getElementById("toast");
@@ -371,13 +384,11 @@
       limparTimerExpiracao();
       document.getElementById("cardInfo").style.display = "none";
 
-      // ✅ mantém botões visíveis; apenas controla login/sair como antes
       document.getElementById("btnSair").style.display = "none";
       document.getElementById("btnLogin").style.display = "";
 
       setTexto("msg", mensagem || "Sessão encerrada. Se precisar, faça login novamente.");
 
-      // sem sessão: bloquear ações (mantém visível)
       aplicarPermissoes("");
     }
 
@@ -400,11 +411,9 @@
       if (expMs) agendarModoDeslogadoNaExpiracao(expMs);
     }
 
-    // ✅ Agora: NINGUÉM some com botões. Só marca quais têm acesso.
     function aplicarPermissoes(perfil) {
       const p = String(perfil || "").trim().toUpperCase();
 
-      // Regras originais preservadas:
       const podeTudo = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
       const podeBase = (p === "BASE_PPP");
 
@@ -413,23 +422,13 @@
         dashboard: (podeTudo || podeBase),
         contagemCarrinhos: (podeTudo || podeBase),
         dashboardCarrinhos: (podeTudo || podeBase),
-
         gerencial: (podeTudo),
-
-        // Bono: no seu código atual é sempre visível logado.
-        // Aqui: mantém visível sempre, e permite acesso sempre que estiver logado.
-        // Se estiver deslogado, bloqueia.
         bonoDigital: !!p,
         visualizacaoBono: !!p,
-
-        // Usuários: só ADMIN
         usuariosAdmin: (p === "ADMINISTRADOR"),
-
-        // Sair: só faz sentido logado
         sair: !!p
       };
 
-      // Aplicar visual "no-access" quando não tem acesso
       setNoAccess("btnLancamento", !acesso.lancamento);
       setNoAccess("btnDashboard", !acesso.dashboard);
       setNoAccess("btnContagemCarrinhos", !acesso.contagemCarrinhos);
@@ -438,8 +437,6 @@
       setNoAccess("btnBonoDigital", !acesso.bonoDigital);
       setNoAccess("btnVisualizacaoBono", !acesso.visualizacaoBono);
       setNoAccess("btnUsuariosAdmin", !acesso.usuariosAdmin);
-
-      // btnSair é tratado por display (logado/deslogado), mas deixo coerente:
       setNoAccess("btnSair", !acesso.sair);
     }
 
@@ -448,7 +445,6 @@
       if (!el) return;
       if (noAccess) el.classList.add("no-access");
       else el.classList.remove("no-access");
-      // Não usa disabled nativo pra não “quebrar” estilos/hover; o bloqueio é no onclick.
       el.dataset.noAccess = noAccess ? "1" : "0";
     }
 
@@ -472,7 +468,6 @@
       } catch {}
     }
 
-    // Helper: se bloqueado -> toast 2s
     function guardAcesso(btnId, onAllowed) {
       const el = document.getElementById(btnId);
       if (!el) return;
@@ -495,7 +490,6 @@
       if (!sessao) entrarModoDeslogado("Você está no menu, mas sem sessão ativa.");
       else entrarModoLogado(sessao);
 
-      // Rotas protegidas por permissão (bloqueia no clique com toast)
       guardAcesso("btnLancamento", () => location.href = ROTAS.lancamento);
       guardAcesso("btnDashboard", () => location.href = ROTAS.dashboard);
       guardAcesso("btnContagemCarrinhos", () => location.href = ROTAS.contagemCarrinhos);
@@ -504,7 +498,6 @@
       guardAcesso("btnVisualizacaoBono", () => location.href = ROTAS.visualizacaoBono);
       guardAcesso("btnUsuariosAdmin", () => location.href = ROTAS.usuariosAdmin);
 
-      // Gerencial: mantém a lógica extra (sessionStorage) e só bloqueia com toast se sem acesso
       const btnGerencial = document.getElementById("btnGerencial");
       btnGerencial.onclick = () => {
         if (!sessaoAtual) return entrarModoDeslogado("Sessão inválida.");
@@ -519,7 +512,7 @@
         location.href = ROTAS.gerencial;
       };
 
-      // Sair: preserva comportamento (logout + limpar storage) — se sem sessão, toast (coerente)
+      // ✅ REQ #1: ao clicar Sair, já ir direto pro login
       const btnSair = document.getElementById("btnSair");
       btnSair.onclick = async () => {
         if (!sessaoAtual) {
@@ -528,7 +521,7 @@
         }
         try { sessionStorage.removeItem(STORAGE_KEY_GESTOR); } catch {}
         await logoutBackendSeguro();
-        entrarModoDeslogado("Sessão encerrada. Se precisar, faça login novamente.");
+        window.location.href = ROTAS.login;  // ✅ direto pro login
       };
     });
   </script>
