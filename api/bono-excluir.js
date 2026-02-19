@@ -66,7 +66,7 @@ export default async function handler(req, res) {
 
     const leitura = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "BONO!A:O",
+      range: "BONO!A:Q",
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
       dateTimeRenderOption: "FORMATTED_STRING",
@@ -84,14 +84,14 @@ export default async function handler(req, res) {
       }
     }
 
-    // ✅ REQ #4: não retornar 404 (tratamos como já limpo / não encontrado)
+    // ✅ não retornar 404 (tratamos como já limpo / não encontrado)
     if (!linhasParaLimpar.length) {
       return ok(res, { sucesso: true, limpadas: 0, message: "Documento não encontrado (possivelmente já limpo)." });
     }
 
-    const emptyRow = Array.from({ length: 15 }, () => ""); // A..O
+    const emptyRow = Array.from({ length: 17 }, () => ""); // A..Q
     const data = linhasParaLimpar.map((rowNumber) => ({
-      range: `BONO!A${rowNumber}:O${rowNumber}`,
+      range: `BONO!A${rowNumber}:Q${rowNumber}`,
       values: [emptyRow],
     }));
 
