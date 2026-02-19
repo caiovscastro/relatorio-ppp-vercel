@@ -1401,7 +1401,7 @@ function montarMensagemWhats({
 
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
       if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return false; }
-      if (!estado.encarregado) { setMsg("Informe o nome do responsavel que fez o acompanhamento.", false); return false; }
+      if (!estado.encarregado) { setMsg("Informe o nome de quem autorizou.", false); return false; }
 
       const produto = normalizarTexto(document.getElementById("produto").value);
       const embalagem = document.getElementById("embalagem").value;
