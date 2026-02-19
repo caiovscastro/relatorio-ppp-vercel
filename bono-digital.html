@@ -156,6 +156,15 @@
     }
     .btn-row-2 .btn{ margin-top: 0; }
 
+    /* ✅ NOVO: 3 botões sempre na mesma linha (inclusive celular) */
+    .btn-row-3{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn-row-3 .btn{ margin-top: 0; }
+
     label{
       display:block;
       font-size: 12px;
@@ -186,6 +195,7 @@
       font-size: 15px;
       font-weight: 800;
       margin-top: 10px;
+      white-space: nowrap; /* ✅ evita quebrar texto dentro do botão */
     }
 
     .btn-sec{ background:#e9e9e9; color:#111; }
@@ -387,6 +397,9 @@
       .grid-2-fixo{ grid-template-columns: 1fr 1fr; }
       .grid-3-fixo{ grid-template-columns: 1fr 1fr 1fr; }
       .btn-row-2{ grid-template-columns: 1fr 1fr; }
+      /* ✅ mantém 3 botões na mesma linha no celular */
+      .btn-row-3{ grid-template-columns: 1fr 1fr 1fr; }
+      .btn{ font-size: 14px; padding: 12px 8px; } /* ✅ só pra caber melhor sem quebrar */
     }
   </style>
 </head>
@@ -452,8 +465,23 @@
 
       <div class="grid grid-1" style="margin-top:10px;">
         <div>
-          <label for="encarregado">Responsavel (Operação)</label>
+          <!-- ✅ label dinâmico -->
+          <label for="encarregado" id="lblEncarregado">Autorizado/Recebido</label>
           <input type="text" id="encarregado" placeholder="Nome e sobrenome." maxlength="80" />
+        </div>
+      </div>
+
+      <!-- ✅ NOVO: campos extras (somente MOV_INTERNA) -->
+      <div class="grid-2-fixo hidden" style="margin-top:10px;" id="wrapMovExtras">
+        <div>
+          <!-- ✅ 1º campo na tela: Transportado por (coluna Q) -->
+          <label for="transportadoPor">Transportado por:</label>
+          <input type="text" id="transportadoPor" placeholder="Nome e sobrenome." maxlength="80" />
+        </div>
+        <div>
+          <!-- ✅ 2º campo na tela: Solicitado por (coluna P) -->
+          <label for="solicitadoPor">Solicitado por:</label>
+          <input type="text" id="solicitadoPor" placeholder="Nome e sobrenome." maxlength="80" />
         </div>
       </div>
 
@@ -585,12 +613,12 @@
         />
       </div>
 
-      <div class="btn-row-2">
+      <!-- ✅ 3 botões na mesma linha (inclusive celular) -->
+      <div class="btn-row-3">
         <button class="btn btn-sec" id="btnAdicionar">Adicionar item</button>
-        <button class="btn btn-pri" id="btnSalvar">Salvar Bono</button>
+        <button class="btn btn-pri" id="btnSalvar">Salvar</button>
+        <button class="btn btn-sec" id="btnVoltarMenu">Voltar</button>
       </div>
-
-      <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao menu</button>
 
       <div class="mensagem" id="msg"></div>
 
@@ -670,8 +698,17 @@
     let sessaoAtual = null;
     let expTimerId = null;
 
-    // ✅ inclui placa no estado
-    let estado = { data: "", hora: "", encarregado: "", fornecedor: "", placaVeiculo: "", itens: [] };
+    // ✅ inclui placa + solicitado/transportado no estado
+    let estado = {
+      data: "",
+      hora: "",
+      encarregado: "",
+      fornecedor: "",
+      placaVeiculo: "",
+      solicitadoPor: "",
+      transportadoPor: "",
+      itens: []
+    };
 
     // ✅ draft Whats (modal)
     let waDraft = { telefone: "", mensagem: "" };
@@ -792,6 +829,8 @@
         if (!Array.isArray(obj.itens)) obj.itens = [];
         if (typeof obj.fornecedor !== "string") obj.fornecedor = "";
         if (typeof obj.placaVeiculo !== "string") obj.placaVeiculo = "";
+        if (typeof obj.solicitadoPor !== "string") obj.solicitadoPor = "";
+        if (typeof obj.transportadoPor !== "string") obj.transportadoPor = "";
         return obj;
       } catch (e) {
         return null;
@@ -804,7 +843,11 @@
 
     function temPendenciaValida(obj) {
       if (!obj) return false;
-      const temAlgo = (obj.data || obj.hora || obj.encarregado || obj.fornecedor || obj.placaVeiculo || (obj.itens && obj.itens.length));
+      const temAlgo = (
+        obj.data || obj.hora || obj.encarregado || obj.fornecedor || obj.placaVeiculo ||
+        obj.solicitadoPor || obj.transportadoPor ||
+        (obj.itens && obj.itens.length)
+      );
       return !!temAlgo;
     }
 
@@ -846,7 +889,6 @@
     function showLoading(){
       document.getElementById("loadingOverlay").classList.remove("hidden");
       setLoadingPct(0);
-      // ✅ AJUSTE #2: garante texto inicial
       const t = document.getElementById("loadTitle");
       if (t) t.textContent = "Enviando informações...";
     }
@@ -865,7 +907,6 @@
       if (loadTimer) { clearInterval(loadTimer); loadTimer = null; }
     }
 
-    // ✅ AJUSTE #2 (opcional): após 2,5s troca o texto para "Confirmando na base de dados..."
     function startLoadingTimer(){
       stopLoadingTimer();
       let p = 0;
@@ -895,6 +936,24 @@
       document.getElementById("encarregado").value = estado.encarregado || "";
       document.getElementById("fornecedor").value = estado.fornecedor || "";
       document.getElementById("placaVeiculo").value = estado.placaVeiculo || "";
+      document.getElementById("solicitadoPor").value = estado.solicitadoPor || "";
+      document.getElementById("transportadoPor").value = estado.transportadoPor || "";
+    }
+
+    /* =========================================================
+       ✅ (1) Label dinâmico do encarregado
+       - vazio: "Autorizado/Recebido"
+       - RECEBIMENTO: "Recebido por:"
+       - MOV_INTERNA: "Autorizado por:"
+    ========================================================= */
+    function atualizarLabelResponsavel(){
+      const tipo = document.getElementById("tipoLancamento").value;
+      const lbl = document.getElementById("lblEncarregado");
+      if (!lbl) return;
+
+      if (tipo === "RECEBIMENTO") lbl.textContent = "Recebido por:";
+      else if (tipo === "MOV_INTERNA") lbl.textContent = "Autorizado por:";
+      else lbl.textContent = "Autorizado/Recebido";
     }
 
     function renderLista() {
@@ -916,22 +975,10 @@
         const txt = document.createElement("div");
         txt.className = "txt";
 
-        const tipoLabel =
-          it.tipoLancamento === "MOV_INTERNA"
-            ? "Movimentação interna"
-            : (it.tipoLancamento === "RECEBIMENTO" ? "Recebimento de mercadorias" : "");
-
-        const destinoTxt = (it.tipoLancamento === "MOV_INTERNA" && it.lojaDestino)
-          ? `<br/>Para onde: <b>${escapeHtml(it.lojaDestino)}</b>`
-          : "";
-
+        // ✅ LISTA ENXUTA: produto + embalagem + qtd
         txt.innerHTML = `
-          <b>Item ${idx + 1}</b><br/>
-          Produto: <b>${escapeHtml(it.produto)}</b><br/>
-          Quantidade: <b>${escapeHtml(String(it.quantidadeFmt || ""))}</b><br/>
-          Embalagem: <b>${escapeHtml(it.embalagem)}</b><br/>
-          Tipo: <b>${escapeHtml(tipoLabel)}</b>
-          ${destinoTxt}
+          <b>${escapeHtml(it.produto)}</b><br/>
+          ${escapeHtml(String(it.quantidadeFmt || ""))} ${escapeHtml(it.embalagem)}
         `;
 
         const btn = document.createElement("button");
@@ -1063,13 +1110,19 @@
 
       const wrapDestinoLinha = document.getElementById("wrapDestinoLinha");
       const wrapFornecedorLinha = document.getElementById("wrapFornecedorLinha");
+      const wrapMovExtras = document.getElementById("wrapMovExtras");
 
       const selDestino = document.getElementById("lojaDestino");
       const inpFornecedor = document.getElementById("fornecedor");
 
+      // ✅ extras MOV
+      const inpSolic = document.getElementById("solicitadoPor");
+      const inpTrans = document.getElementById("transportadoPor");
+
       if (tipo === "MOV_INTERNA") {
         wrapDestinoLinha.classList.remove("hidden");
         wrapFornecedorLinha.classList.add("hidden");
+        wrapMovExtras.classList.remove("hidden");
 
         inpFornecedor.value = "";
         estado.fornecedor = "";
@@ -1077,19 +1130,34 @@
       } else if (tipo === "RECEBIMENTO") {
         wrapFornecedorLinha.classList.remove("hidden");
         wrapDestinoLinha.classList.add("hidden");
+        wrapMovExtras.classList.add("hidden");
 
+        // limpa MOV
         selDestino.value = "";
+        inpSolic.value = "";
+        inpTrans.value = "";
+        estado.solicitadoPor = "";
+        estado.transportadoPor = "";
+        salvarLocal();
       } else {
         wrapDestinoLinha.classList.add("hidden");
         wrapFornecedorLinha.classList.add("hidden");
+        wrapMovExtras.classList.add("hidden");
 
         selDestino.value = "";
         inpFornecedor.value = "";
         estado.fornecedor = "";
+
+        inpSolic.value = "";
+        inpTrans.value = "";
+        estado.solicitadoPor = "";
+        estado.transportadoPor = "";
+
         salvarLocal();
       }
 
       posicionarPlacaConformeTipo();
+      atualizarLabelResponsavel();
     }
 
     function aplicarTipoEDestinoNosItens() {
@@ -1223,11 +1291,6 @@
       document.getElementById("btnCancelarWhats").disabled = !podeCancelar;
     }
 
-    // =========================================================
-    // ✅ AJUSTE SOLICITADO:
-    // - RECEBIMENTO: só "Confirmação" + botão OK
-    // - MOV_INTERNA: mantém prévia + pergunta + abrir Whats
-    // =========================================================
     function setModoModalWhats(modo){
       waModalMode = (modo === "RECEBIMENTO") ? "RECEBIMENTO" : "MOV_INTERNA";
 
@@ -1238,7 +1301,6 @@
       const btnCancel = document.getElementById("btnCancelarWhats");
 
       if (waModalMode === "RECEBIMENTO") {
-        // 🔧 texto/visibilidade
         if (titleEl) titleEl.textContent = "Confirmação";
         if (questionEl) questionEl.classList.add("hidden");
         if (previewEl) previewEl.classList.add("hidden");
@@ -1269,7 +1331,16 @@
 
     function limparTelaAposConfirmacao(){
       limparLocal();
-      estado = { data: "", hora: "", encarregado: "", fornecedor: "", placaVeiculo: "", itens: [] };
+      estado = {
+        data: "",
+        hora: "",
+        encarregado: "",
+        fornecedor: "",
+        placaVeiculo: "",
+        solicitadoPor: "",
+        transportadoPor: "",
+        itens: []
+      };
 
       atualizarCamposNaTela();
       renderLista();
@@ -1282,6 +1353,8 @@
       document.getElementById("lojaDestino").value = "";
       document.getElementById("fornecedor").value = "";
       document.getElementById("placaVeiculo").value = "";
+      document.getElementById("solicitadoPor").value = "";
+      document.getElementById("transportadoPor").value = "";
 
       atualizarVisibilidadeDestinoFornecedorEPlaca();
       atualizarHabilitacaoQuantidade();
@@ -1296,8 +1369,18 @@
 
       if (tipoAtual === "RECEBIMENTO") {
         estado.fornecedor = normalizarTexto(document.getElementById("fornecedor").value);
+        // limpa MOV
+        estado.solicitadoPor = "";
+        estado.transportadoPor = "";
+      } else if (tipoAtual === "MOV_INTERNA") {
+        estado.fornecedor = "";
+        // ✅ MOV: captura extras
+        estado.transportadoPor = normalizarTexto(document.getElementById("transportadoPor").value);
+        estado.solicitadoPor = normalizarTexto(document.getElementById("solicitadoPor").value);
       } else {
         estado.fornecedor = "";
+        estado.solicitadoPor = "";
+        estado.transportadoPor = "";
       }
 
       const placaRaw = document.getElementById("placaVeiculo").value;
@@ -1319,6 +1402,11 @@
       const embalagem = document.getElementById("embalagem").value;
       const tipoLancamento = document.getElementById("tipoLancamento").value;
       const lojaDestino = document.getElementById("lojaDestino").value;
+
+      if (tipoLancamento === "MOV_INTERNA") {
+        if (!estado.transportadoPor) { setMsg('Informe "Transportado por:" (obrigatório em Movimentação interna).', false); return false; }
+        if (!estado.solicitadoPor) { setMsg('Informe "Solicitado por:" (obrigatório em Movimentação interna).', false); return false; }
+      }
 
       if (tipoLancamento === "RECEBIMENTO" && !estado.fornecedor) {
         setMsg('Informe o "Fornecedor" (obrigatório para Recebimento de mercadorias).', false);
@@ -1346,12 +1434,10 @@
       };
     }
 
-    // ✅ Confirmação baseada no retorno do backend (doc + qtd)
     function confirmarGravacaoPlanilha(dadosRetorno, fallbackQtd){
       const doc =
         (dadosRetorno && (dadosRetorno.documento || dadosRetorno.numeroDocumento || dadosRetorno.doc || dadosRetorno.documentNumber)) || "";
 
-      // ✅ ajuste importante: sua API devolve totalItens (e antes não era lido)
       const qtd =
         Number(
           dadosRetorno && (
@@ -1377,6 +1463,11 @@
       const tipoAtual = document.getElementById("tipoLancamento").value;
       if (!tipoAtual) { setMsg("Selecione um tipo", false); return; }
 
+      if (tipoAtual === "MOV_INTERNA") {
+        if (!estado.transportadoPor) { setMsg('Informe "Transportado por:" (obrigatório em Movimentação interna).', false); return; }
+        if (!estado.solicitadoPor) { setMsg('Informe "Solicitado por:" (obrigatório em Movimentação interna).', false); return; }
+      }
+
       if (tipoAtual === "RECEBIMENTO" && !estado.fornecedor) {
         setMsg('Informe o "Fornecedor" (obrigatório para Recebimento de mercadorias).', false);
         return;
@@ -1401,6 +1492,9 @@
         encarregado: estado.encarregado,
         fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : ""),
         placaVeiculo: (estado.placaVeiculo || ""),
+        // ✅ NOVO (P/Q): enviado uma vez; backend replica por linha quando MOV
+        solicitadoPor: (tipoAtual === "MOV_INTERNA" ? (estado.solicitadoPor || "") : ""),
+        transportadoPor: (tipoAtual === "MOV_INTERNA" ? (estado.transportadoPor || "") : ""),
         itens: estado.itens.map(x => ({
           produto: x.produto,
           quantidade: x.quantidadeFmt,
@@ -1426,7 +1520,6 @@
 
         const dados = await resp.json().catch(() => null);
 
-        // ✅ AJUSTE #1: diferenciar “falha ao salvar” vs “salvou mas não confirmou”
         if (!resp.ok || !dados || !dados.sucesso) {
           const m =
             (dados && (dados.message || dados.mensagem)) ? (dados.message || dados.mensagem) :
@@ -1463,11 +1556,8 @@
         const textoConfirmacaoBase =
           `✅ Confirmado na base de dados\nDocumento: ${conf.documento}\nQtd de itens: ${conf.qtdItens}`;
 
-        // ==========================================
-        // ✅ RECEBIMENTO: popup só de confirmação (sem Whats, sem prévia, sem pergunta, Cancelar vira OK)
-        // ==========================================
         if (tipoNoEnvio === "RECEBIMENTO") {
-          abrirModalPreviewWhats("", "", "RECEBIMENTO"); // 🔧 modo RECEBIMENTO
+          abrirModalPreviewWhats("", "", "RECEBIMENTO");
           setConfirmBox("ok", textoConfirmacaoBase);
           habilitarBotoesWhats({ podeAbrirWhats:false, podeCancelar:true });
 
@@ -1476,9 +1566,6 @@
           return;
         }
 
-        // ==========================================
-        // ✅ MOVIMENTAÇÃO INTERNA: mantém popup com prévia + Whats
-        // ==========================================
         if (tipoNoEnvio === "MOV_INTERNA" && destinoNoEnvio) {
           const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
 
@@ -1526,6 +1613,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
+      // ✅ botões (layout mudou: os 3 estão na mesma linha)
       document.getElementById("btnVoltarMenu").addEventListener("click", () => {
         window.location.href = ROTAS.menu;
       });
@@ -1539,7 +1627,11 @@
 
       document.getElementById("btnDescartar").addEventListener("click", () => {
         limparLocal();
-        estado = { data:"", hora:"", encarregado:"", fornecedor:"", placaVeiculo:"", itens:[] };
+        estado = {
+          data:"", hora:"", encarregado:"", fornecedor:"", placaVeiculo:"",
+          solicitadoPor:"", transportadoPor:"",
+          itens:[]
+        };
         fecharModal("modalPendente");
         atualizarCamposNaTela();
         atualizarVisibilidadeDestinoFornecedorEPlaca();
@@ -1556,7 +1648,6 @@
         await finalizarBono();
       });
 
-      // ✅ Botões do modal
       document.getElementById("btnCancelarWhats").addEventListener("click", () => {
         fecharModal("modalWhatsPreview");
         waDraft = { telefone: "", mensagem: "" };
@@ -1577,7 +1668,12 @@
       document.getElementById("fornecedor").addEventListener("change", capturarBaseDoFormulario);
       document.getElementById("fornecedor").addEventListener("input", capturarBaseDoFormulario);
 
-      // ✅ placa: normaliza em tempo real
+      // ✅ NOVO: MOV extras
+      ["solicitadoPor","transportadoPor"].forEach(id => {
+        document.getElementById(id).addEventListener("change", capturarBaseDoFormulario);
+        document.getElementById(id).addEventListener("input", capturarBaseDoFormulario);
+      });
+
       document.getElementById("placaVeiculo").addEventListener("input", (e) => {
         const el = e.target;
         const norm = normalizarPlaca(el.value);
@@ -1640,12 +1736,18 @@
           return;
         }
 
+        capturarBaseDoFormulario();
+
         if (tipoAtual === "RECEBIMENTO") {
-          capturarBaseDoFormulario();
           if (!estado.fornecedor) {
             setMsg('Informe o "Fornecedor" (obrigatório para Recebimento de mercadorias).', false);
             return;
           }
+        }
+
+        if (tipoAtual === "MOV_INTERNA") {
+          if (!estado.transportadoPor) { setMsg('Informe "Transportado por:" (obrigatório em Movimentação interna).', false); return; }
+          if (!estado.solicitadoPor) { setMsg('Informe "Solicitado por:" (obrigatório em Movimentação interna).', false); return; }
         }
 
         if (!estado.itens.length) {
@@ -1662,6 +1764,7 @@
       aplicarSessaoNaTela(sessao);
 
       atualizarVisibilidadeDestinoFornecedorEPlaca();
+      atualizarLabelResponsavel();
 
       const pendente = carregarLocal();
       if (temPendenciaValida(pendente)) {
