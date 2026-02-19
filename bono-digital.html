@@ -1195,27 +1195,32 @@
       return `${DOMINIO_PUBLICO}/login.html`;
     }
 
-    // ✅ inclui placa na mensagem
-    function montarMensagemWhats({
-      lojaOrigem,
-      lojaDestino,
-      usuario,
-      dataHora,
-      linkLogin,
-      placaVeiculo,
-      itens = []
-    }) {
-      const linhas = [];
+// ✅ inclui placa na mensagem
+function montarMensagemWhats({
+  lojaOrigem,
+  lojaDestino,
+  usuario,
+  dataHora,
+  linkLogin,
+  placaVeiculo,
+  solicitadoPor,
+  transportadoPor,
+  itens = []
+}) {
+  const linhas = [];
 
-      linhas.push("🧾 *BONO DE MOVIMENTAÇÃO INTERNA AGUARDANDO APROVAÇÃO*");
-      linhas.push("");
+  linhas.push("🧾 *BONO DE MOVIMENTAÇÃO INTERNA AGUARDANDO APROVAÇÃO*");
+  linhas.push("");
 
-      linhas.push(`📍 *Destino:* ${lojaDestino || "—"}`);
-      linhas.push(`🏪 *Origem:* ${lojaOrigem || "—"}`);
-      linhas.push(`👤 *Usuário:* ${usuario || "—"}`);
-      linhas.push(`🕒 *Data/Hora:* ${dataHora || "—"}`);
-      linhas.push(`🚗 *Placa:* ${placaVeiculo ? placaVeiculo : "Não informada"}`);
-      linhas.push("");
+  linhas.push(`📍 *Destino:* ${lojaDestino || "—"}`);
+  linhas.push(`🏪 *Origem:* ${lojaOrigem || "—"}`);
+  linhas.push(`👤 *Usuário:* ${usuario || "—"}`);
+  linhas.push(`🕒 *Data/Hora:* ${dataHora || "—"}`);
+
+  linhas.push(`📦 *Solicitado por:* ${solicitadoPor ? solicitadoPor : "Não informado"}`);
+  linhas.push(`🚗 *Placa:* ${placaVeiculo ? placaVeiculo : "Não informada"}`);
+  linhas.push(`🚚 *Transportado por:* ${transportadoPor ? transportadoPor : "Não informado"}`);
+  linhas.push("");
 
       linhas.push("📦 *Itens do Bono:*");
 
@@ -1570,15 +1575,17 @@
           const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
 
           const linkLogin = montarLinkLoginAbsoluto();
-          const msgWhats = montarMensagemWhats({
-            lojaOrigem: (sessaoAtual && sessaoAtual.loja) ? sessaoAtual.loja : "",
-            lojaDestino: destinoNoEnvio,
-            usuario: (sessaoAtual && sessaoAtual.usuario) ? sessaoAtual.usuario : "",
-            dataHora: dataHoraPlanilha,
-            linkLogin,
-            placaVeiculo: (estado.placaVeiculo || ""),
-            itens: itensNoEnvio
-          });
+const msgWhats = montarMensagemWhats({
+  lojaOrigem: (sessaoAtual && sessaoAtual.loja) ? sessaoAtual.loja : "",
+  lojaDestino: destinoNoEnvio,
+  usuario: (sessaoAtual && sessaoAtual.usuario) ? sessaoAtual.usuario : "",
+  dataHora: dataHoraPlanilha,
+  linkLogin,
+  solicitadoPor: (estado.solicitadoPor || ""),
+  placaVeiculo: (estado.placaVeiculo || ""),
+  transportadoPor: (estado.transportadoPor || ""),
+  itens: itensNoEnvio
+});
 
           abrirModalPreviewWhats(telefoneResp || "", msgWhats, "MOV_INTERNA");
 
