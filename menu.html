@@ -47,20 +47,26 @@
       margin: 10px 6px 10px;
     }
 
-    /* 📱 MOBILE */
-    @media (max-width: 480px){
-      body{ padding: 8px 6px 8px; }
+@media (max-width: 480px){
+  body{ padding: 8px 6px 8px; }
 
-      .container{
-        width: 98%;
-        max-width: none;
-        padding: 16px 12px;
-      }
-
-      .info-text{
-        font-size: 8px;
-      }
-    }
+  .container{
+    width: 98%;
+    max-width: none;
+    padding: 16px 12px;
+  }
+  .info-text{
+    font-size: 9px;
+    font-weight: 700;   /* reduz peso visual */
+  }
+  .info-icon{
+    width: 14px;
+    height: 14px;
+  }
+  .info-line{
+    gap: 6px;           /* reduz espaçamento */
+  }
+}
 
     /* Logo */
     .logo-menu{
