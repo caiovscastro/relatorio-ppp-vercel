@@ -47,24 +47,39 @@
       margin: 10px 6px 10px;
     }
 
-@media (max-width: 480px){
-  body{ padding: 8px 6px 8px; }
+/* 📱 MOBILE */
+@media (max-width: 640px){
+
+  body{
+    padding: 8px 6px 8px;
+  }
 
   .container{
     width: 98%;
     max-width: none;
     padding: 16px 12px;
   }
+
+  /* reduz base do card */
+  .card-info{
+    font-size: 9px !important;
+  }
+
+  /* texto herda do card */
   .info-text{
-    font-size: 5px;
-    font-weight: 700;   /* reduz peso visual */
+    font-size: inherit !important;
+    font-weight: 700 !important;
   }
+
+  /* reduz ícones */
   .info-icon{
-    width: 14px;
-    height: 14px;
+    width: 14px !important;
+    height: 14px !important;
   }
+
+  /* reduz espaçamento entre blocos */
   .info-line{
-    gap: 6px;           /* reduz espaçamento */
+    gap: 6px !important;
   }
 }
 
