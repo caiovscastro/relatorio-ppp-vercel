@@ -422,6 +422,14 @@
     .doc-table tr:nth-child(even) td{ background:#fafcff; }
 
     .col-desc{ width: auto; }
+
+    /* ✅ req #1: quebra de linha respeita \n da planilha + quebra por largura */
+    .doc-table .col-desc{
+      white-space: pre-wrap;   /* respeita quebras (\n) */
+      word-break: break-word;  /* quebra palavras longas */
+      overflow-wrap: anywhere;
+    }
+
     .col-qtd{
       width: 70px;
       text-align: right;
@@ -497,7 +505,7 @@
       border-radius: 1px;
     }
 
-    /* ✅ Responsável quebra linha e não invade a coluna “Validação” */
+    /* ✅ Autorizado/Recebido quebra linha e não invade a coluna “Registrado por” */
     .ass-resp{ flex: 1 1 58%; }
     .ass-val{  flex: 1 1 42%; }
 
@@ -537,6 +545,32 @@
       .ass-k{ font-size: 10.5px; }
       .ass-v{ font-size: 10.5px; }
       .ic{ width: 18px; height: 18px; flex: 0 0 18px; }
+    }
+
+    /* ✅ req #2: bloco info em 2 colunas com divisor vertical */
+    .info-join{
+      background:#ffffff;
+      border: 1px solid #eeeeee;
+      border-radius: 14px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:stretch;
+      gap: 12px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+      min-width: 0;
+      margin-top: 2px;
+    }
+    .info-col{
+      flex: 1 1 0;
+      min-width: 0;
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+    }
+    .info-divider{
+      width: 1px;
+      background: rgba(0,0,0,0.10);
+      border-radius: 1px;
     }
 
     /* ✅ Modal (popup) base */
@@ -977,11 +1011,11 @@
         linhas = arr.map((row) => {
           if (Array.isArray(row)) {
             return {
-              A: row[0] ?? "", B: row[1] ?? "", C: row[2] ?? "", D: row[3] ?? "",
-              E: row[4] ?? "", F: row[5] ?? "", G: row[6] ?? "", H: row[7] ?? "",
-              I: row[8] ?? "", J: row[9] ?? "", K: row[10] ?? "", L: row[11] ?? "",
-              M: row[12] ?? "", N: row[13] ?? "",
-              O: row[14] ?? ""
+              A: row[0] ?? "",  B: row[1] ?? "",  C: row[2] ?? "",  D: row[3] ?? "",
+              E: row[4] ?? "",  F: row[5] ?? "",  G: row[6] ?? "",  H: row[7] ?? "",
+              I: row[8] ?? "",  J: row[9] ?? "",  K: row[10] ?? "", L: row[11] ?? "",
+              M: row[12] ?? "", N: row[13] ?? "", O: row[14] ?? "",
+              P: row[15] ?? "", Q: row[16] ?? ""
             };
           }
           if (row && typeof row === "object") {
@@ -1000,16 +1034,18 @@
               L: row.L ?? row.l ?? row.documento ?? "",
               M: row.M ?? row.m ?? row.fornecedor ?? "",
               N: row.N ?? row.n ?? row.placaVeiculo ?? row.placa ?? "",
-              O: row.O ?? row.o ?? row.validador ?? row.usuarioValidador ?? ""
+              O: row.O ?? row.o ?? row.validador ?? row.usuarioValidador ?? "",
+              P: row.P ?? row.p ?? row.solicitadoPor ?? row.solicitado_por ?? "",
+              Q: row.Q ?? row.q ?? row.transportadoPor ?? row.transportado_por ?? ""
             };
           }
-          return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:"",N:"",O:""};
+          return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:"",N:"",O:"",P:"",Q:""};
         });
 
         /* ✅ req #6: dados carregados sempre do mais recente para o mais antigo */
         linhas.sort((a,b) => (extrairDataISO(b.B) || "").localeCompare(extrairDataISO(a.B) || ""));
 
-        render(); /* render atualiza contador + msg com qtd de documentos do filtro */
+        render(); /* render atualiza msg com qtd de documentos do filtro */
 
       } catch (e) {
         console.error(e);
@@ -1268,6 +1304,7 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       `;
     }
     function svgTruck(){
+      /* usado como referência visual do ícone de "Transportado por:" (img3) */
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="7" width="11" height="10" rx="2" stroke-width="2"></rect>
@@ -1310,11 +1347,14 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         </svg>
       `;
     }
-    function svgShield(){
+    function svgClipboard(){
+      /* ícone do “Registrado por:” (img1) */
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 3l7 4v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V7l7-4z" stroke-width="2" stroke-linejoin="round"></path>
-          <path d="M9 12l2 2 4-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <rect x="7" y="4.5" width="10" height="4" rx="1.2" stroke-width="2"></rect>
+          <rect x="6" y="6.5" width="12" height="14" rx="2.2" stroke-width="2"></rect>
+          <line x1="8.5" y1="11" x2="15.5" y2="11" stroke-width="2" stroke-linecap="round"></line>
+          <line x1="8.5" y1="15" x2="15.5" y2="15" stroke-width="2" stroke-linecap="round"></line>
         </svg>
       `;
     }
@@ -1350,15 +1390,24 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
     }
 
+    function infoRowHtml({ icon, label, value, hideIfEmpty=false }){
+      const vRaw = normStr(value);
+      if (hideIfEmpty && !vRaw) return "";
+      return `
+        <div class="info-row">
+          ${icon}
+          <div class="txt"><span class="k">${escapeHtml(label)}</span> <span class="v">${escapeHtml(vRaw || "—")}</span></div>
+        </div>
+      `;
+    }
+
     function render(){
       atualizarEstadoDirecao();
 
       const linhasFiltradas = aplicarFiltrosNasLinhas();
       const docs = agruparPorDocumento(linhasFiltradas);
 
-      setTexto("contador", `${docs.length} documento(s)`);
-
-      /* ✅ req #5: msg mostra sempre a quantidade de documentos do filtro (sem “itens”) */
+      /* ✅ mantém comportamento de msg/contador, sem reintroduzir o contador removido */
       const msgEl = document.getElementById("msg");
       const cur = normStr(msgEl ? msgEl.textContent : "");
       const auto =
@@ -1386,19 +1435,23 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         const destinoVazio = !normStr(lojaDestino);
 
         const tipoCanon = tipoToCanon(x.J);
+        const ehRecebimento = (tipoCanon === "RECEBIMENTO_MERCADORIAS");
+
         const tituloTopo = (tipoCanon === "MOVIMENTACAO_INTERNA")
           ? "MOVIMENTAÇÃO INTERNA"
           : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "RECEBIMENTO DE MERCADORIAS" : (normStr(x.J) || "—").toUpperCase());
 
         const statusCanon = statusToCanon(x.K);
 
-        const responsavel = normStr(x.E) || "—";
-        const usuarioOrigemRegistro = normStr(x.D) || "—";
+        const responsavel = normStr(x.E) || "—";               // E
+        const registradoPor = normStr(x.D) || "—";             // D (sempre)
         const fornecedor = normStr(x.M) || "—";
-        const placaVeiculo = normStr(x.N) || "";
+        const placaVeiculo = normStr(x.N) || "";               // N
+        const solicitadoPor = normStr(x.P) || "";              // P
+        const transportadoPor = normStr(x.Q) || "";            // Q
         const validador = normStr(x.O) || "";
 
-        const statusTxtTopoBase = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+        const statusTxtTopoBase = ehRecebimento
           ? "VALIDADO"
           : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
 
@@ -1407,7 +1460,10 @@ A validação deverá ser efetuada apenas após a conferência física integral,
           : statusTxtTopoBase;
 
         const rowsHtml = items.map(it => {
-          const desc = escapeHtml(normStr(it.F) || "—");
+          const descRaw = normStr(it.F) || "—";
+          /* ✅ respeita \n da planilha (pre-wrap no CSS já faz o resto) */
+          const desc = escapeHtml(descRaw);
+
           const qtdFmt = formatarQtdExibicao(it.G, it.H);
           const qtd  = escapeHtml(normStr(qtdFmt) || "—");
           const emb  = escapeHtml(normStr(it.H) || "—");
@@ -1424,38 +1480,52 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         const card = document.createElement("div");
         card.className = "doc-card";
 
-        const linhaLojaHtml = destinoVazio
-          ? `
-            <div class="info-row">
-              ${svgStore()}
-              <div class="txt"><span class="k">Loja Recepção:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
-            </div>
-          `
-          : `
-            <div class="info-row">
-              ${svgStore()}
-              <div class="txt"><span class="k">Loja Origem:</span> <span class="v">${escapeHtml(lojaOrigem)}</span></div>
-            </div>
-            <div class="info-row">
-              ${svgStore()}
-              <div class="txt"><span class="k">Loja Destino:</span> <span class="v">${escapeHtml(lojaDestino)}</span></div>
-            </div>
-          `;
+        /* ===== bloco info em 2 colunas (com regra RECEBIMENTO) =====
+           - Coluna esquerda: Data/Hora, Origem, Destino
+           - Coluna direita: Placa, Transportado por, Solicitado por
+           - RECEBIMENTO: esconder vazios, exceto placa (sempre e vazio => *******); Destino some se vazio.
+        */
+        const placaExib = placaVeiculo ? placaVeiculo : "*******";
 
-        const fornecedorHtml = (tipoCanon === "RECEBIMENTO_MERCADORIAS")
+        const leftHtml =
+          infoRowHtml({ icon: svgClock(), label: "Data/Hora:", value: dataHora, hideIfEmpty: false }) +
+          infoRowHtml({ icon: svgStore(), label: "Origem:", value: lojaOrigem, hideIfEmpty: false }) +
+          infoRowHtml({
+            icon: svgStore(),
+            label: "Destino:",
+            value: lojaDestino,
+            hideIfEmpty: ehRecebimento ? true : false
+          });
+
+        const rightHtml =
+          infoRowHtml({ icon: svgPlate(), label: "Placa:", value: placaExib, hideIfEmpty: false }) +
+          infoRowHtml({
+            icon: svgTruck(),
+            label: "Transportado por:",
+            value: transportadoPor,
+            hideIfEmpty: ehRecebimento ? true : false
+          }) +
+          infoRowHtml({
+            icon: svgPerson(),
+            label: "Solicitado por:",
+            value: solicitadoPor,
+            hideIfEmpty: ehRecebimento ? true : false
+          });
+
+        const infoJoinHtml = `
+          <div class="info-join">
+            <div class="info-col">${leftHtml}</div>
+            <div class="info-divider" aria-hidden="true"></div>
+            <div class="info-col">${rightHtml}</div>
+          </div>
+        `;
+
+        /* Fornecedor: mantém como era (somente no recebimento) e, por regra, se vazio oculta */
+        const fornecedorHtml = (tipoCanon === "RECEBIMENTO_MERCADORIAS" && normStr(fornecedor))
           ? `
-            <div class="info-row">
+            <div class="info-row" style="margin-top:6px;">
               ${svgTruck()}
               <div class="txt"><span class="k">Fornecedor:</span> <span class="v">${escapeHtml(fornecedor)}</span></div>
-            </div>
-          `
-          : ``;
-
-        const placaHtml = (placaVeiculo)
-          ? `
-            <div class="info-row">
-              ${svgPlate()}
-              <div class="txt"><span class="k">Placa:</span> <span class="v">${escapeHtml(placaVeiculo)}</span></div>
             </div>
           `
           : ``;
@@ -1465,6 +1535,8 @@ A validação deverá ser efetuada apenas após a conferência física integral,
 
         const badgeClass = (statusTxtTopoBase === "PENDENTE") ? "badge-pendente" : "badge-validado";
         const badgeIcon  = (statusTxtTopoBase === "PENDENTE") ? svgHourglass() : svgCheck();
+
+        const labelResp = ehRecebimento ? "Recebido por" : "Autorizado por";
 
         card.innerHTML = `
           <div
@@ -1510,14 +1582,8 @@ A validação deverá ser efetuada apenas após a conferência física integral,
 
             <hr class="head-sep" />
 
-            <div class="info-row">
-              ${svgClock()}
-              <div class="txt"><span class="k">Data/Hora:</span> <span class="v">${escapeHtml(dataHora)}</span></div>
-            </div>
-
-            ${linhaLojaHtml}
+            ${infoJoinHtml}
             ${fornecedorHtml}
-            ${placaHtml}
           </div>
 
           <div class="doc-table-wrap">
@@ -1539,7 +1605,7 @@ A validação deverá ser efetuada apenas após a conferência física integral,
               <div class="ass-side ass-resp">
                 ${svgPerson()}
                 <div class="ass-txt">
-                  <div class="ass-k">Responsável</div>
+                  <div class="ass-k">${escapeHtml(labelResp)}</div>
                   <div class="ass-v">${escapeHtml(responsavel)}</div>
                 </div>
               </div>
@@ -1547,10 +1613,10 @@ A validação deverá ser efetuada apenas após a conferência física integral,
               <div class="ass-divider" aria-hidden="true"></div>
 
               <div class="ass-side ass-val">
-                ${svgShield()}
+                ${svgClipboard()}
                 <div class="ass-txt">
-                  <div class="ass-k">Validação</div>
-                  <div class="ass-v">${escapeHtml(usuarioOrigemRegistro)}</div>
+                  <div class="ass-k">Registrado por:</div>
+                  <div class="ass-v">${escapeHtml(registradoPor)}</div>
                 </div>
               </div>
             </div>
