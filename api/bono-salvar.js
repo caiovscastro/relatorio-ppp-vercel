@@ -234,7 +234,7 @@ async function confirmarLeituraNaPlanilhaComRetry({ sheets, documentoUnico, qtdE
     return { ok: false, motivo: "append sem updatedRange; não foi possível verificar a base de dados." };
   }
 
-  const r = updatedRange.trim(); // ex: "BONO!A123:O127"
+  const r = updatedRange.trim(); // ex: "BONO!A123:Q127"
 
   const delaysBase = [150, 250, 400, 650, 900, 1200, 1600, 2000, 2400];
 
@@ -324,6 +324,10 @@ export default async function handler(req, res) {
   const fornecedor = normalizarTexto(body.fornecedor, 80);
   const placaVeiculo = normalizarPlaca(body.placaVeiculo);
 
+  // ✅ NOVO: P/Q (obrigatório somente quando tiver MOV)
+  const solicitadoPor = normalizarTexto(body.solicitadoPor, 80);   // P
+  const transportadoPor = normalizarTexto(body.transportadoPor, 80); // Q
+
   const itens = Array.isArray(body.itens) ? body.itens : [];
 
   if (!validarDataHoraEscolhida(dataHoraEscolhida)) {
@@ -338,16 +342,24 @@ export default async function handler(req, res) {
 
   const itensValidos = [];
   let temRecebimento = false;
+  let temMov = false;
 
   for (const it of itens) {
     const v = validarItem(it);
     if (!v) return bad(res, 400, "Existe item inválido na lista.");
     itensValidos.push(v);
     if (v.tipoLancamento === "RECEBIMENTO") temRecebimento = true;
+    if (v.tipoLancamento === "MOV_INTERNA") temMov = true;
   }
 
   if (temRecebimento && !fornecedor) {
     return bad(res, 400, 'Fornecedor é obrigatório para "Recebimento de mercadorias".');
+  }
+
+  // ✅ MOV exige P/Q
+  if (temMov) {
+    if (!solicitadoPor) return bad(res, 400, 'Campo "Solicitado por" é obrigatório em Movimentação interna.');
+    if (!transportadoPor) return bad(res, 400, 'Campo "Transportado por" é obrigatório em Movimentação interna.');
   }
 
   const loja = String(session.loja || "").trim();
@@ -366,6 +378,10 @@ export default async function handler(req, res) {
 
     const fornecedorLinha = (it.tipoLancamento === "RECEBIMENTO") ? fornecedor : "";
 
+    // ✅ P/Q só em MOV
+    const solicitadoLinha = (it.tipoLancamento === "MOV_INTERNA") ? solicitadoPor : "";
+    const transportadoLinha = (it.tipoLancamento === "MOV_INTERNA") ? transportadoPor : "";
+
     return [
       spStamp.dataHoraRede,     // A
       dataHoraEscolhida,        // B
@@ -381,7 +397,9 @@ export default async function handler(req, res) {
       documentoUnico,           // L
       fornecedorLinha,          // M
       placaVeiculo,             // N
-      ""                        // O ✅ Usuario q validou (vazio no salvar)
+      "",                       // O ✅ Usuario q validou (vazio no salvar)
+      solicitadoLinha,          // P ✅ Solicitado por
+      transportadoLinha         // Q ✅ Transportado por
     ];
   });
 
@@ -390,7 +408,7 @@ export default async function handler(req, res) {
 
     const appendResp = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "BONO!A1:O1", // ✅ ancora na tabela A:O (evita “escorregar” para N:AB)
+      range: "BONO!A1:Q1", // ✅ ancora na tabela A:Q
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values }
