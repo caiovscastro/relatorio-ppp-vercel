@@ -73,7 +73,7 @@ export default async function handler(req, res) {
 
     const leitura = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "BONO!A:O",
+      range: "BONO!A:Q",
       majorDimension: "ROWS",
       valueRenderOption: "UNFORMATTED_VALUE",
       dateTimeRenderOption: "FORMATTED_STRING",
