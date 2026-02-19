@@ -5,7 +5,7 @@ const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 const spreadsheetId = process.env.SPREADSHEET_ID;
 
-const RANGE_LISTAR = "BONO!A:O";
+const RANGE_LISTAR = "BONO!A:Q";
 
 function bad(res, status, message) {
   return res.status(status).json({ sucesso: false, message });
@@ -45,6 +45,8 @@ function normalizarLinha(row = []) {
     M: row[12] ?? "",
     N: row[13] ?? "",
     O: row[14] ?? "",
+    P: row[15] ?? "",
+    Q: row[16] ?? "",
   };
 }
 
@@ -58,7 +60,8 @@ function primeiraLinhaPareceCabecalho(row = []) {
   const pistas = [
     "data", "hora", "loja", "origem", "destino", "usuário", "usuario",
     "respons", "produto", "quant", "embal", "tipo", "status", "documento", "doc",
-    "fornecedor", "placa", "veiculo", "veículo", "validador", "validou"
+    "fornecedor", "placa", "veiculo", "veículo", "validador", "validou",
+    "solicitado", "transportado"
   ];
   const hits = pistas.reduce((acc, p) => acc + (joined.includes(p) ? 1 : 0), 0);
   return hits >= 3;
