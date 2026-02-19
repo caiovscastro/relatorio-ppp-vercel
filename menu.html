@@ -47,41 +47,44 @@
       margin: 10px 6px 10px;
     }
 
-/* 📱 MOBILE */
-@media (max-width: 640px){
+    /* ✅ FIX: evita “flash” do botão Login antes do JS concluir */
+    #btnLogin{ display: none; }
 
-  body{
-    padding: 8px 6px 8px;
-  }
+    /* 📱 MOBILE */
+    @media (max-width: 640px){
 
-  .container{
-    width: 98%;
-    max-width: none;
-    padding: 16px 12px;
-  }
+      body{
+        padding: 8px 6px 8px;
+      }
 
-  /* reduz base do card */
-  .card-info{
-    font-size: 9px !important;
-  }
+      .container{
+        width: 98%;
+        max-width: none;
+        padding: 16px 12px;
+      }
 
-  /* texto herda do card */
-  .info-text{
-    font-size: inherit !important;
-    font-weight: 700 !important;
-  }
+      /* reduz base do card */
+      .card-info{
+        font-size: 9px !important;
+      }
 
-  /* reduz ícones */
-  .info-icon{
-    width: 14px !important;
-    height: 14px !important;
-  }
+      /* texto herda do card */
+      .info-text{
+        font-size: inherit !important;
+        font-weight: 700 !important;
+      }
 
-  /* reduz espaçamento entre blocos */
-  .info-line{
-    gap: 6px !important;
-  }
-}
+      /* reduz ícones */
+      .info-icon{
+        width: 14px !important;
+        height: 14px !important;
+      }
+
+      /* reduz espaçamento entre blocos */
+      .info-line{
+        gap: 6px !important;
+      }
+    }
 
     /* Logo */
     .logo-menu{
