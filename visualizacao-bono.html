@@ -1506,7 +1506,12 @@ const fornecedorLimpo = (normStr(fornecedor) && normStr(fornecedor) !== "—")
 
 const leftHtml =
   infoRowHtml({ icon: svgClock(), label: "Data/Hora:", value: dataHora, hideIfEmpty: false }) +
-  infoRowHtml({ icon: svgStore(), label: "Origem:", value: lojaOrigem, hideIfEmpty: false }) +
+  infoRowHtml({
+  icon: svgStore(),
+  label: ehRecebimento ? "Recepção:" : "Origem:",
+  value: lojaOrigem,
+  hideIfEmpty: false
+}) +
   infoRowHtml({
     icon: svgStore(),
     label: "Destino:",
