@@ -12,9 +12,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <title>BONO DIGITAL</title>
-<link rel="icon" type="image/png" href="/LogoBigUltra.png">
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#030712">
+  <link rel="icon" type="image/png" href="/LogoBigUltra.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#030712">
 
   <style>
     html, body{ width:100%; max-width:100%; overflow-x:hidden; }
@@ -67,7 +67,6 @@
       margin: 6px 0 14px;
     }
 
-    /* ===== Filtros ===== */
     .filtros{
       border: 1px solid #ececec;
       border-radius: 12px;
@@ -103,8 +102,8 @@
     }
 
     @media (max-width: 560px){
-      .grid-top{ grid-template-columns: 1fr 1fr 1fr; gap: 8px; } /* ✅ req #3 */
-      .grid-mid{ grid-template-columns: 1fr 1fr; gap: 8px; }     /* ✅ req #3 */
+      .grid-top{ grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+      .grid-mid{ grid-template-columns: 1fr 1fr; gap: 8px; }
       .grid-datas{ grid-template-columns: 1fr 1fr; gap: 8px; }
     }
 
@@ -126,7 +125,6 @@
       background:#fff;
     }
 
-    /* ✅ Busca com ícone */
     .search-wrap{
       position: relative;
       width:100%;
@@ -205,7 +203,7 @@
       background: #ffffff;
       box-shadow: 0 14px 34px rgba(0,0,0,0.16);
       padding: 5px;
-      margin-bottom: 23px; /* 15px -> 23px (50% maior) */
+      margin-bottom: 23px;
       overflow:hidden;
     }
 
@@ -272,7 +270,6 @@
       white-space: nowrap;
     }
 
-    /* no celular some “Status:” */
     @media (max-width: 560px){
       .doc-topline-left .status-title{ display:none !important; }
     }
@@ -422,8 +419,8 @@
 
     .col-desc{ width: auto; }
     .doc-table .col-desc{
-      white-space: pre-wrap;   
-      word-break: break-word;  
+      white-space: pre-wrap;
+      word-break: break-word;
       overflow-wrap: anywhere;
     }
 
@@ -440,6 +437,15 @@
 
     @media (max-width: 560px){
       .info-row{ font-size: 10.5px; }
+
+      .info-row .txt{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1px;
+        flex-wrap: nowrap;
+      }
+      .info-row .k{ white-space: normal; line-height: 1.05; }
+      .info-row .v{ white-space: nowrap; line-height: 1.05; }
 
       .doc-table-head{
         grid-template-columns: 1fr 58px 76px;
@@ -494,16 +500,17 @@
       min-width: 0;
     }
 
-.info-join{
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  margin-top: 0 !important;
-}
+    .info-join{
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+      margin-top: 0 !important;
+    }
 
-.info-join + .info-join{ margin-top: 0 !important; }
+    .info-join + .info-join{ margin-top: 0 !important; }
+
     .ass-divider{
       width: 1px;
       background: rgba(0,0,0,0.10);
@@ -647,11 +654,11 @@
       color:#444;
       font-weight: 800;
     }
-.info-row .k,
-.ass-k{
-  color: #1f4f95;
-  font-weight: 700;
-}
+    .info-row .k,
+    .ass-k{
+      color: #1f4f95;
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -739,7 +746,6 @@
     <div id="listaDocs"></div>
   </div>
 
-  <!-- ✅ Modal validação -->
   <div class="modal-backdrop" id="modalValidar">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalValidarTitulo">
       <div class="modal-header" id="modalValidarTitulo">Validação do Bono</div>
@@ -751,7 +757,6 @@
     </div>
   </div>
 
-  <!-- ✅ Modal excluir -->
   <div class="modal-backdrop" id="modalExcluir">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalExcluirTitulo">
       <div class="modal-header danger-title" id="modalExcluirTitulo">Exclusão de Documento</div>
@@ -782,7 +787,6 @@
     let linhas = [];
     let ENDPOINT_LISTAR_RESOLVIDO = "";
 
-    /* tenta com .js e sem .js */
     const ENDPOINT_VALIDAR = ["/api/bono-validar.js", "/api/bono-validar"];
     const ENDPOINT_EXCLUIR = ["/api/bono-excluir.js", "/api/bono-excluir"];
 
@@ -857,6 +861,26 @@
       const m = String(mm).padStart(2,"0");
       const a = String(aa).padStart(4,"0");
       return `${a}-${m}-${d}`;
+    }
+
+    function extrairDataHoraKey(dataHoraBR){
+      const t = normStr(dataHoraBR);
+      if (!t) return "";
+      const [parteData, parteHoraRaw] = t.split(" ");
+      const [dd,mm,aa] = (parteData || "").split("/");
+      if (!dd || !mm || !aa) return "";
+      const d = String(dd).padStart(2,"0");
+      const m = String(mm).padStart(2,"0");
+      const a = String(aa).padStart(4,"0");
+
+      let hh = "00", mi = "00";
+      const parteHora = normStr(parteHoraRaw);
+      if (parteHora){
+        const [h0, m0] = parteHora.split(":");
+        if (h0) hh = String(h0).padStart(2,"0");
+        if (m0) mi = String(m0).padStart(2,"0");
+      }
+      return `${a}${m}${d}${hh}${mi}`;
     }
 
     function tipoToCanon(tipo){
@@ -980,7 +1004,6 @@
         const ct = (resp.headers.get("content-type") || "").toLowerCase();
 
         if (resp.status === 404) {
-          console.error("Falha no endpoint (404):", endpoint);
           setMsg("Falha ao carregar dados (endpoint não encontrado).", false);
           linhas = [];
           render();
@@ -988,8 +1011,6 @@
         }
 
         if (!ct.includes("application/json")) {
-          const txt = await resp.text().catch(() => "");
-          console.error("Endpoint não retornou JSON:", { endpoint, status: resp.status, ct, body: (txt || "").slice(0, 600) });
           setMsg("Falha ao carregar dados (endpoint).", false);
           linhas = [];
           render();
@@ -1000,7 +1021,6 @@
         const ok = !!(dados && (dados.sucesso ?? dados.success ?? dados.ok));
 
         if (!resp.ok || !ok) {
-          console.error("Falha no endpoint:", { endpoint, status: resp.status, dados });
           setMsg("Falha ao carregar dados (endpoint).", false);
           linhas = [];
           render();
@@ -1046,12 +1066,11 @@
           return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:"",N:"",O:"",P:"",Q:""};
         });
 
-        linhas.sort((a,b) => (extrairDataISO(b.B) || "").localeCompare(extrairDataISO(a.B) || ""));
+        linhas.sort((a,b) => (extrairDataHoraKey(b.B) || "").localeCompare(extrairDataHoraKey(a.B) || ""));
 
         render();
 
       } catch (e) {
-        console.error(e);
         setMsg("Erro de rede ao carregar dados.", false);
         linhas = [];
         render();
@@ -1148,6 +1167,14 @@
       });
     }
 
+    function podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino }){
+      if (!sessaoAtual) return false;
+      if (statusCanon !== "PENDENTE") return false;
+      if (tipoCanon !== "MOVIMENTACAO_INTERNA") return false;
+      if (!normStr(lojaDestino)) return false;
+      return normKey(lojaDestino) === normKey(sessaoAtual.loja);
+    }
+
     function agruparPorDocumento(linhasFiltradas){
       const map = new Map();
       linhasFiltradas.forEach(r => {
@@ -1157,15 +1184,31 @@
       });
 
       const itens = Array.from(map.entries()).map(([documento, items]) => {
-        
-        const dataISO = items.reduce((mx, it) => {
-          const d = extrairDataISO(it.B);
+        const dataKey = items.reduce((mx, it) => {
+          const d = extrairDataHoraKey(it.B);
           return (d && d > mx) ? d : mx;
         }, "");
-        return { documento, items, dataISO };
+
+        const base = items[0] || {};
+        const tipoCanon = tipoToCanon(base.J);
+        const ehRecebimento = (tipoCanon === "RECEBIMENTO_MERCADORIAS");
+        const statusCanon = statusToCanon(base.K);
+        const lojaDestino = normStr(base.I);
+
+        let grupo = 2;
+        if (!ehRecebimento && statusCanon === "PENDENTE"){
+          const precisoValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
+          grupo = precisoValidar ? 0 : 1;
+        }
+
+        return { documento, items, dataKey, grupo };
       });
 
-      itens.sort((a,b) => (b.dataISO || "").localeCompare(a.dataISO || ""));
+      itens.sort((a,b) => {
+        if (a.grupo !== b.grupo) return a.grupo - b.grupo;
+        return (b.dataKey || "").localeCompare(a.dataKey || "");
+      });
+
       return itens;
     }
 
@@ -1203,14 +1246,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       modalExcluir.el.classList.remove("show");
       modalExcluir.documento = "";
       modalExcluir.input.value = "";
-    }
-
-    function podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino }){
-      if (!sessaoAtual) return false;
-      if (statusCanon !== "PENDENTE") return false;
-      if (tipoCanon !== "MOVIMENTACAO_INTERNA") return false;
-      if (!normStr(lojaDestino)) return false;
-      return normKey(lojaDestino) === normKey(sessaoAtual.loja);
     }
 
     async function postComFallback(endpoints, payload){
@@ -1431,8 +1466,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
         const dataHora = normStr(x.B) || "—";
         const lojaOrigem = normStr(x.C) || "—";
         const lojaDestino = normStr(x.I);
-        const destinoVazio = !normStr(lojaDestino);
-
         const tipoCanon = tipoToCanon(x.J);
         const ehRecebimento = (tipoCanon === "RECEBIMENTO_MERCADORIAS");
 
@@ -1440,170 +1473,168 @@ A validação deverá ser efetuada apenas após a conferência física integral,
           ? "MOVIMENTAÇÃO INTERNA"
           : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "RECEBIMENTO DE MERCADORIAS" : (normStr(x.J) || "—").toUpperCase());
 
-const statusCanon = statusToCanon(x.K);
-const responsavel = normStr(x.E) || "—";
-const registradoPor = normStr(x.D) || "—";
-const fornecedor = normStr(x.M) || "—";
-const placaVeiculo = normStr(x.N) || "";
-const solicitadoPor = normStr(x.P) || "";
-const transportadoPor = normStr(x.Q) || "";
-const validador = normStr(x.O) || "";
+        const statusCanon = statusToCanon(x.K);
+        const responsavel = normStr(x.E) || "—";
+        const registradoPor = normStr(x.D) || "—";
+        const fornecedor = normStr(x.M) || "—";
+        const placaVeiculo = normStr(x.N) || "";
+        const solicitadoPor = normStr(x.P) || "";
+        const transportadoPor = normStr(x.Q) || "";
+        const validador = normStr(x.O) || "";
 
-const statusTxtTopoBase = ehRecebimento
-  ? "VALIDADO"
-  : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
+        const statusTxtTopoBase = ehRecebimento
+          ? "VALIDADO"
+          : (statusCanon === "VALIDADO" ? "VALIDADO" : (statusCanon === "PENDENTE" ? "PENDENTE" : (normStr(x.K) || "—")));
 
-const statusTxtTopo = (statusTxtTopoBase === "VALIDADO" && validador)
-  ? `VALIDADO 👤${validador}`
-  : statusTxtTopoBase;
+        const statusTxtTopo = (statusTxtTopoBase === "VALIDADO" && validador)
+          ? `VALIDADO 👤${validador}`
+          : statusTxtTopoBase;
 
-const rowsHtml = items.map(it => {
-  const descRaw = normStr(it.F) || "—";
-  const desc = escapeHtml(descRaw);
-  const qtdFmt = formatarQtdExibicao(it.G, it.H);
-  const qtd  = escapeHtml(normStr(qtdFmt) || "—");
-  const emb  = escapeHtml(normStr(it.H) || "—");
-  return `
-    <tr>
-      <td class="col-desc">${desc}</td>
-      <td class="col-qtd">${qtd}</td>
-      <td class="col-emb">${emb}</td>
-    </tr>
-  `;
-}).join("");
+        const rowsHtml = items.map(it => {
+          const descRaw = normStr(it.F) || "—";
+          const desc = escapeHtml(descRaw);
+          const qtdFmt = formatarQtdExibicao(it.G, it.H);
+          const qtd  = escapeHtml(normStr(qtdFmt) || "—");
+          const emb  = escapeHtml(normStr(it.H) || "—");
+          return `
+            <tr>
+              <td class="col-desc">${desc}</td>
+              <td class="col-qtd">${qtd}</td>
+              <td class="col-emb">${emb}</td>
+            </tr>
+          `;
+        }).join("");
 
-const card = document.createElement("div");
-card.className = "doc-card";
+        const card = document.createElement("div");
+        card.className = "doc-card";
 
+        const placaExib = placaVeiculo ? placaVeiculo : "*******";
+        const fornecedorLimpo = (normStr(fornecedor) && normStr(fornecedor) !== "—")
+          ? normStr(fornecedor)
+          : "";
 
-const placaExib = placaVeiculo ? placaVeiculo : "*******";
-const fornecedorLimpo = (normStr(fornecedor) && normStr(fornecedor) !== "—")
-  ? normStr(fornecedor)
-  : "";
+        const leftHtml =
+          infoRowHtml({ icon: svgClock(), label: "Data/Hora:", value: dataHora, hideIfEmpty: false }) +
+          infoRowHtml({
+            icon: svgStore(),
+            label: ehRecebimento ? "Recepção:" : "Origem:",
+            value: lojaOrigem,
+            hideIfEmpty: false
+          }) +
+          infoRowHtml({
+            icon: svgStore(),
+            label: "Destino:",
+            value: lojaDestino,
+            hideIfEmpty: ehRecebimento ? true : false
+          });
 
-const leftHtml =
-  infoRowHtml({ icon: svgClock(), label: "Data/Hora:", value: dataHora, hideIfEmpty: false }) +
-  infoRowHtml({
-  icon: svgStore(),
-  label: ehRecebimento ? "Recepção:" : "Origem:",
-  value: lojaOrigem,
-  hideIfEmpty: false
-}) +
-  infoRowHtml({
-    icon: svgStore(),
-    label: "Destino:",
-    value: lojaDestino,
-    hideIfEmpty: ehRecebimento ? true : false
-  });
+        const rightHtml =
+          infoRowHtml({ icon: svgPlate(), label: "Placa:", value: placaExib, hideIfEmpty: false }) +
+          (ehRecebimento
+            ? infoRowHtml({ icon: svgTruck(), label: "Fornecedor:", value: fornecedorLimpo, hideIfEmpty: true })
+            : infoRowHtml({ icon: svgPerson(), label: "Transportado por:", value: transportadoPor, hideIfEmpty: false })
+          ) +
+          (ehRecebimento
+            ? ""
+            : infoRowHtml({ icon: svgPerson(), label: "Solicitado por:", value: solicitadoPor, hideIfEmpty: false })
+          );
 
-const rightHtml =
-  infoRowHtml({ icon: svgPlate(), label: "Placa:", value: placaExib, hideIfEmpty: false }) +
-  (ehRecebimento
-    ? infoRowHtml({ icon: svgTruck(), label: "Fornecedor:", value: fornecedorLimpo, hideIfEmpty: true })
-    : infoRowHtml({ icon: svgTruck(), label: "Transportado por:", value: transportadoPor, hideIfEmpty: false })
-  ) +
-  (ehRecebimento
-    ? ""
-    : infoRowHtml({ icon: svgPerson(), label: "Solicitado por:", value: solicitadoPor, hideIfEmpty: false })
-  );
+        const infoJoinHtml = `
+          <div class="info-join">
+            <div class="info-col">${leftHtml}</div>
+            <div class="info-divider" aria-hidden="true"></div>
+            <div class="info-col">${rightHtml}</div>
+          </div>
+        `;
 
-const infoJoinHtml = `
-  <div class="info-join">
-    <div class="info-col">${leftHtml}</div>
-    <div class="info-divider" aria-hidden="true"></div>
-    <div class="info-col">${rightHtml}</div>
-  </div>
-`;
+        const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
+        const mostrarBtnExcluir = !!(sessaoAtual && perfilEhAdmin(sessaoAtual.perfil));
+        const badgeClass = (statusTxtTopoBase === "PENDENTE") ? "badge-pendente" : "badge-validado";
+        const badgeIcon  = (statusTxtTopoBase === "PENDENTE") ? svgHourglass() : svgCheck();
+        const labelResp = ehRecebimento ? "Recebido por" : "Autorizado por:";
 
-const fornecedorHtml = ``;
-const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
-const mostrarBtnExcluir = !!(sessaoAtual && perfilEhAdmin(sessaoAtual.perfil));
-const badgeClass = (statusTxtTopoBase === "PENDENTE") ? "badge-pendente" : "badge-validado";
-const badgeIcon  = (statusTxtTopoBase === "PENDENTE") ? svgHourglass() : svgCheck();
-const labelResp = ehRecebimento ? "Recebido por" : "Autorizado por";
+        card.innerHTML = `
+          <div
+            class="doc-title-plain"
+            style="
+              font-weight:900;
+              color:#1f4f95;
+              display:flex;
+              align-items:center;
+              padding-left:12px;
+              min-height:40px;
+            "
+          >
+            ${escapeHtml(tituloTopo)}
+          </div>
 
-card.innerHTML = `
-  <div
-    class="doc-title-plain"
-    style="
-      font-weight:900;
-      color:#1f4f95;
-      display:flex;
-      align-items:center;
-      padding-left:12px;
-      min-height:40px;
-    "
-  >
-    ${escapeHtml(tituloTopo)}
-  </div>
+          <div class="doc-head-body">
+            <div class="doc-topline">
+              <div class="doc-topline-left">
+                ${svgInfo()}
+                <span class="status-title">Status:</span>
+              </div>
 
-  <div class="doc-head-body">
-    <div class="doc-topline">
-      <div class="doc-topline-left">
-        ${svgInfo()}
-        <span class="status-title">Status:</span>
-      </div>
+              <div class="doc-topline-right">
+                ${
+                  mostrarBtnValidar
+                    ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
+                    : ``
+                }
 
-      <div class="doc-topline-right">
-        ${
-          mostrarBtnValidar
-            ? `<button class="btn-validar" type="button" title="Validar pendência" aria-label="Validar pendência" data-acao="validar" data-doc="${escapeHtml(documento)}">VALIDAR</button>`
-            : ``
-        }
+                ${
+                  mostrarBtnExcluir
+                    ? `<button class="btn-excluir" type="button" title="Excluir documento" aria-label="Excluir documento" data-acao="excluir" data-doc="${escapeHtml(documento)}">EXCLUIR</button>`
+                    : ``
+                }
 
-        ${
-          mostrarBtnExcluir
-            ? `<button class="btn-excluir" type="button" title="Excluir documento" aria-label="Excluir documento" data-acao="excluir" data-doc="${escapeHtml(documento)}">EXCLUIR</button>`
-            : ``
-        }
-        
-        <div class="doc-badge ${badgeClass}" title="${escapeHtml(statusTxtTopo)}">
-          ${badgeIcon}
-          <span>${escapeHtml(statusTxtTopo)}</span>
-        </div>
-      </div>
-    </div>
-    <hr class="head-sep" />
+                <div class="doc-badge ${badgeClass}" title="${escapeHtml(statusTxtTopo)}">
+                  ${badgeIcon}
+                  <span>${escapeHtml(statusTxtTopo)}</span>
+                </div>
+              </div>
+            </div>
+            <hr class="head-sep" />
 
-    ${infoJoinHtml}
-    ${fornecedorHtml}
-  </div>
+            ${infoJoinHtml}
+          </div>
 
-  <div class="doc-table-wrap">
-    <div class="doc-table-head">
-      <div>DESCRIÇÃO</div>
-      <div class="h-right">Qtd</div>
-      <div class="h-right">Embalagem</div>
-    </div>
+          <div class="doc-table-wrap">
+            <div class="doc-table-head">
+              <div>DESCRIÇÃO</div>
+              <div class="h-right">Qtd</div>
+              <div class="h-right">Embalagem</div>
+            </div>
 
-    <table class="doc-table" aria-label="Itens do documento">
-      <tbody>
-        ${rowsHtml}
-      </tbody>
-    </table>
-  </div>
+            <table class="doc-table" aria-label="Itens do documento">
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
 
-  <div class="assinaturas">
-    <div class="ass-join">
-      <div class="ass-side ass-resp">
-        ${svgPerson()}
-        <div class="ass-txt">
-          <div class="ass-k">${escapeHtml(labelResp)}</div>
-          <div class="ass-v">${escapeHtml(responsavel)}</div>
-        </div>
-      </div>
+          <div class="assinaturas">
+            <div class="ass-join">
+              <div class="ass-side ass-resp">
+                ${svgPerson()}
+                <div class="ass-txt">
+                  <div class="ass-k">${escapeHtml(labelResp)}</div>
+                  <div class="ass-v">${escapeHtml(responsavel)}</div>
+                </div>
+              </div>
 
-      <div class="ass-divider" aria-hidden="true"></div>
-      <div class="ass-side ass-val">
-        ${svgClipboard()}
-        <div class="ass-txt">
-          <div class="ass-k">Registrado por:</div>
-          <div class="ass-v">${escapeHtml(registradoPor)}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-`;
+              <div class="ass-divider" aria-hidden="true"></div>
+              <div class="ass-side ass-val">
+                ${svgClipboard()}
+                <div class="ass-txt">
+                  <div class="ass-k">Registrado por:</div>
+                  <div class="ass-v">${escapeHtml(registradoPor)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
         const btnValidar = card.querySelector('button[data-acao="validar"]');
         if (btnValidar){
           btnValidar.addEventListener("click", () => {
@@ -1649,10 +1680,9 @@ card.innerHTML = `
       const yyyy = String(hoje.getFullYear()).padStart(4,"0");
       const mm = String(hoje.getMonth()+1).padStart(2,"0");
       const dd = String(hoje.getDate()).padStart(2,"0");
-      const v = `${yyyy}-${mm}-${dd}`;
 
-      elIni.value = v;
-      elFim.value = v;
+      elIni.value = `${yyyy}-${mm}-01`;
+      elFim.value = `${yyyy}-${mm}-${dd}`;
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -1675,7 +1705,6 @@ card.innerHTML = `
           setMsg("Bono validado com sucesso.", true);
           render();
         } catch (err){
-          console.error(err);
           fecharModalValidar();
           setMsg("Falha ao validar no servidor.", false);
         }
@@ -1714,7 +1743,6 @@ card.innerHTML = `
           setMsg("Documento excluído com sucesso.", true);
           render();
         } catch (err){
-          console.error(err);
           setMsg(err?.message ? String(err.message) : "Falha ao excluir no servidor.", false);
         }
       });
