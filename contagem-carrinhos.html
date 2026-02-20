@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  Sistema: BIG&ULTRA PPP
+  Tela: contagem-carrinhos.html
+  Versão: 1.0.0
+  Build: 2026-02-20
+  Ambiente: Produção
+  Desenvolvedor: Caio V. Souza Castro
+-->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -8,7 +16,6 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#030712">
 
-  <!-- Evita cache “enganoso” ao voltar (não é segurança, é UX) -->
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -66,7 +73,6 @@
     .k{ color:#555; font-weight:700; }
     .v{ font-weight:800; overflow:hidden; text-overflow:ellipsis; }
 
-    /* ====== TOTAIS LADO A LADO (inclusive no celular) ====== */
     .totais-row{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -74,13 +80,12 @@
       margin-bottom: 12px;
     }
 
-    /* Card total (ajustado: título em cima do valor) */
     .card-total{
       background:#f7f8ff;
       border: 1px solid #e0e3ff;
       border-radius: 10px;
       padding: 14px 12px;
-      margin: 0; /* agora o espaçamento é do .totais-row */
+      margin: 0;
       display:flex;
       flex-direction: column;
       align-items:flex-start;
@@ -102,7 +107,6 @@
       line-height: 1;
     }
 
-    /* ===== GRID (2 colunas) - contagem principal ===== */
     .grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -117,7 +121,6 @@
       min-width: 0;
     }
 
-    /* ===== Label com imagem ao lado ===== */
     .campo label{
       font-weight: 800;
       font-size: 13px;
@@ -198,7 +201,6 @@
     .ok{ color:#1b5e20; }
     .hidden{ display:none !important; }
 
-    /* Tela “sem sessão” */
     .tela-erro{
       width:100%;
       min-height: 70vh;
@@ -218,7 +220,6 @@
     .card-erro h2{ margin: 0 0 8px; color:#c00000; }
     .card-erro p{ margin: 0 0 12px; color:#333; font-weight:700; }
 
-    /* ==== Cards “separadores” ==== */
     .card-box{
       margin-top: 12px;
       background:#fff;
@@ -241,20 +242,17 @@
       vertical-align: middle;
     }
 
-    /* Fundo cinza clarinho (bem suave) */
     .card-soft{
       background:#f7f7f7;
       border-color:#e6e6e6;
     }
 
-    /* Grid interna SEMPRE 2 colunas (inclusive no celular) */
     .card-grid-2{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
 
-    /* MOVIMENTAÇÃO: 3 colunas iguais */
     .mov-row{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -280,9 +278,6 @@
     .pill.neg{ color:#b30000; }
     .pill.pos{ color:#1b5e20; }
 
-    /* =====================================================================================
-      ✅ NOVO: Progresso 0–100% (de 5 em 5)
-    ===================================================================================== */
     .loading-box{
       margin-top: 10px;
       background:#f7f7f7;
@@ -346,7 +341,7 @@
         <div class="linha"><span class="k">Perfil:</span> <span class="v" id="infoPerfil">—</span></div>
       </div>
 
-      <!-- ✅ Totais lado a lado -->
+      <!-- Totais lado a lado -->
       <div class="totais-row">
         <div class="card-total">
           <div class="total-label">Total de carrinhos</div>
@@ -359,7 +354,7 @@
         </div>
       </div>
 
-      <!-- Data de contagem (coluna D) -->
+      <!-- Data de contagem -->
       <div class="linha-1">
         <div class="campo">
           <label for="dataLancamento">Data Contagem:</label>
@@ -537,7 +532,6 @@
       <button class="btn btn-prim" id="btnEnviar">Enviar</button>
       <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao Menu</button>
 
-      <!-- ✅ NOVO: Progresso (0–100% de 5 em 5) -->
       <div id="loadingBox" class="loading-box hidden" aria-live="polite">
         <div class="loading-top">
           <div>Enviando...</div>
@@ -548,7 +542,6 @@
         </div>
         <div class="loading-sub" id="loadingSub">Aguarde</div>
       </div>
-
       <div class="mensagem" id="msg"></div>
     </div>
   </div>
@@ -604,10 +597,6 @@
     ];
 
     let sessaoAtual = null;
-
-    /* =====================================================================================
-      ✅ NOVO: Controle do loading 0–100% (de 5 em 5)
-    ===================================================================================== */
     let loadingTimer = null;
     let loadingValue = 0;
     let envioEmAndamento = false;
@@ -639,16 +628,14 @@
     }
 
     function startLoadingSim() {
-      // sempre limpa antes de iniciar
       if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
       showLoading();
       loadingValue = 0;
 
       loadingTimer = setInterval(() => {
-        // vai de 0 até 95 de 5 em 5
         if (loadingValue >= 95) return;
         setLoading(loadingValue + 5, "Enviando dados...");
-      }, 120); // ritmo suave; mantém sensação de progresso sem travar UX
+      }, 120);
     }
 
     function finishLoadingOk() {
@@ -659,7 +646,6 @@
 
     function finishLoadingFail() {
       if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
-      // ainda completa para 100% (pedido: 0 a 100%), mas sinaliza falha no texto
       setLoading(100, "Finalizado (com erro)");
       setTimeout(() => hideLoading(), 650);
     }
@@ -773,11 +759,8 @@
       atualizarPillMov();
     }
 
-    /* =====================================================================================
-      ✅ NOVO: pega os 3 dígitos de milissegundos no clique (momento do clique)
-    ===================================================================================== */
     function ms3NoClique() {
-      const ms = new Date().getMilliseconds(); // 0..999
+      const ms = new Date().getMilliseconds();
       return String(ms).padStart(3, "0");
     }
 
@@ -785,7 +768,6 @@
       setMsg("");
 
       if (envioEmAndamento) {
-        // trava extra contra clique repetido em device lento
         return;
       }
 
@@ -804,10 +786,8 @@
       btn.disabled = true;
       envioEmAndamento = true;
 
-      // ✅ inicia progresso 0..100 (de 5 em 5)
       startLoadingSim();
 
-      // ✅ captura ms no momento do clique
       const clientMs3 = ms3NoClique();
 
       try {
@@ -833,7 +813,6 @@
           movCategoria: movCategoriaCodigo,
           movCategoriaAbrev,
 
-          // ✅ NOVO: milissegundos do clique (3 dígitos)
           clientMs3
         };
 
@@ -861,10 +840,8 @@
 
         setMsg(dados.message || "Contagem enviada com sucesso.", true);
 
-        // ✅ conclui o loading (0..100%)
         finishLoadingOk();
 
-        // Limpa campos (mantém data)
         CAMPOS_CONTAGEM.forEach(c => document.getElementById(c.id).value = "");
         document.getElementById(CAMPO_MOV.qtdId).value = "";
         document.getElementById(CAMPO_MOV.tipoId).value = "ENTRADA";
@@ -950,13 +927,6 @@
       document.getElementById("infoUsuario").textContent = s.usuario;
       document.getElementById("infoPerfil").textContent = s.perfil;
     });
-
-    /*
-      Fontes (links confiáveis):
-      - Fetch (MDN): https://developer.mozilla.org/en-US/docs/Web/API/fetch
-      - setInterval (MDN): https://developer.mozilla.org/en-US/docs/Web/API/setInterval
-      - ARIA progressbar (MDN): https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/progressbar_role
-    */
   </script>
 </body>
 </html>
