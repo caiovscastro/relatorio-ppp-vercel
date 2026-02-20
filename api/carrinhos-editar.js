@@ -1,20 +1,3 @@
-// /api/carrinhos-editar.js
-//
-// Atualiza contagens e movimentação na aba CARRINHOS usando o ID da coluna U.
-//
-// Atualiza:
-// - E..R: contagens (14 colunas)
-// - S: movCarrinhos (com sinal)
-// - T: motivo (texto/abreviação)
-// - C: usuário (apenas se perfil GERENTE_PPP)
-//
-// Permissões:
-// - GERENTE_PPP: pode editar qualquer loja
-// - Outros (ADMINISTRADOR, BASE_PPP): somente a loja da sessão
-//
-// Segurança:
-// - Não confia no front: localiza linha pelo ID (U) e valida loja/perfil no servidor
-
 import { google } from "googleapis";
 import { requireSession } from "./_authUsuarios.js";
 
@@ -24,25 +7,19 @@ const spreadsheetId = process.env.SPREADSHEET_ID;
 
 const PERFIS_PERMITIDOS = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
 
-// Mapeia labels do editor para padrão abreviado (sem obrigar — evita quebrar)
 function normalizarMotivoParaPlanilha(raw){
   const s = String(raw ?? "").trim();
   if(!s) return "";
 
   const up = s.toUpperCase();
-
-  // Já está no padrão aceito pelo teu sistema
   const permitidos = new Set(["M.L","M.M","E.N","M_L","M_M","E_N"]);
   if(permitidos.has(up)) return up;
 
-  // Labels do editor (se usuário trocar no select)
   const low = s.toLowerCase();
   if(low === "movi. entre lojas") return "M.L";
   if(low === "movi. manutenção" || low === "movi. manutencao") return "M.M";
   if(low === "entrada novo" || low === "entrada novos") return "E.N";
 
-  // Fallback: mantém o texto do jeito que veio (sem quebrar)
-  // (Você pode restringir depois se quiser padronizar 100%.)
   return s;
 }
 
@@ -97,7 +74,6 @@ export default async function handler(req, res) {
   try {
     const sheets = await getSheetsClient();
 
-    // Localiza linha pelo ID (U) lendo A:U
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "CARRINHOS!A:U",
@@ -116,7 +92,7 @@ export default async function handler(req, res) {
     let foundIndex = -1;
     for (let i = startIndex; i < values.length; i++) {
       const row = values[i] || [];
-      const id = String(row[20] ?? "").trim(); // U
+      const id = String(row[20] ?? "").trim();
       if (id === idLinha) {
         foundIndex = i;
         break;
@@ -128,24 +104,21 @@ export default async function handler(req, res) {
     }
 
     const rowFound = values[foundIndex] || [];
-    const lojaDaLinha = String(rowFound[1] ?? "").trim(); // B
+    const lojaDaLinha = String(rowFound[1] ?? "").trim();
     const lojaSessao = String(session.loja ?? "").trim();
     const perfil = String(session.perfil ?? "").trim().toUpperCase();
 
-    // ✅ Permissão alinhada ao HTML
-    // GERENTE_PPP edita qualquer loja; demais só a própria loja
-    if (perfil !== "GERENTE_PPP") {
+    if (perfil !== "GERENTE_PPP" && perfil !== "ADMINISTRADOR") {
       if (!lojaSessao || lojaDaLinha !== lojaSessao) {
         return res.status(403).json({
           sucesso: false,
-          message: "Você não tem permissão para editar dados dessa loja",
+          message: "Você não tem permissão para editar os dados dessa loja",
         });
       }
     }
 
-    const sheetRowNumber = foundIndex + 1; // linha real na planilha (1-based)
+    const sheetRowNumber = foundIndex + 1;
 
-    // E..R (14 colunas)
     const payloadER = [
       asIntSafe(contagens.duplocar120),
       asIntSafe(contagens.grande160),
@@ -163,14 +136,10 @@ export default async function handler(req, res) {
       asIntSafe(contagens.cestinhasReserva),
     ];
 
-    // S e T (movimentação)
     const movCarrinhos = asIntSignedSafe(contagens.movCarrinhos);
     let motivo = normalizarMotivoParaPlanilha(contagens.movCategoria);
-
-    // Regra: se mov = 0, motivo em branco
     if (movCarrinhos === 0) motivo = "";
 
-    // ✅ Atualiza E:R
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `CARRINHOS!E${sheetRowNumber}:R${sheetRowNumber}`,
@@ -178,7 +147,6 @@ export default async function handler(req, res) {
       requestBody: { values: [payloadER] },
     });
 
-    // ✅ Atualiza S:T
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `CARRINHOS!S${sheetRowNumber}:T${sheetRowNumber}`,
@@ -186,8 +154,7 @@ export default async function handler(req, res) {
       requestBody: { values: [[movCarrinhos, motivo]] },
     });
 
-    // ✅ Se GERENTE_PPP editou, atualiza também o usuário (coluna C)
-    if (perfil === "GERENTE_PPP") {
+    if (perfil === "GERENTE_PPP" || perfil === "ADMINISTRADOR") {
       const usuarioSessao = String(session.usuario ?? "").trim();
       if (usuarioSessao) {
         await sheets.spreadsheets.values.update({
