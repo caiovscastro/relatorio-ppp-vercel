@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ remove “zoom” no celular ao abrir (viewport travado igual seus outros módulos) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <title>BONO DIGITAL</title>
 <link rel="icon" type="image/png" href="/LogoBigUltra.png">
@@ -11,7 +10,7 @@
 
   <style>
     html, body{ width:100%; max-width:100%; overflow-x:hidden; }
-    html{ -webkit-text-size-adjust: 100%; } /* ✅ evita ajuste/zoom de texto no mobile */
+    html{ -webkit-text-size-adjust: 100%; }
     body{
       background:#f3f3f3;
       font-family: Arial, sans-serif;
@@ -23,7 +22,6 @@
       color:#111;
     }
 
-    /* ✅ cartão principal camuflado/invisível */
     .container{
       width: 97%;
       max-width: 1300px;
@@ -76,7 +74,6 @@
       margin: 0 0 10px;
     }
 
-    /* 1ª linha: Loja, Tipo, Status (sempre 3 colunas, inclusive no celular) */
     .grid-top{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -84,7 +81,6 @@
       margin-bottom: 10px;
     }
 
-    /* 2ª linha: Direção + Busca (sempre lado a lado, inclusive no celular) */
     .grid-mid{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -92,7 +88,6 @@
       margin-bottom: 10px;
     }
 
-    /* 3ª linha: datas lado a lado */
     .grid-datas{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -145,7 +140,6 @@
       stroke:#1f4f95;
     }
 
-    /* 4ª linha: botões */
     .actions{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -182,7 +176,6 @@
     }
     .ok{ color:#0b6b2f; }
 
-    /* ===== Lista de cartões ===== */
     .resultados-top{
       display:flex;
       align-items:center;
@@ -222,7 +215,6 @@
       overflow:hidden;
       text-overflow: ellipsis;
       flex: 0 0 auto;
-      /* desktop mantém como está (sem font-size explícito) */
     }
 
     .badge-pendente{
@@ -402,7 +394,6 @@
     }
 
     .doc-table-head .h-right{ text-align: right; }
-
     .doc-table{
       width: 100%;
       border-collapse: collapse;
@@ -422,11 +413,9 @@
     .doc-table tr:nth-child(even) td{ background:#fafcff; }
 
     .col-desc{ width: auto; }
-
-    /* ✅ req #1: quebra de linha respeita \n da planilha + quebra por largura */
     .doc-table .col-desc{
-      white-space: pre-wrap;   /* respeita quebras (\n) */
-      word-break: break-word;  /* quebra palavras longas */
+      white-space: pre-wrap;   
+      word-break: break-word;  
       overflow-wrap: anywhere;
     }
 
@@ -463,13 +452,10 @@
       .doc-topline{ padding: 9px 10px; }
       .doc-topline-left .status-title{ font-size: 10.5px; }
 
-      /* ✅ req #1: PENDENTE/VALIDADO + 👤usuario menor no celular */
       .doc-badge{ font-size: 11px; }
     }
 
     .hidden{ display:none !important; }
-
-    /* ===== RODAPÉ ===== */
     .assinaturas{
       margin-top: 10px;
       display:grid;
@@ -499,7 +485,7 @@
       gap: 10px;
       min-width: 0;
     }
-/* ✅ wrapper neutro: mantém 2 colunas + divisor, sem virar “outro cartão” */
+
 .info-join{
   background: transparent !important;
   border: none !important;
@@ -508,19 +494,16 @@
   border-radius: 0 !important;
   margin-top: 0 !important;
 }
-/* (opcional) se você tinha dado respiro extra por causa do mini-card */
-.info-join + .info-join{ margin-top: 0 !important; }
 
+.info-join + .info-join{ margin-top: 0 !important; }
     .ass-divider{
       width: 1px;
       background: rgba(0,0,0,0.10);
       border-radius: 1px;
     }
 
-    /* ✅ Autorizado/Recebido quebra linha e não invade a coluna “Registrado por” */
     .ass-resp{ flex: 1 1 58%; }
     .ass-val{  flex: 1 1 42%; }
-
     .ass-txt{
       min-width:0;
       display:flex;
@@ -559,7 +542,6 @@
       .ic{ width: 18px; height: 18px; flex: 0 0 18px; }
     }
 
-    /* ✅ req #2: bloco info em 2 colunas com divisor vertical */
     .info-join{
       background:#ffffff;
       border: 1px solid #eeeeee;
@@ -585,7 +567,6 @@
       border-radius: 1px;
     }
 
-    /* ✅ Modal (popup) base */
     .modal-backdrop{
       position: fixed;
       inset: 0;
@@ -597,7 +578,6 @@
       z-index: 9999;
     }
     .modal-backdrop.show{ display:flex; }
-
     .modal{
       width: 100%;
       max-width: 560px;
@@ -641,7 +621,6 @@
     .btn-sim{ background:#111; color:#fff; }
     .btn-sim:hover{ opacity:.92; }
     .btn-nao:hover{ background:#dedede; }
-
     .danger-title{ color:#b30000; }
     .confirm-box{
       margin-top: 10px;
@@ -660,7 +639,6 @@
       color:#444;
       font-weight: 800;
     }
-/* ✅ títulos em azul padrão do sistema (info rows + assinaturas) */
 .info-row .k,
 .ass-k{
   color: #1f4f95;
@@ -724,7 +702,7 @@
               <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
               <line x1="16.8" y1="16.8" x2="21" y2="21" stroke-width="2" stroke-linecap="round"></line>
             </svg>
-            <input id="fBusca" type="text" placeholder="Digite parte da descrição..." autocomplete="off" />
+            <input id="fBusca" type="text" placeholder="Digite..." autocomplete="off" />
           </div>
         </div>
       </div>
@@ -1060,10 +1038,9 @@
           return {A:"",B:"",C:"",D:"",E:"",F:"",G:"",H:"",I:"",J:"",K:"",L:"",M:"",N:"",O:"",P:"",Q:""};
         });
 
-        /* ✅ req #6: dados carregados sempre do mais recente para o mais antigo */
         linhas.sort((a,b) => (extrairDataISO(b.B) || "").localeCompare(extrairDataISO(a.B) || ""));
 
-        render(); /* render atualiza msg com qtd de documentos do filtro */
+        render();
 
       } catch (e) {
         console.error(e);
@@ -1172,7 +1149,7 @@
       });
 
       const itens = Array.from(map.entries()).map(([documento, items]) => {
-        /* ✅ req #6: robusto (independe da ordem interna dos itens do doc) */
+        
         const dataISO = items.reduce((mx, it) => {
           const d = extrairDataISO(it.B);
           return (d && d > mx) ? d : mx;
@@ -1322,7 +1299,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       `;
     }
     function svgTruck(){
-      /* usado como referência visual do ícone de "Transportado por:" (img3) */
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="7" width="11" height="10" rx="2" stroke-width="2"></rect>
@@ -1366,7 +1342,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
       `;
     }
     function svgClipboard(){
-      /* ícone do “Registrado por:” (img1) */
       return `
         <svg class="ic ic-blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="7" y="4.5" width="10" height="4" rx="1.2" stroke-width="2"></rect>
@@ -1424,8 +1399,6 @@ A validação deverá ser efetuada apenas após a conferência física integral,
 
       const linhasFiltradas = aplicarFiltrosNasLinhas();
       const docs = agruparPorDocumento(linhasFiltradas);
-
-      /* ✅ mantém comportamento de msg/contador, sem reintroduzir o contador removido */
       const msgEl = document.getElementById("msg");
       const cur = normStr(msgEl ? msgEl.textContent : "");
       const auto =
@@ -1460,13 +1433,12 @@ A validação deverá ser efetuada apenas após a conferência física integral,
           : (tipoCanon === "RECEBIMENTO_MERCADORIAS" ? "RECEBIMENTO DE MERCADORIAS" : (normStr(x.J) || "—").toUpperCase());
 
 const statusCanon = statusToCanon(x.K);
-
-const responsavel = normStr(x.E) || "—";               // E
-const registradoPor = normStr(x.D) || "—";             // D (sempre)
+const responsavel = normStr(x.E) || "—";
+const registradoPor = normStr(x.D) || "—";
 const fornecedor = normStr(x.M) || "—";
-const placaVeiculo = normStr(x.N) || "";               // N
-const solicitadoPor = normStr(x.P) || "";              // P
-const transportadoPor = normStr(x.Q) || "";            // Q
+const placaVeiculo = normStr(x.N) || "";
+const solicitadoPor = normStr(x.P) || "";
+const transportadoPor = normStr(x.Q) || "";
 const validador = normStr(x.O) || "";
 
 const statusTxtTopoBase = ehRecebimento
@@ -1479,13 +1451,10 @@ const statusTxtTopo = (statusTxtTopoBase === "VALIDADO" && validador)
 
 const rowsHtml = items.map(it => {
   const descRaw = normStr(it.F) || "—";
-  /* ✅ respeita \n da planilha (pre-wrap no CSS já faz o resto) */
   const desc = escapeHtml(descRaw);
-
   const qtdFmt = formatarQtdExibicao(it.G, it.H);
   const qtd  = escapeHtml(normStr(qtdFmt) || "—");
   const emb  = escapeHtml(normStr(it.H) || "—");
-
   return `
     <tr>
       <td class="col-desc">${desc}</td>
@@ -1498,14 +1467,8 @@ const rowsHtml = items.map(it => {
 const card = document.createElement("div");
 card.className = "doc-card";
 
-/* ===== bloco info em 2 colunas (com regra RECEBIMENTO) =====
-   - Coluna esquerda: Data/Hora, Origem, Destino
-   - Coluna direita: Placa, Transportado por, Solicitado por
-   - RECEBIMENTO: esconder vazios, exceto placa (sempre e vazio => *******); Destino some se vazio.
-*/
-const placaExib = placaVeiculo ? placaVeiculo : "*******";
 
-/* ✅ Fornecedor só faz sentido no RECEBIMENTO; se vier "—" ou vazio, trata como vazio */
+const placaExib = placaVeiculo ? placaVeiculo : "*******";
 const fornecedorLimpo = (normStr(fornecedor) && normStr(fornecedor) !== "—")
   ? normStr(fornecedor)
   : "";
@@ -1525,7 +1488,6 @@ const leftHtml =
     hideIfEmpty: ehRecebimento ? true : false
   });
 
-/* ✅ RECEBIMENTO: Fornecedor fica abaixo da Placa (na coluna direita) */
 const rightHtml =
   infoRowHtml({ icon: svgPlate(), label: "Placa:", value: placaExib, hideIfEmpty: false }) +
   (ehRecebimento
@@ -1545,15 +1507,11 @@ const infoJoinHtml = `
   </div>
 `;
 
-/* ✅ Fornecedor não é mais renderizado fora do bloco (evita duplicar) */
 const fornecedorHtml = ``;
-
 const mostrarBtnValidar = podeVerBotaoValidar({ statusCanon, tipoCanon, lojaDestino });
 const mostrarBtnExcluir = !!(sessaoAtual && perfilEhAdmin(sessaoAtual.perfil));
-
 const badgeClass = (statusTxtTopoBase === "PENDENTE") ? "badge-pendente" : "badge-validado";
 const badgeIcon  = (statusTxtTopoBase === "PENDENTE") ? svgHourglass() : svgCheck();
-
 const labelResp = ehRecebimento ? "Recebido por" : "Autorizado por";
 
 card.innerHTML = `
@@ -1590,14 +1548,13 @@ card.innerHTML = `
             ? `<button class="btn-excluir" type="button" title="Excluir documento" aria-label="Excluir documento" data-acao="excluir" data-doc="${escapeHtml(documento)}">EXCLUIR</button>`
             : ``
         }
-
+        
         <div class="doc-badge ${badgeClass}" title="${escapeHtml(statusTxtTopo)}">
           ${badgeIcon}
           <span>${escapeHtml(statusTxtTopo)}</span>
         </div>
       </div>
     </div>
-
     <hr class="head-sep" />
 
     ${infoJoinHtml}
@@ -1629,7 +1586,6 @@ card.innerHTML = `
       </div>
 
       <div class="ass-divider" aria-hidden="true"></div>
-
       <div class="ass-side ass-val">
         ${svgClipboard()}
         <div class="ass-txt">
@@ -1668,7 +1624,6 @@ card.innerHTML = `
       document.getElementById("fDataFim").value = "";
       document.getElementById("fTipo").value = "";
       document.getElementById("fStatus").value = "";
-
       document.getElementById("fDirecao").value = "";
       document.getElementById("fBusca").value = "";
 
@@ -1697,10 +1652,8 @@ card.innerHTML = `
       modalValidar.txt = document.getElementById("modalValidarTexto");
       modalValidar.btnSim = document.getElementById("btnModalSim");
       modalValidar.btnNao = document.getElementById("btnModalNao");
-
       modalValidar.btnNao.addEventListener("click", () => fecharModalValidar());
       modalValidar.el.addEventListener("click", (e) => { if (e.target === modalValidar.el) fecharModalValidar(); });
-
       modalValidar.btnSim.addEventListener("click", async () => {
         const doc = modalValidar.documento;
         if (!doc) return fecharModalValidar();
@@ -1726,10 +1679,8 @@ card.innerHTML = `
       modalExcluir.hint = document.getElementById("hintUser");
       modalExcluir.btnSim = document.getElementById("btnExcluirSim");
       modalExcluir.btnCancelar = document.getElementById("btnExcluirCancelar");
-
       modalExcluir.btnCancelar.addEventListener("click", () => fecharModalExcluir());
       modalExcluir.el.addEventListener("click", (e) => { if (e.target === modalExcluir.el) fecharModalExcluir(); });
-
       modalExcluir.btnSim.addEventListener("click", async () => {
         if (!sessaoAtual || !perfilEhAdmin(sessaoAtual.perfil)) {
           fecharModalExcluir();
