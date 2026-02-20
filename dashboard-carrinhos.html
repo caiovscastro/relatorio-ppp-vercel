@@ -1,18 +1,23 @@
 <!DOCTYPE html>
+<!--
+  Sistema: BIG&ULTRA PPP
+  Tela: dashboard-carrinhos.html
+  Versão: 1.0.0
+  Build: 2026-02-20
+  Ambiente: Produção
+  Desenvolvedor: Caio V. Souza Castro
+-->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- ✅ Mobile: bloqueia zoom/pinch -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
   <title>Dashboard Carrinhos</title>
-<link rel="icon" type="image/png" href="/LogoBigUltra.png">
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#030712">
-
+  <link rel="icon" type="image/png" href="/LogoBigUltra.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#030712">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
@@ -55,7 +60,6 @@
       overflow-x: hidden;
     }
 
-    /* ✅ (2) Sem drop shadow; com relevo (inset) */
     .shell{
       width: 100%;
       max-width: 100%;
@@ -64,8 +68,8 @@
       border-radius: 12px;
       border: 1px solid var(--border);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.85),
-        inset 0 -6px 14px rgba(0,0,0,0.06);
+      inset 0 1px 0 rgba(255,255,255,0.85),
+      inset 0 -6px 14px rgba(0,0,0,0.06);
       overflow-x: hidden;
       min-width: 0;
     }
@@ -112,10 +116,9 @@
       padding: 22px 18px;
       border-radius: 12px;
       border: 1px solid var(--border);
-      /* ✅ (2) sem drop shadow; relevo */
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.85),
-        inset 0 -6px 14px rgba(0,0,0,0.06);
+      inset 0 1px 0 rgba(255,255,255,0.85),
+      inset 0 -6px 14px rgba(0,0,0,0.06);
       max-width: 560px;
       width: 95%;
       text-align:center;
@@ -150,7 +153,6 @@
       border-radius: 12px;
       padding: 12px;
 
-      /* ✅ (2) sem drop shadow; relevo */
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.85),
         inset 0 -6px 14px rgba(0,0,0,0.06);
@@ -179,8 +181,7 @@
         padding: 10px 8px;
       }
     }
-
-    /* ✅ (5) Cartão novo: Usuário/Loja (sem títulos) */
+    
     .userloja-card{
       padding: 12px;
     }
@@ -206,11 +207,9 @@
       max-width: 100%;
       min-width: 0;
       overflow-x: hidden;
-
-      /* ✅ (2) sem drop shadow; relevo */
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.85),
-        inset 0 -6px 14px rgba(0,0,0,0.06);
+      inset 0 1px 0 rgba(255,255,255,0.85),
+      inset 0 -6px 14px rgba(0,0,0,0.06);
     }
     .painel h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
@@ -223,11 +222,9 @@
       max-width: 100%;
       min-width: 0;
       overflow-x: hidden;
-
-      /* ✅ (2) sem drop shadow; relevo */
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.85),
-        inset 0 -6px 14px rgba(0,0,0,0.06);
+      inset 0 1px 0 rgba(255,255,255,0.85),
+      inset 0 -6px 14px rgba(0,0,0,0.06);
     }
 
     .grupo-titulo{
@@ -318,11 +315,9 @@
       max-width: 100%;
       min-width: 0;
       overflow: hidden;
-
-      /* ✅ (2) sem drop shadow; relevo */
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.85),
-        inset 0 -6px 14px rgba(0,0,0,0.06);
+      inset 0 1px 0 rgba(255,255,255,0.85),
+      inset 0 -6px 14px rgba(0,0,0,0.06);
     }
     .card h3{ margin: 0 0 10px; font-size: 15px; font-weight: 900; }
 
@@ -347,12 +342,11 @@
       padding: 12px;
       min-width: 0;
       overflow:hidden;
-
-      /* ✅ (2) sem drop shadow; relevo */
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.85),
         inset 0 -6px 14px rgba(0,0,0,0.06);
     }
+    
     .kpi .label{
       font-weight: 900;
       color:#111;
@@ -374,6 +368,7 @@
       gap: 0;
       min-width: 0;
     }
+    
     .chart-wrap{
       width:100%;
       position: relative;
@@ -383,6 +378,7 @@
       overflow: hidden;
       height: 360px;
     }
+    
     @media (max-width: 520px){
       .chart-card{ height: 390px; }
       .chart-wrap{ height: 320px; }
@@ -490,9 +486,6 @@
       border-bottom: 1px solid var(--grid);
     }
 
-    /* =========================================================
-       ✅ (3) Botão pequeno de edição (ícone)
-       ========================================================= */
     .edit-btn{
       border: 1px solid #dcdcdc;
       background: #f3f3f3;
@@ -514,9 +507,6 @@
       gap:8px;
     }
 
-    /* =========================================================
-       ✅ MODAIS (popup)
-       ========================================================= */
     .modal-overlay{
       position: fixed;
       inset: 0;
@@ -536,11 +526,9 @@
       border-radius: 14px;
       border: 1px solid var(--border);
       padding: 14px;
-
-      /* sem drop shadow, com relevo */
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.85),
-        inset 0 -10px 20px rgba(0,0,0,0.06);
+      inset 0 1px 0 rgba(255,255,255,0.85),
+      inset 0 -10px 20px rgba(0,0,0,0.06);
     }
     .modal h3{
       margin: 0 0 10px;
@@ -565,7 +553,6 @@
       min-width: 140px;
     }
 
-    /* ✅ (1) Editor rolável: body rola, ações ficam visíveis */
     .editor-modal{
       display:flex;
       flex-direction: column;
@@ -575,10 +562,10 @@
     }
     .editor-body{
       flex: 1 1 auto;
-      min-height: 0;               /* necessário p/ overflow funcionar em flex */
+      min-height: 0;
       overflow: auto;
       -webkit-overflow-scrolling: touch;
-      padding-right: 6px;          /* evita cortar scrollbar */
+      padding-right: 6px;
     }
     .editor-actions{
       flex: 0 0 auto;
@@ -600,8 +587,8 @@
       padding: 10px;
       background: #fafafa;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.85),
-        inset 0 -10px 18px rgba(0,0,0,0.04);
+      inset 0 1px 0 rgba(255,255,255,0.85),
+      inset 0 -10px 18px rgba(0,0,0,0.04);
     }
     .editor-item label{
       display:block;
@@ -636,7 +623,6 @@
       margin-top: 8px;
     }
 
-    /* ✅ (2) Card destacado de movimentação no final */
     .mov-card{
       margin-top: 12px;
       background: var(--tile);
@@ -668,7 +654,6 @@
         <div class="grid">
           <div class="left-panel">
 
-            <!-- ✅ (5) NOVO cartão acima de Ações: Usuário (em cima) e Loja (abaixo) -->
             <div class="acoes-card userloja-card">
               <div class="userloja-stack">
                 <div class="userloja-valor" id="cardUsuario">—</div>
@@ -802,7 +787,6 @@
         </div>
       </div>
 
-      <!-- ✅ MODAL GENÉRICO -->
       <div id="modalOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
           <h3 id="modalTitle">Aviso</h3>
@@ -811,13 +795,11 @@
         </div>
       </div>
 
-      <!-- ✅ MODAL EDITOR -->
       <div id="editorOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal editor-modal" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
           <h3 id="editorTitle">Editar</h3>
           <p id="editorSub">...</p>
 
-          <!-- ✅ (1) Corpo rolável -->
           <div class="editor-body" id="editorBody">
             <div class="section-tag">Modelos de carrinhos</div>
             <div class="editor-grid" id="editorGridAtivos"></div>
@@ -825,7 +807,6 @@
             <div class="section-tag">Especiais e reservas</div>
             <div class="editor-grid" id="editorGridEspeciais"></div>
 
-            <!-- ✅ (2) Card destacado de movimentação no final (preenchido ao abrir) -->
             <div class="section-tag">Movimentação</div>
             <div class="mov-card" id="editorMovCard">
               <div class="editor-grid">
@@ -850,14 +831,12 @@
             </div>
           </div>
 
-          <!-- ✅ Ações sempre visíveis -->
           <div class="modal-actions editor-actions">
             <button class="btn btn-sec" id="btnDescartarEdicao">Descartar edição</button>
             <button class="btn btn-prim" id="btnSalvarEdicao">Salvar</button>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -865,7 +844,6 @@
   const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
 
-  // Sessão em memória (para permissões de edição)
   let SESSION = null;
 
   const TIPOS = [
@@ -936,13 +914,6 @@
     "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 25 - BRASILINHA",
   ];
 
-  /* =========================================================
-     ✅ AJUSTE SOLICITADO:
-     - Planilha guarda abreviado: M.L / M.M / M.N
-     - Editor mostra texto humano, mas o <option value> é o abreviado
-     - Ao salvar, envia abreviado (M.L/M.M/M.N)
-     - Leitura aceita variantes antigas: E.N, M_L, M_M, M_N, etc.
-     ========================================================= */
   const MOV_OPCOES = [
     { value: "M.L", label: "Movi. entre lojas" },
     { value: "M.M", label: "Movi. Manutenção" },
@@ -961,27 +932,19 @@
     let v = String(raw ?? "").trim();
     if(!v) return "";
 
-    // Normaliza underscore -> ponto e caixa
     v = v.toUpperCase().replace(/_/g, ".");
-    // Compat: se vier E.N, trata como E.N (seu novo padrão)
     if(v === "E.N") v = "E.N";
 
-    // Se já for um dos abreviados, ok
     if(v === "M.L" || v === "M.M" || v === "E.N") return v;
 
-    // Se vier texto humano (ou variação), mapeia
     const key = _semAcentoUpper(v);
 
-    // Entre lojas
     if(key.includes("ENTRE") && key.includes("LOJ")) return "M.L";
 
-    // Manutenção
     if(key.includes("MANUT")) return "M.M";
 
-    // Entrada novos
     if(key.includes("ENTRADA") && key.includes("NOV")) return "E.N";
 
-    // Desconhecido: não forçamos (preserva)
     return "";
   }
 
@@ -1079,7 +1042,6 @@
 
     const horaRaw = String(reg?.horaRegistro ?? reg?.dataHoraRede ?? "").trim();
     const hms = normalizarHoraParaHMS(horaRaw);
-
     const dt = new Date(`${dataISO}T${hms}`);
     const t = dt.getTime();
     return Number.isFinite(t) ? t : 0;
@@ -1253,10 +1215,6 @@
     ).trim();
   }
 
-  /* =========================================================
-     ✅ (1) Dimensões:
-     - Ao iniciar/atualizar: SOMENTE "Qtd Mov." e "Motivo Mov." desmarcadas
-     ========================================================= */
   const DIMENSOES = [
     { key:"qtdMov",    label:"Qtd Mov.",     defaultChecked:false },
     { key:"motivoMov", label:"Motivo Mov.",  defaultChecked:false },
@@ -1406,14 +1364,14 @@
         type:"bar",
         data:{ labels:["Sem tipos selecionados"], datasets:[{ data:[0] }] },
         options:{
-          indexAxis:"y",
-          responsive:true,
-          maintainAspectRatio:false,
-          events: [],
-          plugins:{
-            legend:{display:false},
-            tooltip:{enabled:false},
-            datalabels:{formatter:()=>""}
+        indexAxis:"y",
+        responsive:true,
+        maintainAspectRatio:false,
+        events: [],
+        plugins:{
+        legend:{display:false},
+        tooltip:{enabled:false},
+        datalabels:{formatter:()=>""}
           },
           scales:{ x:{display:false}, y:{display:true, grid:{display:false}} }
         },
@@ -1425,10 +1383,8 @@
     const zipped = labels.map((l,i)=>({ l, v:data[i] })).sort((a,b)=>b.v - a.v);
     const labelsOrd = zipped.map(x=>x.l);
     const dataOrd = zipped.map(x=>x.v);
-
     const maxVal = Math.max(0, ...dataOrd);
     const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.18) : 1;
-
     const gradientFactory = (context) => {
       const { chart } = context;
       const { ctx, chartArea } = chart;
@@ -1462,17 +1418,17 @@
         interaction: { mode: null },
         layout:{ padding:{ left: 26, right: 22, top: 6, bottom: 6 } },
         plugins:{
-          legend:{ display:false },
-          tooltip:{ enabled:false },
-          datalabels:{
-            formatter:(v)=> (v ? fmtInt(v) : ""),
-            anchor:"end",
-            align:"right",
-            clamp:true,
-            offset: 8,
-            font:{ weight:"900" },
-            textStrokeColor:"#ffffff",
-            textStrokeWidth: 3
+        legend:{ display:false },
+        tooltip:{ enabled:false },
+        datalabels:{
+        formatter:(v)=> (v ? fmtInt(v) : ""),
+        anchor:"end",
+        align:"right",
+        clamp:true,
+        offset: 8,
+        font:{ weight:"900" },
+        textStrokeColor:"#ffffff",
+        textStrokeWidth: 3
           }
         },
         scales:{
@@ -1639,9 +1595,6 @@
     tbody.appendChild(trTot);
   }
 
-  /* =========================================================
-     ✅ MODAIS
-     ========================================================= */
   function openModal({ title="Aviso", text="", buttons=[] }){
     const overlay = document.getElementById("modalOverlay");
     const t = document.getElementById("modalTitle");
@@ -1657,8 +1610,8 @@
       btn.className = `btn ${b.variant === "prim" ? "btn-prim" : "btn-sec"}`;
       btn.textContent = b.label || "OK";
       btn.onclick = ()=>{
-        closeModal();
-        if(typeof b.onClick === "function") b.onClick();
+      closeModal();
+      if(typeof b.onClick === "function") b.onClick();
       };
       actions.appendChild(btn);
     }
@@ -1688,10 +1641,8 @@
     return t ? t.label : key;
   }
 
-  // Registro atualmente em edição (referência)
   let EDIT_REG = null;
 
-  // ✅ (4) Permissão: GERENTE_PPP pode editar todas; outros seguem regra atual (apenas sua loja)
   function podeEditarRegistro(lojaDoRegistro){
     const perfil = String(SESSION?.perfil || "").trim().toUpperCase();
     const lojaSessao = String(SESSION?.loja || "").trim();
@@ -1706,10 +1657,8 @@
 
     const atualRaw = String(valorAtual || "").trim();
 
-    // Se vier abreviado (M.L/M.M/E.N) ou variações, normaliza p/ abreviado padrão
     const atualAbrev = motivoParaAbrev(atualRaw);
 
-    // Se o valor atual for algo fora do mapeamento, preserva (não perde dado)
     const jaExisteComoOpcao = MOV_OPCOES.some(o => o.value === atualRaw);
     const desconhecido = (!!atualRaw && !atualAbrev && !jaExisteComoOpcao);
 
@@ -1720,18 +1669,13 @@
       selectEl.appendChild(opt);
     }
 
-    // Opções padrão: value abreviado / texto humano
     for(const o of MOV_OPCOES){
       const opt = document.createElement("option");
-      opt.value = o.value;        // ✅ gravação: abreviado
-      opt.textContent = o.label;  // ✅ exibição: humano
+      opt.value = o.value;
+      opt.textContent = o.label;
       selectEl.appendChild(opt);
     }
 
-    // Seleciona:
-    // - se foi reconhecido, seleciona pelo abreviado
-    // - se desconhecido, fica no desconhecido
-    // - se vazio, default M.L
     if(atualAbrev){
       selectEl.value = atualAbrev;
     }else if(desconhecido){
@@ -1751,7 +1695,6 @@
     document.getElementById("editorSub").textContent = `Loja: ${loja} | ID: ${idLinha || "—"}`;
 
     const c = reg?.contagens || {};
-
     const gridAtivos = document.getElementById("editorGridAtivos");
     const gridEsp = document.getElementById("editorGridEspeciais");
     gridAtivos.innerHTML = "";
@@ -1777,10 +1720,8 @@
       gridEsp.appendChild(wrap);
     }
 
-    // ✅ Movimentação: agora o select mostra texto humano, mas mantém value abreviado
     const movSigned = getMovimentoSigned(reg);
-    const motivo = getMotivo(reg); // pode vir abreviado (M.L etc) ou texto (legado)
-
+    const motivo = getMotivo(reg);
     const direcaoEl = document.getElementById("editMovDirecao");
     const catEl = document.getElementById("editMovCategoria");
     const qtdEl = document.getElementById("editMovQtd");
@@ -1790,7 +1731,6 @@
 
     preencherSelectCategoriaMov(catEl, motivo);
 
-    // Scroll volta pro topo ao abrir
     const body = document.getElementById("editorBody");
     if(body) body.scrollTop = 0;
   }
@@ -1802,11 +1742,9 @@
       out[k] = asInt(inp.value);
     });
 
-    // ✅ Coleta movimentação (com sinal + motivo abreviado)
     const direcao = String(document.getElementById("editMovDirecao")?.value || "ENTRADA").trim();
     const qtd = asInt(document.getElementById("editMovQtd")?.value || 0);
-
-    // ✅ agora o value do select é o abreviado (M.L/M.M/E.N)
+    
     const catValue = String(document.getElementById("editMovCategoria")?.value || "").trim();
     const catAbrev = motivoParaAbrev(catValue) || catValue; // se já for M.L, mantém; se vier estranho, preserva
 
@@ -1814,7 +1752,6 @@
 
     out.movCarrinhos = asIntSigned(movSigned);
 
-    // Regra: se mov = 0, motivo deve ir em branco
     out.movCategoria = (out.movCarrinhos === 0) ? "" : catAbrev;
 
     return out;
@@ -1833,7 +1770,6 @@
 
     const loja = String(EDIT_REG.loja || "").trim();
 
-    // ✅ Segurança no front (backend também valida)
     if(!podeEditarRegistro(loja)){
       closeEditor();
       openModal({
@@ -1865,20 +1801,16 @@
         return;
       }
 
-      // Atualiza registro local
       EDIT_REG.contagens = { ...(EDIT_REG.contagens||{}), ...contagens };
 
-      // ✅ agora movCategoria fica abreviado (M.L/M.M/E.N) no objeto local (igual planilha)
       EDIT_REG.movCategoria = contagens.movCategoria;
       EDIT_REG.motivo = contagens.movCategoria;
 
-      // Se GERENTE_PPP editou, usuário do registro vira o usuário logado (espelha a regra do backend)
       const perfil = String(SESSION?.perfil || "").trim().toUpperCase();
       if(perfil === "GERENTE_PPP"){
         EDIT_REG.usuario = String(SESSION?.usuario || "").trim();
       }
 
-      // Atualiza também no array principal (por id)
       const idx = registros.findIndex(x => String(x.idLinha||"") === idLinha);
       if(idx >= 0){
         registros[idx].contagens = { ...(registros[idx].contagens||{}), ...contagens };
@@ -2319,11 +2251,5 @@
     await carregarRegistros();
   });
 </script>
-
-<!-- Fontes confiáveis -->
-<!-- HTML select/option: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select -->
-<!-- DOM manipulation: https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement -->
-<!-- Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API -->
-<!-- Unicode normalize (NFD): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize -->
 </body>
 </html>
