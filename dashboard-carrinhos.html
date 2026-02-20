@@ -36,6 +36,8 @@
       --thbg:#e9e9e9;
       --rowAlt:#f7f7f7;
       --grid: rgba(0,0,0,0.06);
+      --blueDark:#1f4f95;
+      --blueDark2:#163c72;
     }
 
     *, *::before, *::after{ box-sizing: border-box; }
@@ -152,11 +154,9 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 12px;
-
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.85),
         inset 0 -6px 14px rgba(0,0,0,0.06);
-
       min-width: 0;
       overflow-x: hidden;
     }
@@ -181,10 +181,8 @@
         padding: 10px 8px;
       }
     }
-    
-    .userloja-card{
-      padding: 12px;
-    }
+
+    .userloja-card{ padding: 12px; }
     .userloja-stack{
       display:flex;
       flex-direction: column;
@@ -346,7 +344,7 @@
         inset 0 1px 0 rgba(255,255,255,0.85),
         inset 0 -6px 14px rgba(0,0,0,0.06);
     }
-    
+
     .kpi .label{
       font-weight: 900;
       color:#111;
@@ -368,7 +366,7 @@
       gap: 0;
       min-width: 0;
     }
-    
+
     .chart-wrap{
       width:100%;
       position: relative;
@@ -378,7 +376,7 @@
       overflow: hidden;
       height: 360px;
     }
-    
+
     @media (max-width: 520px){
       .chart-card{ height: 390px; }
       .chart-wrap{ height: 320px; }
@@ -443,7 +441,7 @@
       border-bottom: 1px solid var(--grid);
       border-right: 1px solid var(--grid);
       text-align:left;
-      vertical-align: top;
+      vertical-align: middle;
       word-break: break-word;
       overflow-wrap: anywhere;
       white-space: nowrap;
@@ -454,7 +452,8 @@
       padding: 6px 6px;
       line-height: 1.15;
       font-weight: 900;
-      background: var(--thbg);
+      background: var(--blueDark);
+      color:#fff;
       position: sticky;
       top: 0;
       z-index: 1;
@@ -481,14 +480,23 @@
       padding: 6px 6px;
       line-height: 1.15;
       font-weight: 900;
-      background: #fff6d6;
-      border-top: 2px solid #e0d39b;
+      background: var(--blueDark2);
+      color:#fff;
+      border-top: 2px solid rgba(0,0,0,0.18);
       border-bottom: 1px solid var(--grid);
+    }
+    .row-total td .diff-pos,
+    .row-total td .diff-neg,
+    .row-total td .diff-zero,
+    .row-total td .mov-pos,
+    .row-total td .mov-neg,
+    .row-total td .mov-zero{
+      color:#fff !important;
     }
 
     .edit-btn{
-      border: 1px solid #dcdcdc;
-      background: #f3f3f3;
+      border: 1px solid rgba(31,79,149,0.35);
+      background: rgba(31,79,149,0.10);
       border-radius: 8px;
       padding: 4px 6px;
       font-weight: 900;
@@ -500,7 +508,15 @@
       gap: 6px;
       user-select: none;
     }
-    .edit-btn:hover{ background:#e9e9e9; }
+    .edit-btn:hover{ background: rgba(31,79,149,0.16); }
+
+    .edit-btn svg{
+      width: 16px;
+      height: 16px;
+      display:block;
+      fill: var(--blueDark);
+    }
+
     .edit-wrap{
       display:flex;
       align-items:center;
@@ -633,10 +649,32 @@
         inset 0 1px 0 rgba(255,255,255,0.85),
         inset 0 -10px 18px rgba(0,0,0,0.04);
     }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      top: 14px;
+      transform: translateX(-50%);
+      z-index: 10050;
+      background: rgba(10,10,12,0.92);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 900;
+      font-size: 13px;
+      max-width: min(520px, calc(100vw - 24px));
+      width: max-content;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      display:none;
+    }
+    .toast.show{ display:block; }
   </style>
 </head>
 
 <body>
+  <div class="toast" id="toast"></div>
+
   <div class="container">
     <div class="shell">
 
@@ -843,7 +881,6 @@
 <script>
   const ROTAS = { login: "/login.html", menu: "/menu.html" };
   const PERFIS_PERMITIDOS = ["GERENTE_PPP", "BASE_PPP", "ADMINISTRADOR"];
-
   let SESSION = null;
 
   const TIPOS = [
@@ -856,7 +893,6 @@
     { key: "compraKids",        label: "Compra Kids" },
     { key: "carrinhoGaiolaPet", label: "Gaiola Pet" },
     { key: "bebeJipinho",       label: "Bebê Jipinho" },
-
     { key: "carrinhosReserva",   label: "Carrinhos reserva" },
     { key: "carrinhosQuebrados", label: "Carrinhos Quebrados" },
     { key: "cestinha",           label: "Cestinha" },
@@ -931,20 +967,14 @@
   function motivoParaAbrev(raw){
     let v = String(raw ?? "").trim();
     if(!v) return "";
-
     v = v.toUpperCase().replace(/_/g, ".");
     if(v === "E.N") v = "E.N";
-
     if(v === "M.L" || v === "M.M" || v === "E.N") return v;
 
     const key = _semAcentoUpper(v);
-
     if(key.includes("ENTRE") && key.includes("LOJ")) return "M.L";
-
     if(key.includes("MANUT")) return "M.M";
-
     if(key.includes("ENTRADA") && key.includes("NOV")) return "E.N";
-
     return "";
   }
 
@@ -973,6 +1003,22 @@
     const el = document.getElementById("msg");
     el.classList.toggle("ok", !!ok);
     el.textContent = texto || "";
+  }
+
+  let _toastTimer = null;
+  function showToast(text){
+    const el = document.getElementById("toast");
+    if(!el) return;
+    el.textContent = text || "";
+    el.classList.add("show");
+    if(_toastTimer) clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(()=>{
+      el.classList.remove("show");
+    }, 3000);
+  }
+
+  function svgEdit(){
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92l9.06-9.06.92.92L5.92 19.58zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>`;
   }
 
   function mostrarSemSessao(){
@@ -1067,7 +1113,6 @@
 
   function normalizarRegistro(r){
     const out = { ...(r || {}) };
-
     out.idLinha = String(out.idLinha ?? out.id ?? out.rowId ?? "").trim();
 
     if(!out.contagens || typeof out.contagens !== "object") out.contagens = {};
@@ -1218,12 +1263,10 @@
   const DIMENSOES = [
     { key:"qtdMov",    label:"Qtd Mov.",     defaultChecked:false },
     { key:"motivoMov", label:"Motivo Mov.",  defaultChecked:false },
-
     { key:"anterior",  label:"Anterior",     defaultChecked:true  },
     { key:"diferenca", label:"Diferença",    defaultChecked:true  },
     { key:"usuario",   label:"Usuário",      defaultChecked:true  },
     { key:"quebrados", label:"C. Quebrados", defaultChecked:true  },
-
     { key:"cestinhaCol", label:"Cestinha",   defaultChecked:true  },
     { key:"rodasCol",    label:"C. Rodas",   defaultChecked:true  },
   ];
@@ -1364,14 +1407,14 @@
         type:"bar",
         data:{ labels:["Sem tipos selecionados"], datasets:[{ data:[0] }] },
         options:{
-        indexAxis:"y",
-        responsive:true,
-        maintainAspectRatio:false,
-        events: [],
-        plugins:{
-        legend:{display:false},
-        tooltip:{enabled:false},
-        datalabels:{formatter:()=>""}
+          indexAxis:"y",
+          responsive:true,
+          maintainAspectRatio:false,
+          events: [],
+          plugins:{
+            legend:{display:false},
+            tooltip:{enabled:false},
+            datalabels:{formatter:()=>""}
           },
           scales:{ x:{display:false}, y:{display:true, grid:{display:false}} }
         },
@@ -1385,6 +1428,7 @@
     const dataOrd = zipped.map(x=>x.v);
     const maxVal = Math.max(0, ...dataOrd);
     const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.18) : 1;
+
     const gradientFactory = (context) => {
       const { chart } = context;
       const { ctx, chartArea } = chart;
@@ -1418,17 +1462,17 @@
         interaction: { mode: null },
         layout:{ padding:{ left: 26, right: 22, top: 6, bottom: 6 } },
         plugins:{
-        legend:{ display:false },
-        tooltip:{ enabled:false },
-        datalabels:{
-        formatter:(v)=> (v ? fmtInt(v) : ""),
-        anchor:"end",
-        align:"right",
-        clamp:true,
-        offset: 8,
-        font:{ weight:"900" },
-        textStrokeColor:"#ffffff",
-        textStrokeWidth: 3
+          legend:{ display:false },
+          tooltip:{ enabled:false },
+          datalabels:{
+            formatter:(v)=> (v ? fmtInt(v) : ""),
+            anchor:"end",
+            align:"right",
+            clamp:true,
+            offset: 8,
+            font:{ weight:"900" },
+            textStrokeColor:"#ffffff",
+            textStrokeWidth: 3
           }
         },
         scales:{
@@ -1610,8 +1654,8 @@
       btn.className = `btn ${b.variant === "prim" ? "btn-prim" : "btn-sec"}`;
       btn.textContent = b.label || "OK";
       btn.onclick = ()=>{
-      closeModal();
-      if(typeof b.onClick === "function") b.onClick();
+        closeModal();
+        if(typeof b.onClick === "function") b.onClick();
       };
       actions.appendChild(btn);
     }
@@ -1648,7 +1692,7 @@
     const lojaSessao = String(SESSION?.loja || "").trim();
     const lojaReg = String(lojaDoRegistro || "").trim();
 
-    if(perfil === "GERENTE_PPP") return true;
+    if(perfil === "GERENTE_PPP" || perfil === "ADMINISTRADOR") return true;
     return !!lojaSessao && lojaSessao === lojaReg;
   }
 
@@ -1656,7 +1700,6 @@
     selectEl.innerHTML = "";
 
     const atualRaw = String(valorAtual || "").trim();
-
     const atualAbrev = motivoParaAbrev(atualRaw);
 
     const jaExisteComoOpcao = MOV_OPCOES.some(o => o.value === atualRaw);
@@ -1744,14 +1787,13 @@
 
     const direcao = String(document.getElementById("editMovDirecao")?.value || "ENTRADA").trim();
     const qtd = asInt(document.getElementById("editMovQtd")?.value || 0);
-    
+
     const catValue = String(document.getElementById("editMovCategoria")?.value || "").trim();
-    const catAbrev = motivoParaAbrev(catValue) || catValue; // se já for M.L, mantém; se vier estranho, preserva
+    const catAbrev = motivoParaAbrev(catValue) || catValue;
 
     const movSigned = (direcao === "SAIDA") ? -qtd : +qtd;
 
     out.movCarrinhos = asIntSigned(movSigned);
-
     out.movCategoria = (out.movCarrinhos === 0) ? "" : catAbrev;
 
     return out;
@@ -1772,11 +1814,7 @@
 
     if(!podeEditarRegistro(loja)){
       closeEditor();
-      openModal({
-        title: "Permissão",
-        text: "Você não tem permissão para editar dados dessa loja",
-        buttons:[{ label:"OK" }]
-      });
+      showToast("Você não tem permissão para editar os dados dessa loja");
       return;
     }
 
@@ -1802,12 +1840,11 @@
       }
 
       EDIT_REG.contagens = { ...(EDIT_REG.contagens||{}), ...contagens };
-
       EDIT_REG.movCategoria = contagens.movCategoria;
       EDIT_REG.motivo = contagens.movCategoria;
 
       const perfil = String(SESSION?.perfil || "").trim().toUpperCase();
-      if(perfil === "GERENTE_PPP"){
+      if(perfil === "GERENTE_PPP" || perfil === "ADMINISTRADOR"){
         EDIT_REG.usuario = String(SESSION?.usuario || "").trim();
       }
 
@@ -1816,7 +1853,7 @@
         registros[idx].contagens = { ...(registros[idx].contagens||{}), ...contagens };
         registros[idx].movCategoria = contagens.movCategoria;
         registros[idx].motivo = contagens.movCategoria;
-        if(perfil === "GERENTE_PPP"){
+        if(perfil === "GERENTE_PPP" || perfil === "ADMINISTRADOR"){
           registros[idx].usuario = String(SESSION?.usuario || "").trim();
         }
       }
@@ -1838,11 +1875,7 @@
     const loja = String(reg?.loja || "").trim();
 
     if(!podeEditarRegistro(loja)){
-      openModal({
-        title: "Permissão",
-        text: "Você não tem permissão para editar dados dessa loja",
-        buttons:[{ label:"OK" }]
-      });
+      showToast("Você não tem permissão para editar os dados dessa loja");
       return;
     }
 
@@ -1852,8 +1885,8 @@
       buttons:[
         { label:"Não", variant:"sec" },
         { label:"Sim", variant:"prim", onClick: ()=>{
-            montarEditorParaRegistro(reg);
-            openEditor();
+          montarEditorParaRegistro(reg);
+          openEditor();
         }}
       ]
     });
@@ -1909,13 +1942,12 @@
       totGeral += totalLinha;
 
       const lojaFull = String(r.loja||"").trim();
-      const podeEditar = podeEditarRegistro(lojaFull);
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>
           <div class="edit-wrap">
-            ${podeEditar ? `<button class="edit-btn" type="button" data-edit="1" data-id="${esc(String(r.idLinha||""))}" title="Editar">✏️</button>` : ``}
+            <button class="edit-btn" type="button" data-edit="1" data-id="${esc(String(r.idLinha||""))}" title="Editar">${svgEdit()}</button>
             <span>${esc(lojaCurta6(lojaFull))}</span>
           </div>
         </td>
@@ -1940,7 +1972,7 @@
         const id = String(btn.getAttribute("data-id") || "").trim();
         const reg = registros.find(x => String(x.idLinha||"").trim() === id) || ord.find(x => String(x.idLinha||"").trim() === id);
         if(!reg){
-          openModal({ title:"Edição", text:"Registro não encontrado para edição.", buttons:[{label:"OK"}] });
+          showToast("Registro não encontrado para edição.");
           return;
         }
         iniciarFluxoEdicao(reg);
@@ -2109,7 +2141,6 @@
 
   function sugerirDatasMaisRecentes(){
     const elFinal = document.getElementById("dataFinal");
-
     const hoje = todayISO();
     if(!elFinal.value) elFinal.value = hoje;
 
