@@ -47,40 +47,29 @@
       margin: 10px 6px 10px;
     }
 
-    /* ✅ FIX: evita “flash” do botão Login antes do JS concluir */
     #btnLogin{ display: none; }
 
-    /* 📱 MOBILE */
+    /* Celular */
     @media (max-width: 640px){
-
       body{
         padding: 8px 6px 8px;
       }
-
       .container{
         width: 98%;
         max-width: none;
         padding: 16px 12px;
       }
-
-      /* reduz base do card */
       .card-info{
         font-size: 9px !important;
       }
-
-      /* texto herda do card */
       .info-text{
         font-size: inherit !important;
         font-weight: 700 !important;
       }
-
-      /* reduz ícones */
       .info-icon{
         width: 14px !important;
         height: 14px !important;
       }
-
-      /* reduz espaçamento entre blocos */
       .info-line{
         gap: 6px !important;
       }
@@ -115,26 +104,20 @@
       );
       margin: 8px 0 14px;
     }
-
-    /* CARD INFO */
     .card-info{
       display: block;
       width: 95%;
       margin: 0 auto 16px;
-
       background: rgba(0,0,0,0.28);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 14px;
       padding: 10px 12px;
-
       font-size: 12px;
       line-height: 1.45;
-
       box-sizing: border-box;
-
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.05),
-        0 10px 22px rgba(0,0,0,0.25);
+      inset 0px 1px 0px rgba(255,255,255,0.05),
+      0px 10px 22px rgba(0,0,0,0.25);
     }
 
     .info-line{
@@ -173,27 +156,20 @@
       color: rgba(255,255,255,0.92);
     }
 
-    /* BOTÕES */
     .btn{
       display: block;
       width: 95%;
       padding: 10px 13px;
-
       border: none;
       border-radius: 18px;
       cursor: pointer;
-
       font-size: 18px;
       font-weight: 800;
-
       margin: 12px auto 0;
-
       color: rgba(255,255,255,0.95);
-
       box-shadow:
-        0 14px 26px rgba(0,0,0,0.28),
-        inset 0 1px 0 rgba(255,255,255,0.16);
-
+      0 14px 26px rgba(0,0,0,0.28),
+      inset 0 1px 0 rgba(255,255,255,0.16);
       transition: filter .12s ease, transform .04s ease;
     }
 
@@ -243,17 +219,14 @@
       bottom: 22px;
       transform: translateX(-50%);
       z-index: 9999;
-
       background: rgba(0,0,0,0.78);
       color: #fff;
       border: 1px solid rgba(255,255,255,0.14);
       border-radius: 14px;
       padding: 10px 14px;
-
       font-family: Arial, sans-serif;
       font-size: 13px;
       font-weight: 800;
-
       box-shadow: 0 16px 30px rgba(0,0,0,0.45);
       opacity: 0;
       pointer-events: none;
@@ -261,12 +234,10 @@
       max-width: 92vw;
       text-align: center;
     }
-
+    
     .toast.show{ opacity: 1; }
-
   </style>
 </head>
-
 <body>
   <div class="container">
 
@@ -274,10 +245,7 @@
     <div class="logo-menu">
       <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo PPP" />
     </div>
-
     <hr class="linha-logo" />
-
-    <!-- Card só faz sentido LOGADO -->
     <div class="card-info" id="cardInfo">
       <div class="info-line">
         <div class="info-item" title="Usuário">
@@ -289,7 +257,6 @@
           </span>
           <span class="info-text" id="infoUsuario">—</span>
         </div>
-
         <div class="info-item" title="Loja">
           <span class="info-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -300,7 +267,6 @@
           </span>
           <span class="info-text" id="infoLoja">—</span>
         </div>
-
         <div class="info-item" title="Perfil">
           <span class="info-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -312,22 +278,16 @@
       </div>
     </div>
 
-    <!-- Botões (sempre visíveis) -->
     <button class="btn btn-green"  id="btnLancamento">Lançamento de ocorrências</button>
     <button class="btn btn-blue"   id="btnGerencial">Cupons de ocorrências</button>
     <button class="btn btn-purple" id="btnDashboard">Dashboard ocorrências</button>
-
     <button class="btn btn-orange" id="btnContagemCarrinhos">Contagem de carrinhos</button>
     <button class="btn btn-cyan"   id="btnDashboardCarrinhos">Dashboard carrinhos</button>
-
     <button class="btn btn-blue"   id="btnBonoDigital">Bono digital</button>
     <button class="btn btn-purple" id="btnVisualizacaoBono">Visualização Lançamentos Bono</button>
-
     <button class="btn btn-orange" id="btnUsuariosAdmin">Gestão de Usuários</button>
-
     <button class="btn btn-gray" id="btnSair">Sair</button>
     <button class="btn btn-gray" id="btnLogin">Ir para o Login</button>
-
     <div class="mensagem" id="msg"></div>
   </div>
 
@@ -542,7 +502,6 @@
         location.href = ROTAS.gerencial;
       };
 
-      // ✅ REQ #1: ao clicar Sair, já ir direto pro login
       const btnSair = document.getElementById("btnSair");
       btnSair.onclick = async () => {
         if (!sessaoAtual) {
@@ -551,7 +510,7 @@
         }
         try { sessionStorage.removeItem(STORAGE_KEY_GESTOR); } catch {}
         await logoutBackendSeguro();
-        window.location.href = ROTAS.login;  // ✅ direto pro login
+        window.location.href = ROTAS.login;
       };
     });
   </script>
