@@ -485,14 +485,11 @@
       border-top: 2px solid rgba(0,0,0,0.18);
       border-bottom: 1px solid var(--grid);
     }
-    .row-total td .diff-pos,
-    .row-total td .diff-neg,
-    .row-total td .diff-zero,
-    .row-total td .mov-pos,
-    .row-total td .mov-neg,
-    .row-total td .mov-zero{
-      color:#fff !important;
-    }
+
+.row-total td{ color:#fff; }
+.row-total td .diff-pos, .row-total td .mov-pos{ color: var(--ok) !important; }
+.row-total td .diff-neg, .row-total td .mov-neg{ color: var(--danger) !important; }
+.row-total td .diff-zero, .row-total td .mov-zero{ color:#fff !important; }
 
     .edit-btn{
       border: 1px solid rgba(31,79,149,0.35);
