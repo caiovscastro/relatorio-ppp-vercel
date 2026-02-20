@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  Sistema: BIG&ULTRA PPP
+  Tela: bono-digital.html
+  Versão: 1.0.0
+  Build: 2026-02-20
+  Ambiente: Produção
+  Desenvolvedor: Caio V. Souza Castro
+-->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -38,7 +46,6 @@
       letter-spacing: .2px;
     }
 
-    /* ✅ logo + linha discreta */
     .logo-wrap{
       display:flex;
       flex-direction: column;
@@ -68,9 +75,6 @@
       line-height: 1.45;
     }
 
-    /* =========================================================
-       ✅ NOVO PADRÃO (igual print): usuário | loja | perfil (1 linha)
-    ========================================================= */
     .info-line{
       display:flex;
       align-items:center;
@@ -103,7 +107,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Mantidos (não removidos para não quebrar nada) */
     .linha{
       display:flex;
       justify-content: space-between;
@@ -156,7 +159,6 @@
     }
     .btn-row-2 .btn{ margin-top: 0; }
 
-    /* ✅ NOVO: 3 botões sempre na mesma linha (inclusive celular) */
     .btn-row-3{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -195,7 +197,7 @@
       font-size: 15px;
       font-weight: 800;
       margin-top: 10px;
-      white-space: nowrap; /* ✅ evita quebrar texto dentro do botão */
+      white-space: nowrap;
     }
 
     .btn-sec{ background:#e9e9e9; color:#111; }
@@ -257,7 +259,6 @@
 
     .hidden{ display:none !important; }
 
-    /* ===== Modais ===== */
     .overlay{
       position:fixed;
       inset:0;
@@ -298,7 +299,6 @@
     }
     .row-btn .btn{ margin-top: 0; }
 
-    /* ✅ overlay de carregamento com barra */
     .load-overlay{
       position:fixed;
       inset:0;
@@ -345,7 +345,6 @@
       color:#111;
     }
 
-    /* ✅ Prévia do WhatsApp dentro do modal */
     .prewa{
       margin-top: 10px;
       border: 1px solid #ececec;
@@ -360,7 +359,6 @@
       word-break: break-word;
     }
 
-    /* ✅ Caixa de confirmação (Documento + Qtd) no mesmo popup */
     .confirm-box{
       border: 1px solid #ececec;
       border-radius: 12px;
@@ -386,7 +384,6 @@
       background: rgba(179,0,0,.06);
     }
 
-    /* ✅ Botão desabilitado */
     .btn[disabled]{
       opacity:.55;
       cursor:not-allowed;
@@ -399,7 +396,7 @@
       .btn-row-2{ grid-template-columns: 1fr 1fr; }
       /* ✅ mantém 3 botões na mesma linha no celular */
       .btn-row-3{ grid-template-columns: 1fr 1fr 1fr; }
-      .btn{ font-size: 14px; padding: 12px 8px; } /* ✅ só pra caber melhor sem quebrar */
+      .btn{ font-size: 14px; padding: 12px 8px; }
     }
   </style>
 </head>
@@ -413,7 +410,6 @@
 
     <h2 class="titulo">BONO DIGITAL</h2>
 
-    <!-- ✅ (1) Card padrão print -->
     <div class="card-info" id="cardInfo">
       <div class="info-line">
         <div class="info-item" title="Usuário">
@@ -465,21 +461,17 @@
 
       <div class="grid grid-1" style="margin-top:10px;">
         <div>
-          <!-- ✅ label dinâmico -->
           <label for="encarregado" id="lblEncarregado">Autorizado/Recebido</label>
           <input type="text" id="encarregado" placeholder="Nome e sobrenome." maxlength="80" />
         </div>
       </div>
 
-      <!-- ✅ NOVO: campos extras (somente MOV_INTERNA) -->
       <div class="grid-2-fixo hidden" style="margin-top:10px;" id="wrapMovExtras">
         <div>
-          <!-- ✅ 1º campo na tela: Transportado por (coluna Q) -->
           <label for="transportadoPor">Transportado por:</label>
           <input type="text" id="transportadoPor" placeholder="Nome e sobrenome." maxlength="80" />
         </div>
         <div>
-          <!-- ✅ 2º campo na tela: Solicitado por (coluna P) -->
           <label for="solicitadoPor">Solicitado por:</label>
           <input type="text" id="solicitadoPor" placeholder="Nome e sobrenome." maxlength="80" />
         </div>
@@ -523,7 +515,6 @@
         </div>
       </div>
 
-      <!-- ✅ (2) Destino em MOV + Placa ao lado -->
       <div class="grid-2-fixo hidden" style="margin-top:10px;" id="wrapDestinoLinha">
         <div>
           <label for="lojaDestino">Loja Destino</label>
@@ -586,11 +577,9 @@
           </select>
         </div>
 
-        <!-- ✅ Placa (mesmo input, muda de lugar conforme tipo) -->
         <div id="wrapPlacaMov"></div>
       </div>
 
-      <!-- ✅ (2) Fornecedor em RECEB + Placa ao lado -->
       <div class="grid-2-fixo hidden" style="margin-top:10px;" id="wrapFornecedorLinha">
         <div>
           <label for="fornecedor">Fornecedor</label>
@@ -599,8 +588,6 @@
 
         <div id="wrapPlacaRec"></div>
       </div>
-
-      <!-- ✅ Input de Placa (um só). Ele é “movido” para o lado correto via JS -->
       <div class="hidden" id="placaNode">
         <label for="placaVeiculo">Placa do veículo</label>
         <input
@@ -612,8 +599,7 @@
           maxlength="7"
         />
       </div>
-
-      <!-- ✅ 3 botões na mesma linha (inclusive celular) -->
+      
       <div class="btn-row-3">
         <button class="btn btn-sec" id="btnAdicionar">Adicionar item</button>
         <button class="btn btn-pri" id="btnSalvar">Salvar</button>
@@ -651,25 +637,19 @@
     </div>
   </div>
 
-  <!-- ✅ Modal (reutilizado): MOV = Whats + prévia | RECEB = só Confirmação -->
   <div class="overlay hidden" id="modalWhatsPreview">
     <div class="modal">
-      <!-- 🔧 título dinâmico -->
       <h3 id="waModalTitle">Pré-visualização da notificação.</h3>
 
-      <!-- 🔧 pergunta (só em MOV_INTERNA) -->
       <p id="waModalQuestion">Deseja notificar o responsável da loja destino?</p>
 
       <div class="confirm-box wait" id="confirmBox">Aguardando confirmação da base de dados...</div>
 
-      <!-- 🔧 prévia (só em MOV_INTERNA) -->
       <div class="prewa" id="waPreviewText"></div>
 
       <div class="row-btn" style="margin-top:12px;">
-        <!-- 🔧 botão só em MOV_INTERNA -->
         <button class="btn btn-pri" id="btnAbrirWhats" disabled>Abrir WhatsApp</button>
 
-        <!-- 🔧 muda texto para OK em RECEBIMENTO -->
         <button class="btn btn-sec" id="btnCancelarWhats" disabled>Cancelar</button>
       </div>
     </div>
@@ -677,7 +657,6 @@
 
   <div class="load-overlay hidden" id="loadingOverlay" aria-live="polite">
     <div class="load-box">
-      <!-- ✅ AJUSTE #2 (opcional): id para trocar texto após 2,5s -->
       <div class="load-title" id="loadTitle">Enviando informações...</div>
       <div class="load-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="load-fill" id="loadFill"></div>
@@ -687,18 +666,13 @@
   </div>
 
   <script>
-    /* =========================================================
-       ✅ CONFIGURAÇÃO ÚNICA DO DOMÍNIO PÚBLICO
-    ========================================================= */
-    const DOMINIO_PUBLICO = "https://ubppp.xyz";
 
+    const DOMINIO_PUBLICO = "https://ubppp.xyz";
     const ROTAS = { menu: "/menu.html", login: "/login.html" };
     const LS_KEY = "PPP_BONO_PENDENTE_V1";
 
     let sessaoAtual = null;
     let expTimerId = null;
-
-    // ✅ inclui placa + solicitado/transportado no estado
     let estado = {
       data: "",
       hora: "",
@@ -710,10 +684,7 @@
       itens: []
     };
 
-    // ✅ draft Whats (modal)
     let waDraft = { telefone: "", mensagem: "" };
-
-    // ✅ modo do popup: "MOV_INTERNA" ou "RECEBIMENTO"
     let waModalMode = "MOV_INTERNA";
 
     function setTexto(id, txt) {
@@ -866,7 +837,6 @@
       return String(t || "").trim();
     }
 
-    // ✅ placa: 7 chars, A-Z0-9, maiúsculo
     function normalizarPlaca(s){
       const up = String(s || "").toUpperCase();
       const alnum = up.replace(/[^A-Z0-9]/g, "");
@@ -940,12 +910,6 @@
       document.getElementById("transportadoPor").value = estado.transportadoPor || "";
     }
 
-    /* =========================================================
-       ✅ (1) Label dinâmico do encarregado
-       - vazio: "Autorizado/Recebido"
-       - RECEBIMENTO: "Recebido por:"
-       - MOV_INTERNA: "Autorizado por:"
-    ========================================================= */
     function atualizarLabelResponsavel(){
       const tipo = document.getElementById("tipoLancamento").value;
       const lbl = document.getElementById("lblEncarregado");
@@ -975,7 +939,6 @@
         const txt = document.createElement("div");
         txt.className = "txt";
 
-        // ✅ LISTA ENXUTA: produto + embalagem + qtd
         txt.innerHTML = `
           <b>${escapeHtml(it.produto)}</b><br/>
           ${escapeHtml(String(it.quantidadeFmt || ""))} ${escapeHtml(it.embalagem)}
@@ -985,10 +948,10 @@
         btn.className = "btn-mini";
         btn.textContent = "Retirar";
         btn.addEventListener("click", () => {
-          estado.itens.splice(idx, 1);
-          salvarLocal();
-          renderLista();
-          setMsg("Item removido da lista.", true);
+        estado.itens.splice(idx, 1);
+        salvarLocal();
+        renderLista();
+        setMsg("Item removido da lista.", true);
         });
 
         div.appendChild(txt);
@@ -998,15 +961,15 @@
     }
 
     function formatIntPtBR(n) {
-      return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
+    return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(n);
     }
 
     function formatKgFromDigits(digits) {
       if (!digits) return "";
       if (digits.length <= 3) {
-        const n = Number(digits);
-        if (!Number.isFinite(n)) return "";
-        return formatIntPtBR(n);
+      const n = Number(digits);
+      if (!Number.isFinite(n)) return "";
+      return formatIntPtBR(n);
       }
       const intPart = digits.slice(0, -3);
       const decPart = digits.slice(-3);
@@ -1087,7 +1050,6 @@
       }
     }
 
-    // ✅ mover o input de placa para o lado correto conforme tipo
     function posicionarPlacaConformeTipo(){
       const tipo = document.getElementById("tipoLancamento").value;
       const placaNode = document.getElementById("placaNode");
@@ -1107,15 +1069,12 @@
 
     function atualizarVisibilidadeDestinoFornecedorEPlaca() {
       const tipo = document.getElementById("tipoLancamento").value;
-
       const wrapDestinoLinha = document.getElementById("wrapDestinoLinha");
       const wrapFornecedorLinha = document.getElementById("wrapFornecedorLinha");
       const wrapMovExtras = document.getElementById("wrapMovExtras");
-
       const selDestino = document.getElementById("lojaDestino");
       const inpFornecedor = document.getElementById("fornecedor");
 
-      // ✅ extras MOV
       const inpSolic = document.getElementById("solicitadoPor");
       const inpTrans = document.getElementById("transportadoPor");
 
@@ -1132,7 +1091,6 @@
         wrapDestinoLinha.classList.add("hidden");
         wrapMovExtras.classList.add("hidden");
 
-        // limpa MOV
         selDestino.value = "";
         inpSolic.value = "";
         inpTrans.value = "";
@@ -1167,7 +1125,7 @@
       const destinoAtual = document.getElementById("lojaDestino").value;
 
       estado.itens = estado.itens.map(it => {
-        const novo = { ...it, tipoLancamento: tipoAtual || it.tipoLancamento };
+      const novo = { ...it, tipoLancamento: tipoAtual || it.tipoLancamento };
 
         if (tipoAtual === "MOV_INTERNA") {
           novo.lojaDestino = destinoAtual || it.lojaDestino || "";
@@ -1194,8 +1152,7 @@
     function montarLinkLoginAbsoluto() {
       return `${DOMINIO_PUBLICO}/login.html`;
     }
-
-// ✅ inclui placa na mensagem
+    
 function montarMensagemWhats({
   lojaOrigem,
   lojaDestino,
@@ -1217,9 +1174,9 @@ function montarMensagemWhats({
   linhas.push(`👤 *Usuário:* ${usuario || "—"}`);
   linhas.push(`🕒 *Data/Hora:* ${dataHora || "—"}`);
 
-  linhas.push(`📦 *Solicitado por:* ${solicitadoPor ? solicitadoPor : "Não informado"}`);
+  linhas.push(`👤 *Solicitado por:* ${solicitadoPor ? solicitadoPor : "Não informado"}`);
   linhas.push(`🚗 *Placa:* ${placaVeiculo ? placaVeiculo : "Não informada"}`);
-  linhas.push(`🚚 *Transportado por:* ${transportadoPor ? transportadoPor : "Não informado"}`);
+  linhas.push(`👤 *Transportado por:* ${transportadoPor ? transportadoPor : "Não informado"}`);
   linhas.push("");
 
       linhas.push("📦 *Itens do Bono:*");
@@ -1379,7 +1336,6 @@ function montarMensagemWhats({
         estado.transportadoPor = "";
       } else if (tipoAtual === "MOV_INTERNA") {
         estado.fornecedor = "";
-        // ✅ MOV: captura extras
         estado.transportadoPor = normalizarTexto(document.getElementById("transportadoPor").value);
         estado.solicitadoPor = normalizarTexto(document.getElementById("solicitadoPor").value);
       } else {
@@ -1463,7 +1419,7 @@ function montarMensagemWhats({
 
       const dataHoraPlanilha = formatarDataHoraParaPlanilha(estado.data, estado.hora);
       if (!dataHoraPlanilha) { setMsg("Preencha a Data e o Horário do bono.", false); return; }
-      if (!estado.encarregado) { setMsg("Informe o nome do responsável que fez o acompanhamento.", false); return; }
+      if (!estado.encarregado) { setMsg("Informe o nome do responsável que autorizou.", false); return; }
 
       const tipoAtual = document.getElementById("tipoLancamento").value;
       if (!tipoAtual) { setMsg("Selecione um tipo", false); return; }
@@ -1497,16 +1453,15 @@ function montarMensagemWhats({
         encarregado: estado.encarregado,
         fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : ""),
         placaVeiculo: (estado.placaVeiculo || ""),
-        // ✅ NOVO (P/Q): enviado uma vez; backend replica por linha quando MOV
         solicitadoPor: (tipoAtual === "MOV_INTERNA" ? (estado.solicitadoPor || "") : ""),
         transportadoPor: (tipoAtual === "MOV_INTERNA" ? (estado.transportadoPor || "") : ""),
         itens: estado.itens.map(x => ({
-          produto: x.produto,
-          quantidade: x.quantidadeFmt,
-          embalagem: x.embalagem,
-          tipoLancamento: x.tipoLancamento,
-          lojaDestino: x.lojaDestino || "",
-          fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : "")
+        produto: x.produto,
+        quantidade: x.quantidadeFmt,
+        embalagem: x.embalagem,
+        tipoLancamento: x.tipoLancamento,
+        lojaDestino: x.lojaDestino || "",
+        fornecedor: (tipoAtual === "RECEBIMENTO" ? estado.fornecedor : "")
         }))
       };
 
@@ -1572,9 +1527,9 @@ function montarMensagemWhats({
         }
 
         if (tipoNoEnvio === "MOV_INTERNA" && destinoNoEnvio) {
-          const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
+        const telefoneResp = await buscarTelefoneResponsavel(destinoNoEnvio);
 
-          const linkLogin = montarLinkLoginAbsoluto();
+const linkLogin = montarLinkLoginAbsoluto();
 const msgWhats = montarMensagemWhats({
   lojaOrigem: (sessaoAtual && sessaoAtual.loja) ? sessaoAtual.loja : "",
   lojaDestino: destinoNoEnvio,
@@ -1620,7 +1575,6 @@ const msgWhats = montarMensagemWhats({
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      // ✅ botões (layout mudou: os 3 estão na mesma linha)
       document.getElementById("btnVoltarMenu").addEventListener("click", () => {
         window.location.href = ROTAS.menu;
       });
@@ -1675,7 +1629,6 @@ const msgWhats = montarMensagemWhats({
       document.getElementById("fornecedor").addEventListener("change", capturarBaseDoFormulario);
       document.getElementById("fornecedor").addEventListener("input", capturarBaseDoFormulario);
 
-      // ✅ NOVO: MOV extras
       ["solicitadoPor","transportadoPor"].forEach(id => {
         document.getElementById(id).addEventListener("change", capturarBaseDoFormulario);
         document.getElementById(id).addEventListener("input", capturarBaseDoFormulario);
@@ -1788,7 +1741,6 @@ const msgWhats = montarMensagemWhats({
       atualizarHabilitacaoQuantidade();
     });
 
-    // (mantido) - funções usadas antes e ainda necessárias
     function redirecionarParaLogin(motivo) {
       if (motivo) setMsg(motivo, false);
       window.location.href = ROTAS.login;
