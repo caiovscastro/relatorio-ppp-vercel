@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  Sistema: BIG&ULTRA PPP
+  Tela: usuarios.html
+  Versão: 1.0.0
+  Build: 2026-02-20
+  Ambiente: Produção
+  Desenvolvedor: Caio V. Souza Castro
+-->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -110,7 +118,6 @@
       white-space: nowrap;
     }
 
-    /* ✅ wrapper 3 botões */
     .btnRow{
       display:flex;
       gap:8px;
@@ -191,7 +198,6 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
-    /* Modal base */
     .modalBg{
       position:fixed; inset:0;
       background: rgba(0,0,0,0.55);
@@ -266,7 +272,6 @@
     .msg.err{ color:#c62828; }
     .msg.ok{ color:#2e7d32; }
 
-    /* Sugestões abaixo do input */
     .suggestBox{
       border: 1px solid rgba(0,0,0,0.12);
       border-radius: 10px;
@@ -305,18 +310,12 @@
       max-width: 45%;
     }
 
-    /* =========
-       CONTATOS WHATSAPP (modal)
-       ========= */
-
-    /* ✅ ALTERADO: modal acompanha o conteúdo (até 94vw) */
     .modalWide{
-      width: fit-content;              /* 🔧 acompanha conteúdo */
-      max-width: 94vw;                 /* 🔧 não estoura tela */
+      width: fit-content;
+      max-width: 94vw;
       padding: 14px 14px 12px;
     }
 
-    /* ✅ buscar + fechar na mesma linha SEM quebrar */
     .contactsHead{
       display:flex;
       gap:10px;
@@ -336,26 +335,24 @@
       font-weight: 800;
     }
 
-    /* ✅ ALTERADO: wrapper “encolhe” e cresce pelo conteúdo */
     .contactsTableWrap{
-      display: inline-block;           /* 🔧 não força ocupar 100% */
-      width: fit-content;              /* 🔧 acompanha tabela */
-      max-width: 100%;                 /* 🔧 respeita modal */
+      display: inline-block;
+      width: fit-content;
+      max-width: 100%;
       border: 1px solid rgba(0,0,0,0.12);
       border-radius: 12px;
       overflow-y: auto;
-      overflow-x: auto;                /* 🔧 se algum nome for enorme, não quebra o layout */
+      overflow-x: auto;
       max-height: 62vh;
       background:#fff;
       -webkit-overflow-scrolling: touch;
     }
 
-    /* ✅ ALTERADO: tabela baseada no maior conteúdo das colunas */
     .contactsTable{
-      width: max-content;              /* 🔧 “no limite da palavra maior” */
+      width: max-content;
       border-collapse: collapse;
-      table-layout: auto;              /* 🔧 auto = coluna pelo conteúdo */
-      min-width: 0;                    /* 🔧 não força mínimo */
+      table-layout: auto;
+      min-width: 0;
     }
 
     .contactsTable thead th{
@@ -365,16 +362,12 @@
       background:#f7f7f7;
       font-size: 12px;
       font-weight: 900;
-
-      /* ✅ ALTERADO: menos padding = colunas mais próximas */
       padding: 9px 6px;
-
       border-bottom: 1px solid rgba(0,0,0,0.12);
       white-space: nowrap;
     }
 
     .contactsTable tbody td{
-      /* ✅ ALTERADO: menos padding = colunas mais próximas */
       padding: 9px 6px;
 
       border-bottom: 1px solid rgba(0,0,0,0.08);
@@ -382,16 +375,14 @@
       font-weight: 800;
       vertical-align: middle;
 
-      /* ✅ ALTERADO: para a largura ser pelo conteúdo real */
       white-space: nowrap;
       overflow: visible;
       text-overflow: clip;
     }
 
-    /* ✅ ALTERADO: remove percentuais fixos e “encolhe” o que puder */
     .colLoja{ width: auto; }
-    .colCel{ width: 1%; }              /* 🔧 encolhe ao mínimo pelo conteúdo */
-    .colAcao{ width: 1%; text-align:center; } /* 🔧 encolhe ao mínimo */
+    .colCel{ width: 1%; }
+    .colAcao{ width: 1%; text-align:center; }
 
     .iconBtn{
       border: 1px solid rgba(0,0,0,0.14);
@@ -410,18 +401,15 @@
     }
     .iconBtn:hover{ background: rgba(0,0,0,0.03); }
 
-    /* texto alternativo do botão Contatos */
     .btnTextShort{ display:none; }
 
 @media (max-width: 640px){
   body{ margin: 6px; }
   .container{ width: 98%; padding: 14px; }
 
-  /* selects 100% */
   .actions{ justify-content: flex-start; }
   .filterSelect{ flex: 1 1 100%; min-width: 0; width: 100%; }
 
-  /* ✅ 3 botões SEM estourar (1 linha) */
   .btnRow{
     width: 100%;
     justify-content: space-between;
@@ -439,30 +427,22 @@
   .btnTextLong{ display:none; }
   .btnTextShort{ display:inline; }
 
-  /* tabela usuários (mantido) */
   table{ min-width: 820px; }
 
-  /* =========================
-     CONTATOS WHATSAPP (MOBILE)
-     ========================= */
-
-  /* ✅ wrapper 1) acompanha a tabela 2) não estoura a tela */
   .contactsTableWrap{
     max-height: 64vh;
-    width: fit-content;          /* 🔧 acompanha conteúdo */
-    max-width: 100%;             /* 🔧 limita no mobile */
-    overflow-x: auto;            /* 🔧 se precisar, scroll só aqui */
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* ✅ tabela baseada no maior conteúdo das colunas */
   .contactsTable{
     table-layout: auto;
-    width: max-content;          /* 🔧 “no limite da palavra maior” */
-    min-width: 0;                /* 🔧 não força espaço sobrando */
+    width: max-content;
+    min-width: 0;
   }
 
-  /* ✅ diminui padding pra colar colunas */
   .contactsTable thead th{
     font-size: 11px;
     padding: 8px 6px;
@@ -475,31 +455,26 @@
     white-space: nowrap;
   }
 
-  /* ✅ loja pode quebrar linha (mantido) */
   .contactsTable td.colLojaCell{
     white-space: normal !important;
     line-height: 1.15;
   }
 
-  /* ✅ garante colunas visíveis */
   .contactsTable th.colCel, .contactsTable td.colCel,
   .contactsTable th.colAcao, .contactsTable td.colAcao{
     display: table-cell !important;
   }
 
-  /* ✅ CORREÇÃO PRINCIPAL: nada de % no mobile */
   .colLoja{ width: auto; }
-  .colCel{ width: 1%; }          /* 🔧 encolhe ao mínimo */
-  .colAcao{ width: 1%; text-align: center; } /* 🔧 encolhe ao mínimo */
+  .colCel{ width: 1%; }
+  .colAcao{ width: 1%; text-align: center; }
 
-  /* botão editar menor (mantido) */
   .iconBtn{
     padding: 7px 8px;
     border-radius: 10px;
     font-size: 12px;
   }
 
-  /* buscar + fechar na mesma linha, fechar mais compacto */
   .contactsHead{ gap: 8px; }
   #btnContatosFechar{
     padding: 9px 10px;
@@ -537,7 +512,6 @@
         </div>
       </div>
     </div>
-
     <div class="tableWrap">
       <table>
         <thead>
@@ -555,13 +529,9 @@
         </tbody>
       </table>
     </div>
-
     <div id="msg" class="msg"></div>
   </div>
 
-  <!-- ==========================
-       MODAL: CONTATOS WHATSAPP
-       ========================== -->
   <div class="modalBg" id="modalContatosBg">
     <div class="modal modalWide">
       <p class="modalTitle">Contatos WhatsApp</p>
@@ -570,7 +540,6 @@
         <input id="contatosBusca" class="contactsSearch" placeholder="Buscar por loja ou número..." />
         <button class="btn-ghost" id="btnContatosFechar">Fechar</button>
       </div>
-
       <div class="contactsTableWrap">
         <table class="contactsTable">
           <thead>
@@ -585,24 +554,18 @@
           </tbody>
         </table>
       </div>
-
       <div id="msgContatos" class="msg"></div>
     </div>
   </div>
 
-  <!-- ==========================
-       MODAL: EDITAR CELULAR (popup)
-       ========================== -->
   <div class="modalBg" id="modalContatoEditarBg">
     <div class="modal">
       <p class="modalTitle">Editar celular da loja</p>
-
       <div class="grid grid1">
         <div class="field">
           <div class="label">Loja</div>
           <input class="control" id="contatoEditarLoja" readonly />
         </div>
-
         <div class="field">
           <div class="label">Celular (WhatsApp)</div>
           <input
@@ -613,43 +576,33 @@
             placeholder="(61) 99999-9999"
             maxlength="16"
           />
-          <div class="hint">Digite apenas números. O campo formata automaticamente com DDD.</div>
+          <div class="hint">Digite apenas números. O campo formata automaticamente.</div>
         </div>
       </div>
-
       <div class="modalActions">
         <button class="btn-ghost" id="btnContatoEditarCancelar">Cancelar</button>
         <button class="btn btn-primary" id="btnContatoEditarSalvar">Salvar</button>
       </div>
-
       <div id="msgContatoEditar" class="msg"></div>
     </div>
   </div>
-
-  <!-- ==========================
-       MODAL: Criar
-       ========================== -->
   <div class="modalBg" id="modalCriarBg">
     <div class="modal">
       <p class="modalTitle">Criar novo usuário</p>
-
       <div class="grid">
         <div class="field">
           <div class="label">Loja</div>
           <select class="control" id="criarLoja"></select>
         </div>
-
         <div class="field">
           <div class="label">Perfil</div>
           <select class="control" id="criarPerfil"></select>
         </div>
-
         <div class="field" style="grid-column: 1 / -1;">
           <div class="label">Usuário</div>
           <input class="control" id="criarUsuario" placeholder="Ex: joao.silva" autocomplete="off" />
           <div id="suggestBox" class="suggestBox"></div>
         </div>
-
         <div class="field">
           <div class="label">Senha inicial</div>
           <select class="control" id="criarModoSenha">
@@ -658,13 +611,11 @@
           </select>
         </div>
       </div>
-
       <div class="grid grid1" style="margin-top:10px;">
         <div class="field" id="wrapSenhaManual" style="display:none;">
           <div class="label">Senha (manual)</div>
           <input class="control" id="criarSenhaManual" placeholder="Defina a senha..." />
         </div>
-
         <div class="field">
           <div class="label">Exigir troca no primeiro login</div>
           <select class="control" id="criarPrimeiroLogin">
@@ -673,35 +624,26 @@
           </select>
         </div>
       </div>
-
       <div class="modalActions">
         <button class="btn-ghost" id="btnCriarCancelar">Fechar</button>
         <button class="btn btn-primary" id="btnCriarSalvar">Criar</button>
       </div>
-
       <div class="msg" id="msgCriar"></div>
     </div>
   </div>
-
-  <!-- ==========================
-       MODAL: Editar
-       ========================== -->
   <div class="modalBg" id="modalEditarBg">
     <div class="modal">
       <p class="modalTitle">Editar usuário</p>
-
       <div class="grid">
         <div class="field">
           <div class="label">Loja</div>
           <select class="control" id="editarLoja"></select>
         </div>
-
         <div class="field">
           <div class="label">Perfil</div>
           <select class="control" id="editarPerfil"></select>
         </div>
       </div>
-
       <div class="grid grid1" style="margin-top:10px;">
         <div class="field">
           <div class="label">Status</div>
@@ -711,29 +653,21 @@
           </select>
         </div>
       </div>
-
       <div class="modalActions">
         <button class="btn-ghost" id="btnEditarCancelar">Fechar</button>
         <button class="btn btn-primary" id="btnEditarSalvar">Salvar</button>
       </div>
-
       <div class="msg" id="msgEditar"></div>
     </div>
   </div>
-
-  <!-- ==========================
-       MODAL: Reset
-       ========================== -->
   <div class="modalBg" id="modalResetBg">
     <div class="modal">
       <p class="modalTitle">Resetar senha (gera temporária)</p>
-
       <div class="grid grid1">
         <div class="field">
           <div class="label">Senha temporária gerada</div>
           <input class="control" id="resetSenhaGerada" readonly />
         </div>
-
         <div class="field">
           <div class="label">Exigir troca no primeiro login</div>
           <select class="control" id="resetPrimeiroLogin">
@@ -742,27 +676,19 @@
           </select>
         </div>
       </div>
-
       <div class="modalActions">
         <button class="btn-ghost" id="btnResetFechar">Fechar</button>
         <button class="btn btn-primary" id="btnResetConfirmar">Confirmar reset</button>
       </div>
-
       <div class="msg" id="msgReset"></div>
     </div>
   </div>
 
   <script>
-    // ==========================================================
-    // Voltar: vai para menu.html
-    // ==========================================================
     document.getElementById("btnVoltar").addEventListener("click", () => {
       window.location.href = "menu.html";
     });
 
-    // ==========================================================
-    // Cache de elementos
-    // ==========================================================
     const tbody = document.getElementById("tbody");
     const msg = document.getElementById("msg");
 
@@ -774,9 +700,6 @@
     let editandoId = null;
     let resetandoId = null;
 
-    // ==========================================================
-    // Helpers
-    // ==========================================================
     function showMsg(texto, tipo){
       msg.textContent = texto || "";
       msg.className = "msg" + (tipo ? " " + tipo : "");
@@ -825,9 +748,6 @@
       }
     }
 
-    // ==========================================================
-    // Carregar usuários
-    // ==========================================================
     async function carregar(){
       showMsg("");
       tbody.innerHTML = '<tr><td colspan="6" style="padding:14px; font-weight:900;">Carregando...</td></tr>';
@@ -878,7 +798,6 @@
       const lojaF = (fLoja.value || "").trim();
       const perfilF = (fPerfil.value || "").trim().toUpperCase();
       const userF = (fUsuario.value || "").trim();
-
       const rows = usuarios.filter(u => {
         if(lojaF && String(u.loja||"").trim() !== lojaF) return false;
         if(perfilF && String(u.perfil||"").trim().toUpperCase() !== perfilF) return false;
@@ -923,9 +842,6 @@
     fPerfil.addEventListener("change", render);
     fUsuario.addEventListener("change", render);
 
-    // ==========================================================
-    // Ações por linha
-    // ==========================================================
     window.abrirEditar = (id) => {
       const u = usuarios.find(x => x.id === id);
       if(!u) return;
@@ -994,9 +910,6 @@
       return out;
     }
 
-    // ==========================================================
-    // Máscara BR com DDD
-    // ==========================================================
     function onlyDigits(s){ return String(s||"").replace(/\D+/g, ""); }
 
     function formatCelBR(digits){
@@ -1019,15 +932,11 @@
       el.value = formatCelBR(dig);
     }
 
-    // ==========================================================
-    // MODAL: CONTATOS WHATSAPP
-    // ==========================================================
     const btnContatosBono = document.getElementById("btnContatosBono");
     const btnContatosFechar = document.getElementById("btnContatosFechar");
     const tbodyContatos = document.getElementById("tbodyContatos");
     const contatosBusca = document.getElementById("contatosBusca");
     const msgContatos = document.getElementById("msgContatos");
-
     const contatoEditarLoja = document.getElementById("contatoEditarLoja");
     const contatoEditarCel = document.getElementById("contatoEditarCel");
     const msgContatoEditar = document.getElementById("msgContatoEditar");
@@ -1104,7 +1013,6 @@
         const loja = String(c.loja || "");
         const celRaw = String(c.celular || "");
         const celShow = formatCelBR(onlyDigits(celRaw)) || celRaw || "-";
-
         return `
           <tr>
             <td class="colLoja colLojaCell" title="${escapeHtml(loja)}">${escapeHtml(loja)}</td>
@@ -1120,8 +1028,6 @@
     }
 
     contatosBusca.addEventListener("input", renderContatosBono);
-
-    // ✅ Delegação: funciona sempre, mesmo após re-render
     tbodyContatos.addEventListener("click", (e) => {
       const btn = e.target.closest(".btnEditContato");
       if(!btn) return;
@@ -1197,18 +1103,12 @@
       }
     });
 
-    // ==========================================================
-    // Fecha modal clicando fora
-    // ==========================================================
     ["modalCriarBg","modalEditarBg","modalResetBg","modalContatosBg","modalContatoEditarBg"].forEach(id => {
       document.getElementById(id).addEventListener("click", (e) => {
         if(e.target.id === id) fecharModal(id);
       });
     });
 
-    // ==========================================================
-    // Modal Criar + Sugestões + Editar + Reset (mantidos do seu código)
-    // ==========================================================
     const btnAbrirCriar = document.getElementById("btnAbrirCriar");
     const btnCriarCancelar = document.getElementById("btnCriarCancelar");
     const btnCriarSalvar = document.getElementById("btnCriarSalvar");
