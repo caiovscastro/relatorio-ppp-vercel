@@ -441,9 +441,6 @@
       padding: 0;
     }
 
-    /* ==============================
-       Modal Cupom Fiscal
-       ============================== */
     .modal-cupom {
       max-width: 460px;
       width: 92%;
@@ -452,7 +449,6 @@
       padding: 16px 16px 14px;
     }
 
-    /* ✅ AJUSTE 1: margem no CUPOM/DOCUMENTO no celular (não encosta nas bordas) */
     #modalCupom{
       padding: 12px;
       box-sizing: border-box;
@@ -482,7 +478,6 @@
       margin: 10px 0;
     }
 
-    /* ✅ AJUSTE 2: Qtd/V.un/V.total mais próximos à direita e sobrando mais espaço pro Produto */
     .cupom-cab {
       display: grid;
       grid-template-columns: 26px 1fr 48px 72px 78px;
@@ -585,12 +580,8 @@
       font-size: 14px;
     }
     .btn-editar-item:hover { filter: brightness(0.97); }
-
-    /* ✅ AJUSTE 1 (SOLICITADO AGORA):
-       Na lista de ocorrências, rótulo + valor ficam "colados" com apenas 1 espaço visual.
-       (Remove o layout em colunas só nesses campos) */
     .pareado-inline {
-      display: block !important; /* sobrescreve display:grid do .cartao-pareado */
+      display: block !important;
     }
     .pareado-inline .rotulo,
     .pareado-inline .valor {
@@ -692,7 +683,6 @@
     </div>
   </div>
 
-  <!-- Modal Download (mantido) -->
   <div id="modalDownload" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar download</div>
@@ -704,7 +694,6 @@
     </div>
   </div>
 
-  <!-- Modal Excluir Documento (mantido) -->
   <div id="modalExcluirDocumento" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar exclusão</div>
@@ -716,7 +705,6 @@
     </div>
   </div>
 
-  <!-- Modal Editar Observação Documento (mantido) -->
   <div id="modalEditarObs" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar observação do documento</div>
@@ -733,7 +721,6 @@
     </div>
   </div>
 
-  <!-- Modal Editar Item (Qtd e Valor Un.) -->
   <div id="modalEditarItem" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar item</div>
@@ -765,7 +752,6 @@
     </div>
   </div>
 
-  <!-- Modal Cupom Fiscal (ajustado: qualquer botão fecha o CUPOM antes) -->
   <div id="modalCupom" class="modal-overlay">
     <div class="modal-content modal-cupom">
       <div class="cupom-titulo">CUPOM / DOCUMENTO</div>
