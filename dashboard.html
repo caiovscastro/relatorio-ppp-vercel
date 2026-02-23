@@ -10,11 +10,10 @@
 <meta name="theme-color" content="#030712">
 
   <style>
-    /* ====== Visual “semelhante ao print”: tiles claras em um fundo cinza suave ====== */
     html, body{
       width: 100%;
       max-width: 100%;
-      overflow-x: hidden; /* ✅ evita rolagem horizontal e “deslocamento” para a direita */
+      overflow-x: hidden; /*evita rolagem horizontal e “deslocamento”*/
     }
 
     body{
@@ -25,16 +24,12 @@
     }
 
     .wrap{
-      /* ✅ ocupa a tela sem estourar e sem ficar “puxado” para a direita */
       width: calc(100vw - 20px);
       max-width: 1490px;
       margin: 16px auto 30px;
       box-sizing: border-box;
     }
 
-    /* ============================
-       Tiles (BASE VISUAL)
-       ============================ */
     .tile{
       background: #f6f6f6;
       border: 1px solid #e5e5e5;
@@ -43,7 +38,7 @@
       padding: 12px 14px;
       min-height: 180px;
       box-sizing: border-box;
-      min-width: 0; /* ✅ importante para não “forçar” overflow */
+      min-width: 0;
     }
 
     .tile h3{
@@ -55,13 +50,9 @@
       letter-spacing: 0.6px;
     }
 
-    /* =========================================================
-       ✅ LAYOUT: SIDEBAR ESQUERDA + CONTEÚDO
-       ========================================================= */
     .layout{
       display: grid;
-      grid-template-columns: 290px minmax(0, 1fr); /* ✅ evita overflow no conteúdo */
-      gap: 12px;
+      grid-template-columns: 290px minmax(0, 1fr);
       align-items: start;
       min-width: 0;
     }
@@ -108,37 +99,28 @@
       overflow: auto;
     }
 
-    /* =========================================================
-       ✅ (NOVO) COLUNA ESQUERDA COM 2 CARTÕES EMPILHADOS
-       ========================================================= */
     .sidecol{
       display: flex;
       flex-direction: column;
       gap: 12px; /* mesmo gap do layout */
       min-width: 0;
-      height: 100%;            /* ✅ permite o card esticar */
+      height: 100%;
     }
 
-    /* =========================================================
-       ✅ Cartão do gráfico 12 meses ocupa TODA a altura disponível
-       ========================================================= */
     .meses12-tile{
-      flex: 1 1 auto;          /* ✅ ocupa toda a altura da coluna */
-      min-height: 0;           /* ✅ remove trava de altura */
+      flex: 1 1 auto;
+      min-height: 0;
       padding: 12px 14px;
       display: flex;
-      flex-direction: column; /* ✅ permite o gráfico crescer */
+      flex-direction: column;
     }
 
     .meses12-wrap{
       position: relative;
-      flex: 1 1 auto;          /* ✅ gráfico cresce junto com o card */
+      flex: 1 1 auto;
       min-height: 0;
     }
 
-    /* =========================================================
-       ✅ (NOVO) Cartão da imagem acima do título "Filtros"
-       ========================================================= */
     .side-img-card{
       background: #fff;
       border: 1px solid #e5e5e5;
@@ -159,17 +141,13 @@
       border-radius: 10px;
     }
 
-    /* =========================================================
-       Grid base (✅ AJUSTE: agora 2 colunas no desktop)
-       ========================================================= */
     .grid{
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* ✅ 2 colunas */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 12px;
       min-width: 0;
     }
 
-    /* ✅ bloco do topo direito: 2 cards lado a lado */
     .top-right{
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -177,7 +155,6 @@
       min-width: 0;
     }
 
-    /* Topo ocupando as colunas do grid */
     .topbar{
       grid-column: 1 / -1;
       display: flex;
@@ -190,9 +167,6 @@
       min-width: 0;
     }
 
-    /* =========================================================
-       Título
-       ========================================================= */
     .title{
       margin: 0;
       font-weight: 800;
@@ -213,9 +187,6 @@
       text-overflow: ellipsis;
     }
 
-    /* =========================================================
-       ✅ PADRÃO ÚNICO DE ALTURA
-       ========================================================= */
     :root{
       --ctrl-h: 38px;
       --ctrl-gap: 8px;
@@ -262,9 +233,6 @@
       box-sizing: border-box;
     }
 
-    /* =========================================================
-       CONTROLES (datas + venda + botões)
-       ========================================================= */
     .filters-wrap{
       display:flex;
       gap: var(--ctrl-gap);
@@ -303,22 +271,17 @@
       min-width: 0;
     }
 
-    /* Datas 10% menor (largura) */
     .input-date{
       width: 134px;
       min-width: 134px;
     }
 
-    /* Valor 40% menor (largura) */
     .input-money{
       width: 102px;
       min-width: 102px;
       text-align: right;
     }
 
-    /* =========================================================
-       Dropdown genérico (Turnos / Gravidade / Lojas / Abordagem)
-       ========================================================= */
     .dd-wrap{
       position: relative;
       display: inline-flex;
@@ -393,22 +356,16 @@
       line-height: 1.35;
     }
 
-    /* ============================
-       ✅ painel de lojas maior e com scroll
-       ============================ */
     .dd-panel.dd-lojas{
       width: 320px;
       max-height: 320px;
       overflow: auto;
     }
 
-    /* =========================================================
-       Linhas internas do grid
-       ========================================================= */
     .row2{
       grid-column: 1 / -1;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* ✅ */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 12px;
       min-width: 0;
     }
@@ -419,9 +376,6 @@
       min-width: 0;
     }
 
-    /* ============================
-       Ocorrências (número grande)
-       ============================ */
     .big-number{
       height: calc(100% - 28px);
       display: flex;
@@ -464,7 +418,7 @@
     .ocorrencias-split{
       height: calc(100% - 28px);
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* ✅ */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 10px;
       align-items: center;
       min-width: 0;
@@ -477,9 +431,6 @@
       min-width: 0;
     }
 
-    /* ============================
-       Card “Ocorrências por Bandeira”
-       ============================ */
     .tile.bandeira-tile h3{ text-align: center; }
 
     .bandeira-split{
@@ -531,9 +482,6 @@
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
     }
 
-    /* =========================================================
-       Status
-       ========================================================= */
     .status{
       width: 100%;
       box-sizing: border-box;
@@ -547,7 +495,6 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     }
 
-    /* ====== Acesso inválido ====== */
     .tela-erro{
       width: min(520px, 92vw);
       margin: 60px auto;
@@ -563,21 +510,13 @@
       color: #c00000;
     }
 
-    /* ====== Responsivo ====== */
     @media (max-width: 980px){
-      /* mantém comportamento existente no seu projeto */
       .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .row2{ grid-template-columns: minmax(0,1fr); }
       .layout{ grid-template-columns: minmax(0,1fr); }
       .top-right{ grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
     }
 
-    /* =========================================================
-       ✅ Ajuste para celular:
-       1) Sidebar em 2 colunas (Atualizar ao lado de Voltar, etc.)
-       2) Mantém sem overflow horizontal
-       3) ✅ FIX: dropdowns da sidebar não podem “sair” da tela e cortar os checkboxes
-       ========================================================= */
     @media (max-width: 640px){
       .wrap{
         width: calc(100vw - 20px);
@@ -605,7 +544,7 @@
       }
 
       .grid{ grid-template-columns: 1fr; }
-      .top-right{ grid-template-columns: 1fr; } /* ✅ no mobile empilha */
+      .top-right{ grid-template-columns: 1fr; }
       .big-number .n{ font-size: 82px; }
       .canvas-wrap{ height: 240px; }
       .bandeira-num{ font-size: 40px; }
@@ -623,53 +562,41 @@
         align-items: stretch;
       }
 
-      /* ✅ 2 colunas para TODOS os filtros e botões (na ordem já existente) */
       .sidebar .side-stack{
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
       }
-
-      /* ✅ garante que cada item ocupe corretamente a “célula” sem forçar largura */
+      
       .sidebar .side-stack > *{
         width: 100%;
         min-width: 0;
       }
 
-      /* ✅ inputs que tinham largura fixa no desktop passam a ser 100% no mobile */
       .input-date,
       .input-money{
         width: 100%;
         min-width: 0;
       }
 
-      /* ✅ dropdown botão sempre 100% */
       .btn-dd{
         width: 100%;
       }
 
-      /* =====================================================================
-         ✅ FIX 1 (CSS): no mobile, dropdown da SIDEBAR abre ancorado à esquerda
-         para não “vazar” pra fora do viewport e cortar os checkboxes.
-         ===================================================================== */
       .sidebar .dd-panel{
-        left: 0;                /* ✅ ancora no início do wrap */
-        right: auto;            /* ✅ remove o right:0 no mobile */
-        max-width: calc(100vw - 40px); /* ✅ nunca passa da tela */
+        left: 0;
+        right: auto;
+        max-width: calc(100vw - 40px);
       }
 
       .sidebar .dd-panel.dd-lojas{
-        width: min(320px, calc(100vw - 40px)); /* ✅ mantém seu 320, mas respeita a tela */
+        width: min(320px, calc(100vw - 40px));
       }
 
-      /* ✅ (NOVO) gráfico 12 meses no mobile ocupa bem e não estoura */
       .meses12-tile{ min-height: 360px; }
       .meses12-wrap{ height: 300px; }
     }
 
-    /* =========================================================
-       ✅ (NOVO) Overlay de carregamento 0–100% (centro da tela)
-       ========================================================= */
     #envioOverlay{
       position: fixed;
       inset: 0;
@@ -710,13 +637,10 @@
 
     <div class="layout">
 
-      <!-- ✅ (ALTERADO) Coluna esquerda agora tem 2 cartões (Filtros + Gráfico 12 meses) -->
       <div class="sidecol">
 
-        <!-- ✅ NOVO: CARTÃO ESQUERDO COM TODOS OS FILTROS -->
         <div class="tile sidebar">
 
-          <!-- ✅ (NOVO) Cartão com imagem acima do título "Filtros" -->
           <div class="side-img-card">
             <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Imagem do painel" />
           </div>
@@ -725,20 +649,14 @@
 
           <div class="side-stack">
 
-            <!-- 1) Atualizar -->
-            <!-- ✅ FIX 2: Atualizar força re-fetch; filtros não fazem fetch -->
             <button class="btn btn-refresh" onclick="carregar(true)">Atualizar</button>
 
-            <!-- 2) Voltar -->
             <button class="btn btn-back" onclick="voltar()">Voltar</button>
 
-            <!-- 3) Data inicio -->
             <input id="dataInicio" class="input-filter input-date" type="date" aria-label="Data início" title="Data início" />
 
-            <!-- 4) Data fim -->
             <input id="dataFim" class="input-filter input-date" type="date" aria-label="Data fim" title="Data fim" />
 
-            <!-- 5) Lojas -->
             <div class="dd-wrap" id="lojaWrap">
               <button type="button" class="btn-dd" id="btnLoja" aria-haspopup="true" aria-expanded="false">
                 Lojas ▾
@@ -748,7 +666,6 @@
               </div>
             </div>
 
-            <!-- 6) Tipo de abordagem (coluna T) -->
             <div class="dd-wrap" id="abordagemWrap">
               <button type="button" class="btn-dd" id="btnAbordagem" aria-haspopup="true" aria-expanded="false">
                 Tipo de abordagem ▾
@@ -759,38 +676,30 @@
                   <input type="checkbox" id="ckReativa" checked />
                   <label class="lbl" for="ckReativa">Reativa</label>
                 </div>
-
                 <div class="item">
                   <input type="checkbox" id="ckPreventiva" checked />
                   <label class="lbl" for="ckPreventiva">Preventiva</label>
                 </div>
-
                 <div class="hint"></div>
               </div>
             </div>
-
-            <!-- 7) Turnos -->
             <div class="dd-wrap" id="turnoWrap">
               <button type="button" class="btn-dd" id="btnTurno" aria-haspopup="true" aria-expanded="false">
                 Turnos ▾
               </button>
-
               <div class="dd-panel" id="turnoPanel" role="menu" aria-label="Filtro de turnos">
                 <div class="item">
                   <input type="checkbox" id="ckManha" checked />
                   <label class="lbl" for="ckManha">Manhã</label>
                 </div>
-
                 <div class="item">
                   <input type="checkbox" id="ckTarde" checked />
                   <label class="lbl" for="ckTarde">Tarde</label>
                 </div>
-
                 <div class="item">
                   <input type="checkbox" id="ckMadrugada" checked />
                   <label class="lbl" for="ckMadrugada">Madrugada</label>
                 </div>
-
                 <div class="hint">
                   Manhã: 07:00–14:00<br/>
                   Tarde: 14:01–22:00<br/>
@@ -798,29 +707,23 @@
                 </div>
               </div>
             </div>
-
-            <!-- 8) Gravidade -->
             <div class="dd-wrap" id="gravidadeWrap">
               <button type="button" class="btn-dd" id="btnGravidade" aria-haspopup="true" aria-expanded="false">
                 Gravidade ▾
               </button>
-
               <div class="dd-panel" id="gravidadePanel" role="menu" aria-label="Filtro de gravidade">
                 <div class="item">
                   <input type="checkbox" id="ckLeve" checked />
                   <label class="lbl" for="ckLeve">Leve</label>
                 </div>
-
                 <div class="item">
                   <input type="checkbox" id="ckMedia" checked />
                   <label class="lbl" for="ckMedia">Média</label>
                 </div>
-
                 <div class="item">
                   <input type="checkbox" id="ckGrave" checked />
                   <label class="lbl" for="ckGrave">Grave</label>
                 </div>
-
                 <div class="hint">
                   Leve: &lt; 100<br/>
                   Média: 100–499,99<br/>
@@ -829,7 +732,6 @@
               </div>
             </div>
 
-            <!-- 9) Caixa de valor -->
             <input
               id="valorVenda"
               class="input-filter input-money"
@@ -843,21 +745,16 @@
             />
           </div>
         </div>
-
-        <!-- ✅ (ALTERADO) SWAP: aqui agora é "Ocorrências por departamento" -->
+        
         <div class="tile meses12-tile">
           <h3>OCORRÊNCIAS POR DPTO</h3>
           <div class="meses12-wrap">
             <canvas id="chartDept"></canvas>
           </div>
         </div>
-
       </div><!-- /sidecol -->
-
-      <!-- ✅ CONTEÚDO PRINCIPAL -->
       <div class="grid">
 
-        <!-- TOPO (span total do grid) -->
         <div class="tile topbar">
           <div>
             <h1 class="title">RELATÓRIO DE OCORRÊNCIAS</h1>
@@ -865,7 +762,6 @@
           </div>
         </div>
 
-        <!-- 1) Ocorrências + Pizza Gravidade (✅ coluna esquerda, mesma largura do Top5) -->
         <div class="tile">
           <h3>Ocorrências</h3>
 
@@ -882,7 +778,6 @@
           </div>
         </div>
 
-        <!-- ✅ (NOVO) Coluna direita do topo: Bandeira + Percentual lado a lado -->
         <div class="top-right">
 
           <!-- 2) Ocorrências por bandeira -->
@@ -897,7 +792,6 @@
               </div>
 
               <div class="bandeira-divider" aria-hidden="true"></div>
-
               <div class="bandeira-col">
                 <div class="bandeira-num" id="bandeiraULT">0</div>
                 <div class="bandeira-valor" id="valorULT">R$ 0</div>
@@ -906,7 +800,6 @@
             </div>
           </div>
 
-          <!-- 3) Percentual por bandeira -->
           <div class="tile">
             <h3>Percentual por bandeira</h3>
             <div class="canvas-wrap" style="height: 210px;">
@@ -916,17 +809,14 @@
 
         </div><!-- /top-right -->
 
-        <!-- LINHA DE BAIXO -->
         <div class="row2">
           <div class="tile">
             <h3>Top 5 lojas com maior nº de ocorrências</h3>
-            <!-- ✅ REQ 5: mesma altura do gráfico de meses -->
             <div class="canvas-wrap" style="height: 260px;">
               <canvas id="chartTopLojas"></canvas>
             </div>
           </div>
 
-          <!-- ✅ (ALTERADO) SWAP: aqui agora é "VALOR RECUPERADO POR MÊS" e em colunas -->
           <div class="tile">
             <h3>VALOR RECUPERADO POR MÊS</h3>
             <div class="canvas-wrap" style="height: 260px;">
@@ -935,7 +825,6 @@
           </div>
         </div>
 
-        <!-- Top 15 produtos -->
         <div class="row3">
           <div class="tile" style="min-height: 240px;">
             <h3>Top 15 produtos com maior nº de registros</h3>
@@ -944,14 +833,10 @@
             </div>
           </div>
         </div>
-
       </div><!-- /grid -->
     </div><!-- /layout -->
-
     <div class="status" id="status">Aguardando...</div>
   </div>
-
-  <!-- ✅ (NOVO) Overlay de progresso (central) -->
   <div id="envioOverlay" aria-hidden="true">
     <div id="envioBox">
       <p id="envioPct">0%</p>
@@ -964,18 +849,13 @@
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
     const STORAGE_KEY_MENU = "pppSession";
-
     let chartTopLojas = null;
     let chartDept = null;
     let chartPctBandeira = null;
     let chartTopProdutos = null;
     let chartGravidade = null;
-
-    /* ✅ (NOVO) gráfico 12 meses */
     let chartMeses12 = null;
-
     let totalValorOcorrenciasAtual = 0;
-
     let REGISTROS_CACHE = null;
     let CACHE_OK = false;
     let CACHE_ATUALIZADO_EM = null;
@@ -1044,7 +924,6 @@
         return btoa(str);
       }
     }
-
     function obterSessaoAtual() {
       try {
         const rawG = sessionStorage.getItem(STORAGE_KEY_GESTOR);
@@ -1053,7 +932,6 @@
           if (obj && obj.usuario) return obj;
         }
       } catch (e) {}
-
       try {
         const rawM = localStorage.getItem(STORAGE_KEY_MENU);
         if (rawM) {
@@ -1084,9 +962,6 @@
       window.location.href = "/menu.html";
     }
 
-    /* =========================================================
-       ✅ HELPERS: degradê por barra (suave)
-       ========================================================= */
     function hexToRgb(hex){
       const h = String(hex || "").trim().replace("#","");
       if (h.length === 3){
@@ -1106,7 +981,6 @@
       return `rgba(${r},${g},${b},${alpha})`;
     }
 
-    // ✅ REQ 1: degradê mais suave (variação pequena)
     function buildGradientAlphaColors(baseHex, n, aMax = 0.92, aMin = 0.78){
       const len = Math.max(1, Number(n) || 1);
       if (len === 1) return [rgbaFromHex(baseHex, aMax)];
@@ -1119,7 +993,6 @@
       return out;
     }
 
-    // ✅ REQ 1: degradê suave preservando cor por barra
     function buildGradientAlphaColorsPerBar(baseHexArr, aMax = 0.92, aMin = 0.78){
       const n = (baseHexArr || []).length;
       if (n === 0) return [];
@@ -1143,8 +1016,6 @@
         ctx.save();
         ctx.shadowColor = "rgba(0,0,0,0.4)";
         ctx.shadowBlur = 22;
-
-        // ✅ pedido: colunas -> sombra p/ direita; barras -> sombra p/ baixo
         ctx.shadowOffsetX = isHorizontal ? 0 : 10;
         ctx.shadowOffsetY = isHorizontal ? 10 : 0;
       },
@@ -1155,9 +1026,6 @@
       }
     };
 
-    /* =========================================================
-       ✅ datas padrão ao iniciar
-       ========================================================= */
     function setDatasPadraoInicioMesHoje(){
       const elIni = document.getElementById("dataInicio");
       const elFim = document.getElementById("dataFim");
@@ -1167,7 +1035,6 @@
       const yyyy = hoje.getFullYear();
       const mm = String(hoje.getMonth() + 1).padStart(2, "0");
       const ddHoje = String(hoje.getDate()).padStart(2, "0");
-
       const primeiroDia = `${yyyy}-${mm}-01`;
       const hojeISO = `${yyyy}-${mm}-${ddHoje}`;
 
@@ -1252,9 +1119,7 @@
 
       panelEl.style.left = "";
       panelEl.style.right = "";
-
       const rect = panelEl.getBoundingClientRect();
-
       const pad = 8;
       const vw = window.innerWidth || document.documentElement.clientWidth || 0;
 
@@ -1706,9 +1571,9 @@
       const s = String(lojaStr || "").trim().toUpperCase();
       const m = s.match(/^(ULT|BIG)\s*(\d{1,2})\b/);
       if (m) {
-        const sigla = m[1];
-        const num = String(parseInt(m[2], 10)).padStart(2, "0");
-        return `${sigla} ${num}`;
+      const sigla = m[1];
+      const num = String(parseInt(m[2], 10)).padStart(2, "0");
+      return `${sigla} ${num}`;
       }
       return s.length > 10 ? (s.slice(0, 10) + "…") : s;
     }
@@ -1729,7 +1594,6 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // ✅ REQ 2: sem casas decimais para cartões/rótulos (moeda)
     function formatarBRL(n) {
       const v = Number(n) || 0;
       return v.toLocaleString("pt-BR", {
@@ -1869,7 +1733,6 @@
       return neg ? -Math.abs(n) : n;
     }
 
-    // ✅ REQ 2: sem casas decimais no cartão de participação (%)
     function atualizarParticipacao() {
       const el = document.getElementById("pctParticipacao");
       const inp = document.getElementById("valorVenda");
@@ -1889,9 +1752,6 @@
       el.textContent = `Recup. x Rotativos: ${pctStr}%`;
     }
 
-    /* =========================================================
-       ✅ Progresso 0–100% (mantido)
-       ========================================================= */
     let __envioTimer = null;
     let __envioPct = 0;
 
@@ -2353,9 +2213,6 @@
       }
     }
 
-    /* =========================================================
-       ✅ VALOR REC. POR MÊS (colunas)
-       ========================================================= */
     function renderMeses12(labels, values, corMeses12){
       const canvas = document.getElementById("chartMeses12");
       if (!canvas) return;
