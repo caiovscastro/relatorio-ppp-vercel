@@ -731,7 +731,7 @@
   </div>
   <div id="modalCupom" class="modal-overlay">
     <div class="modal-content modal-cupom">
-      <div class="cupom-titulo">CUPOM / DOCUMENTO</div>
+      <div class="cupom-titulo">OCORRÊNCIA/DOCUMENTO</div>
       <div id="cupomSub" class="cupom-sub"></div>
       <div class="cupom-sep"></div>
       <div class="cupom-cab">
@@ -1139,7 +1139,6 @@
                 <span class="rotulo">Usuário:</span><span class="valor"> ${escapeHtml(d.usuario || "-")}</span>
               </div>
             </div>
-
             <div class="cartao-pares cartao-pares-inferior">
               <div class="cartao-pareado cartao-pareado-loja pareado-loja pareado-inline">
                 <span class="rotulo">Loja:</span><span class="valor valor-compacto"> ${escapeHtml(d.loja || "-")}</span>
@@ -1148,9 +1147,7 @@
                 <span class="rotulo">Doc:</span><span class="valor valor-documento"> ${escapeHtml(d.documento || "-")}</span>
               </div>
             </div>
-
             <div class="cartao-divisoria"></div>
-
             <div class="cartao-observacao">
               <div class="obs-titulo">Observação:</div>
               <div class="obs-texto">${escapeHtml(relatorioFormatado)}</div>
@@ -1198,7 +1195,6 @@
       const totaisEl = document.getElementById("cupomTotais");
       const obsEl = document.getElementById("cupomObsWrap");
       const imgWrap = document.getElementById("cupomImgWrap");
-
       const dataHora = dataHoraOcorridoConcatenada(d);
 
       sub.textContent =
