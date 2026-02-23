@@ -61,9 +61,9 @@
 
       border: 1px solid #d0d6e2;
       box-shadow:
-        0 4px 10px rgba(0, 0, 0, 0.18),
-        0 -2px 4px rgba(255, 255, 255, 0.75) inset,
-        0 2px 4px rgba(0, 0, 0, 0.05) inset;
+      0 4px 10px rgba(0, 0, 0, 0.18),
+      0 -2px 4px rgba(255, 255, 255, 0.75) inset,
+      0 2px 4px rgba(0, 0, 0, 0.05) inset;
 
       font-size: 13px;
     }
@@ -342,7 +342,6 @@
     .btn-modal-sim { background: #4caf50; color: #fff; }
     .btn-modal-cancelar { background: #e0e0e0; color: #333; }
 
-    /* Overlay de carregamento (já existia) */
     #loadingOverlay {
       position: fixed;
       inset: 0;
@@ -590,7 +589,6 @@
     }
   </style>
 </head>
-
 <body>
   <div id="erroAcesso" class="tela-erro" style="display:none;">
     <div class="card-erro">
@@ -600,14 +598,12 @@
       <a href="/login.html" class="btn-voltar">Voltar para login</a>
     </div>
   </div>
-
   <div id="appRoot" class="container" style="display:none;">
     <div class="cabecalho">
       <div>
         <h1 class="titulo">PAINEL DE OCORRÊNCIAS</h1>
       </div>
     </div>
-
     <div class="resumo-cards">
       <div class="card-resumo">
         <div class="resumo-titulo">Quantidade</div>
@@ -622,21 +618,17 @@
         <div id="resumoOcorrencias" class="resumo-valor">0</div>
       </div>
     </div>
-
     <div class="bloco-filtros">
       <h3>Filtros</h3>
-
       <div class="filtros-grid">
         <div class="campo-filtro campo-loja">
           <label for="filtroLoja">Loja (texto)</label>
           <input id="filtroLoja" type="text" placeholder="Ex.: ULT 01" />
         </div>
-
         <div class="campo-filtro campo-usuario">
           <label for="filtroUsuario">Usuário</label>
           <input id="filtroUsuario" type="text" placeholder="Login / nome" />
         </div>
-
         <div class="campo-filtro campo-departamento">
           <label for="filtroDepartamento">Departamento</label>
           <select id="filtroDepartamento">
@@ -649,23 +641,19 @@
             <option value="GASTRONOMIA">GASTRONOMIA</option>
           </select>
         </div>
-
         <div class="campo-filtro campo-documento">
           <label for="filtroDocumento">Nº Documento</label>
           <input id="filtroDocumento" type="text" placeholder="Número exato" />
         </div>
-
         <div class="campo-filtro campo-data-inicio">
           <label for="dataInicio">Data início</label>
           <input id="dataInicio" type="date" />
         </div>
-
         <div class="campo-filtro campo-data-fim">
           <label for="dataFim">Data fim</label>
           <input id="dataFim" type="date" />
         </div>
       </div>
-
       <div class="botoes-filtro">
         <button class="btn btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
         <button class="btn btn-dashboard" onclick="abrirDashboard()">Dashboard</button>
@@ -673,16 +661,13 @@
         <button class="btn btn-aplicar" onclick="aplicarFiltrosLocal()">Aplicar filtros</button>
       </div>
     </div>
-
     <div class="status" id="status">Carregando relatórios...</div>
     <div class="lista-cartoes" id="listaCartoes"></div>
-
     <div class="rodape">
       <a href="/menu.html" class="btn-voltar" onclick="logoutGestor()">Voltar ao menu</a>
       <span id="resumoQtd"></span>
     </div>
   </div>
-
   <div id="modalDownload" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar download</div>
@@ -693,7 +678,6 @@
       </div>
     </div>
   </div>
-
   <div id="modalExcluirDocumento" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Confirmar exclusão</div>
@@ -704,7 +688,6 @@
       </div>
     </div>
   </div>
-
   <div id="modalEditarObs" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar observação do documento</div>
@@ -720,7 +703,6 @@
       </div>
     </div>
   </div>
-
   <div id="modalEditarItem" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-titulo">Editar item</div>
@@ -729,36 +711,29 @@
           <label for="editItemProduto">Produto</label>
           <input id="editItemProduto" type="text" disabled />
         </div>
-
         <div class="form-group">
           <label for="editItemQtd">Qtd.</label>
           <input id="editItemQtd" type="text" placeholder="Ex.: 2" />
         </div>
-
         <div class="form-group">
           <label for="editItemValorUnit">Valor un.</label>
           <input id="editItemValorUnit" type="text" placeholder="Ex.: 12,99" />
         </div>
       </div>
-
       <div class="modal-botoes" style="margin-bottom:10px;">
         <button class="btn-modal-cancelar btn-modal-descartar" onclick="fecharModalEditarItem()">Descartar</button>
         <button class="btn-modal-sim btn-modal-salvar" onclick="salvarEdicaoItem()">Salvar</button>
       </div>
-
       <div class="modal-botoes">
         <button class="btn-modal-sim btn-danger" onclick="eliminarItem()">Eliminar registro</button>
       </div>
     </div>
   </div>
-
   <div id="modalCupom" class="modal-overlay">
     <div class="modal-content modal-cupom">
       <div class="cupom-titulo">CUPOM / DOCUMENTO</div>
       <div id="cupomSub" class="cupom-sub"></div>
-
       <div class="cupom-sep"></div>
-
       <div class="cupom-cab">
         <div></div>
         <div>Produto</div>
@@ -766,20 +741,13 @@
         <div class="cupom-num">V. un.</div>
         <div class="cupom-num">V. total</div>
       </div>
-
       <div id="cupomItens" class="cupom-itens"></div>
-
       <div class="cupom-sep"></div>
-
       <div id="cupomTotais" class="cupom-totais"></div>
-
       <div class="cupom-sep"></div>
-
       <div id="cupomObsWrap" class="cupom-obs"></div>
       <div id="cupomImgWrap" class="cupom-img"></div>
-
       <div class="cupom-sep"></div>
-
       <div class="modal-botoes">
         <button class="btn-modal-cancelar" onclick="cupomAcaoFechar()">Fechar</button>
         <button class="btn-modal-sim" onclick="cupomAcaoEditarObs()">Editar observação</button>
@@ -788,7 +756,6 @@
     </div>
   </div>
 
-  <!-- Overlay de carregamento (0 a 100% de 5 em 5, finaliza ao concluir) -->
   <div id="loadingOverlay">
     <div class="loading-box">
       <div id="loadingTitle">Carregando relatórios...</div>
