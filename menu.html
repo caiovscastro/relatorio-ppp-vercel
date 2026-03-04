@@ -350,7 +350,7 @@
     .btn-gray{
       background: linear-gradient(180deg, #9aa6b2 0%, #6e7a86 55%, #55606a 100%);
     }
-    
+
     .no-access{
       opacity: .42;
       filter: grayscale(.40);
@@ -394,29 +394,28 @@
     }
     .toast.show{ opacity: 1; }
 
-@media (max-width: 520px){
-  .container{ padding: 14px 12px 10px; }
-  .brandLogo{ width: 230px; }
-  .btnLabel{ font-size: 16px; }
-  .card-info{ padding: 9px 11px; }
-  .info-line{ gap: 9px; padding-right: 10px; font-size: 10px; }
-}
+    @media (max-width: 520px){
+      .container{ padding: 14px 12px 10px; }
+      .brandLogo{ width: 230px; }
+      .btnLabel{ font-size: 16px; }
+      .card-info{ padding: 9px 11px; }
+      .info-line{ gap: 9px; padding-right: 10px; font-size: 10px; }
+    }
 
-@media (max-width: 390px){
-  .btnLabel{ font-size: 15px; }
-  .btnIcon{ width: 25px; height: 25px; flex-basis: 25px; }
-  .btnIcon svg{ width: 23px; height: 23px; }
-  .btnChevron{ width: 17px; height: 17px; flex-basis: 17px; }
+    @media (max-width: 390px){
+      .btnLabel{ font-size: 15px; }
+      .btnIcon{ width: 25px; height: 25px; flex-basis: 25px; }
+      .btnIcon svg{ width: 23px; height: 23px; }
+      .btnChevron{ width: 17px; height: 17px; flex-basis: 17px; }
 
-  .info-line{ gap: 8px; font-size: 9px; }
-  .info-icon{ width: 14px; height: 14px; flex-basis: 14px; }
-}
+      .info-line{ gap: 8px; font-size: 9px; }
+      .info-icon{ width: 14px; height: 14px; flex-basis: 14px; }
+    }
 
-@media (prefers-reduced-motion: reduce){
-  *{ transition:none !important; }
-  .btn:hover{ transform:none; }
-}
-    
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none !important; }
+      .btn:hover{ transform:none; }
+    }
   </style>
 </head>
 
@@ -463,7 +462,8 @@
         </div>
       </div>
 
-      <button class="btn btn-green" id="btnLancamento" type="button">
+      <!-- 3 primeiros -> roxo (btn-purple) -->
+      <button class="btn btn-purple" id="btnLancamento" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -479,7 +479,7 @@
         </span>
       </button>
 
-      <button class="btn btn-blue" id="btnGerencial" type="button">
+      <button class="btn btn-purple" id="btnGerencial" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -511,7 +511,8 @@
         </span>
       </button>
 
-      <button class="btn btn-orange" id="btnContagemCarrinhos" type="button">
+      <!-- Contagem + Dashboard carrinhos -> ciano (btn-cyan) -->
+      <button class="btn btn-cyan" id="btnContagemCarrinhos" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -544,6 +545,7 @@
         </span>
       </button>
 
+      <!-- Bono + Visualização -> azul (btn-blue) -->
       <button class="btn btn-blue" id="btnBonoDigital" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
@@ -559,7 +561,7 @@
         </span>
       </button>
 
-      <button class="btn btn-purple" id="btnVisualizacaoBono" type="button">
+      <button class="btn btn-blue" id="btnVisualizacaoBono" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -574,7 +576,8 @@
         </span>
       </button>
 
-      <button class="btn btn-orange" id="btnUsuariosAdmin" type="button">
+      <!-- Gestão + Produtividade -> mesma cor do Produtividade (no seu CSS atual é btn-blue) -->
+      <button class="btn btn-blue" id="btnUsuariosAdmin" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -590,7 +593,6 @@
         </span>
       </button>
 
-      <!-- NOVO BOTÃO -->
       <button class="btn btn-blue" id="btnProdutividadeOperacao" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
@@ -607,6 +609,7 @@
         </span>
       </button>
 
+      <!-- Sair permanece cinza -->
       <button class="btn btn-gray" id="btnSair" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
