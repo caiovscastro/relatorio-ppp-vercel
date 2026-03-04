@@ -10,131 +10,180 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <title>MENU PPP</title>
   <link rel="icon" type="image/png" href="/LogoBigUltra.png">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#030712">
 
   <style>
-    html, body { height: 100%; }
+    :root{
+      --bg0:#030712;
+      --bg1:#0b1022;
+
+      --txt: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+
+      --radiusBtn: 12px;
+      --radiusTop: 12px;
+
+      --stroke1: rgba(255,255,255,.22);
+      --stroke2: rgba(255,255,255,.10);
+
+      --shadowOuter: 0 22px 60px rgba(0,0,0,.55);
+      --shadowBtn: 0 18px 44px rgba(0,0,0,.40);
+      --shadowInset: 0 16px 30px rgba(0,0,0,.34) inset;
+
+      --infoMinFont: 10px;
+      --infoMaxFont: 13px;
+      --infoGap: 10px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ width:100%; }
+
+    html{
+      min-height: 100%;
+      background:
+        radial-gradient(1200px 700px at 15% 18%, rgba(59,130,246,.20), transparent 62%),
+        radial-gradient(900px 600px at 85% 35%, rgba(124,58,237,.16), transparent 58%),
+        radial-gradient(900px 520px at 50% 88%, rgba(16,185,129,.10), transparent 62%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      background-color: var(--bg0);
+    }
 
     body{
-      font-family: Arial, sans-serif;
-      min-height: 100vh;
-      margin: 0;
+      margin:0;
+      min-height: 100svh;
+      min-height: 100dvh;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      color: var(--txt);
 
-      display:flex;
-      justify-content:center;
-      align-items: flex-start;
-      overflow-y: auto;
+      overflow-x:hidden;
+      overflow-y:auto;
+
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
 
       background:
-        radial-gradient(1200px 650px at 50% -10%, rgba(64,110,255,0.20), rgba(0,0,0,0) 60%),
-        radial-gradient(900px 520px at 50% 110%, rgba(0,120,255,0.10), rgba(0,0,0,0) 60%),
-        linear-gradient(180deg, #050a16 0%, #0a1330 55%, #07101f 100%);
+        radial-gradient(1200px 700px at 15% 18%, rgba(59,130,246,.20), transparent 62%),
+        radial-gradient(900px 600px at 85% 35%, rgba(124,58,237,.16), transparent 58%),
+        radial-gradient(900px 520px at 50% 88%, rgba(16,185,129,.10), transparent 62%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      background-color: var(--bg0);
 
-      padding: 24px 18px 18px;
-      box-sizing: border-box;
-      color: rgba(255,255,255,0.92);
+      display:grid;
+      place-items:center;
+
+      padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+    }
+
+    @supports not (height: 100dvh){
+      body{ min-height:100vh; }
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:-40px;
+      background:
+        radial-gradient(2px 2px at 12% 18%, rgba(255,255,255,.22) 40%, transparent 60%),
+        radial-gradient(1.6px 1.6px at 28% 42%, rgba(255,255,255,.16) 40%, transparent 60%),
+        radial-gradient(1.8px 1.8px at 65% 28%, rgba(255,255,255,.12) 40%, transparent 60%),
+        radial-gradient(1.4px 1.4px at 78% 62%, rgba(255,255,255,.14) 40%, transparent 60%),
+        radial-gradient(1.2px 1.2px at 46% 70%, rgba(255,255,255,.10) 40%, transparent 60%);
+      opacity:.52;
+      pointer-events:none;
+      transform: translateZ(0);
+    }
+
+    .wrap{
+      width: min(520px, 92vw);
+      position: relative;
+    }
+
+    .glow{
+      position:absolute;
+      inset:-18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(520px 260px at 50% -10%, rgba(96,165,250,.22), transparent 62%),
+        radial-gradient(420px 260px at 22% 92%, rgba(124,58,237,.14), transparent 62%),
+        radial-gradient(420px 260px at 88% 84%, rgba(16,185,129,.10), transparent 62%);
+      filter: blur(14px);
+      opacity:.70;
+      pointer-events:none;
+      z-index:0;
     }
 
     .container{
-      width: 97%;
-      max-width: 520px;
-      padding: 8px 6px 8px;
-      border-radius: 22px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow:
-        0 18px 42px rgba(0,0,0,0.55),
-        inset 0 1px 0 rgba(255,255,255,0.06);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-sizing: border-box;
-      margin: 10px 6px 10px;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      padding: 16px 16px 12px;
+      border-radius: 18px;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      text-align:center;
     }
 
-    #btnLogin{ display: none; }
-
-    /* Celular */
-    @media (max-width: 640px){
-      body{
-        padding: 8px 6px 8px;
-      }
-      .container{
-        width: 98%;
-        max-width: none;
-        padding: 16px 12px;
-      }
-      .card-info{
-        font-size: 9px !important;
-      }
-      .info-text{
-        font-size: inherit !important;
-        font-weight: 700 !important;
-      }
-      .info-icon{
-        width: 14px !important;
-        height: 14px !important;
-      }
-      .info-line{
-        gap: 6px !important;
-      }
-    }
-
-    /* Logo */
-    .logo-menu{
+    .top{
       display:flex;
-      justify-content:center;
+      flex-direction:column;
       align-items:center;
-      margin: 0 0 8px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
-    .logo-menu img{
-      max-width: 260px;
-      width: 78%;
+    .brandLogo{
+      width: 240px;
+      max-width: 72%;
       height: auto;
       display:block;
+      margin: 2px auto 0;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+      opacity: .98;
       user-select:none;
-      -webkit-user-drag: none;
-      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.45));
+      -webkit-user-drag:none;
     }
 
-    .linha-logo{
-      border: none;
-      height: 1px;
-      background: linear-gradient(
-        to right,
-        rgba(255,255,255,0.06),
-        rgba(255,255,255,0.18),
-        rgba(255,255,255,0.06)
-      );
-      margin: 8px 0 14px;
-    }
+    .linha-logo{ display:none; }
+
     .card-info{
-      display: block;
-      width: 95%;
-      margin: 0 auto 16px;
-      background: rgba(0,0,0,0.28);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 14px;
-      padding: 10px 12px;
-      font-size: 12px;
-      line-height: 1.45;
-      box-sizing: border-box;
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: var(--radiusTop);
+      border: 1px solid rgba(255,255,255,.18);
+      background:
+        radial-gradient(120% 120% at 50% -10%, rgba(255,255,255,.16), transparent 52%),
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
       box-shadow:
-      inset 0px 1px 0px rgba(255,255,255,0.05),
-      0px 10px 22px rgba(0,0,0,0.25);
+        var(--shadowBtn),
+        0 0 0 1px rgba(0,0,0,.22) inset,
+        0 14px 28px rgba(0,0,0,.26) inset;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      text-align:left;
+      overflow:hidden;
+      margin: 0;
     }
 
     .info-line{
       display:flex;
       align-items:center;
-      justify-content: space-between;
-      gap: 10px;
+      justify-content:center;
+      gap: var(--infoGap);
+      flex-wrap: nowrap;
+      font-size: var(--infoMaxFont);
+      font-weight: 900;
+      color: rgba(255,255,255,.92);
+      min-width: 0;
       white-space: nowrap;
-      overflow: hidden;
+      line-height: 1.1;
+      transform-origin: left center;
+      padding-right: 10px;
+      overflow: visible;
     }
 
     .info-item{
@@ -142,48 +191,149 @@
       align-items:center;
       gap: 7px;
       min-width: 0;
-      overflow: hidden;
-    }
-
-    .info-icon{
-      width: 18px;
-      height: 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex: 0 0 auto;
-      opacity: .9;
-      color: #4aa3ff;
+      white-space: nowrap;
+      flex: 0 1 auto;
+      overflow: visible;
     }
 
     .info-text{
-      font-weight: 900;
-      font-size: 12px;
-      overflow:hidden;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
       text-overflow: ellipsis;
-      color: rgba(255,255,255,0.92);
+      font-weight: 900;
+      color: rgba(255,255,255,.92);
+      display:inline-block;
+      font-size: inherit;
     }
 
+    .info-icon{
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      filter: drop-shadow(0 7px 12px rgba(0,0,0,.40));
+      color: #60a5fa;
+      opacity: 1;
+    }
+
+    /* ===== BOTÕES: skin do Menu Operação (mantendo classes de cor do PPP) ===== */
     .btn{
-      display: block;
-      width: 95%;
-      padding: 10px 13px;
-      border: none;
-      border-radius: 18px;
+      position:relative;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 14px;
+
+      border-radius: var(--radiusBtn);
       cursor: pointer;
-      font-size: 18px;
-      font-weight: 800;
-      margin: 12px auto 0;
-      color: rgba(255,255,255,0.95);
+      transition: transform .12s ease, filter .12s ease, opacity .12s ease;
+      color: #fff;
+      text-align:left;
+      -webkit-tap-highlight-color: transparent;
+      overflow:hidden;
+
+      border: 1px solid rgba(255,255,255,.18);
+
       box-shadow:
-      0 14px 26px rgba(0,0,0,0.28),
-      inset 0 1px 0 rgba(255,255,255,0.16);
-      transition: filter .12s ease, transform .04s ease;
+        0 22px 44px rgba(0,0,0,.52),
+        0 10px 22px rgba(0,0,0,.30),
+        0 0 0 1px rgba(0,0,0,.24) inset,
+        0 16px 30px rgba(0,0,0,.34) inset;
+
+      display:block;
+      font-size: 16px;
+      font-weight: 950;
+      letter-spacing: .2px;
     }
 
-    .btn:hover{ filter: brightness(1.03); }
-    .btn:active{ transform: translateY(1px); }
+    .btn::before{
+      content:"";
+      position:absolute;
+      inset: 1px;
+      border-radius: calc(var(--radiusBtn) - 1px);
+      background:
+        radial-gradient(150% 110% at 50% -14%, rgba(255,255,255,.40), transparent 56%),
+        radial-gradient(110% 80% at 12% 22%, rgba(255,255,255,.18), transparent 62%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.14));
+      opacity: .96;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+    }
 
+    .btn::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius: var(--radiusBtn);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.22), transparent 28%),
+        linear-gradient(90deg, rgba(255,255,255,.10), transparent 20%, transparent 80%, rgba(255,255,255,.08));
+      opacity:.86;
+      pointer-events:none;
+    }
+
+    .btn:hover{ transform: translateY(-1px); filter: brightness(1.05) saturate(1.03); }
+    .btn:active{ transform: translateY(0px); filter: brightness(.98) saturate(.98); }
+
+    .btnInner{
+      position:relative;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .btnIcon{
+      width: 26px;
+      height: 26px;
+      flex: 0 0 26px;
+      display:grid;
+      place-items: start center;
+      opacity: .98;
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.50));
+    }
+
+    .btnIcon svg{
+      width: 24px;
+      height: 24px;
+      display:block;
+    }
+
+    .icoFlat{
+      fill: none;
+      stroke: rgba(255,255,255,.96);
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .btnLabel{
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 17px;
+      font-weight: 950;
+      letter-spacing: .2px;
+      color: rgba(255,255,255,.95);
+      text-shadow: 0 12px 22px rgba(0,0,0,.42);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btnChevron{
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      opacity: .86;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,.48));
+    }
+    .btnChevron path{ stroke: rgba(255,255,255,.92); }
+
+    /* Cores (mantidas do PPP, só ajustadas para “encaixar” no novo skin) */
     .btn-green{
       background: linear-gradient(180deg, #42d36a 0%, #18a553 55%, #118444 100%);
     }
@@ -203,14 +353,16 @@
       background: linear-gradient(180deg, #9aa6b2 0%, #6e7a86 55%, #55606a 100%);
     }
 
+    /* Compat: sua lógica usa .no-access */
     .no-access{
-      filter: saturate(0.65) brightness(0.95);
+      opacity: .42;
+      filter: grayscale(.40);
       cursor: not-allowed;
+      transform:none !important;
     }
+    .no-access:hover{ transform:none; filter: grayscale(.40) brightness(1.00); }
 
-    .no-access:hover{
-      filter: saturate(0.65) brightness(0.98);
-    }
+    #btnLogin{ display:none; }
 
     .mensagem{
       margin-top: 12px;
@@ -218,85 +370,278 @@
       font-weight:700;
       font-size: 13px;
       min-height: 18px;
-      color: rgba(255,255,255,0.75);
+      color: rgba(255,255,255,.75);
     }
 
     .toast{
       position: fixed;
       left: 50%;
-      bottom: 22px;
+      bottom: max(16px, env(safe-area-inset-bottom));
       transform: translateX(-50%);
       z-index: 9999;
-      background: rgba(0,0,0,0.78);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 14px;
-      padding: 10px 14px;
-      font-family: Arial, sans-serif;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(7,12,28,.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: rgba(255,255,255,.92);
       font-size: 13px;
-      font-weight: 800;
-      box-shadow: 0 16px 30px rgba(0,0,0,0.45);
+      font-weight: 850;
+      box-shadow: 0 18px 40px rgba(0,0,0,.40);
       opacity: 0;
       pointer-events: none;
       transition: opacity .12s ease;
-      max-width: 92vw;
+      max-width: min(520px, 92vw);
       text-align: center;
     }
-    
     .toast.show{ opacity: 1; }
+
+    @media (max-width: 520px){
+      .container{ padding: 14px 12px 10px; }
+      .brandLogo{ width: 230px; }
+      .btnLabel{ font-size: 16px; }
+      .card-info{ padding: 9px 11px; }
+      .info-line{ gap: 9px; padding-right: 10px; }
+    }
+
+    @media (max-width: 390px){
+      .btnLabel{ font-size: 15px; }
+      .btnIcon{ width: 25px; height: 25px; flex-basis: 25px; }
+      .btnIcon svg{ width: 23px; height: 23px; }
+      .btnChevron{ width: 17px; height: 17px; flex-basis: 17px; }
+
+      .info-line{ gap: 8px; }
+      .info-icon{ width: 15px; height: 15px; flex-basis: 15px; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none !important; }
+      .btn:hover{ transform:none; }
+    }
   </style>
 </head>
-<body>
-  <div class="container">
 
-    <!-- Logo -->
-    <div class="logo-menu">
-      <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo PPP" />
-    </div>
-    <hr class="linha-logo" />
-    <div class="card-info" id="cardInfo">
-      <div class="info-line">
-        <div class="info-item" title="Usuário">
-          <span class="info-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21a8 8 0 0 0-16 0"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </span>
-          <span class="info-text" id="infoUsuario">—</span>
-        </div>
-        <div class="info-item" title="Loja">
-          <span class="info-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 9l1-5h16l1 5"></path>
-              <path d="M5 9v10h14V9"></path>
-              <path d="M9 19v-6h6v6"></path>
-            </svg>
-          </span>
-          <span class="info-text" id="infoLoja">—</span>
-        </div>
-        <div class="info-item" title="Perfil">
-          <span class="info-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-          </span>
-          <span class="info-text" id="infoPerfil">—</span>
+<body>
+  <div class="wrap">
+    <div class="glow"></div>
+
+    <div class="container">
+      <div class="top">
+        <img class="brandLogo" src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Logo PPP" draggable="false" />
+
+        <div class="card-info" id="cardInfo">
+          <div class="info-line" id="infoLinha">
+            <div class="info-item" title="Usuário">
+              <span class="info-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21a8 8 0 0 0-16 0"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </span>
+              <span class="info-text" id="infoUsuario">—</span>
+            </div>
+
+            <div class="info-item" title="Loja">
+              <span class="info-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 9l1-5h16l1 5"></path>
+                  <path d="M5 9v10h14V9"></path>
+                  <path d="M9 19v-6h6v6"></path>
+                </svg>
+              </span>
+              <span class="info-text" id="infoLoja">—</span>
+            </div>
+
+            <div class="info-item" title="Perfil">
+              <span class="info-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+              </span>
+              <span class="info-text" id="infoPerfil">—</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <button class="btn btn-green"  id="btnLancamento">Lançamento de ocorrências</button>
-    <button class="btn btn-blue"   id="btnGerencial">Cupons de ocorrências</button>
-    <button class="btn btn-purple" id="btnDashboard">Dashboard ocorrências</button>
-    <button class="btn btn-orange" id="btnContagemCarrinhos">Contagem de carrinhos</button>
-    <button class="btn btn-cyan"   id="btnDashboardCarrinhos">Dashboard carrinhos</button>
-    <button class="btn btn-blue"   id="btnBonoDigital">Bono digital</button>
-    <button class="btn btn-purple" id="btnVisualizacaoBono">Visualização Lançamentos Bono</button>
-    <button class="btn btn-orange" id="btnUsuariosAdmin">Gestão de Usuários</button>
-    <button class="btn btn-gray" id="btnSair">Sair</button>
-    <button class="btn btn-gray" id="btnLogin">Ir para o Login</button>
-    <div class="mensagem" id="msg"></div>
+      <button class="btn btn-green" id="btnLancamento" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M9 4h6l1 2h3v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h3l1-2Z"/>
+              <path class="icoFlat" d="M9 12h7M9 16h7"/>
+              <path class="icoFlat" d="M7.8 12l.9.9 1.8-1.8"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Lançamento de ocorrências</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-blue" id="btnGerencial" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M4 19h16"/>
+              <path class="icoFlat" d="M7 16v-4M12 16V8M17 16v-6"/>
+              <path class="icoFlat" d="M6 12h2M11 8h2M16 10h2"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Cupons de ocorrências</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-purple" id="btnDashboard" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M4 19h16"/>
+              <path class="icoFlat" d="M7 16v-5M12 16V7M17 16v-3"/>
+              <path class="icoFlat" d="M6 11h2M11 7h2M16 13h2"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Dashboard ocorrências</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-orange" id="btnContagemCarrinhos" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M6 6h15l-1.5 8.5H8L6 6Z"/>
+              <path class="icoFlat" d="M6 6L5 3H3"/>
+              <path class="icoFlat" d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+              <path class="icoFlat" d="M18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Contagem de carrinhos</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-cyan" id="btnDashboardCarrinhos" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M4 19h16"/>
+              <path class="icoFlat" d="M7 16v-4M12 16V9M17 16v-6"/>
+              <path class="icoFlat" d="M6 12h2M11 9h2M16 10h2"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Dashboard carrinhos</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-blue" id="btnBonoDigital" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
+              <path class="icoFlat" d="M8 7h8M8 11h8M8 15h6"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Bono digital</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-purple" id="btnVisualizacaoBono" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+              <path class="icoFlat" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Visualização Lançamentos Bono</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-orange" id="btnUsuariosAdmin" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"/>
+              <path class="icoFlat" d="M4 21c1.6-4 14.4-4 16 0"/>
+              <path class="icoFlat" d="M19 8v4M17 10h4"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Gestão de Usuários</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <!-- NOVO BOTÃO -->
+      <button class="btn btn-blue" id="btnProdutividadeOperacao" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M4 19h16"/>
+              <path class="icoFlat" d="M7 16v-4M12 16V8M17 16v-6"/>
+              <path class="icoFlat" d="M6 12h2M11 8h2M16 10h2"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Produtividade operação</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-gray" id="btnSair" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M12 3v8"/>
+              <path class="icoFlat" d="M7 5.5a8 8 0 1 0 10 0"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Sair</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <button class="btn btn-gray" id="btnLogin" type="button">
+        <span class="btnInner">
+          <span class="btnIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="icoFlat" d="M10 17l5-5-5-5"/>
+              <path class="icoFlat" d="M15 12H3"/>
+              <path class="icoFlat" d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            </svg>
+          </span>
+          <span class="btnLabel">Ir para o Login</span>
+          <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+
+      <div class="mensagem" id="msg"></div>
+    </div>
   </div>
 
   <div class="toast" id="toast">Acesso indisponível para o perfil</div>
@@ -313,6 +658,7 @@
       bonoDigital: "/bono-digital.html",
       visualizacaoBono: "/visualizacao-bono.html",
       usuariosAdmin: "/usuarios.html",
+      produtividade: "/produtividade.html",
       login: "/login.html",
       logoutApi: "/api/logout"
     };
@@ -424,6 +770,7 @@
         bonoDigital: !!p,
         visualizacaoBono: !!p,
         usuariosAdmin: (p === "ADMINISTRADOR"),
+        produtividade: (podeTudo || podeBase),
         sair: !!p
       };
 
@@ -435,6 +782,7 @@
       setNoAccess("btnBonoDigital", !acesso.bonoDigital);
       setNoAccess("btnVisualizacaoBono", !acesso.visualizacaoBono);
       setNoAccess("btnUsuariosAdmin", !acesso.usuariosAdmin);
+      setNoAccess("btnProdutividadeOperacao", !acesso.produtividade);
       setNoAccess("btnSair", !acesso.sair);
     }
 
@@ -495,6 +843,7 @@
       guardAcesso("btnBonoDigital", () => location.href = ROTAS.bonoDigital);
       guardAcesso("btnVisualizacaoBono", () => location.href = ROTAS.visualizacaoBono);
       guardAcesso("btnUsuariosAdmin", () => location.href = ROTAS.usuariosAdmin);
+      guardAcesso("btnProdutividadeOperacao", () => location.href = ROTAS.produtividade);
 
       const btnGerencial = document.getElementById("btnGerencial");
       btnGerencial.onclick = () => {
