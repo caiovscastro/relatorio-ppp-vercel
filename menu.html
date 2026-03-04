@@ -34,8 +34,8 @@
       --shadowBtn: 0 18px 44px rgba(0,0,0,.40);
       --shadowInset: 0 16px 30px rgba(0,0,0,.34) inset;
 
-      --infoMinFont: 10px;
-      --infoMaxFont: 13px;
+      --infoMinFont: 09px;
+      --infoMaxFont: 12px;
       --infoGap: 10px;
     }
 
@@ -219,7 +219,6 @@
       opacity: 1;
     }
 
-    /* ===== BOTÕES: skin do Menu Operação (mantendo classes de cor do PPP) ===== */
     .btn{
       position:relative;
       width: 100%;
@@ -333,7 +332,6 @@
     }
     .btnChevron path{ stroke: rgba(255,255,255,.92); }
 
-    /* Cores (mantidas do PPP, só ajustadas para “encaixar” no novo skin) */
     .btn-green{
       background: linear-gradient(180deg, #42d36a 0%, #18a553 55%, #118444 100%);
     }
@@ -352,8 +350,7 @@
     .btn-gray{
       background: linear-gradient(180deg, #9aa6b2 0%, #6e7a86 55%, #55606a 100%);
     }
-
-    /* Compat: sua lógica usa .no-access */
+    
     .no-access{
       opacity: .42;
       filter: grayscale(.40);
@@ -397,28 +394,29 @@
     }
     .toast.show{ opacity: 1; }
 
-    @media (max-width: 520px){
-      .container{ padding: 14px 12px 10px; }
-      .brandLogo{ width: 230px; }
-      .btnLabel{ font-size: 16px; }
-      .card-info{ padding: 9px 11px; }
-      .info-line{ gap: 9px; padding-right: 10px; }
-    }
+@media (max-width: 520px){
+  .container{ padding: 14px 12px 10px; }
+  .brandLogo{ width: 230px; }
+  .btnLabel{ font-size: 16px; }
+  .card-info{ padding: 9px 11px; }
+  .info-line{ gap: 9px; padding-right: 10px; font-size: 11px; }
+}
 
-    @media (max-width: 390px){
-      .btnLabel{ font-size: 15px; }
-      .btnIcon{ width: 25px; height: 25px; flex-basis: 25px; }
-      .btnIcon svg{ width: 23px; height: 23px; }
-      .btnChevron{ width: 17px; height: 17px; flex-basis: 17px; }
+@media (max-width: 390px){
+  .btnLabel{ font-size: 15px; }
+  .btnIcon{ width: 25px; height: 25px; flex-basis: 25px; }
+  .btnIcon svg{ width: 23px; height: 23px; }
+  .btnChevron{ width: 17px; height: 17px; flex-basis: 17px; }
 
-      .info-line{ gap: 8px; }
-      .info-icon{ width: 15px; height: 15px; flex-basis: 15px; }
-    }
+  .info-line{ gap: 8px; font-size: 10px; }
+  .info-icon{ width: 15px; height: 15px; flex-basis: 15px; }
+}
 
-    @media (prefers-reduced-motion: reduce){
-      *{ transition:none !important; }
-      .btn:hover{ transform:none; }
-    }
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; }
+  .btn:hover{ transform:none; }
+}
+    
   </style>
 </head>
 
