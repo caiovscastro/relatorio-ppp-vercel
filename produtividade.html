@@ -334,7 +334,7 @@
 
   .kpiGrid{
     display:grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     gap:12px;
     align-items:stretch;
     margin-bottom:12px;
@@ -622,7 +622,6 @@
     line-height:1.35;
     color:#111;
   }
-  .alertBody.isError{ color:#b00020; }
   .alertFoot{
     padding:12px 14px;
     border-top:1px solid rgba(0,0,0,0.08);
@@ -642,9 +641,7 @@
   }
 
   @media (min-width: 1180px){
-    .filtersRow{
-      flex-wrap:nowrap;
-    }
+    .filtersRow{ flex-wrap:nowrap; }
     .multi{ min-width: 190px; }
     .field{ min-width: 112px; }
     .field.searchField{ min-width: 170px; }
@@ -678,7 +675,7 @@
     .bVoltar  { grid-column: 1; grid-row: 4; }
     .bAdd     { grid-column: 2; grid-row: 4; }
   }
-  </style>
+</style>
 </head>
 
 <body>
@@ -853,7 +850,7 @@
 
   <div class="loadingBack" id="loadingBack">
     <div class="loadingCard">
-      <div class="loadingTitle" id="loadingTitle">Salvando…</div>
+      <div class="loadingTitle" id="loadingTitle">Salvando e confirmando…</div>
       <div class="bar"><div id="barFill"></div></div>
       <div class="pct" id="barPct">0%</div>
     </div>
@@ -1071,10 +1068,9 @@
       setTimeout(()=> toast.classList.remove("show"), 2000);
     }
 
-    function openAlert(title, msg, isError){
+    function openAlert(title, msg){
       alertTitle.textContent = title || "Aviso";
       alertMsg.textContent = msg || "—";
-      alertMsg.classList.toggle("isError", !!isError);
       alertBack.classList.add("open");
       alertBack.setAttribute("aria-hidden","false");
     }
@@ -1153,18 +1149,18 @@
       return null;
     }
 
-    function formatBRDateFromAny(s){
-      const d = parseDataAny(s);
-      if(!d) return String(s ?? "");
+    function isoToBR(iso){
+      const d = parseDataAny(iso);
+      if(!d) return String(iso ?? "");
       const dd = String(d.getDate()).padStart(2,"0");
       const mm = String(d.getMonth()+1).padStart(2,"0");
       const yyyy = d.getFullYear();
       return `${dd}/${mm}/${yyyy}`;
     }
 
-    function isoToBR(iso){
-      const d = parseDataAny(iso);
-      if(!d) return String(iso ?? "");
+    function formatBRDateFromAny(s){
+      const d = parseDataAny(s);
+      if(!d) return String(s ?? "");
       const dd = String(d.getDate()).padStart(2,"0");
       const mm = String(d.getMonth()+1).padStart(2,"0");
       const yyyy = d.getFullYear();
@@ -1278,4 +1274,1122 @@
 
     function normKey(v){ return String(v ?? "").trim().toUpperCase().replace(/\s+/g, " "); }
     function isViewAll(){
-      return PERFIS_TODAS_LOJ
+      return PERFIS_TODAS_LOJAS.has(String(sessao?.perfil || "").toUpperCase());
+    }
+
+    const lojasState = new Map();
+    function setAllLojasChecked(flag){
+      for(const [k, obj] of lojasState.entries()){
+        obj.checked = !!flag;
+        lojasState.set(k, obj);
+      }
+      lojasPanel.querySelectorAll("input[type='checkbox'][data-loja]").forEach(cb=>{
+        cb.checked = !!flag;
+      });
+      refreshLojasBtnText();
+      aplicarFiltrosERender();
+    }
+
+    function refreshLojasBtnText(){
+      const total = lojasState.size;
+      const selected = [...lojasState.values()].filter(x=>x.checked).length;
+
+      if(total === 0){
+        lojasBtnTxt.textContent = "—";
+        return;
+      }
+      if(selected === total) lojasBtnTxt.textContent = "Todas";
+      else if(selected === 0) lojasBtnTxt.textContent = "Nenhuma";
+      else lojasBtnTxt.textContent = selected + " selecionada(s)";
+    }
+
+    function getSelectedLojas(){
+      const out = [];
+      for(const obj of lojasState.values()){
+        if(obj.checked) out.push(obj.label);
+      }
+      return out;
+    }
+
+    function esc(s){
+      return String(s ?? "").replace(/[&<>"']/g, m=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    function buildLojasPanelFromRows(rows){
+      lojasState.clear();
+      lojasPanel.innerHTML = "";
+
+      const lojaSessao = String(sessao?.loja || "").trim();
+      const perfilAll = isViewAll();
+
+      const set = new Map();
+      for(const r of rows){
+        const lj = String(r.loja || "").trim();
+        if(!lj) continue;
+        set.set(normKey(lj), lj);
+      }
+      const lojas = [...set.values()].sort((a,b)=> a.localeCompare(b, "pt-BR"));
+
+      const actions = document.createElement("div");
+      actions.className = "multiActions";
+
+      const btnAll = document.createElement("button");
+      btnAll.type = "button";
+      btnAll.className = "btnTiny";
+      btnAll.textContent = "Marcar todas";
+      btnAll.disabled = !perfilAll;
+
+      const btnNone = document.createElement("button");
+      btnNone.type = "button";
+      btnNone.className = "btnTiny";
+      btnNone.textContent = "Desmarcar todas";
+      btnNone.disabled = !perfilAll;
+
+      actions.appendChild(btnAll);
+      actions.appendChild(btnNone);
+      lojasPanel.appendChild(actions);
+
+      btnAll.addEventListener("click", ()=> setAllLojasChecked(true));
+      btnNone.addEventListener("click", ()=> setAllLojasChecked(false));
+
+      for(const lj of lojas){
+        const k = normKey(lj);
+        const checkedDefault = perfilAll
+          ? (normKey(lj) === normKey(lojaSessao))
+          : true;
+
+        lojasState.set(k, { label: lj, checked: checkedDefault });
+
+        const row = document.createElement("label");
+        row.className = "multiItem";
+        row.innerHTML = `
+          <input type="checkbox" ${checkedDefault ? "checked":""} data-loja="${esc(lj)}" ${perfilAll ? "" : "disabled"}>
+          <span style="font-weight:800;">${esc(lj)}</span>
+        `;
+        lojasPanel.appendChild(row);
+      }
+
+      refreshLojasBtnText();
+      lojasBtn.disabled = !perfilAll;
+    }
+
+    lojasBtn.addEventListener("click", ()=>{
+      if(lojasBtn.disabled) return;
+      lojasPanel.classList.toggle("open");
+    });
+
+    document.addEventListener("click", (e)=>{
+      if(lojasPanel.classList.contains("open")){
+        const inside = lojasPanel.contains(e.target) || lojasBtn.contains(e.target);
+        if(!inside) lojasPanel.classList.remove("open");
+      }
+    });
+
+    lojasPanel.addEventListener("change", (e)=>{
+      const cb = e.target && e.target.matches("input[type='checkbox'][data-loja]") ? e.target : null;
+      if(!cb) return;
+      const label = cb.getAttribute("data-loja");
+      const k = normKey(label);
+      const obj = lojasState.get(k);
+      if(!obj) return;
+      obj.checked = cb.checked;
+      lojasState.set(k, obj);
+      refreshLojasBtnText();
+      aplicarFiltrosERender();
+    });
+
+    const colState = new Map();
+
+    function setColVisible(key, on){
+      const it = colState.get(key);
+      if(!it) return;
+      it.visible = !!on;
+      colState.set(key, it);
+      applyColVisibility();
+      syncColunasCheckbox(key, !!on);
+    }
+
+    function syncColunasCheckbox(key, on){
+      const cb = colunasPanel.querySelector(`input[type="checkbox"][data-colkey="${key}"]`);
+      if(cb) cb.checked = !!on;
+    }
+
+    function applyColVisibility(){
+      let css = "";
+      for(const [key, it] of colState.entries()){
+        if(!it.visible){
+          css += `#tbl [data-col="${key}"]{display:none !important;}\n`;
+        }
+      }
+      colHideStyle.textContent = css;
+    }
+
+    function visibleColumnCount(){
+      const ths = Array.from(theadRow.querySelectorAll("th"));
+      let count = 0;
+      for(const th of ths){
+        const key = th.getAttribute("data-col");
+        if(!key){ count++; continue; }
+        const it = colState.get(key);
+        if(!it || it.visible) count++;
+      }
+      return Math.max(1, count);
+    }
+
+    colunasBtn.addEventListener("click", ()=> colunasPanel.classList.toggle("open"));
+    document.addEventListener("click", (e)=>{
+      if(colunasPanel.classList.contains("open")){
+        const inside = colunasPanel.contains(e.target) || colunasBtn.contains(e.target);
+        if(!inside) colunasPanel.classList.remove("open");
+      }
+    });
+
+    async function apiPost(url, payload){
+      const token = getSessionToken();
+      if(!token){
+        const err = new Error("Sessão ausente. Faça login novamente.");
+        err.status = 401;
+        throw err;
+      }
+
+      const res = await fetch(url, {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "x-efetividade-session": token
+        },
+        body: JSON.stringify(payload || {})
+      });
+
+      const data = await res.json().catch(()=> ({}));
+      if(!res.ok || data.sucesso === false){
+        const err = new Error(data?.message || ("Erro na API: " + res.status));
+        err.status = res.status;
+        throw err;
+      }
+      return data;
+    }
+
+    async function carregarDados(){
+      if(sessaoExpirada()) return irParaLogin();
+
+      sessao = lerSessao();
+      if(!sessao || !sessao.usuario || !sessao.loja || !sessao.perfil) return irParaLogin();
+
+      subInfo.textContent = `Usuário: ${sessao.usuario} | Loja: ${sessao.loja} | Perfil: ${sessao.perfil}`;
+
+      setLoading(true, "Carregando dados…");
+      await fakeProgressUntil(85, 80);
+
+      try{
+        const payload = isViewAll()
+          ? { loja: "" }
+          : { loja: String(sessao.loja) };
+
+        const data = await apiPost("/api/produtividade-listar", payload);
+
+        dadosBrutos = Array.isArray(data.rows) ? data.rows : [];
+
+        for(const r of dadosBrutos){
+          r.setor = normSetor(r.setor);
+        }
+
+        buildLojasPanelFromRows(dadosBrutos);
+
+        await fakeProgressUntil(100, 30);
+        setLoading(false);
+
+        aplicarFiltrosERender();
+      }catch(err){
+        setLoading(false);
+        if(err && (err.status === 401 || err.status === 403)) return irParaLogin();
+        showToast(err.message || "Erro ao carregar");
+      }
+    }
+
+    function aplicarFiltrosERender(){
+      const di = fDataIni.value ? monthToStartDate(fDataIni.value) : null;
+      const df = fDataFim.value ? monthToEndDate(fDataFim.value) : null;
+
+      const setoresSel = new Set(getSelectedSetores());
+
+      let q = (fSearch.value || "").trim().toLowerCase();
+      if(q.length < 2) q = "";
+
+      const lojasSel = new Set(getSelectedLojas().map(normKey));
+
+      dadosFiltrados = dadosBrutos.filter(r=>{
+        if(lojasSel.size > 0){
+          if(!lojasSel.has(normKey(r.loja))) return false;
+        }else{
+          return false;
+        }
+
+        const rd = parseDataAny(r.data);
+        if(di && rd && rd < di) return false;
+        if(df && rd && rd > df) return false;
+
+        const setorNorm = normSetor(r.setor);
+        if(setoresSel.size && !setoresSel.has(setorNorm)) return false;
+
+        if(q){
+          const t = `${r.nome||""} ${r.matricula||""}`.toLowerCase();
+          if(!t.includes(q)) return false;
+        }
+        return true;
+      });
+
+      dadosFiltrados.sort((a,b)=>{
+        const da = parseDataAny(a.data)?.getTime() || 0;
+        const db = parseDataAny(b.data)?.getTime() || 0;
+        return db - da;
+      });
+
+      renderKPIs();
+      renderTabela();
+      renderChart();
+    }
+
+    fDataIni.addEventListener("change", ()=>{ syncMonthDisplays(); aplicarFiltrosERender(); });
+    fDataFim.addEventListener("change", ()=>{ syncMonthDisplays(); aplicarFiltrosERender(); });
+
+    let searchTimer = null;
+    fSearch.addEventListener("input", ()=>{
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(()=> aplicarFiltrosERender(), 180);
+    });
+
+    btnLimparFiltros.addEventListener("click", ()=>{
+      const m = monthNowValue();
+      fDataIni.value = m;
+      fDataFim.value = m;
+      fSearch.value = "";
+      syncMonthDisplays();
+
+      SETORES.forEach(s=> setoresState.set(s, true));
+      [...setoresPanel.querySelectorAll("input[type='checkbox']")].forEach(cb=> cb.checked = true);
+      refreshSetoresBtnText();
+
+      const lojaSessao = String(sessao?.loja || "").trim();
+      for(const [k, obj] of lojasState.entries()){
+        obj.checked = (normKey(obj.label) === normKey(lojaSessao));
+        lojasState.set(k, obj);
+      }
+      lojasPanel.querySelectorAll("input[type='checkbox'][data-loja]").forEach(cb=>{
+        const lj = cb.getAttribute("data-loja");
+        cb.checked = (normKey(lj) === normKey(lojaSessao));
+      });
+      refreshLojasBtnText();
+
+      aplicarFiltrosERender();
+    });
+
+    function renderKPIs(){
+      let totQtd = 0;
+      for(const r of dadosFiltrados){
+        totQtd += parseBRNumber(r.qtd);
+      }
+      kpiQtd.textContent = String(totQtd);
+    }
+
+    function canEditRow(row){
+      if(isViewAll()) return true;
+      return normKey(row.loja) === normKey(sessao.loja);
+    }
+
+    function setHeaderDetalhe(){
+      theadRow.innerHTML = `
+        <th data-col="usuario">Usuário</th>
+        <th data-col="data">Data</th>
+        <th data-col="loja">Loja</th>
+        <th data-col="setor">Setor</th>
+        <th data-col="matricula">Matrícula</th>
+        <th data-col="nome">Nome</th>
+        <th data-col="qtd">Qtd</th>
+        <th data-col="acoes">Ações</th>
+      `;
+
+      colState.clear();
+      colState.set("usuario", { label:"Usuário", visible:false, order:1 });
+      colState.set("data", { label:"Data", visible:true, order:2 });
+      colState.set("loja", { label:"Loja", visible:true, order:3 });
+
+      colState.set("setor", { label:"Setor", visible:true, order:4 });
+      colState.set("matricula", { label:"Matrícula", visible:true, order:5 });
+      colState.set("nome", { label:"Nome", visible:true, order:6 });
+      colState.set("qtd", { label:"Qtd", visible:true, order:7 });
+      colState.set("acoes", { label:"Ações", visible:true, order:8 });
+
+      buildColunasPanelFiltroAposLoja(true);
+      applyColVisibility();
+    }
+
+    function setHeaderResumo(){
+      theadRow.innerHTML = `
+        <th data-col="loja">Loja</th>
+        <th data-col="quantidade">Quantidade</th>
+      `;
+
+      colState.clear();
+      colState.set("loja", { label:"Loja", visible:true, order:1 });
+      colState.set("quantidade", { label:"Quantidade", visible:true, order:2 });
+
+      buildColunasPanelFiltroAposLoja(false);
+      applyColVisibility();
+    }
+
+    function buildColunasPanelFiltroAposLoja(includeUsuario){
+      colunasPanel.innerHTML = "";
+
+      const entries = [...colState.entries()].sort((a,b)=> (a[1].order - b[1].order));
+
+      if(includeUsuario && colState.has("usuario")){
+        const it = colState.get("usuario");
+        const row = document.createElement("label");
+        row.className = "multiItem";
+        row.innerHTML = `
+          <input type="checkbox" ${it.visible ? "checked":""} data-colkey="usuario">
+          <span style="font-weight:900;">${esc(it.label)}</span>
+        `;
+        const cb = row.querySelector("input");
+        cb.addEventListener("change", ()=> setColVisible("usuario", cb.checked));
+        colunasPanel.appendChild(row);
+
+        const sep = document.createElement("div");
+        sep.style.height = "1px";
+        sep.style.background = "rgba(0,0,0,0.08)";
+        sep.style.borderRadius = "999px";
+        sep.style.margin = "6px 0 8px 0";
+        colunasPanel.appendChild(sep);
+      }
+
+      const lojaOrder = colState.get("loja")?.order ?? 0;
+
+      for(const [key, it] of entries){
+        if(key === "loja") continue;
+        if(key === "usuario") continue;
+        if(it.order <= lojaOrder) continue;
+
+        const row = document.createElement("label");
+        row.className = "multiItem";
+        row.innerHTML = `
+          <input type="checkbox" ${it.visible ? "checked":""} data-colkey="${key}">
+          <span style="font-weight:900;">${esc(it.label)}</span>
+        `;
+        const cb = row.querySelector("input");
+        cb.addEventListener("change", ()=> setColVisible(key, cb.checked));
+        colunasPanel.appendChild(row);
+      }
+    }
+
+    function buildResumoPorLoja(rows){
+      const map = new Map();
+
+      for(const r of rows){
+        const loja = String(r.loja || "").trim();
+        if(!loja) continue;
+
+        const qtd = parseBRNumber(r.qtd);
+
+        if(!map.has(loja)){
+          map.set(loja, { loja, qtd:0 });
+        }
+        const it = map.get(loja);
+        it.qtd += (isFinite(qtd) ? qtd : 0);
+      }
+
+      const out = [];
+      for(const [loja, it] of map.entries()){
+        out.push({ loja, qtd: it.qtd });
+      }
+
+      out.sort((a,b)=> a.loja.localeCompare(b.loja, "pt-BR"));
+      return out;
+    }
+
+    function renderTabela(){
+      tbody.innerHTML = "";
+
+      if(modoResumo){
+        cardTabela.classList.add("isResumo");
+        cardTabela.classList.remove("isRegistros");
+
+        hRegistros.textContent = "Resumo";
+        btnResumo.textContent = "Detalhar";
+        setHeaderResumo();
+
+        const resumo = buildResumoPorLoja(dadosFiltrados);
+
+        if(!resumo.length){
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="${visibleColumnCount()}" style="padding:14px; color:#666; font-weight:800;">Sem registros para os filtros atuais.</td>`;
+          tbody.appendChild(tr);
+          return;
+        }
+
+        let totQtd = 0;
+
+        for(const it of resumo){
+          totQtd += it.qtd;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td data-col="loja" style="font-weight:900;">${esc(it.loja)}</td>
+            <td data-col="quantidade" style="font-weight:900;">${esc(it.qtd)}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        const trTot = document.createElement("tr");
+        trTot.className = "totalRow";
+        trTot.innerHTML = `
+          <td data-col="loja">TOTAL</td>
+          <td data-col="quantidade">${esc(totQtd)}</td>
+        `;
+        tbody.appendChild(trTot);
+
+        applyColVisibility();
+        return;
+      }
+
+      cardTabela.classList.add("isRegistros");
+      cardTabela.classList.remove("isResumo");
+
+      hRegistros.textContent = "Registros";
+      btnResumo.textContent = "Resumo";
+      setHeaderDetalhe();
+
+      if(!dadosFiltrados.length){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="${visibleColumnCount()}" style="padding:14px; color:#666; font-weight:800;">Sem registros para os filtros atuais.</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      for(const r of dadosFiltrados){
+        const tr = document.createElement("tr");
+        const editDisabled = !canEditRow(r);
+
+        tr.innerHTML = `
+          <td data-col="usuario" style="font-weight:900;">${esc(r.usuario || "")}</td>
+          <td data-col="data"><span class="pill">${esc(formatBRDateFromAny(r.data))}</span></td>
+          <td data-col="loja">${esc(r.loja)}</td>
+          <td data-col="setor">${esc(normSetor(r.setor))}</td>
+          <td data-col="matricula">${esc(r.matricula)}</td>
+          <td data-col="nome" style="font-weight:900;">${esc(r.nome)}</td>
+          <td data-col="qtd" style="font-weight:900;">${esc(r.qtd)}</td>
+          <td data-col="acoes">
+            <div class="actions">
+              <button class="linkBtn" data-act="edit" data-row="${r.rowNumber}" ${editDisabled ? "disabled":""}>Editar</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      applyColVisibility();
+    }
+
+    tbody.addEventListener("click", (e)=>{
+      if(modoResumo) return;
+
+      const btn = e.target && e.target.matches("button[data-act]") ? e.target : null;
+      if(!btn) return;
+
+      const act = btn.getAttribute("data-act");
+      const rowNumber = Number(btn.getAttribute("data-row"));
+      const row = dadosBrutos.find(x=> Number(x.rowNumber) === rowNumber);
+      if(!row) return;
+
+      if(act === "edit"){
+        if(!canEditRow(row)){
+          showToast("Perfil sem acesso");
+          return;
+        }
+        abrirEdicao(row);
+      }
+    });
+
+    btnResumo.addEventListener("click", ()=>{
+      modoResumo = !modoResumo;
+      renderTabela();
+      renderChart();
+    });
+
+    function renderChart(){
+      const agg = new Map();
+      for(const s of SETORES) agg.set(s, 0);
+
+      for(const r of dadosFiltrados){
+        const setor = normSetor(r.setor);
+        const v = parseBRNumber(r.qtd);
+        agg.set(setor, (agg.get(setor) || 0) + (isFinite(v) ? v : 0));
+      }
+
+      let items = SETORES.map(s=>({ label:s, value: agg.get(s) || 0 }));
+      items = items.filter(it => (isFinite(it.value) ? it.value : 0) > 0);
+      items.sort((a,b)=> (b.value - a.value) || a.label.localeCompare(b.label, "pt-BR"));
+
+      drawHBarChart(ctx, items);
+    }
+
+    function lerp(a,b,t){ return a + (b-a)*t; }
+    function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+    function barColorByIndex(i, n){
+      const t = (n <= 1) ? 0 : clamp01(i / (n-1));
+      const r = Math.round(lerp(18, 70, t));
+      const g = Math.round(lerp(130, 210, t));
+      const b = Math.round(lerp(35, 90, t));
+      return `rgba(${r},${g},${b},0.92)`;
+    }
+
+    function roundRectPath(ctx, x, y, w, h, r){
+      const rr = Math.max(0, Math.min(r, w/2, h/2));
+      ctx.beginPath();
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+    }
+
+    function fitTextEndEllipsis(ctx, text, maxPx){
+      const s = String(text || "");
+      if(maxPx <= 0) return "";
+      if(ctx.measureText(s).width <= maxPx) return s;
+
+      const ell = "…";
+      if(ctx.measureText(ell).width > maxPx) return "";
+
+      let lo = 0, hi = s.length;
+      while(lo < hi){
+        const mid = Math.ceil((lo + hi) / 2);
+        const cand = s.slice(0, mid) + ell;
+        if(ctx.measureText(cand).width <= maxPx) lo = mid;
+        else hi = mid - 1;
+      }
+      return s.slice(0, lo) + "…";
+    }
+
+    function drawHBarChart(ctx, items){
+      const dpr = devicePixelRatio || 1;
+      const W = ctx.canvas.width = Math.floor(ctx.canvas.clientWidth * dpr);
+      const H = ctx.canvas.height = Math.floor(ctx.canvas.clientHeight * dpr);
+      ctx.clearRect(0,0,W,H);
+
+      if(!items.length){
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        ctx.font = `900 ${13 * dpr}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Sem dados para o gráfico", W/2, H/2);
+        return;
+      }
+
+      const padL = 14 * dpr;
+      const padR = 14 * dpr;
+      const padT = 12 * dpr;
+      const padB = 14 * dpr;
+
+      const labelColW = 120 * dpr;
+      const labelGap  = 8 * dpr;
+
+      const plotX = padL + labelColW + labelGap;
+      const plotW = W - plotX - padR;
+      const plotH = H - padT - padB;
+
+      const maxV = Math.max(1, ...items.map(x=>x.value || 0));
+
+      const barH = Math.round(18 * dpr * 1.5);
+      const gap  = Math.round(10 * dpr);
+
+      const neededH = items.length * barH + (items.length - 1) * gap;
+      let scale = 1;
+      if(neededH > plotH){
+        scale = plotH / neededH;
+      }
+      const bH = Math.max(8*dpr, Math.floor(barH * scale));
+      const gH = Math.max(4*dpr, Math.floor(gap * scale));
+
+      const totalH = items.length * bH + (items.length - 1) * gH;
+      const startY = padT + Math.max(0, (plotH - totalH)/2);
+
+      for(let i=0;i<items.length;i++){
+        const {label, value:vRaw} = items[i];
+        const v = isFinite(vRaw) ? vRaw : 0;
+
+        const y = startY + i * (bH + gH);
+        const w = (v / maxV) * plotW;
+
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.82)";
+        ctx.font = `900 ${12 * dpr}px Arial`;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        const maxLabelPx = (plotX - labelGap) - padL;
+        const safeLabel = fitTextEndEllipsis(ctx, label, maxLabelPx);
+        ctx.fillText(safeLabel, plotX - labelGap, y + (bH/2));
+        ctx.restore();
+
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.14)";
+        ctx.shadowBlur = 10 * dpr;
+        ctx.shadowOffsetX = 2 * dpr;
+        ctx.shadowOffsetY = 3 * dpr;
+
+        ctx.fillStyle = barColorByIndex(i, items.length);
+        roundRectPath(ctx, plotX, y, Math.max(1, w), bH, 10 * dpr);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.84)";
+        ctx.font = `900 ${12 * dpr}px Arial`;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        const vx = Math.min(plotX + w + (4*dpr), W - padR - (18*dpr));
+        ctx.fillText(String(v), vx, y + (bH/2));
+        ctx.restore();
+      }
+    }
+
+    function fillSetorSelect(){
+      mSetor.innerHTML = "";
+
+      const opt0 = document.createElement("option");
+      opt0.value = "";
+      opt0.textContent = "Selecione um Setor";
+      opt0.disabled = true;
+      opt0.selected = true;
+      mSetor.appendChild(opt0);
+
+      for(const s of SETORES){
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        mSetor.appendChild(opt);
+      }
+    }
+
+    function syncPendingUI(){
+      if(editRow){
+        mListBox.style.display = "none";
+        btnAddLista.style.display = "none";
+        return;
+      }
+      mListBox.style.display = "block";
+      btnAddLista.style.display = "inline-flex";
+
+      mListCount.textContent = `${pendingList.length} item(s)`;
+      mListBody.innerHTML = pendingList.length ? pendingList.map((it, idx)=>{
+        const dataBR = isoToBR(it.dataISO);
+        const top = `${esc(it.nome)} — ${esc(it.matricula)}`;
+        const sub = `${esc(it.setor)} | ${esc(dataBR)} | ${esc(it.loja)}`;
+        return `
+          <div class="listItem">
+            <div class="liLeft">
+              <div class="liTop">${top}</div>
+              <div class="liSub">${sub}</div>
+            </div>
+            <button class="btnTiny" type="button" data-rm="${idx}">Remover</button>
+          </div>
+        `;
+      }).join("") : `<div style="padding:10px; color:#666; font-weight:900;">Nenhum item na lista.</div>`;
+    }
+
+    function hojeISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function abrirAdicionar(){
+      editRow = null;
+
+      mSetor.value = "";
+      mMatricula.value = "";
+      mNome.value = "";
+      mData.value = hojeISO();
+      mLoja.value = sessao.loja;
+
+      syncPendingUI();
+      openModal(false);
+      mNome.focus();
+    }
+
+    function abrirEdicao(row){
+      editRow = Number(row.rowNumber);
+
+      mListBox.style.display = "none";
+      btnAddLista.style.display = "none";
+
+      mSetor.value = normSetor(row.setor) || "";
+      if(!mSetor.value){ mSetor.value = ""; }
+
+      mMatricula.value = String(row.matricula || "");
+      mNome.value = row.nome || "";
+      const d = parseDataAny(row.data) || parseDataAny(hojeISO());
+      const iso = d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : hojeISO();
+      mData.value = iso;
+      mLoja.value = row.loja || sessao.loja;
+      openModal(true);
+      mNome.focus();
+    }
+
+    btnAdicionar.addEventListener("click", ()=>{
+      if(sessaoExpirada()) return irParaLogin();
+      abrirAdicionar();
+    });
+
+    btnVoltar.addEventListener("click", ()=>{ try{ history.back(); }catch(e){} });
+
+    btnCancelar.addEventListener("click", closeModal);
+    modalBack.addEventListener("click", (e)=>{
+      if(e.target === modalBack) closeModal();
+    });
+
+    mMatricula.addEventListener("input", ()=>{
+      let v = String(mMatricula.value || "");
+      v = v.replace(/\D+/g, "").slice(0, 5);
+      mMatricula.value = v;
+    });
+
+    function validarCamposAtuais(){
+      const setor = (mSetor.value || "").trim();
+      const matricula = String(mMatricula.value || "").trim();
+      const nome = (mNome.value || "").trim();
+      const dataISO = (mData.value || "").trim();
+
+      if(!setor){
+        showToast("Selecione um Setor");
+        return null;
+      }
+      if(!matricula || !nome || !dataISO){
+        showToast("Preencha todos os campos");
+        return null;
+      }
+      if(!/^\d{3,5}$/.test(matricula)){
+        showToast("Matrícula deve ter de 3 a 5 dígitos");
+        return null;
+      }
+      return { setor, matricula, nome, dataISO };
+    }
+
+    function existsInPending(matricula, dataISO){
+      const m = String(matricula||"").trim();
+      const d = String(dataISO||"").trim();
+      return pendingList.some(it => String(it.matricula) === m && String(it.dataISO) === d);
+    }
+
+    function existsInDadosBrutos(matricula, dataISO, loja){
+      const m = String(matricula||"").trim();
+      const dataBR = isoToBR(dataISO);
+      const lj = String(loja||"").trim();
+      return dadosBrutos.some(r=>{
+        return String(r.matricula||"").trim() === m
+          && String(r.loja||"").trim() === lj
+          && String(r.data||"").trim() === dataBR;
+      });
+    }
+
+    btnAddLista.addEventListener("click", ()=>{
+      if(sessaoExpirada()) return irParaLogin();
+
+      const v = validarCamposAtuais();
+      if(!v) return;
+
+      const loja = String(sessao.loja || "").trim();
+
+      if(existsInPending(v.matricula, v.dataISO)){
+        showToast("Essa matrícula já está na lista nessa data");
+        return;
+      }
+
+      if(existsInDadosBrutos(v.matricula, v.dataISO, loja)){
+        showToast("Já existe lançamento dessa matrícula nessa data");
+        return;
+      }
+
+      pendingList.push({
+        loja,
+        setor: v.setor,
+        matricula: v.matricula,
+        nome: v.nome,
+        dataISO: v.dataISO
+      });
+
+      pendSave(pendingList);
+
+      mMatricula.value = "";
+      mNome.value = "";
+      mSetor.value = "";
+      mSugList.classList.remove("open");
+      mSugList.innerHTML = "";
+
+      syncPendingUI();
+      showToast("Adicionado na lista");
+      mNome.focus();
+    });
+
+    mListBody.addEventListener("click", (e)=>{
+      const btn = e.target && e.target.matches("button[data-rm]") ? e.target : null;
+      if(!btn) return;
+      const idx = Number(btn.getAttribute("data-rm"));
+      if(!Number.isFinite(idx) || idx < 0 || idx >= pendingList.length) return;
+
+      pendingList.splice(idx, 1);
+      pendSave(pendingList);
+      syncPendingUI();
+      showToast("Removido");
+    });
+
+    async function confirmarLancamentoNaAba({ loja, matricula, dataBR }, maxTentativas = 12){
+      for(let i=0;i<maxTentativas;i++){
+        const r = await apiPost("/api/produtividade-verificar", { loja, matricula, data: dataBR });
+        if(r && r.found && r.row){
+          return r.row;
+        }
+        await new Promise(res=> setTimeout(res, 350));
+      }
+      return null;
+    }
+
+    function upsertRowInMemory(row){
+      if(!row) return;
+      const rn = Number(row.rowNumber || 0);
+      if(rn >= 2){
+        const idx = dadosBrutos.findIndex(x => Number(x.rowNumber) === rn);
+        if(idx >= 0) dadosBrutos[idx] = row;
+        else dadosBrutos.push(row);
+      } else {
+        dadosBrutos.push(row);
+      }
+      buildLojasPanelFromRows(dadosBrutos);
+      aplicarFiltrosERender();
+    }
+
+    async function enviarLista(list){
+      if(!Array.isArray(list) || !list.length){
+        openAlert("Não foi possível salvar", "Não foi possível salvar pois a lista está vazia.");
+        return false;
+      }
+
+      setLoading(true, "Enviando e confirmando…");
+      await fakeProgressUntil(55, 70);
+
+      try{
+        for(let i=0;i<list.length;i++){
+          const it = list[i];
+          const dataBR = isoToBR(it.dataISO);
+
+          const payloadBase = {
+            loja: it.loja,
+            setor: it.setor,
+            matricula: it.matricula,
+            nome: it.nome,
+            data: dataBR,
+            qtd: 1
+          };
+
+          await apiPost("/api/produtividade-adicionar", payloadBase);
+          await fakeProgressUntil(Math.min(75, 55 + Math.floor((i+1)*18/list.length)), 35);
+
+          const foundRow = await confirmarLancamentoNaAba({ loja: it.loja, matricula: it.matricula, dataBR });
+          if(!foundRow){
+            setLoading(false);
+            openAlert("Não foi possível confirmar", `Não foi possível confirmar o lançamento de ${it.nome} (${it.matricula}) em ${dataBR}.`);
+            return false;
+          }
+          upsertRowInMemory(foundRow);
+          await fakeProgressUntil(Math.min(92, 75 + Math.floor((i+1)*15/list.length)), 30);
+        }
+
+        await fakeProgressUntil(100, 25);
+        setLoading(false);
+
+        pendingList = [];
+        pendSave(pendingList);
+        closeModal();
+        closePend();
+
+        showToast("Salvo com sucesso");
+        return true;
+      }catch(err){
+        setLoading(false);
+        if(err && (err.status === 401 || err.status === 403)) return irParaLogin();
+
+        if(err && err.status === 409){
+          openAlert("Não foi possível salvar", "Não foi possível salvar porque existe duplicidade (mesma matrícula na mesma data).");
+          return false;
+        }
+
+        openAlert("Não foi possível salvar", err.message || "Erro ao salvar");
+        return false;
+      }
+    }
+
+    btnSalvar.addEventListener("click", async ()=>{
+      if(sessaoExpirada()) return irParaLogin();
+
+      if(editRow){
+        const v = validarCamposAtuais();
+        if(!v) return;
+
+        const dataBR = isoToBR(v.dataISO);
+
+        const payloadBase = {
+          loja: sessao.loja,
+          setor: v.setor,
+          matricula: v.matricula,
+          nome: v.nome,
+          data: dataBR,
+          qtd: 1
+        };
+
+        setLoading(true, "Salvando edição e recarregando…");
+        await fakeProgressUntil(70, 70);
+
+        try{
+          await apiPost("/api/produtividade-editar", { ...payloadBase, rowNumber: editRow });
+          await fakeProgressUntil(85, 70);
+          closeModal();
+          await carregarDados();
+          await fakeProgressUntil(100, 25);
+          setLoading(false);
+          showToast("Salvo com sucesso");
+        }catch(err){
+          setLoading(false);
+          if(err && (err.status === 401 || err.status === 403)) return irParaLogin();
+
+          if(err && err.status === 409){
+            const msg = `Não foi possível salvar porque já existe lançamento da matrícula ${v.matricula} (${v.nome}) nessa mesma data (${dataBR}).`;
+            openAlert("Não foi possível salvar", msg);
+            return;
+          }
+
+          openAlert("Não foi possível salvar", err.message || "Erro ao salvar");
+        }
+        return;
+      }
+
+      if(!pendingList.length){
+        openAlert("Não foi possível salvar", "Não foi possível salvar pois a lista está vazia.");
+        return;
+      }
+      await enviarLista(pendingList);
+    });
+
+    let acTimer = null;
+    mNome.addEventListener("input", ()=>{
+      const term = (mNome.value || "").trim();
+      debouncedAutocomplete(term);
+    });
+    mMatricula.addEventListener("input", ()=>{
+      const term = String(mMatricula.value || "").trim();
+      debouncedAutocomplete(term);
+    });
+
+    function debouncedAutocomplete(term){
+      clearTimeout(acTimer);
+      acTimer = setTimeout(()=> autocomplete(term), 220);
+    }
+
+    async function autocomplete(term){
+      term = (term || "").trim();
+      if(term.length < 2){
+        mSugList.classList.remove("open");
+        mSugList.innerHTML = "";
+        return;
+      }
+
+      try{
+        const data = await apiPost("/api/produtividade-autocomplete", { term, loja: sessao?.loja || "" });
+        const items = Array.isArray(data.items) ? data.items : [];
+
+        if(!items.length){
+          mSugList.classList.remove("open");
+          mSugList.innerHTML = "";
+          return;
+        }
+
+        mSugList.innerHTML = items.slice(0, 25).map(it=>{
+          const nome = esc(it.nome || "");
+          const mat = esc(it.matricula || "");
+          return `<div class="suggestItem" data-nome="${nome}" data-mat="${mat}">
+            <b>${nome}</b> <span style="color:#666;">— ${mat}</span>
+          </div>`;
+        }).join("");
+
+        mSugList.classList.add("open");
+      }catch(e){
+        if(e && (e.status === 401 || e.status === 403)) return irParaLogin();
+        mSugList.classList.remove("open");
+        mSugList.innerHTML = "";
+      }
+    }
+
+    mSugList.addEventListener("click", (e)=>{
+      const item = e.target.closest(".suggestItem");
+      if(!item) return;
+      mNome.value = item.getAttribute("data-nome") || "";
+      mMatricula.value = item.getAttribute("data-mat") || "";
+      mSugList.classList.remove("open");
+      mSugList.innerHTML = "";
+    });
+
+    document.addEventListener("click", (e)=>{
+      const inside = mSugList.contains(e.target) || mNome.contains(e.target) || mMatricula.contains(e.target);
+      if(!inside) mSugList.classList.remove("open");
+    });
+
+    btnPendExcluir.addEventListener("click", ()=>{
+      pendingList = [];
+      pendSave(pendingList);
+      closePend();
+      showToast("Lista pendente excluída");
+    });
+
+    btnPendAdd.addEventListener("click", ()=>{
+      closePend();
+      abrirAdicionar();
+    });
+
+    btnPendEnviar.addEventListener("click", async ()=>{
+      await enviarLista(pendingList);
+    });
+
+    function maybeShowPendencia(){
+      pendingList = pendLoad();
+      if(pendingList.length){
+        openPend(`Existe uma lista pendente com ${pendingList.length} item(s). Deseja finalizar o envio?`);
+      }
+    }
+
+    (function init(){
+      if(sessaoExpirada()) return irParaLogin();
+      sessao = lerSessao();
+      if(!sessao) return irParaLogin();
+
+      fillSetorSelect();
+      buildSetoresPanel();
+
+      const m = monthNowValue();
+      fDataIni.value = m;
+      fDataFim.value = m;
+      syncMonthDisplays();
+
+      mData.value = hojeISO();
+
+      lojasBtnTxt.textContent = "Carregando…";
+
+      maybeShowPendencia();
+      carregarDados();
+    })();
+  </script>
+</body>
+</html>
