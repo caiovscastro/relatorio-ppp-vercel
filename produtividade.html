@@ -893,31 +893,6 @@
       try{ localStorage.setItem(SESSION_KEY, JSON.stringify(sessao)); }catch(e){}
     }
 
-    function decodeB64UrlToJson(b64url){
-      try{
-        const b64 = String(b64url || "").replace(/-/g, "+").replace(/_/g, "/");
-        const pad = b64 + "===".slice((b64.length + 3) % 4);
-        const json = atob(pad);
-        return JSON.parse(json);
-      }catch(e){ return null; }
-    }
-
-    function expFromSessionToken(token){
-      try{
-        const t = String(token || "").trim();
-        const parts = t.split(".");
-        if (parts.length !== 2) return 0;
-        const payload = decodeB64UrlToJson(parts[0]);
-        return Number(payload?.exp || 0);
-      }catch(e){ return 0; }
-    }
-
-    function getSessionToken(){
-      const s = lerSessao();
-      const t = s?.sessionToken;
-      return (typeof t === "string" && t.includes(".")) ? t.trim() : null;
-    }
-
     function touchSessao(){
       const s = lerSessao();
       if (!s) return;
@@ -927,16 +902,12 @@
 
     function sessaoExpirada(){
       const s = lerSessao();
-      if (!s) return true;
+      if(!s) return true;
 
-      const token = getSessionToken();
-      if (!token) return true;
-
-      const exp = expFromSessionToken(token);
-      if (exp && Date.now() > exp) return true;
+      if(!s.usuario || !s.loja || !s.perfil) return true;
 
       const base = Number(s.lastActiveAt || s.loginAt || 0);
-      if (!base) {
+      if(!base){
         s.lastActiveAt = Date.now();
         salvarSessao(s);
         return false;
@@ -1446,15 +1417,15 @@
       }
     });
 
-async function apiPost(url, payload){
-  const res = await fetch(url, {
-    method:"POST",
-    credentials:"include",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify(payload || {})
-  });
+    async function apiPost(url, payload){
+      const res = await fetch(url, {
+        method:"POST",
+        credentials:"include",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify(payload || {})
+      });
 
       const data = await res.json().catch(()=> ({}));
       if(!res.ok || data.sucesso === false){
