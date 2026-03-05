@@ -238,9 +238,6 @@
     align-items:start;
     max-width:100%;
   }
-  .grid.isResumoLayout{
-    grid-template-columns: auto minmax(0, 1fr);
-  }
 
   .card{
     background:#fff;
@@ -249,20 +246,6 @@
     padding:12px 14px;
     min-width:0;
     max-width:100%;
-  }
-
-  #cardTabela.isResumo{
-    width: fit-content;
-    justify-self: start;
-    max-width: 100%;
-  }
-  #cardTabela.isResumo .tableWrap{
-    width: auto;
-    max-width: 100%;
-  }
-  #cardTabela.isResumo table{
-    width: auto;
-    min-width: 0;
   }
 
   .cardHead{
@@ -668,11 +651,8 @@
 
   @media (max-width: 980px){
     .grid{ grid-template-columns: 1fr; }
-    .grid.isResumoLayout{ grid-template-columns: 1fr; }
     .subtitle{ max-width: 92vw; }
     .liTop, .liSub{ max-width: 78vw; }
-    #cardTabela.isResumo{ width: 100%; }
-    #cardTabela.isResumo .tableWrap{ width: 100%; }
   }
 
   @media (max-width: 640px){
@@ -683,18 +663,50 @@
       align-items:end;
     }
     .field, .multi{ min-width:0 !important; }
-    .btn{ width:100%; }
 
+    /* ✅ só os botões dos filtros ficam full-width no celular (não afeta o cabeçalho da tabela) */
+    .filtersRow .btn{ width:100%; }
+
+    /* ✅ nova ordem dos filtros no celular */
     .fLojas   { grid-column: 1; grid-row: 1; }
-    .fIni     { grid-column: 2; grid-row: 1; }
-    .fFim     { grid-column: 1; grid-row: 2; }
-    .fSetores { grid-column: 2; grid-row: 2; }
+    .fSetores { grid-column: 2; grid-row: 1; }
+
+    .fIni     { grid-column: 1; grid-row: 2; }
+    .fFim     { grid-column: 2; grid-row: 2; }
 
     .fSearch  { grid-column: 1; grid-row: 3; }
     .bLimpar  { grid-column: 2; grid-row: 3; }
 
     .bVoltar  { grid-column: 1; grid-row: 4; }
     .bAdd     { grid-column: 2; grid-row: 4; }
+
+    /* ✅ cabeçalho da tabela: Colunas + Resumo/Detalhar lado a lado e com mesma largura */
+    .cardHead .headBtns{
+      flex-wrap:nowrap;
+      gap:8px;
+    }
+    .cardHead .headBtns .multi.colsMulti{
+      width: 118px !important;
+      min-width: 118px !important;
+    }
+    #btnResumo{
+      width: 118px !important;
+      min-width: 118px !important;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    /* ✅ painel de colunas centralizado no celular */
+    #colunasPanel{
+      position: fixed !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+      width: min(360px, 92vw) !important;
+      max-height: min(360px, 60vh) !important;
+      overflow: auto !important;
+      z-index: 120 !important;
+    }
   }
 </style>
 </head>
@@ -1450,7 +1462,21 @@
       return Math.max(1, count);
     }
 
-    colunasBtn.addEventListener("click", ()=> colunasPanel.classList.toggle("open"));
+    /* ✅ abre o painel de colunas e, no celular, centraliza (não deixa sumir pra esquerda) */
+    colunasBtn.addEventListener("click", ()=>{
+      const willOpen = !colunasPanel.classList.contains("open");
+      colunasPanel.classList.toggle("open");
+
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      if(isMobile && willOpen){
+        const r = colunasBtn.getBoundingClientRect();
+        const top = Math.min(window.innerHeight - 80, r.bottom + 8);
+        colunasPanel.style.top = top + "px";
+      }else if(!isMobile){
+        colunasPanel.style.top = "";
+      }
+    });
+
     document.addEventListener("click", (e)=>{
       if(colunasPanel.classList.contains("open")){
         const inside = colunasPanel.contains(e.target) || colunasBtn.contains(e.target);
@@ -1714,15 +1740,10 @@
       return out;
     }
 
-    function syncResumoLayout(){
-      gridMain.classList.toggle("isResumoLayout", !!modoResumo);
-    }
-
     function renderTabela(){
       tbody.innerHTML = "";
 
       if(modoResumo){
-        cardTabela.classList.add("isResumo");
         cardTabela.classList.add("isResumo");
         cardTabela.classList.remove("isRegistros");
 
@@ -1737,7 +1758,6 @@
           tr.innerHTML = `<td colspan="${visibleColumnCount()}" style="padding:14px; color:#666; font-weight:800;">Sem registros para os filtros atuais.</td>`;
           tbody.appendChild(tr);
           applyColVisibility();
-          syncResumoLayout();
           return;
         }
 
@@ -1762,7 +1782,6 @@
         tbody.appendChild(trTot);
 
         applyColVisibility();
-        syncResumoLayout();
         return;
       }
 
@@ -1778,7 +1797,6 @@
         tr.innerHTML = `<td colspan="${visibleColumnCount()}" style="padding:14px; color:#666; font-weight:800;">Sem registros para os filtros atuais.</td>`;
         tbody.appendChild(tr);
         applyColVisibility();
-        syncResumoLayout();
         return;
       }
 
@@ -1804,7 +1822,6 @@
       }
 
       applyColVisibility();
-      syncResumoLayout();
     }
 
     tbody.addEventListener("click", (e)=>{
@@ -1938,7 +1955,6 @@
         const v = isFinite(vRaw) ? vRaw : 0;
 
         const y = startY + i * (bH + gH);
-        const w = (v / maxV) * plotW;
 
         ctx.save();
         ctx.fillStyle = "rgba(0,0,0,0.82)";
@@ -1949,6 +1965,17 @@
         const safeLabel = fitTextEndEllipsis(ctx, label, maxLabelPx);
         ctx.fillText(safeLabel, plotX - labelGap, y + (bH/2));
         ctx.restore();
+
+        /* ✅ garante rótulo do valor SEMPRE fora da barra e sem cortar */
+        ctx.save();
+        ctx.font = `900 ${12 * dpr}px Arial`;
+        const valueText = String(v);
+        const valueW = ctx.measureText(valueText).width;
+        ctx.restore();
+
+        const gapOut = 8 * dpr;
+        const maxBarW = Math.max(1, plotW - valueW - gapOut - (6*dpr));
+        const w = (v / maxV) * maxBarW;
 
         ctx.save();
         ctx.shadowColor = "rgba(0,0,0,0.14)";
@@ -1966,8 +1993,9 @@
         ctx.font = `900 ${12 * dpr}px Arial`;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        const vx = Math.min(plotX + w + (4*dpr), W - padR - (18*dpr));
-        ctx.fillText(String(v), vx, y + (bH/2));
+
+        const vx = Math.min(plotX + w + gapOut, W - padR - valueW);
+        ctx.fillText(valueText, vx, y + (bH/2));
         ctx.restore();
       }
     }
@@ -2277,7 +2305,6 @@
 
             sentOk.push(it);
 
-            // confirmação é best-effort: NÃO trava e NÃO vira pendência
             try{
               await confirmarLancamentoNaAba({ loja: it.loja, matricula: it.matricula, dataBR });
             }catch(e){}
@@ -2285,7 +2312,6 @@
           }catch(errItem){
             failed.push(it);
 
-            // se 401/403, sai pro login
             if(errItem && (errItem.status === 401 || errItem.status === 403)){
               setLoading(false);
               setSendingUI(false);
@@ -2310,7 +2336,6 @@
         openAlert("Resultado do envio", html, {
           html:true,
           onOk: async ()=>{
-            // só recarrega depois do OK
             await carregarDados();
             maybeShowPendencia();
           }
