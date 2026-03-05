@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
   <title>Produtividade</title>
-  <link rel="icon" type="image/png" href="/icon-logo192.png">
+  <link rel="icon" type="image/png" href="/icon-192.png">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#030712">
 
@@ -872,12 +872,12 @@
   </div>
 
   <script>
-    const SESSION_KEY = "efetividadeSession";
+    const SESSION_KEY = "pppSession";
     const SESSION_TTL_MS = 4 * 60 * 60 * 1000;
 
     function irParaLogin(){
       try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
-      window.location.href = "/login-efetividade.html";
+      window.location.href = "/login.html";
     }
 
     function lerSessao(){
@@ -1446,22 +1446,15 @@
       }
     });
 
-    async function apiPost(url, payload){
-      const token = getSessionToken();
-      if(!token){
-        const err = new Error("Sessão ausente. Faça login novamente.");
-        err.status = 401;
-        throw err;
-      }
-
-      const res = await fetch(url, {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "x-efetividade-session": token
-        },
-        body: JSON.stringify(payload || {})
-      });
+async function apiPost(url, payload){
+  const res = await fetch(url, {
+    method:"POST",
+    credentials:"include",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify(payload || {})
+  });
 
       const data = await res.json().catch(()=> ({}));
       if(!res.ok || data.sucesso === false){
