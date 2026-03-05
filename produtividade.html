@@ -238,6 +238,10 @@
     align-items:start;
     max-width:100%;
   }
+  .grid.isResumoLayout{
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
   .card{
     background:#fff;
     border-radius:14px;
@@ -245,6 +249,20 @@
     padding:12px 14px;
     min-width:0;
     max-width:100%;
+  }
+
+  #cardTabela.isResumo{
+    width: fit-content;
+    justify-self: start;
+    max-width: 100%;
+  }
+  #cardTabela.isResumo .tableWrap{
+    width: auto;
+    max-width: 100%;
+  }
+  #cardTabela.isResumo table{
+    width: auto;
+    min-width: 0;
   }
 
   .cardHead{
@@ -650,8 +668,11 @@
 
   @media (max-width: 980px){
     .grid{ grid-template-columns: 1fr; }
+    .grid.isResumoLayout{ grid-template-columns: 1fr; }
     .subtitle{ max-width: 92vw; }
     .liTop, .liSub{ max-width: 78vw; }
+    #cardTabela.isResumo{ width: 100%; }
+    #cardTabela.isResumo .tableWrap{ width: 100%; }
   }
 
   @media (max-width: 640px){
@@ -734,7 +755,7 @@
       </div>
     </div>
 
-    <div class="grid">
+    <div class="grid" id="gridMain">
       <div class="card isRegistros" id="cardTabela">
         <div class="cardHead">
           <h2 id="hRegistros">Registros</h2>
@@ -983,6 +1004,7 @@
     const theadRow = document.getElementById("theadRow");
     const tbody = document.getElementById("tbody");
     const cardTabela = document.getElementById("cardTabela");
+    const gridMain = document.getElementById("gridMain");
 
     const colunasBtn = document.getElementById("colunasBtn");
     const colunasPanel = document.getElementById("colunasPanel");
@@ -1033,25 +1055,50 @@
     const btnResumo = document.getElementById("btnResumo");
     const hRegistros = document.getElementById("hRegistros");
 
+    let isSending = false;
+
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add("show");
       setTimeout(()=> toast.classList.remove("show"), 2000);
     }
 
-    function openAlert(title, msg){
+    function esc(s){
+      return String(s ?? "").replace(/[&<>"']/g, m=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    let alertOnOkCb = null;
+    function openAlert(title, msg, opts){
+      const o = (opts && typeof opts === "object") ? opts : {};
       alertTitle.textContent = title || "Aviso";
-      alertMsg.textContent = msg || "—";
+
+      if(o.html){
+        alertMsg.innerHTML = String(msg || "—");
+      }else{
+        alertMsg.textContent = msg || "—";
+      }
+
+      alertOnOkCb = (typeof o.onOk === "function") ? o.onOk : null;
+
       alertBack.classList.add("open");
       alertBack.setAttribute("aria-hidden","false");
     }
-    function closeAlert(){
+    function closeAlert(confirmed){
       alertBack.classList.remove("open");
       alertBack.setAttribute("aria-hidden","true");
+
+      const cb = (confirmed === true) ? alertOnOkCb : null;
+      alertOnOkCb = null;
+
+      if(cb){
+        try{ cb(); }catch(e){}
+      }
     }
-    btnAlertOk.addEventListener("click", closeAlert);
-    btnAlertClose.addEventListener("click", closeAlert);
-    alertBack.addEventListener("click", (e)=>{ if(e.target === alertBack) closeAlert(); });
+    btnAlertOk.addEventListener("click", ()=> closeAlert(true));
+    btnAlertClose.addEventListener("click", ()=> closeAlert(false));
+    alertBack.addEventListener("click", (e)=>{ if(e.target === alertBack) closeAlert(false); });
 
     function openPend(msg){
       pendMsg.textContent = msg;
@@ -1280,12 +1327,6 @@
         if(obj.checked) out.push(obj.label);
       }
       return out;
-    }
-
-    function esc(s){
-      return String(s ?? "").replace(/[&<>"']/g, m=>({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-      }[m]));
     }
 
     function buildLojasPanelFromRows(rows){
@@ -1673,10 +1714,15 @@
       return out;
     }
 
+    function syncResumoLayout(){
+      gridMain.classList.toggle("isResumoLayout", !!modoResumo);
+    }
+
     function renderTabela(){
       tbody.innerHTML = "";
 
       if(modoResumo){
+        cardTabela.classList.add("isResumo");
         cardTabela.classList.add("isResumo");
         cardTabela.classList.remove("isRegistros");
 
@@ -1690,6 +1736,8 @@
           const tr = document.createElement("tr");
           tr.innerHTML = `<td colspan="${visibleColumnCount()}" style="padding:14px; color:#666; font-weight:800;">Sem registros para os filtros atuais.</td>`;
           tbody.appendChild(tr);
+          applyColVisibility();
+          syncResumoLayout();
           return;
         }
 
@@ -1714,6 +1762,7 @@
         tbody.appendChild(trTot);
 
         applyColVisibility();
+        syncResumoLayout();
         return;
       }
 
@@ -1728,6 +1777,8 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `<td colspan="${visibleColumnCount()}" style="padding:14px; color:#666; font-weight:800;">Sem registros para os filtros atuais.</td>`;
         tbody.appendChild(tr);
+        applyColVisibility();
+        syncResumoLayout();
         return;
       }
 
@@ -1753,6 +1804,7 @@
       }
 
       applyColVisibility();
+      syncResumoLayout();
     }
 
     tbody.addEventListener("click", (e)=>{
@@ -1958,7 +2010,7 @@
               <div class="liTop">${top}</div>
               <div class="liSub">${sub}</div>
             </div>
-            <button class="btnTiny" type="button" data-rm="${idx}">Remover</button>
+            <button class="btnTiny" type="button" data-rm="${idx}" ${isSending ? "disabled":""}>Remover</button>
           </div>
         `;
       }).join("") : `<div style="padding:10px; color:#666; font-weight:900;">Nenhum item na lista.</div>`;
@@ -2012,9 +2064,9 @@
 
     btnVoltar.addEventListener("click", ()=>{ try{ history.back(); }catch(e){} });
 
-    btnCancelar.addEventListener("click", closeModal);
+    btnCancelar.addEventListener("click", ()=>{ if(isSending) return; closeModal(); });
     modalBack.addEventListener("click", (e)=>{
-      if(e.target === modalBack) closeModal();
+      if(e.target === modalBack && !isSending) closeModal();
     });
 
     mMatricula.addEventListener("input", ()=>{
@@ -2063,6 +2115,7 @@
 
     btnAddLista.addEventListener("click", ()=>{
       if(sessaoExpirada()) return irParaLogin();
+      if(isSending) return;
 
       const v = validarCamposAtuais();
       if(!v) return;
@@ -2101,6 +2154,7 @@
     });
 
     mListBody.addEventListener("click", (e)=>{
+      if(isSending) return;
       const btn = e.target && e.target.matches("button[data-rm]") ? e.target : null;
       if(!btn) return;
       const idx = Number(btn.getAttribute("data-rm"));
@@ -2112,29 +2166,76 @@
       showToast("Removido");
     });
 
-    async function confirmarLancamentoNaAba({ loja, matricula, dataBR }, maxTentativas = 12){
+    async function confirmarLancamentoNaAba({ loja, matricula, dataBR }, maxTentativas = 8){
       for(let i=0;i<maxTentativas;i++){
         const r = await apiPost("/api/produtividade-verificar", { loja, matricula, data: dataBR });
         if(r && r.found && r.row){
           return r.row;
         }
-        await new Promise(res=> setTimeout(res, 350));
+        await new Promise(res=> setTimeout(res, 300));
       }
       return null;
     }
 
-    function upsertRowInMemory(row){
-      if(!row) return;
-      const rn = Number(row.rowNumber || 0);
-      if(rn >= 2){
-        const idx = dadosBrutos.findIndex(x => Number(x.rowNumber) === rn);
-        if(idx >= 0) dadosBrutos[idx] = row;
-        else dadosBrutos.push(row);
-      } else {
-        dadosBrutos.push(row);
+    function setSendingUI(on){
+      isSending = !!on;
+
+      btnSalvar.disabled = isSending;
+      btnAddLista.disabled = isSending;
+      btnCancelar.disabled = isSending;
+
+      btnPendEnviar.disabled = isSending;
+      btnPendExcluir.disabled = isSending;
+      btnPendAdd.disabled = isSending;
+
+      syncPendingUI();
+    }
+
+    function samePendingKey(a, b){
+      return String(a?.loja||"").trim() === String(b?.loja||"").trim()
+        && String(a?.matricula||"").trim() === String(b?.matricula||"").trim()
+        && String(a?.dataISO||"").trim() === String(b?.dataISO||"").trim();
+    }
+
+    function removeFromPendingList(item){
+      const idx = pendingList.findIndex(x=> samePendingKey(x, item));
+      if(idx >= 0){
+        pendingList.splice(idx, 1);
+        return true;
       }
-      buildLojasPanelFromRows(dadosBrutos);
-      aplicarFiltrosERender();
+      return false;
+    }
+
+    function buildResultHtml(sentOk, failed){
+      const green = "#0f8a3b";
+      const red = "#c62828";
+
+      const line = (c, t)=> `<div style="margin:4px 0; color:${c}; font-weight:900;">${t}</div>`;
+
+      let html = "";
+
+      if(sentOk.length){
+        html += `<div style="font-weight:900; margin-bottom:6px;">Enviados com sucesso:</div>`;
+        html += sentOk.map(it=>{
+          const d = esc(isoToBR(it.dataISO));
+          const n = esc(it.nome);
+          return line(green, `${n} — ${d}`);
+        }).join("");
+      }else{
+        html += `<div style="font-weight:900; margin-bottom:6px;">Nenhum item foi enviado.</div>`;
+      }
+
+      if(failed.length){
+        html += `<div style="height:10px;"></div>`;
+        html += `<div style="font-weight:900; margin-bottom:6px;">Falharam e ficaram pendentes:</div>`;
+        html += failed.map(it=>{
+          const d = esc(isoToBR(it.dataISO));
+          const n = esc(it.nome);
+          return line(red, `${n} — ${d}`);
+        }).join("");
+      }
+
+      return html;
     }
 
     async function enviarLista(list){
@@ -2142,13 +2243,21 @@
         openAlert("Não foi possível salvar", "Não foi possível salvar pois a lista está vazia.");
         return false;
       }
+      if(isSending) return false;
 
-      setLoading(true, "Enviando e confirmando…");
-      await fakeProgressUntil(55, 70);
+      setSendingUI(true);
+
+      setLoading(true, "Enviando…");
+      await fakeProgressUntil(35, 70);
+
+      const sentOk = [];
+      const failed = [];
 
       try{
-        for(let i=0;i<list.length;i++){
-          const it = list[i];
+        const snapshot = list.slice();
+
+        for(let i=0;i<snapshot.length;i++){
+          const it = snapshot[i];
           const dataBR = isoToBR(it.dataISO);
 
           const payloadBase = {
@@ -2160,37 +2269,61 @@
             qtd: 1
           };
 
-          await apiPost("/api/produtividade-adicionar", payloadBase);
-          await fakeProgressUntil(Math.min(75, 55 + Math.floor((i+1)*18/list.length)), 35);
+          try{
+            await apiPost("/api/produtividade-adicionar", payloadBase);
 
-          const foundRow = await confirmarLancamentoNaAba({ loja: it.loja, matricula: it.matricula, dataBR });
-          if(!foundRow){
-            setLoading(false);
-            openAlert("Não foi possível confirmar", `Não foi possível confirmar o lançamento de ${it.nome} (${it.matricula}) em ${dataBR}.`);
-            return false;
+            removeFromPendingList(it);
+            pendSave(pendingList);
+
+            sentOk.push(it);
+
+            // confirmação é best-effort: NÃO trava e NÃO vira pendência
+            try{
+              await confirmarLancamentoNaAba({ loja: it.loja, matricula: it.matricula, dataBR });
+            }catch(e){}
+
+          }catch(errItem){
+            failed.push(it);
+
+            // se 401/403, sai pro login
+            if(errItem && (errItem.status === 401 || errItem.status === 403)){
+              setLoading(false);
+              setSendingUI(false);
+              return irParaLogin();
+            }
           }
-          upsertRowInMemory(foundRow);
-          await fakeProgressUntil(Math.min(92, 75 + Math.floor((i+1)*15/list.length)), 30);
+
+          const pct = Math.min(90, 35 + Math.floor(((i+1) / snapshot.length) * 55));
+          barFill.style.width = pct + "%";
+          barPct.textContent = pct + "%";
         }
 
         await fakeProgressUntil(100, 25);
         setLoading(false);
 
-        pendingList = [];
         pendSave(pendingList);
+
         closeModal();
         closePend();
 
-        showToast("Salvo com sucesso");
+        const html = buildResultHtml(sentOk, failed);
+        openAlert("Resultado do envio", html, {
+          html:true,
+          onOk: async ()=>{
+            // só recarrega depois do OK
+            await carregarDados();
+            maybeShowPendencia();
+          }
+        });
+
+        setSendingUI(false);
         return true;
+
       }catch(err){
         setLoading(false);
-        if(err && (err.status === 401 || err.status === 403)) return irParaLogin();
+        setSendingUI(false);
 
-        if(err && err.status === 409){
-          openAlert("Não foi possível salvar", "Não foi possível salvar porque existe duplicidade (mesma matrícula na mesma data).");
-          return false;
-        }
+        if(err && (err.status === 401 || err.status === 403)) return irParaLogin();
 
         openAlert("Não foi possível salvar", err.message || "Erro ao salvar");
         return false;
@@ -2199,6 +2332,7 @@
 
     btnSalvar.addEventListener("click", async ()=>{
       if(sessaoExpirada()) return irParaLogin();
+      if(isSending) return;
 
       if(editRow){
         const v = validarCamposAtuais();
@@ -2220,12 +2354,15 @@
 
         try{
           await apiPost("/api/produtividade-editar", { ...payloadBase, rowNumber: editRow });
-          await fakeProgressUntil(85, 70);
-          closeModal();
-          await carregarDados();
           await fakeProgressUntil(100, 25);
           setLoading(false);
-          showToast("Salvo com sucesso");
+
+          closeModal();
+
+          openAlert("Salvo com sucesso", "Edição salva. Clique em OK para recarregar os dados.", {
+            onOk: async ()=>{ await carregarDados(); }
+          });
+
         }catch(err){
           setLoading(false);
           if(err && (err.status === 401 || err.status === 403)) return irParaLogin();
@@ -2312,6 +2449,7 @@
     });
 
     btnPendExcluir.addEventListener("click", ()=>{
+      if(isSending) return;
       pendingList = [];
       pendSave(pendingList);
       closePend();
@@ -2319,11 +2457,13 @@
     });
 
     btnPendAdd.addEventListener("click", ()=>{
+      if(isSending) return;
       closePend();
       abrirAdicionar();
     });
 
     btnPendEnviar.addEventListener("click", async ()=>{
+      if(isSending) return;
       await enviarLista(pendingList);
     });
 
