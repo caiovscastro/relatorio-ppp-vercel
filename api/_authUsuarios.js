@@ -1,3 +1,20 @@
+// api/_authUsuarios.js
+//
+// Objetivo: validação de sessão no backend.
+//
+// Modo recomendado (seguro):
+// - Defina SESSION_SECRET (string forte) para habilitar cookie assinado.
+// - Sua API de login seta o cookie ppp_session via createSessionCookie().
+//
+// Modo compatibilidade (não recomendado):
+// - Se você ainda não implementou cookie assinado no login,
+//   você pode permitir sessão via header "X-PPP-Session" (base64 do JSON),
+//   habilitando ALLOW_INSECURE_SESSION=true.
+//
+// Segurança:
+// - Bloqueio em HTML (localStorage/sessionStorage) é fácil de burlar.
+// - Proteção correta: endpoints /api devem rejeitar chamadas sem sessão válida.
+
 import crypto from "crypto";
 
 const COOKIE_NAME = "ppp_session";
@@ -10,11 +27,6 @@ function envBool(name, def = false) {
 
 function getSessionSecret() {
   const s = String(process.env.SESSION_SECRET || "").trim();
-  return s || null;
-}
-
-function getEfetividadeSigningSecret(){
-  const s = String(process.env.SESSION_SIGNING_SECRET || "").trim();
   return s || null;
 }
 
@@ -81,6 +93,24 @@ function setCookie(res, name, value, opts = {}) {
   }
 }
 
+function clearCookie(res, name, opts = {}) {
+  const {
+    secure = true,
+    sameSite = "Lax",
+    path = "/",
+    domain
+  } = opts;
+
+  let cookie = `${name}=; Path=${path}; Max-Age=0; SameSite=${sameSite}; HttpOnly`;
+  if (secure) cookie += "; Secure";
+  if (domain) cookie += `; Domain=${domain}`;
+
+  const prev = res.getHeader("Set-Cookie");
+  if (!prev) res.setHeader("Set-Cookie", cookie);
+  else if (Array.isArray(prev)) res.setHeader("Set-Cookie", [...prev, cookie]);
+  else res.setHeader("Set-Cookie", [prev, cookie]);
+}
+
 function signToken(payloadObj, secret) {
   const header = { alg: "HS256", typ: "JWT" };
   const headerB64 = b64urlEncode(Buffer.from(JSON.stringify(header)));
@@ -119,6 +149,7 @@ function normalizeProfile(p) {
 }
 
 function decodeHeaderSession(req) {
+  // No Node/Vercel, headers são normalizados para lowercase
   const raw = req?.headers?.["x-ppp-session"] || req?.headers?.["X-PPP-Session"];
   if (!raw) return null;
 
@@ -145,43 +176,6 @@ function decodeHeaderSession(req) {
   return session;
 }
 
-function decodeEfetividadeHeaderToken(req){
-  const raw = req?.headers?.["x-efetividade-session"] || req?.headers?.["X-Efetividade-Session"];
-  if(!raw) return null;
-  const t = String(raw).trim();
-  const parts = t.split(".");
-  if(parts.length !== 2) return null;
-  const [payloadB64, sigB64] = parts;
-
-  const secret = getEfetividadeSigningSecret();
-  if(!secret) return null;
-
-  const sigExpected = crypto.createHmac("sha256", secret).update(payloadB64).digest();
-  const sigGot = b64urlDecode(sigB64);
-  if(sigGot.length !== sigExpected.length) return null;
-  if(!crypto.timingSafeEqual(sigGot, sigExpected)) return null;
-
-  const payloadBuf = b64urlDecode(payloadB64);
-  const payload = safeJsonParse(payloadBuf.toString("utf8"));
-  if(!payload) return null;
-
-  const exp = Number(payload.exp || 0);
-  if(exp){
-    const expMs = exp < 1e12 ? exp * 1000 : exp;
-    if(Date.now() > expMs) return null;
-  }
-
-  const sess = {
-    usuario: payload.usuario || payload.user || payload.nome || "",
-    loja: payload.loja || payload.store || "",
-    perfil: normalizeProfile(payload.perfil || payload.profile || payload.role || ""),
-    exp
-  };
-
-  if(!sess.usuario) return null;
-  return sess;
-}
-
 export function createSessionCookie(res, session, opts = {}) {
   const secret = getSessionSecret();
   if (!secret) throw new Error("SESSION_SECRET não configurado.");
@@ -193,6 +187,7 @@ export function createSessionCookie(res, session, opts = {}) {
     usuario: session?.usuario || "",
     loja: session?.loja || "",
     perfil: normalizeProfile(session?.perfil || ""),
+    // ✅ trava o sistema até trocar senha (quando usado)
     forcePwdChange: !!session?.forcePwdChange,
     iat: now,
     exp: now + ttlSec
@@ -214,22 +209,10 @@ export function createSessionCookie(res, session, opts = {}) {
   return payload;
 }
 
-export async function requireSession(req, res, options = {}) {
+export function requireSession(req, res, options = {}) {
   const { allowedProfiles, allowForcePwdChange } = options;
 
-  const efet = decodeEfetividadeHeaderToken(req);
-  if(efet && efet.usuario){
-    if (Array.isArray(allowedProfiles) && allowedProfiles.length > 0) {
-      const p = normalizeProfile(efet.perfil);
-      const ok = allowedProfiles.map(normalizeProfile).includes(p);
-      if (!ok) {
-        res.status(403).json({ sucesso: false, message: "Sessão sem permissão para este acesso." });
-        return null;
-      }
-    }
-    return efet;
-  }
-
+  // 1) Modo seguro: cookie assinado
   const secret = getSessionSecret();
   if (secret) {
     const cookies = parseCookies(req);
@@ -238,6 +221,7 @@ export async function requireSession(req, res, options = {}) {
       const payload = verifyToken(token, secret);
       if (payload && payload.usuario) {
 
+        // ✅ trava acesso enquanto precisa trocar senha
         if (payload.forcePwdChange && !allowForcePwdChange) {
           res.status(403).json({
             sucesso: false,
@@ -259,6 +243,7 @@ export async function requireSession(req, res, options = {}) {
     }
   }
 
+  // 2) Modo compatibilidade: header X-PPP-Session (inseguro)
   if (envBool("ALLOW_INSECURE_SESSION", false)) {
     const s = decodeHeaderSession(req);
     if (s) {
