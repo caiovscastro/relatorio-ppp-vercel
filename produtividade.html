@@ -383,7 +383,7 @@
     width:100% !important;
     height: 360px !important;
     border:0;
-    border-radius:12px;
+    border-radius:0;
     background:#fff;
   }
 
@@ -664,10 +664,8 @@
     }
     .field, .multi{ min-width:0 !important; }
 
-    /* ✅ só os botões dos filtros ficam full-width no celular (não afeta o cabeçalho da tabela) */
     .filtersRow .btn{ width:100%; }
 
-    /* ✅ nova ordem dos filtros no celular */
     .fLojas   { grid-column: 1; grid-row: 1; }
     .fSetores { grid-column: 2; grid-row: 1; }
 
@@ -680,7 +678,6 @@
     .bVoltar  { grid-column: 1; grid-row: 4; }
     .bAdd     { grid-column: 2; grid-row: 4; }
 
-    /* ✅ cabeçalho da tabela: Colunas + Resumo/Detalhar lado a lado e com mesma largura */
     .cardHead .headBtns{
       flex-wrap:nowrap;
       gap:8px;
@@ -696,7 +693,6 @@
       padding-right: 10px;
     }
 
-    /* ✅ painel de colunas centralizado no celular */
     #colunasPanel{
       position: fixed !important;
       left: 50% !important;
@@ -1462,7 +1458,6 @@
       return Math.max(1, count);
     }
 
-    /* ✅ abre o painel de colunas e, no celular, centraliza (não deixa sumir pra esquerda) */
     colunasBtn.addEventListener("click", ()=>{
       const willOpen = !colunasPanel.classList.contains("open");
       colunasPanel.classList.toggle("open");
@@ -1660,7 +1655,7 @@
     function setHeaderResumo(){
       theadRow.innerHTML = `
         <th data-col="loja">Loja</th>
-        <th data-col="quantidade">Quantidade</th>
+        <th data-col="quantidade" style="text-align:right;">Quantidade</th>
       `;
 
       colState.clear();
@@ -1768,7 +1763,7 @@
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td data-col="loja" style="font-weight:900;">${esc(it.loja)}</td>
-            <td data-col="quantidade" style="font-weight:900;">${esc(it.qtd)}</td>
+            <td data-col="quantidade" style="font-weight:900; text-align:right;">${esc(it.qtd)}</td>
           `;
           tbody.appendChild(tr);
         }
@@ -1777,7 +1772,7 @@
         trTot.className = "totalRow";
         trTot.innerHTML = `
           <td data-col="loja">TOTAL</td>
-          <td data-col="quantidade">${esc(totQtd)}</td>
+          <td data-col="quantidade" style="text-align:right;">${esc(totQtd)}</td>
         `;
         tbody.appendChild(trTot);
 
@@ -1878,17 +1873,6 @@
       return `rgba(${r},${g},${b},0.92)`;
     }
 
-    function roundRectPath(ctx, x, y, w, h, r){
-      const rr = Math.max(0, Math.min(r, w/2, h/2));
-      ctx.beginPath();
-      ctx.moveTo(x+rr, y);
-      ctx.arcTo(x+w, y, x+w, y+h, rr);
-      ctx.arcTo(x+w, y+h, x, y+h, rr);
-      ctx.arcTo(x, y+h, x, y, rr);
-      ctx.arcTo(x, y, x+w, y, rr);
-      ctx.closePath();
-    }
-
     function fitTextEndEllipsis(ctx, text, maxPx){
       const s = String(text || "");
       if(maxPx <= 0) return "";
@@ -1966,7 +1950,6 @@
         ctx.fillText(safeLabel, plotX - labelGap, y + (bH/2));
         ctx.restore();
 
-        /* ✅ garante rótulo do valor SEMPRE fora da barra e sem cortar */
         ctx.save();
         ctx.font = `900 ${12 * dpr}px Arial`;
         const valueText = String(v);
@@ -1978,14 +1961,13 @@
         const w = (v / maxV) * maxBarW;
 
         ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,0.14)";
-        ctx.shadowBlur = 10 * dpr;
-        ctx.shadowOffsetX = 2 * dpr;
-        ctx.shadowOffsetY = 3 * dpr;
+        ctx.shadowColor = "rgba(0,0,0,0.30)";
+        ctx.shadowBlur = 18 * dpr;
+        ctx.shadowOffsetX = 3 * dpr;
+        ctx.shadowOffsetY = 5 * dpr;
 
         ctx.fillStyle = barColorByIndex(i, items.length);
-        roundRectPath(ctx, plotX, y, Math.max(1, w), bH, 10 * dpr);
-        ctx.fill();
+        ctx.fillRect(plotX, y, Math.max(1, w), bH);
         ctx.restore();
 
         ctx.save();
