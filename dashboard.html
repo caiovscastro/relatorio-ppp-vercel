@@ -3,14 +3,13 @@
   Sistema: BIG&ULTRA PPP
   Tela: dashboard.html
   Versão: 1.0.0
-  Build: 2026-02-20
+  Build: 2026-03-06
   Ambiente: Produção
   Desenvolvedor: Caio V. Souza Castro
 -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- Viewport padrão (mantido) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DASHBOARD – Relatório de Ocorrências</title>
 <link rel="icon" type="image/png" href="/LogoBigUltra.png">
@@ -21,8 +20,7 @@
     html, body{
       width: 100%;
       max-width: 100%;
-      overflow-x: hidden; /*evita rolagem horizontal e “deslocamento”*/
-    }
+      overflow-x: hidden;
 
     body{
       margin: 0;
@@ -63,7 +61,7 @@
       grid-template-columns: 290px minmax(0, 1fr);
       align-items: stretch;
       min-width: 0;
-      column-gap: 18px;
+      column-gap: 12px;
     }
 
     .sidebar{
@@ -865,7 +863,7 @@
 
         <div class="row3">
           <div class="tile" style="min-height: 240px;">
-            <h3>Top 25 lojas com maior nº de ocorrências</h3>
+            <h3>nº de ocorrências por lojas</h3>
             <div class="canvas-hscroll">
               <div class="canvas-hscroll-inner">
                 <canvas id="chartTop25Lojas"></canvas>
