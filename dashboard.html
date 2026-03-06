@@ -2336,23 +2336,8 @@
             tooltip: { callbacks: { label: (item) => `Valor: ${formatarBRL(item.raw)}` } }
           },
 scales: {
-  x: {
-    ticks: {
-      maxRotation: usarRotacao ? 30 : 0,
-      minRotation: usarRotacao ? 30 : 0,
-      autoSkip: false,
-      font: { size: 14, weight: "bold" }
-    },
-    grid: { display: false },
-    border: { display: false }
-  },
-  y: {
-    beginAtZero: true,
-    suggestedMax,
-    ticks: { display: false },
-    grid: { display: false },
-    border: { display: false }
-  }
+  x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false, font: { size: 14, weight: "bold" } }, grid: { display: false }, border: { display: false } },
+  y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
 }
         },
         plugins: [barShadowPlugin, valueOnTopPluginMeses12]
@@ -2420,213 +2405,101 @@ scales: {
       });
     }
 
-    function renderTop25Lojas(labels, values) {
-      const canvas = document.getElementById("chartTop25Lojas");
-      if (!canvas) return;
-      
-      const usarRotacao = (labels || []).length > 15;
-      
-      if (chartTop25Lojas) chartTop25Lojas.destroy();
+function renderTop25Lojas(labels, values) {
+  const canvas = document.getElementById("chartTop25Lojas");
+  if (!canvas) return;
 
-      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+  const usarRotacao = (labels || []).length > 15;
 
-      const inner = canvas.closest(".canvas-hscroll-inner");
-      const scroller = canvas.closest(".canvas-hscroll");
+  if (chartTop25Lojas) chartTop25Lojas.destroy();
 
-      if (isMobile && inner && scroller) {
-        const w = Math.max(1, scroller.clientWidth || 1);
-        const perBar = Math.max(46, Math.floor(w / 7));
-        const minW = Math.max(w, (labels || []).length * perBar);
-        inner.style.minWidth = `${minW}px`;
-        canvas.style.minWidth = `${minW}px`;
-      } else {
-        if (inner) inner.style.minWidth = "";
-        canvas.style.minWidth = "";
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+
+  const inner = canvas.closest(".canvas-hscroll-inner");
+  const scroller = canvas.closest(".canvas-hscroll");
+
+  if (isMobile && inner && scroller) {
+    const w = Math.max(1, scroller.clientWidth || 1);
+    const perBar = Math.max(46, Math.floor(w / 7));
+    const minW = Math.max(w, (labels || []).length * perBar);
+    inner.style.minWidth = `${minW}px`;
+    canvas.style.minWidth = `${minW}px`;
+  } else {
+    if (inner) inner.style.minWidth = "";
+    canvas.style.minWidth = "";
+  }
+
+  const valueOnTopPlugin = {
+    id: "valueOnTopPluginTop25",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
+
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.font = "bold 14px Arial";
+      ctx.fillStyle = "#111";
+
+      meta.data.forEach((bar, i) => {
+        const val = chart.data.datasets[0].data[i];
+        ctx.fillText(String(val), bar.x, bar.y - 6);
+      });
+
+      ctx.restore();
+    }
+  };
+
+  const corBIG = "#6A1B9A";
+  const corULT = "#43A047";
+
+  const baseHex = (labels || []).map((lbl) => {
+    const s = String(lbl || "").toUpperCase().trim();
+    if (s.startsWith("BIG")) return corBIG;
+    if (s.startsWith("ULT")) return corULT;
+    return "#777777";
+  });
+
+  const bgColors = buildGradientAlphaColorsPerBar(baseHex);
+
+  const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
+  const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
+
+  chartTop25Lojas = new Chart(canvas, {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Ocorrências", data: values, backgroundColor: bgColors }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 18 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
+      },
+      scales: {
+        x: {
+          ticks: {
+            maxRotation: usarRotacao ? 30 : 0,
+            minRotation: usarRotacao ? 30 : 0,
+            autoSkip: false,
+            font: { size: 14, weight: "bold" }
+          },
+          grid: { display: false },
+          border: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          suggestedMax,
+          ticks: { display: false },
+          grid: { display: false },
+          border: { display: false }
+        }
       }
-
-      const valueOnTopPlugin = {
-        id: "valueOnTopPluginTop25",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
-
-          ctx.save();
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
-          ctx.font = "bold 14px Arial";
-          ctx.fillStyle = "#111";
-
-          meta.data.forEach((bar, i) => {
-            const val = chart.data.datasets[0].data[i];
-            ctx.fillText(String(val), bar.x, bar.y - 6);
-          });
-
-          ctx.restore();
-        }
-      };
-
-      const corBIG = "#6A1B9A";
-      const corULT = "#43A047";
-
-      const baseHex = (labels || []).map((lbl) => {
-        const s = String(lbl || "").toUpperCase().trim();
-        if (s.startsWith("BIG")) return corBIG;
-        if (s.startsWith("ULT")) return corULT;
-        return "#777777";
-      });
-
-      const bgColors = buildGradientAlphaColorsPerBar(baseHex);
-
-      const maxVal = Math.max(0, ...(values || []).map(v => Number(v) || 0));
-      const suggestedMax = maxVal > 0 ? Math.ceil(maxVal * 1.2) : 1;
-
-      chartTop25Lojas = new Chart(canvas, {
-        type: "bar",
-        data: { labels, datasets: [{ label: "Ocorrências", data: values, backgroundColor: bgColors }] },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { top: 18 } },
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (item) => `Ocorrências: ${item.raw}` } }
-          },
-          scales: {
-            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false, font: { size: 14, weight: "bold" } }, grid: { display: false }, border: { display: false } },
-            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
-          }
-        },
-        plugins: [barShadowPlugin, valueOnTopPlugin]
-      });
-    }
-
-    function renderDept(labels, values, corBarra) {
-      const ctx = document.getElementById("chartDept");
-      if (chartDept) chartDept.destroy();
-
-      const valueAtEndPlugin = {
-        id: "valueAtEndPlugin",
-        afterDatasetsDraw(chart) {
-          const { ctx } = chart;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data) return;
-
-          ctx.save();
-          ctx.textAlign = "left";
-          ctx.textBaseline = "middle";
-          ctx.font = "bold 12px Arial";
-          ctx.fillStyle = "#111";
-
-          meta.data.forEach((bar, i) => {
-            const val = chart.data.datasets[0].data[i];
-            const xRaw = bar.x + 8;
-            const x = Math.min(xRaw, chart.width - 8);
-            ctx.fillText(String(val), x, bar.y);
-          });
-
-          ctx.restore();
-        }
-      };
-
-      const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
-
-      const maxVal = Math.max(1, ...(values || []).map(v => Number(v) || 0));
-      
-      chartDept = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: "OCORRÊNCIAS POR DPTO",
-            data: values,
-            backgroundColor: bg,
-            clip: false
-          }]
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { left: 2, right: 30 } },
-
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (item) => `Ocorrências: ${item.raw}`
-              }
-            }
-          },
-
-          scales: {
-            x: {
-              beginAtZero: true,
-              max: maxVal,
-              ticks: { display: false },
-              grid: { display: false },
-              border: { display: false }
-            },
-
-            y: {
-              ticks: {
-                autoSkip: false,
-                padding: 6,
-                align: "start",
-                crossAlign: "near",
-                font: { weight: "bold" },
-                callback: function(value){
-                  const label = this.getLabelForValue(value);
-
-                  const isMobile = window.matchMedia("(max-width: 640px)").matches;
-                  const maxLen = isMobile ? 14 : 13;
-
-                  const text = String(label ?? "").trim();
-                  if (!text) return "N/I";
-                  if (text.length <= maxLen) return text;
-                  return text.slice(0, maxLen - 1) + "…";
-                }
-              },
-
-              afterFit: (scale) => {
-                try{
-                  const chart = scale.chart;
-                  const ctx = chart && chart.ctx;
-                  if (!ctx) return;
-
-                  const isMobile = window.matchMedia("(max-width: 640px)").matches;
-                  const maxLen = isMobile ? 15 : 13;
-
-                  ctx.save();
-                  ctx.font = "bold 12px Arial";
-
-                  const labels = (chart.data && chart.data.labels ? chart.data.labels : []).slice(0, 12);
-
-                  let maxW = 0;
-                  for (const raw of labels) {
-                    let t = String(raw ?? "").trim() || "N/I";
-                    if (t.length > maxLen) t = t.slice(0, maxLen - 1) + "…";
-                    maxW = Math.max(maxW, ctx.measureText(t).width);
-                  }
-                  ctx.restore();
-
-                  const paddingPx = 10;
-                  const minW = isMobile ? 95 : 105;
-                  const maxWCap = isMobile ? 150 : 170;
-
-                  scale.width = Math.min(maxWCap, Math.max(minW, Math.ceil(maxW + paddingPx)));
-                }catch(e){}
-              },
-
-              grid: { display: false },
-              border: { display: false }
-            }
-          }
-        },
-        plugins: [barShadowPlugin, valueAtEndPlugin]
-      });
-    }
-
+    },
+    plugins: [barShadowPlugin, valueOnTopPlugin]
+  });
+}
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
       if (chartPctBandeira) chartPctBandeira.destroy();
