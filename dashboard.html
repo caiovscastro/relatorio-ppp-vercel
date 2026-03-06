@@ -2335,10 +2335,25 @@
             legend: { display: false },
             tooltip: { callbacks: { label: (item) => `Valor: ${formatarBRL(item.raw)}` } }
           },
-          scales: {
-            x: { ticks: { maxRotation: 0, minRotation: 0, autoSkip: false, font: { size: 14, weight: "bold" } }, grid: { display: false }, border: { display: false } },
-            y: { beginAtZero: true, suggestedMax, ticks: { display: false }, grid: { display: false }, border: { display: false } }
-          }
+scales: {
+  x: {
+    ticks: {
+      maxRotation: usarRotacao ? 30 : 0,
+      minRotation: usarRotacao ? 30 : 0,
+      autoSkip: false,
+      font: { size: 14, weight: "bold" }
+    },
+    grid: { display: false },
+    border: { display: false }
+  },
+  y: {
+    beginAtZero: true,
+    suggestedMax,
+    ticks: { display: false },
+    grid: { display: false },
+    border: { display: false }
+  }
+}
         },
         plugins: [barShadowPlugin, valueOnTopPluginMeses12]
       });
@@ -2408,7 +2423,9 @@
     function renderTop25Lojas(labels, values) {
       const canvas = document.getElementById("chartTop25Lojas");
       if (!canvas) return;
-
+      
+      const usarRotacao = (labels || []).length > 15;
+      
       if (chartTop25Lojas) chartTop25Lojas.destroy();
 
       const isMobile = window.matchMedia("(max-width: 640px)").matches;
