@@ -2500,6 +2500,129 @@ function renderTop25Lojas(labels, values) {
     plugins: [barShadowPlugin, valueOnTopPlugin]
   });
 }
+
+function renderDept(labels, values, corBarra) {
+  const ctx = document.getElementById("chartDept");
+  if (chartDept) chartDept.destroy();
+
+  const valueAtEndPlugin = {
+    id: "valueAtEndPlugin",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
+
+      ctx.save();
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "bold 12px Arial";
+      ctx.fillStyle = "#111";
+
+      meta.data.forEach((bar, i) => {
+        const val = chart.data.datasets[0].data[i];
+        const xRaw = bar.x + 8;
+        const x = Math.min(xRaw, chart.width - 8);
+        ctx.fillText(String(val), x, bar.y);
+      });
+
+      ctx.restore();
+    }
+  };
+
+  const bg = buildGradientAlphaColors(corBarra || "#A98AE8", (values || []).length);
+
+  const maxVal = Math.max(1, ...(values || []).map(v => Number(v) || 0));
+  
+  chartDept = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "OCORRÊNCIAS POR DPTO",
+        data: values,
+        backgroundColor: bg,
+        clip: false
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { left: 2, right: 30 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (item) => `Ocorrências: ${item.raw}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: maxVal,
+          ticks: { display: false },
+          grid: { display: false },
+          border: { display: false }
+        },
+        y: {
+          ticks: {
+            autoSkip: false,
+            padding: 6,
+            align: "start",
+            crossAlign: "near",
+            font: { weight: "bold" },
+            callback: function(value){
+              const label = this.getLabelForValue(value);
+
+              const isMobile = window.matchMedia("(max-width: 640px)").matches;
+              const maxLen = isMobile ? 14 : 13;
+
+              const text = String(label ?? "").trim();
+              if (!text) return "N/I";
+              if (text.length <= maxLen) return text;
+              return text.slice(0, maxLen - 1) + "…";
+            }
+          },
+
+          afterFit: (scale) => {
+            try{
+              const chart = scale.chart;
+              const ctx = chart && chart.ctx;
+              if (!ctx) return;
+
+              const isMobile = window.matchMedia("(max-width: 640px)").matches;
+              const maxLen = isMobile ? 15 : 13;
+
+              ctx.save();
+              ctx.font = "bold 12px Arial";
+
+              const labels = (chart.data && chart.data.labels ? chart.data.labels : []).slice(0, 12);
+
+              let maxW = 0;
+              for (const raw of labels) {
+                let t = String(raw ?? "").trim() || "N/I";
+                if (t.length > maxLen) t = t.slice(0, maxLen - 1) + "…";
+                maxW = Math.max(maxW, ctx.measureText(t).width);
+              }
+              ctx.restore();
+
+              const paddingPx = 10;
+              const minW = isMobile ? 95 : 105;
+              const maxWCap = isMobile ? 150 : 170;
+
+              scale.width = Math.min(maxWCap, Math.max(minW, Math.ceil(maxW + paddingPx)));
+            }catch(e){}
+          },
+
+          grid: { display: false },
+          border: { display: false }
+        }
+      }
+    },
+    plugins: [barShadowPlugin, valueAtEndPlugin]
+  });
+}
     function renderPctBandeira(qtdBIG, qtdULT) {
       const ctx = document.getElementById("chartPctBandeira");
       if (chartPctBandeira) chartPctBandeira.destroy();
