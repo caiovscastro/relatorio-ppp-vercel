@@ -45,7 +45,6 @@ function sleep(ms) {
 }
 
 function getGoogleStatus(err) {
-  // googleapis costuma preencher err.code (number) e/ou err.response.status
   const c = err?.code;
   const s = err?.response?.status;
   const status = Number.isFinite(Number(c)) ? Number(c) : (Number.isFinite(Number(s)) ? Number(s) : null);
@@ -66,7 +65,6 @@ async function withRetry(fn, { tries = 4, baseMs = 250 } = {}) {
       const status = getGoogleStatus(err);
       if (!isTransientGoogleError(status)) throw err;
 
-      // backoff exponencial com jitter leve
       const wait = Math.round(baseMs * Math.pow(2, i) + Math.random() * 120);
       await sleep(wait);
     }
@@ -183,16 +181,13 @@ export default async function handler(req, res) {
     }
 
     const perfil = normUpper(encontrado.perfil || "");
-    const perfisPermitidos = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP"];
+    const perfisPermitidos = ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP", "BASE_BD"];
     if (!perfisPermitidos.includes(perfil)) {
       return res.status(403).json({ sucesso: false, message: "Usuário não habilitado para este acesso." });
     }
 
-    // ✅ primeiro login?
     const precisaTrocar = (String(encontrado.primeiroLogin || "NAO") === "SIM");
 
-    // ✅ ÚNICA MUDANÇA FUNCIONAL:
-    // se precisa trocar, o cookie já sai "travado" (forcePwdChange)
     createSessionCookie(
       res,
       {
