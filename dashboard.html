@@ -773,7 +773,7 @@
 
   <div id="app" class="wrap" style="display:none;">
 
-    <div class="layout">
+    <div class="layout" id="captureArea">
 
       <div class="sidecol">
 
@@ -1927,8 +1927,8 @@
       return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
     }
     
-async function capturarTela() {
-  const alvo = document.getElementById("app");
+    async function capturarTela() {
+  const alvo = document.getElementById("captureArea");
   if (!alvo || typeof htmlToImage === "undefined") return;
 
   const paineis = Array.from(document.querySelectorAll(".dd-panel"));
@@ -1946,16 +1946,15 @@ async function capturarTela() {
       try {
         const dataUrl = canvas.toDataURL("image/png", 1.0);
         const img = document.createElement("img");
+        const rect = canvas.getBoundingClientRect();
 
         img.src = dataUrl;
         img.alt = "";
         img.setAttribute("aria-hidden", "true");
-
-        const rect = canvas.getBoundingClientRect();
         img.style.display = "block";
         img.style.width = `${rect.width}px`;
         img.style.height = `${rect.height}px`;
-        img.style.maxWidth = "none";
+        img.style.maxWidth = "100%";
         img.style.objectFit = "contain";
 
         const prevVisibility = canvas.style.visibility;
@@ -1964,69 +1963,15 @@ async function capturarTela() {
 
         substituicoes.push({ canvas, img, prevVisibility });
       } catch (e) {
-        console.warn("Falha ao converter canvas para imagem temporária:", e);
+        console.warn("Falha ao converter canvas:", e);
       }
     }
 
     await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 80)));
 
-    const todos = [alvo, ...Array.from(alvo.querySelectorAll("*"))]
-      .filter(el => {
-        const st = window.getComputedStyle(el);
-        return st.display !== "none" && st.visibility !== "hidden";
-      });
-
-    let minLeft = Infinity;
-    let minTop = Infinity;
-    let maxRight = -Infinity;
-    let maxBottom = -Infinity;
-
-    todos.forEach(el => {
-      const r = el.getBoundingClientRect();
-      if (!r.width && !r.height) return;
-
-      minLeft = Math.min(minLeft, r.left);
-      minTop = Math.min(minTop, r.top);
-      maxRight = Math.max(maxRight, r.right);
-      maxBottom = Math.max(maxBottom, r.bottom);
-    });
-
-    const alvoRect = alvo.getBoundingClientRect();
-
-    if (!Number.isFinite(minLeft)) {
-      minLeft = alvoRect.left;
-      minTop = alvoRect.top;
-      maxRight = alvoRect.right;
-      maxBottom = alvoRect.bottom;
-    }
-
-    const extraPad = 8;
-    const fullWidth = Math.ceil(Math.max(alvo.scrollWidth, maxRight - minLeft) + extraPad);
-    const fullHeight = Math.ceil(Math.max(alvo.scrollHeight, maxBottom - minTop) + extraPad);
-
-    const prev = {
-      width: alvo.style.width,
-      maxWidth: alvo.style.maxWidth,
-      minWidth: alvo.style.minWidth,
-      height: alvo.style.height,
-      minHeight: alvo.style.minHeight,
-      overflow: alvo.style.overflow,
-      overflowX: alvo.style.overflowX,
-      overflowY: alvo.style.overflowY,
-      display: alvo.style.display
-    };
-
-    alvo.style.width = `${fullWidth}px`;
-    alvo.style.maxWidth = "none";
-    alvo.style.minWidth = `${fullWidth}px`;
-    alvo.style.height = `${fullHeight}px`;
-    alvo.style.minHeight = `${fullHeight}px`;
-    alvo.style.overflow = "visible";
-    alvo.style.overflowX = "visible";
-    alvo.style.overflowY = "visible";
-    alvo.style.display = "block";
-
-    await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 80)));
+    const rect = alvo.getBoundingClientRect();
+    const fullWidth = Math.ceil(alvo.scrollWidth || rect.width || 1);
+    const fullHeight = Math.ceil(alvo.scrollHeight || rect.height || 1);
 
     const pixelRatio = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
 
@@ -2039,29 +1984,10 @@ async function capturarTela() {
       canvasWidth: Math.round(fullWidth * pixelRatio),
       canvasHeight: Math.round(fullHeight * pixelRatio),
       style: {
-        width: `${fullWidth}px`,
-        maxWidth: "none",
-        minWidth: `${fullWidth}px`,
-        height: `${fullHeight}px`,
-        minHeight: `${fullHeight}px`,
-        overflow: "visible",
-        overflowX: "visible",
-        overflowY: "visible",
         transform: "none",
-        transformOrigin: "top left",
-        margin: "0"
+        transformOrigin: "top left"
       }
     });
-
-    alvo.style.width = prev.width;
-    alvo.style.maxWidth = prev.maxWidth;
-    alvo.style.minWidth = prev.minWidth;
-    alvo.style.height = prev.height;
-    alvo.style.minHeight = prev.minHeight;
-    alvo.style.overflow = prev.overflow;
-    alvo.style.overflowX = prev.overflowX;
-    alvo.style.overflowY = prev.overflowY;
-    alvo.style.display = prev.display;
 
     const link = document.createElement("a");
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -2082,6 +2008,7 @@ async function capturarTela() {
     finalizarProgressoEnvio();
   }
 }
+
     async function carregar(forcarFetch = false) {
       const status = document.getElementById("status");
       const subInfo = document.getElementById("subInfo");
