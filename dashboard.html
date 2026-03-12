@@ -280,6 +280,24 @@
       background: linear-gradient(180deg, #ffffff 0%, #e4e4e4 100%);
     }
 
+    .btn-capture{
+      background: linear-gradient(180deg, #ffffff 0%, #ececec 100%);
+      color: #111;
+      border-color: #cfcfcf;
+      gap: 8px;
+    }
+
+    .btn-capture:hover{
+      background: linear-gradient(180deg, #ffffff 0%, #e4e4e4 100%);
+    }
+
+    .btn-capture svg{
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      display: block;
+    }
+
     .select-filter{
       border: 1px solid #d6d6d6;
       background: #fff;
@@ -346,9 +364,13 @@
     }
 
     .input-money{
-      width: 102px;
-      min-width: 102px;
-      text-align: right;
+      width: 100%;
+      min-width: 0;
+      text-align: center;
+    }
+
+    .input-money::placeholder{
+      text-align: center;
     }
 
     .dd-wrap{
@@ -460,6 +482,25 @@
       margin-top: 2px;
     }
 
+    .participacao-card{
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 18px;
+      border: 1px solid #cfcfcf;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f3f3 100%);
+      color: #555;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      font-weight: 800;
+      font-size: 14px;
+      text-align: center;
+      line-height: 1;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+
     .canvas-wrap{
       position: relative;
       height: 210px;
@@ -544,6 +585,15 @@
       object-fit: contain;
       display: block;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+    }
+
+    .sidebar-section-title{
+      margin: 4px 0 -2px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #111;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
     }
 
     .status{
@@ -638,6 +688,10 @@
         min-width: 0;
       }
 
+      .sidebar-section-title{
+        grid-column: 1 / -1;
+      }
+
       .input-date,
       .input-money{
         width: 100%;
@@ -672,6 +726,12 @@
       .canvas-hscroll canvas{
         width: auto !important;
         max-width: none !important;
+      }
+
+      .participacao-card{
+        white-space: normal;
+        line-height: 1.2;
+        min-height: 42px;
       }
     }
 
@@ -723,13 +783,23 @@
             <img src="https://i.ibb.co/prMfd6Fs/IMG-20260121-161142.png" alt="Imagem do painel" />
           </div>
 
-          <h3>Filtros</h3>
+          <h3>Ações</h3>
 
           <div class="side-stack">
+
+            <button class="btn btn-capture" type="button" onclick="capturarTela()">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M8 6l1.4-2h5.2L16 6h2.5A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-8A2.5 2.5 0 0 1 5.5 6H8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <circle cx="12" cy="12.5" r="3.6" stroke="currentColor" stroke-width="1.8"/>
+              </svg>
+              Capturar tela
+            </button>
 
             <button class="btn btn-refresh" onclick="carregar(true)">Atualizar</button>
 
             <button class="btn btn-back" onclick="voltar()">Voltar</button>
+
+            <div class="sidebar-section-title">Filtros</div>
 
             <input id="dataInicio" class="input-filter input-date" type="date" aria-label="Data início" title="Data início" />
 
@@ -816,12 +886,12 @@
               id="valorVenda"
               class="input-filter input-money"
               type="text"
-              inputmode="decimal"
+              inputmode="text"
               autocomplete="off"
               spellcheck="false"
-              placeholder="Valor Rotativos (ex: 0,00)"
-              aria-label="Valor para participação"
-              title="Valor Rotativos"
+              placeholder="obs."
+              aria-label="Observação"
+              title="Observação"
             />
           </div>
         </div>
@@ -850,7 +920,7 @@
             <div class="big-number" style="height:auto;">
               <div class="n" id="totalOcorrencias">0</div>
               <div class="valor" id="totalValorOcorrencias">R$ 0</div>
-              <div class="participacao" id="pctParticipacao">Recup. x Rotativos: 0%</div>
+              <div class="participacao-card" id="pctParticipacao"></div>
             </div>
 
             <div class="ocorrencias-pie">
@@ -935,6 +1005,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
 
   <script>
     const STORAGE_KEY_GESTOR = "PPP_LOGIN_GESTOR";
@@ -1197,14 +1268,8 @@
 
       const inpVenda = document.getElementById("valorVenda");
       if (inpVenda) {
-        inpVenda.addEventListener("input", () => {
-          formatarCampoMoeda(inpVenda);
-          atualizarParticipacao();
-        });
-        inpVenda.addEventListener("blur", () => {
-          formatarCampoMoeda(inpVenda, { forceTwoDecimals: true });
-          atualizarParticipacao();
-        });
+        inpVenda.addEventListener("input", atualizarParticipacao);
+        inpVenda.addEventListener("blur", atualizarParticipacao);
       }
 
       setupFiltroTurno();
@@ -1798,59 +1863,21 @@
       return true;
     }
 
-    function formatarCampoMoeda(inputEl, opts = {}) {
-      const forceTwoDecimals = !!opts.forceTwoDecimals;
-      if (!inputEl) return;
-
-      const original = String(inputEl.value || "");
-      const neg = original.includes("-");
-      const digits = original.replace(/[^\d]/g, "");
-
-      if (!digits) {
-        inputEl.value = (neg ? "-" : "") + (forceTwoDecimals ? "0,00" : "");
-        return;
-      }
-
-      const cents = parseInt(digits, 10);
-      const valor = (isNaN(cents) ? 0 : cents) / 100;
-
-      const formatado = valor.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-
-      inputEl.value = (neg ? "-" : "") + formatado;
-    }
-
-    function parseMoedaInput(valorStr) {
-      let s = String(valorStr || "").trim();
-      if (!s) return 0;
-
-      const neg = s.includes("-");
-      s = s.replace(/-/g, "");
-      s = s.replace(/[R$\s]/g, "");
-
-      const n = parseNumeroBr(s);
-      return neg ? -Math.abs(n) : n;
-    }
-
     function atualizarParticipacao() {
       const el = document.getElementById("pctParticipacao");
       const inp = document.getElementById("valorVenda");
       if (!el || !inp) return;
 
-      const venda = parseMoedaInput(inp.value);
-      const base = Number(totalValorOcorrenciasAtual) || 0;
+      const texto = String(inp.value || "").trim();
 
-      let pct = 0;
-      if (venda !== 0) pct = (base * 100) / venda;
+      if (!texto) {
+        el.textContent = "";
+        el.style.display = "none";
+        return;
+      }
 
-      const pctStr = (Number.isFinite(pct) ? pct : 0).toLocaleString("pt-BR", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      });
-
-      el.textContent = `Recup. x Rotativos: ${pctStr}%`;
+      el.textContent = texto;
+      el.style.display = "inline-flex";
     }
 
     let __envioTimer = null;
@@ -1898,6 +1925,53 @@
 
     function esperarPintarUI() {
       return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+    }
+
+    async function capturarTela() {
+      const alvo = document.getElementById("app");
+      if (!alvo || typeof htmlToImage === "undefined") return;
+
+      const btns = Array.from(document.querySelectorAll(".dd-panel"));
+      btns.forEach(p => {
+        p.style.display = "none";
+      });
+
+      iniciarProgressoEnvio();
+      await esperarPintarUI();
+
+      try {
+        const rect = alvo.getBoundingClientRect();
+        const width = Math.ceil(alvo.scrollWidth || rect.width || 1);
+        const height = Math.ceil(alvo.scrollHeight || rect.height || 1);
+        const pixelRatio = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
+
+        const dataUrl = await htmlToImage.toPng(alvo, {
+          cacheBust: true,
+          backgroundColor: "#f2f2f2",
+          pixelRatio,
+          width,
+          height,
+          canvasWidth: Math.round(width * pixelRatio),
+          canvasHeight: Math.round(height * pixelRatio),
+          style: {
+            transform: "none",
+            transformOrigin: "top left"
+          }
+        });
+
+        const link = document.createElement("a");
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        link.download = `dashboard-ocorrencias-${stamp}.png`;
+        link.href = dataUrl;
+        link.click();
+
+        document.getElementById("status").textContent = "Captura gerada com sucesso.";
+      } catch (e) {
+        console.error("Erro ao capturar tela:", e);
+        document.getElementById("status").textContent = "Erro ao capturar a tela.";
+      } finally {
+        finalizarProgressoEnvio();
+      }
     }
 
     async function carregar(forcarFetch = false) {
@@ -2767,18 +2841,18 @@
       };
 
       chartPctBandeira = new Chart(ctx, {
-        type: "doughnut",
+        type: "pie",
         data: {
           labels: ["BIG", "ULT"],
           datasets: [{
             data: [qtdBIG || 0, qtdULT || 0],
-            backgroundColor: ["#A98AE8", "#43A047"]
+            backgroundColor: ["#A98AE8", "#43A047"],
+            borderWidth: 0
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: "62%",
           plugins: {
             legend: {
               display: true,
