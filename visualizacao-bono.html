@@ -846,10 +846,15 @@
       const p = normKey(perfil);
       return p.includes("GERENTE_PPP") || (p.includes("GERENTE") && p.includes("PPP"));
     }
-    function perfilEhBasePPP(perfil){
-      const p = normKey(perfil);
-      return p.includes("BASE_PPP") || (p.includes("BASE") && p.includes("PPP"));
-    }
+function perfilEhBasePPP(perfil){
+  const p = normKey(perfil);
+
+  return (
+    p.includes("BASE_PPP") ||
+    p.includes("BASE_BD") ||
+    (p.includes("BASE") && p.includes("PPP"))
+  );
+}
 
     function extrairDataISO(dataHoraBR){
       const t = normStr(dataHoraBR);
