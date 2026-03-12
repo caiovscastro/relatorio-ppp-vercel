@@ -1926,27 +1926,18 @@
     function esperarPintarUI() {
       return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
     }
-
+    
   async function capturarTela() {
     const alvo = document.getElementById("app");
     if (!alvo || typeof htmlToImage === "undefined") return;
 
     const paineis = Array.from(document.querySelectorAll(".dd-panel"));
-    paineis.forEach(p => {
-      p.style.display = "none";
-    });
+    paineis.forEach(p => p.style.display = "none");
 
     iniciarProgressoEnvio();
     await esperarPintarUI();
 
-    const prev = {
-      width: alvo.style.width,
-      maxWidth: alvo.style.maxWidth,
-      minWidth: alvo.style.minWidth,
-      overflow: alvo.style.overflow,
-      overflowX: alvo.style.overflowX,
-      display: alvo.style.display
-    };
+    let cloneWrap = null;
 
     try {
       const rect = alvo.getBoundingClientRect();
@@ -1965,18 +1956,39 @@
         rect.height || 0
       ));
 
-      alvo.style.width = `${fullWidth}px`;
-      alvo.style.maxWidth = "none";
-      alvo.style.minWidth = `${fullWidth}px`;
-      alvo.style.overflow = "visible";
-      alvo.style.overflowX = "visible";
-      alvo.style.display = "block";
+      cloneWrap = document.createElement("div");
+      cloneWrap.style.position = "fixed";
+      cloneWrap.style.left = "-100000px";
+      cloneWrap.style.top = "0";
+      cloneWrap.style.width = `${fullWidth}px`;
+      cloneWrap.style.height = `${fullHeight}px`;
+      cloneWrap.style.overflow = "visible";
+      cloneWrap.style.pointerEvents = "none";
+      cloneWrap.style.zIndex = "-1";
+      cloneWrap.style.background = "#f2f2f2";
 
-      await esperarPintarUI();
+      const clone = alvo.cloneNode(true);
+      clone.style.width = `${fullWidth}px`;
+      clone.style.maxWidth = "none";
+      clone.style.minWidth = `${fullWidth}px`;
+      clone.style.margin = "0";
+      clone.style.overflow = "visible";
+      clone.style.overflowX = "visible";
+      clone.style.boxSizing = "border-box";
+      clone.style.display = "block";
+
+      clone.querySelectorAll("*").forEach(el => {
+        el.style.maxWidth = el.style.maxWidth === "100%" ? "none" : el.style.maxWidth;
+      });
+
+      cloneWrap.appendChild(clone);
+      document.body.appendChild(cloneWrap);
+
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 60)));
 
       const pixelRatio = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
 
-      const dataUrl = await htmlToImage.toPng(alvo, {
+      const dataUrl = await htmlToImage.toPng(clone, {
         cacheBust: true,
         backgroundColor: "#f2f2f2",
         pixelRatio,
@@ -1991,7 +2003,8 @@
           overflow: "visible",
           overflowX: "visible",
           transform: "none",
-          transformOrigin: "top left"
+          transformOrigin: "top left",
+          margin: "0"
         }
       });
 
@@ -2006,17 +2019,12 @@
       console.error("Erro ao capturar tela:", e);
       document.getElementById("status").textContent = "Erro ao capturar a tela.";
     } finally {
-      alvo.style.width = prev.width;
-      alvo.style.maxWidth = prev.maxWidth;
-      alvo.style.minWidth = prev.minWidth;
-      alvo.style.overflow = prev.overflow;
-      alvo.style.overflowX = prev.overflowX;
-      alvo.style.display = prev.display;
-
+      if (cloneWrap && cloneWrap.parentNode) {
+        cloneWrap.parentNode.removeChild(cloneWrap);
+      }
       finalizarProgressoEnvio();
     }
   }
-
     async function carregar(forcarFetch = false) {
       const status = document.getElementById("status");
       const subInfo = document.getElementById("subInfo");
