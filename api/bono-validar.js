@@ -42,7 +42,9 @@ export default async function handler(req, res) {
     return bad(res, 405, "Método não permitido. Use POST.");
   }
 
-  const session = requireSession(req, res);
+  const session = requireSession(req, res, {
+    allowedProfiles: ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP", "BASE_BD"]
+  });
   if (!session) return;
 
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
@@ -87,7 +89,7 @@ export default async function handler(req, res) {
     const updates = [];
     for (let i = 1; i < values.length; i++) {
       const row = values[i] || [];
-      const docCell = normStr(row[11]); // L
+      const docCell = normStr(row[11]);
 
       if (docCell && normKey(docCell) === normKey(documento)) {
         const sheetRow = i + 1;
