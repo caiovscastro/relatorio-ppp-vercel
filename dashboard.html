@@ -1927,52 +1927,95 @@
       return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
     }
 
-    async function capturarTela() {
-      const alvo = document.getElementById("app");
-      if (!alvo || typeof htmlToImage === "undefined") return;
+  async function capturarTela() {
+    const alvo = document.getElementById("app");
+    if (!alvo || typeof htmlToImage === "undefined") return;
 
-      const btns = Array.from(document.querySelectorAll(".dd-panel"));
-      btns.forEach(p => {
-        p.style.display = "none";
-      });
+    const paineis = Array.from(document.querySelectorAll(".dd-panel"));
+    paineis.forEach(p => {
+      p.style.display = "none";
+    });
 
-      iniciarProgressoEnvio();
+    iniciarProgressoEnvio();
+    await esperarPintarUI();
+
+    const prev = {
+      width: alvo.style.width,
+      maxWidth: alvo.style.maxWidth,
+      minWidth: alvo.style.minWidth,
+      overflow: alvo.style.overflow,
+      overflowX: alvo.style.overflowX,
+      display: alvo.style.display
+    };
+
+    try {
+      const rect = alvo.getBoundingClientRect();
+
+      const fullWidth = Math.ceil(Math.max(
+        alvo.scrollWidth || 0,
+        alvo.offsetWidth || 0,
+        alvo.clientWidth || 0,
+        rect.width || 0
+      ));
+
+      const fullHeight = Math.ceil(Math.max(
+        alvo.scrollHeight || 0,
+        alvo.offsetHeight || 0,
+        alvo.clientHeight || 0,
+        rect.height || 0
+      ));
+
+      alvo.style.width = `${fullWidth}px`;
+      alvo.style.maxWidth = "none";
+      alvo.style.minWidth = `${fullWidth}px`;
+      alvo.style.overflow = "visible";
+      alvo.style.overflowX = "visible";
+      alvo.style.display = "block";
+
       await esperarPintarUI();
 
-      try {
-        const rect = alvo.getBoundingClientRect();
-        const width = Math.ceil(alvo.scrollWidth || rect.width || 1);
-        const height = Math.ceil(alvo.scrollHeight || rect.height || 1);
-        const pixelRatio = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
+      const pixelRatio = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
 
-        const dataUrl = await htmlToImage.toPng(alvo, {
-          cacheBust: true,
-          backgroundColor: "#f2f2f2",
-          pixelRatio,
-          width,
-          height,
-          canvasWidth: Math.round(width * pixelRatio),
-          canvasHeight: Math.round(height * pixelRatio),
-          style: {
-            transform: "none",
-            transformOrigin: "top left"
-          }
-        });
+      const dataUrl = await htmlToImage.toPng(alvo, {
+        cacheBust: true,
+        backgroundColor: "#f2f2f2",
+        pixelRatio,
+        width: fullWidth,
+        height: fullHeight,
+        canvasWidth: Math.round(fullWidth * pixelRatio),
+        canvasHeight: Math.round(fullHeight * pixelRatio),
+        style: {
+          width: `${fullWidth}px`,
+          maxWidth: "none",
+          minWidth: `${fullWidth}px`,
+          overflow: "visible",
+          overflowX: "visible",
+          transform: "none",
+          transformOrigin: "top left"
+        }
+      });
 
-        const link = document.createElement("a");
-        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-        link.download = `dashboard-ocorrencias-${stamp}.png`;
-        link.href = dataUrl;
-        link.click();
+      const link = document.createElement("a");
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      link.download = `dashboard-ocorrencias-${stamp}.png`;
+      link.href = dataUrl;
+      link.click();
 
-        document.getElementById("status").textContent = "Captura gerada com sucesso.";
-      } catch (e) {
-        console.error("Erro ao capturar tela:", e);
-        document.getElementById("status").textContent = "Erro ao capturar a tela.";
-      } finally {
-        finalizarProgressoEnvio();
-      }
+      document.getElementById("status").textContent = "Captura gerada com sucesso.";
+    } catch (e) {
+      console.error("Erro ao capturar tela:", e);
+      document.getElementById("status").textContent = "Erro ao capturar a tela.";
+    } finally {
+      alvo.style.width = prev.width;
+      alvo.style.maxWidth = prev.maxWidth;
+      alvo.style.minWidth = prev.minWidth;
+      alvo.style.overflow = prev.overflow;
+      alvo.style.overflowX = prev.overflowX;
+      alvo.style.display = prev.display;
+
+      finalizarProgressoEnvio();
     }
+  }
 
     async function carregar(forcarFetch = false) {
       const status = document.getElementById("status");
