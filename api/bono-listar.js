@@ -73,7 +73,9 @@ export default async function handler(req, res) {
     return bad(res, 405, "Método não permitido. Use GET.");
   }
 
-  const session = requireSession(req, res);
+  const session = requireSession(req, res, {
+    allowedProfiles: ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP", "BASE_BD"]
+  });
   if (!session) return;
 
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
