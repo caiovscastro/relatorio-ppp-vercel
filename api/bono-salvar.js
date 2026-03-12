@@ -17,9 +17,6 @@ function ok(res, obj) {
 function pad2(n){ return String(n).padStart(2, "0"); }
 function pad3(n){ return String(n).padStart(3, "0"); }
 
-/* ==========================
-   ✅ São Paulo SEM perder ms
-========================== */
 function getSaoPauloStamp() {
   const now = new Date();
   const ms = now.getMilliseconds();
@@ -46,9 +43,9 @@ function getSaoPauloStamp() {
   const MI = map.minute;
   const SS = map.second;
 
-  const dataHoraRede = `${dd}/${mm}/${yyyy} ${HH}:${MI}:${SS}`; // A
-  const data8 = `${dd}${mm}${yyyy}`;                            // p/ documento
-  const hora6 = `${HH}${MI}${SS}`;                              // p/ documento
+  const dataHoraRede = `${dd}/${mm}/${yyyy} ${HH}:${MI}:${SS}`;
+  const data8 = `${dd}${mm}${yyyy}`;
+  const hora6 = `${HH}${MI}${SS}`;
 
   return { dataHoraRede, data8, hora6, ms };
 }
@@ -78,18 +75,12 @@ function normalizarTexto(x, max) {
   return s.length > max ? s.slice(0, max) : s;
 }
 
-/* =========================================
-   ✅ Placa: A-Z0-9, maiúsculo, máx 7
-========================================= */
 function normalizarPlaca(x) {
   const up = String(x || "").toUpperCase().trim();
   const alnum = up.replace(/[^A-Z0-9]/g, "");
   return alnum.slice(0, 7);
 }
 
-/* =========================================
-   ✅ parser de número pt-BR
-========================================= */
 function parseNumeroPtBR(valor) {
   if (typeof valor === "number") {
     if (!Number.isFinite(valor)) return null;
@@ -170,7 +161,6 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
-/* ===== Documento único (coluna L) ===== */
 function normalizarUsuarioParaId(usuario){
   const s0 = String(usuario || "").trim();
   const semAcento = s0.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -215,10 +205,6 @@ function statusPorTipo(tipoLancamento) {
     : "Validado";
 }
 
-/* =========================================================
-   ✅ CONFIRMAÇÃO REAL: RELER NA PLANILHA O QUE FOI GRAVADO
-   + ✅ RETRY ATÉ 10s (backoff com jitter)
-========================================================= */
 function sleep(ms){
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -234,7 +220,7 @@ async function confirmarLeituraNaPlanilhaComRetry({ sheets, documentoUnico, qtdE
     return { ok: false, motivo: "append sem updatedRange; não foi possível verificar a base de dados." };
   }
 
-  const r = updatedRange.trim(); // ex: "BONO!A123:Q127"
+  const r = updatedRange.trim();
 
   const delaysBase = [150, 250, 400, 650, 900, 1200, 1600, 2000, 2400];
 
@@ -310,7 +296,9 @@ export default async function handler(req, res) {
     return bad(res, 405, "Método não permitido. Use POST.");
   }
 
-  const session = requireSession(req, res);
+  const session = requireSession(req, res, {
+    allowedProfiles: ["ADMINISTRADOR", "GERENTE_PPP", "BASE_PPP", "BASE_BD"]
+  });
   if (!session) return;
 
   if (!serviceAccountEmail || !privateKey || !spreadsheetId) {
@@ -324,9 +312,8 @@ export default async function handler(req, res) {
   const fornecedor = normalizarTexto(body.fornecedor, 80);
   const placaVeiculo = normalizarPlaca(body.placaVeiculo);
 
-  // ✅ NOVO: P/Q (obrigatório somente quando tiver MOV)
-  const solicitadoPor = normalizarTexto(body.solicitadoPor, 80);   // P
-  const transportadoPor = normalizarTexto(body.transportadoPor, 80); // Q
+  const solicitadoPor = normalizarTexto(body.solicitadoPor, 80);
+  const transportadoPor = normalizarTexto(body.transportadoPor, 80);
 
   const itens = Array.isArray(body.itens) ? body.itens : [];
 
@@ -356,7 +343,6 @@ export default async function handler(req, res) {
     return bad(res, 400, 'Fornecedor é obrigatório para "Recebimento de mercadorias".');
   }
 
-  // ✅ MOV exige P/Q
   if (temMov) {
     if (!solicitadoPor) return bad(res, 400, 'Campo "Solicitado por" é obrigatório em Movimentação interna.');
     if (!transportadoPor) return bad(res, 400, 'Campo "Transportado por" é obrigatório em Movimentação interna.');
@@ -378,28 +364,27 @@ export default async function handler(req, res) {
 
     const fornecedorLinha = (it.tipoLancamento === "RECEBIMENTO") ? fornecedor : "";
 
-    // ✅ P/Q só em MOV
     const solicitadoLinha = (it.tipoLancamento === "MOV_INTERNA") ? solicitadoPor : "";
     const transportadoLinha = (it.tipoLancamento === "MOV_INTERNA") ? transportadoPor : "";
 
     return [
-      spStamp.dataHoraRede,     // A
-      dataHoraEscolhida,        // B
-      loja,                     // C
-      usuario,                  // D
-      encarregado,              // E
-      it.produto,               // F
-      it.quantidade,            // G
-      it.embalagem,             // H
-      destino,                  // I
-      tipoTxt,                  // J
-      status,                   // K
-      documentoUnico,           // L
-      fornecedorLinha,          // M
-      placaVeiculo,             // N
-      "",                       // O ✅ Usuario q validou (vazio no salvar)
-      solicitadoLinha,          // P ✅ Solicitado por
-      transportadoLinha         // Q ✅ Transportado por
+      spStamp.dataHoraRede,
+      dataHoraEscolhida,
+      loja,
+      usuario,
+      encarregado,
+      it.produto,
+      it.quantidade,
+      it.embalagem,
+      destino,
+      tipoTxt,
+      status,
+      documentoUnico,
+      fornecedorLinha,
+      placaVeiculo,
+      "",
+      solicitadoLinha,
+      transportadoLinha
     ];
   });
 
@@ -408,7 +393,7 @@ export default async function handler(req, res) {
 
     const appendResp = await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "BONO!A1:Q1", // ✅ ancora na tabela A:Q
+      range: "BONO!A1:Q1",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values }
