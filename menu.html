@@ -68,7 +68,7 @@
       background:
         radial-gradient(1200px 700px at 15% 18%, rgba(59,130,246,.20), transparent 62%),
         radial-gradient(900px 600px at 85% 35%, rgba(124,58,237,.16), transparent 58%),
-        radial-gradient(900px 520px at 50% 88%, rgba(16,185,129,.10), transparent 62%),
+        radial-gradient(900px 520px 520px at 50% 88%, rgba(16,185,129,.10), transparent 62%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       background-color: var(--bg0);
 
@@ -462,7 +462,6 @@
         </div>
       </div>
 
-      <!-- 3 primeiros -> roxo (btn-purple) -->
       <button class="btn btn-purple" id="btnLancamento" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
@@ -511,7 +510,6 @@
         </span>
       </button>
 
-      <!-- Contagem + Dashboard carrinhos -> ciano (btn-cyan) -->
       <button class="btn btn-cyan" id="btnContagemCarrinhos" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
@@ -545,7 +543,6 @@
         </span>
       </button>
 
-      <!-- Bono + Visualização -> azul (btn-blue) -->
       <button class="btn btn-blue" id="btnBonoDigital" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
@@ -569,14 +566,13 @@
               <path class="icoFlat" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
             </svg>
           </span>
-          <span class="btnLabel">Visualização Lançamentos Bono</span>
+          <span class="btnLabel">Visualização Bono</span>
           <svg class="btnChevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M9 6l6 6-6 6" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
       </button>
 
-      <!-- Gestão + Produtividade -> mesma cor do Produtividade (no seu CSS atual é btn-blue) -->
       <button class="btn btn-blue" id="btnUsuariosAdmin" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
@@ -609,7 +605,6 @@
         </span>
       </button>
 
-      <!-- Sair permanece cinza -->
       <button class="btn btn-gray" id="btnSair" type="button">
         <span class="btnInner">
           <span class="btnIcon" aria-hidden="true">
@@ -761,6 +756,7 @@
 
       const podeTudo = (p === "GERENTE_PPP" || p === "ADMINISTRADOR");
       const podeBase = (p === "BASE_PPP");
+      const podeBaseBd = (p === "BASE_BD");
 
       const acesso = {
         lancamento: (podeTudo || podeBase),
@@ -768,8 +764,8 @@
         contagemCarrinhos: (podeTudo || podeBase),
         dashboardCarrinhos: (podeTudo || podeBase),
         gerencial: (podeTudo),
-        bonoDigital: !!p,
-        visualizacaoBono: !!p,
+        bonoDigital: (podeTudo || podeBase || podeBaseBd),
+        visualizacaoBono: (podeTudo || podeBase || podeBaseBd),
         usuariosAdmin: (p === "ADMINISTRADOR"),
         produtividade: (podeTudo || podeBase),
         sair: !!p
