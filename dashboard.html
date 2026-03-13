@@ -1981,7 +1981,7 @@ async function capturarTela() {
     paineis.forEach(el => el.classList.add("hidden-on-capture"));
 
     target.classList.add("capturePrintMode");
-    target.style.padding = "3";
+    target.style.padding = "0";
     document.body.style.overflow = "visible";
 
     scrollAreas.forEach(el => {
@@ -2000,7 +2000,7 @@ async function capturarTela() {
 
     const dataUrl = await htmlToImage.toPng(target, {
       cacheBust: true,
-      pixelRatio: 3,
+      pixelRatio: 6,
       backgroundColor: "#ffffff",
       skipFonts: false
     });
