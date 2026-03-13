@@ -760,6 +760,37 @@
       line-height: 1;
       margin: 0;
     }
+    
+.hidden-on-capture{
+  display: none !important;
+}
+
+.capturePrintMode{
+  padding: 0 !important;
+}
+
+.capturePrintMode .canvas-hscroll{
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  height: auto !important;
+}
+
+.capturePrintMode .canvas-hscroll-inner{
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.capturePrintMode .canvas-hscroll canvas{
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.capturePrintMode .dd-panel{
+  display: none !important;
+}
+    
   </style>
 </head>
 
@@ -1927,88 +1958,77 @@
       return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
     }
     
-    async function capturarTela() {
-  const alvo = document.getElementById("captureArea");
-  if (!alvo || typeof htmlToImage === "undefined") return;
+async function capturarTela() {
+  const btn = document.querySelector(".btn-capture");
+  const target = document.getElementById("captureArea");
+  if (!target || typeof htmlToImage === "undefined") return;
 
-  const paineis = Array.from(document.querySelectorAll(".dd-panel"));
-  paineis.forEach(p => { p.style.display = "none"; });
-
-  iniciarProgressoEnvio();
-  await esperarPintarUI();
-
-  const substituicoes = [];
+  const paineis = document.querySelectorAll(".dd-panel");
+  const prevBodyOverflow = document.body.style.overflow;
+  const oldPadding = target.style.padding || "";
+  const scrollAreas = target.querySelectorAll(".canvas-hscroll");
 
   try {
-    const canvases = Array.from(alvo.querySelectorAll("canvas"));
+    if (btn) btn.disabled = true;
 
-    for (const canvas of canvases) {
-      try {
-        const dataUrl = canvas.toDataURL("image/png", 1.0);
-        const img = document.createElement("img");
-        const rect = canvas.getBoundingClientRect();
+    iniciarProgressoEnvio();
 
-        img.src = dataUrl;
-        img.alt = "";
-        img.setAttribute("aria-hidden", "true");
-        img.style.display = "block";
-        img.style.width = `${rect.width}px`;
-        img.style.height = `${rect.height}px`;
-        img.style.maxWidth = "100%";
-        img.style.objectFit = "contain";
+    paineis.forEach(el => el.classList.add("hidden-on-capture"));
 
-        const prevVisibility = canvas.style.visibility;
-        canvas.style.visibility = "hidden";
-        canvas.parentNode.insertBefore(img, canvas.nextSibling);
+    target.classList.add("capturePrintMode");
+    target.style.padding = "0";
+    document.body.style.overflow = "visible";
 
-        substituicoes.push({ canvas, img, prevVisibility });
-      } catch (e) {
-        console.warn("Falha ao converter canvas:", e);
-      }
-    }
+    scrollAreas.forEach(el => {
+      el.dataset.oldOverflow = el.style.overflow || "";
+      el.dataset.oldOverflowX = el.style.overflowX || "";
+      el.dataset.oldOverflowY = el.style.overflowY || "";
+      el.dataset.oldHeight = el.style.height || "";
 
-    await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 80)));
+      el.style.overflow = "visible";
+      el.style.overflowX = "visible";
+      el.style.overflowY = "visible";
+      el.style.height = "auto";
+    });
 
-    const rect = alvo.getBoundingClientRect();
-    const fullWidth = Math.ceil(alvo.scrollWidth || rect.width || 1);
-    const fullHeight = Math.ceil(alvo.scrollHeight || rect.height || 1);
+    await new Promise(r => setTimeout(r, 120));
 
-    const pixelRatio = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
-
-    const dataUrl = await htmlToImage.toPng(alvo, {
+    const dataUrl = await htmlToImage.toPng(target, {
       cacheBust: true,
+      pixelRatio: 2,
       backgroundColor: "#f2f2f2",
-      pixelRatio,
-      width: fullWidth,
-      height: fullHeight,
-      canvasWidth: Math.round(fullWidth * pixelRatio),
-      canvasHeight: Math.round(fullHeight * pixelRatio),
-      style: {
-        transform: "none",
-        transformOrigin: "top left"
-      }
+      skipFonts: false
     });
 
     const link = document.createElement("a");
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    link.download = `dashboard-ocorrencias-${stamp}.png`;
     link.href = dataUrl;
+    link.download = `dashboard-ocorrencias-${new Date().toISOString().slice(0,19).replace(/[:T]/g, "-")}.png`;
+    document.body.appendChild(link);
     link.click();
+    link.remove();
 
     document.getElementById("status").textContent = "Captura gerada com sucesso.";
   } catch (e) {
     console.error("Erro ao capturar tela:", e);
     document.getElementById("status").textContent = "Erro ao capturar a tela.";
   } finally {
-    substituicoes.forEach(({ canvas, img, prevVisibility }) => {
-      canvas.style.visibility = prevVisibility;
-      if (img && img.parentNode) img.parentNode.removeChild(img);
+    paineis.forEach(el => el.classList.remove("hidden-on-capture"));
+
+    target.classList.remove("capturePrintMode");
+    target.style.padding = oldPadding;
+    document.body.style.overflow = prevBodyOverflow;
+
+    scrollAreas.forEach(el => {
+      el.style.overflow = el.dataset.oldOverflow || "";
+      el.style.overflowX = el.dataset.oldOverflowX || "";
+      el.style.overflowY = el.dataset.oldOverflowY || "";
+      el.style.height = el.dataset.oldHeight || "";
     });
 
     finalizarProgressoEnvio();
+    if (btn) btn.disabled = false;
   }
 }
-
     async function carregar(forcarFetch = false) {
       const status = document.getElementById("status");
       const subInfo = document.getElementById("subInfo");
