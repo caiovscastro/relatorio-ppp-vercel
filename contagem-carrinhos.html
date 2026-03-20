@@ -499,24 +499,36 @@
 
       <!-- ====== CARD: MOVIMENTAÇÃO ====== -->
       <div class="card-box card-soft">
-        <h3>
-<img class="icon" id="icoMov" alt="Ícone movimentação" />
-Movimentação de carrinhos -<br>
-<strong>A movimentação deve ser registrada apenas quando houver ocorrência efetiva</strong>, sendo contabilizada exclusivamente na data em que aconteceu.<br>
-Não é necessário repetir registros nos dias subsequentes, pois o histórico já evidencia o momento da movimentação.<br><br>
+<h3 style="display:block; line-height:1.45;">
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+    <img class="icon" id="icoMov" alt="Ícone movimentação" />
+    <span>Movimentação de carrinhos</span>
+    <span id="pillMov" class="pill">0</span>
+  </div>
 
-<strong>Movimentação de entrada:</strong><br>
-Aquisição de novos carrinhos;<br>
-Recebimento de carrinhos de outras lojas;<br>
-Retorno de carrinhos da manutenção.<br><br>
+  <div style="font-size:13px; font-weight:700;">
+    <strong>Senhores,</strong><br><br>
 
-<strong>Movimentação de saída:</strong><br>
-Envio para manutenção;<br>
-Transferência para outras lojas.<br><br>
+    A movimentação deve ser registrada apenas quando houver ocorrência efetiva, sendo contabilizada exclusivamente na data em que aconteceu. Não é necessário repetir registros nos dias subsequentes, pois o histórico já evidencia o dia da movimentação.
+    <br><br>
 
-Na ausência de movimentação, registrar <strong>0 (zero)</strong> na quantidade.
-<span id="pillMov" class="pill">0</span>
-        </h3>
+    <strong>Consideram-se como:</strong>
+    <br><br>
+
+    <strong>Movimentação de entrada:</strong><br>
+    * Aquisição de novos carrinhos.<br>
+    * Recebimento de carrinhos provenientes de outras lojas.<br>
+    * Retorno de carrinhos após manutenção.
+    <br><br>
+
+    <strong>Movimentação de saída:</strong><br>
+    * Envio de carrinhos para manutenção.<br>
+    * Transferência de carrinhos para outras lojas.
+    <br><br>
+
+    Na ausência de qualquer movimentação no dia ou dia anterior, se a movimentação já tiver ocorrido após a contagem, deve-se registrar <strong>0 (zero)</strong> na quantidade.
+  </div>
+</h3>
 
         <div class="mov-row">
           <div class="campo">
