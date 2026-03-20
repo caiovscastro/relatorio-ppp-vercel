@@ -668,15 +668,11 @@
     .toast.show{ display:block; }
   </style>
 </head>
-
 <body>
   <div class="toast" id="toast"></div>
-
   <div class="container">
     <div class="shell">
-
       <h2 class="titulo">RELATÓRIO DE CARRINHOS</h2>
-
       <div id="telaSemSessao" class="tela-erro hidden">
         <div class="card-erro">
           <h2>Login necessário</h2>
@@ -684,18 +680,15 @@
           <button class="btn btn-prim" id="btnIrLogin">Ir para o Login</button>
         </div>
       </div>
-
       <div id="app" class="hidden">
         <div class="grid">
           <div class="left-panel">
-
             <div class="acoes-card userloja-card">
               <div class="userloja-stack">
                 <div class="userloja-valor" id="cardUsuario">—</div>
                 <div class="userloja-valor" id="cardLoja">—</div>
               </div>
             </div>
-
             <div class="acoes-card">
               <h3>Ações</h3>
               <div class="acoes-stack">
@@ -703,10 +696,8 @@
                 <button class="btn btn-sec" id="btnVoltarMenu">Voltar ao Menu</button>
               </div>
             </div>
-
             <div class="painel">
               <h3>Filtros</h3>
-
               <div class="grupo">
                 <div class="grupo-titulo">Datas</div>
 
@@ -714,18 +705,15 @@
                   <label for="dataFinal">Data atual</label>
                   <input id="dataFinal" class="input" type="date" />
                 </div>
-
                 <div class="campo">
                   <label for="dataRef">Data Anterior</label>
                   <input id="dataRef" class="input" type="date" />
                 </div>
               </div>
-
               <div class="grupo">
                 <div class="grupo-titulo">Dimensões</div>
                 <div id="listaDimensoes"></div>
               </div>
-
               <div class="grupo">
                 <div class="grupo-titulo">
                   <span>Tipos</span>
@@ -736,10 +724,8 @@
                 </div>
                 <div class="lista" id="listaTipos"></div>
               </div>
-
               <div class="grupo">
                 <div class="grupo-titulo"><span>Bandeira</span></div>
-
                 <div class="check">
                   <input type="checkbox" id="bandBIG" checked />
                   <label for="bandBIG"><b>BIG</b></label>
@@ -748,15 +734,12 @@
                   <input type="checkbox" id="bandULT" checked />
                   <label for="bandULT"><b>ULT</b></label>
                 </div>
-
                 <div class="grupo-titulo" style="margin-top:10px;"><span>Lojas</span></div>
                 <div class="lista" id="listaLojas"></div>
               </div>
-
               <div class="msg" id="msg"></div>
             </div>
           </div>
-
           <div>
             <div class="content-grid">
               <div class="left-col">
@@ -770,13 +753,11 @@
                     <div class="label">🛒Quebrados</div>
                     <div class="value" id="kpiQuebrados">0</div>
                   </div>
-
                   <div class="kpi">
                     <div class="label">🧺Cestinhas</div>
                     <div class="value" id="kpiCestinhas">0</div>
                   </div>
                 </div>
-
                 <div class="card chart-card">
                   <h3>Quantidade por Tipo</h3>
                   <div class="chart-wrap" id="wrapBarTipos">
@@ -784,7 +765,6 @@
                   </div>
                 </div>
               </div>
-
               <div class="right-col">
                 <div class="card table-card">
                   <h3>Total geral</h3>
@@ -797,7 +777,6 @@
                 </div>
               </div>
             </div>
-
             <div class="card table-fit" style="margin-top:12px;">
               <h3>Carrinhos por modelo</h3>
               <div class="table-wrap">
@@ -807,7 +786,6 @@
                 </table>
               </div>
             </div>
-
             <div class="card table-fit" style="margin-top:12px;">
               <h3>Especiais e Reservas</h3>
               <div class="table-wrap">
@@ -817,11 +795,9 @@
                 </table>
               </div>
             </div>
-
           </div>
         </div>
       </div>
-
       <div id="modalOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
           <h3 id="modalTitle">Aviso</h3>
@@ -829,7 +805,6 @@
           <div class="modal-actions" id="modalActions"></div>
         </div>
       </div>
-
       <div id="editorOverlay" class="modal-overlay" aria-hidden="true">
         <div class="modal editor-modal" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
           <h3 id="editorTitle">Editar</h3>
@@ -852,12 +827,10 @@
                     <option value="SAIDA">Saída</option>
                   </select>
                 </div>
-
                 <div class="editor-item">
                   <label>Motivo</label>
                   <select id="editMovCategoria"></select>
                 </div>
-
                 <div class="editor-item">
                   <label>Qtd. Movimentada</label>
                   <input id="editMovQtd" type="number" min="0" step="1" value="0" />
@@ -865,7 +838,6 @@
               </div>
             </div>
           </div>
-
           <div class="modal-actions editor-actions">
             <button class="btn btn-sec" id="btnDescartarEdicao">Descartar edição</button>
             <button class="btn btn-prim" id="btnSalvarEdicao">Salvar</button>
@@ -944,7 +916,7 @@
     "ULT 06 - SOBRADINHO","ULT 07 - ADE","ULT 08 - ARAPOANGA","ULT 09 - CEI NORTE","ULT 10 - ESTRUTURAL",
     "ULT 11 - ITAPOA","ULT 12 - SAO SEBASTIAO","ULT 13 - RECANTO","ULT 14 - AGUAS LINDAS","ULT 15 - SOL NASCENTE",
     "ULT 16 - PARANOA PARK","ULT 17 - SAMAMBAIA","ULT 18 - BRAZLANDIA","ULT 19 - VIA PARK","ULT 20 - TAGUATINGA",
-    "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 25 - BRASILINHA",
+    "ULT 22 - VICENTE PIRES","ULT 23 - SANTA MARIA","ULT 24 - PAU BRASIL","ULT 25 - BRASILINHA",
   ];
 
   const MOV_OPCOES = [
